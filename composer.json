@@ -6,10 +6,17 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
+        "escarter/poppler-wrapper-php": "^1.0",
         "guzzlehttp/guzzle": "^7.2",
+        "laracasts/flash": "^3.2",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.2",
-        "laravel/tinker": "^2.8"
+        "laravel/tinker": "^2.8",
+        "laravel/ui": "^4.2",
+        "livewire/livewire": "^3.0",
+        "maatwebsite/excel": "^3.1",
+        "mikehaertl/php-pdftk": "^0.10.0",
+        "spatie/laravel-permission": "^5.11"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -26,7 +33,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Utils/Helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

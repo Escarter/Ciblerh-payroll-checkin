@@ -1,0 +1,178 @@
+<div wire:ignore.self class="modal side-layout-modal fade" id="EditEmployeeModal" tabindex="-1" aria-labelledby="modal-form" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered " role="document">
+        <div class="modal-content">
+            <div class="modal-body p-0">
+                <div class="p-3 p-lg-5">
+                    <div class="mb-4 mt-md-0">
+                        <h1 class="mb-0 h4">{{__('Update Employee')}}</h1>
+                        <p>{{__('Update employee details')}} &#128522;</p>
+                    </div>
+                    <x-form-items.form wire:submit="update" class="form-modal">
+                        <input type='hidden' name='employee_id' value="" id="EmployeeId">
+                        <div class="form-group mb-2 row">
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="company">{{__('Company')}}</label>
+                                <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? '' }}" disabled>
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="department">{{__('Department')}}</label>
+                                <select wire:model.live="department_id" class="form-select  @error('department_id') is-invalid @enderror">
+                                    <option value="">{{__("Select department")}}</option>
+                                    @foreach ($departments as $department)
+                                    <option value="{{$department->id}}">{{$department->name}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class='form-group row mb-2'>
+                            <div class='col-md-6'>
+                                <label for="service_id">{{__('Service')}}</label>
+                                <select wire:model.live="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
+                                    <option value="">{{__("Select service")}}</option>
+                                    @foreach ($services as $service)
+                                    <option value="{{$service->id}}" {{$service_id === $service->id? 'selected':''}}>{{$service->name}}</option>
+                                    @endforeach
+                                </select>
+                                @error('service_id')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6'>
+                                <label for="role_name">{{__('Role')}}</label>
+                                <select wire:model="role_name" name="role_name" class="form-select  @error('role_name') is-invalid @enderror">
+                                    <option value="">{{__("Select role")}}</option>
+                                    @foreach ($roles as $role)
+                                    <option value="{{$role->name}}">{{$role->name}}</option>
+                                    @endforeach
+                                </select>
+                                @error('role_name')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group mb-2 row">
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="first_name">{{__('First Name')}}</label>
+                                <input wire:model="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" placeholder="John" required="" name="first_name">
+                                @error('first_name')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="last_name">{{__('Last Name')}}</label>
+                                <input wire:model="last_name" type="text" class="form-control  @error('last_name') is-invalid @enderror" placeholder="Doe" required="" name="last_name">
+                                @error('last_name')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group mb-2 row">
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="matricule">{{__('Matricule')}}</label>
+                                <input wire:model="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" placeholder="1134578" required="" name="matricule">
+                                @error('matricule')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="email">{{__('Email')}}</label>
+                                <input wire:model="email" type="email" class="form-control @error('email') is-invalid @enderror" placeholder="example@company.com" required="" name="email">
+                                @error('email')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+
+                            </div>
+                        </div>
+                        <div class="form-group mb-2 row">
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="professional_phone_number">{{__('Prof Phone Number')}}</label>
+                                <input wire:model="professional_phone_number" type="text" class="form-control  @error('professional_phone_number') is-invalid @enderror" placeholder="2376xxxxxxxxx" name="professional_phone_number">
+                                @error('professional_phone_number')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="personal_phone_number">{{__('Personal Phone Number')}}</label>
+                                <input wire:model="personal_phone_number" type="text" class="form-control  @error('personal_phone_number') is-invalid @enderror" placeholder="2376xxxxxxxxx" name="personal_phone_number">
+                                @error('personal_phone_number')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="net_salary">{{__('Net Salary')}}</label>
+                            <input wire:model="net_salary" type="text" class="form-control  @error('net_salary') is-invalid @enderror" name="net_salary">
+                            @error('net_salary')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        <div class="form-group mb-2 row">
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="salary_grade">{{__('Salary Grade')}}</label>
+                                <input wire:model="salary_grade" type="text" class="form-control  @error('salary_grade') is-invalid @enderror" autofocus="" name="salary_grade">
+                                @error('salary_grade')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="position">{{__('Position')}}</label>
+                                <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position">
+                                @error('position')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group row mb-2">
+                            <div class='col'>
+                                <label for="work_start_time">{{__('Work start time')}}</label>
+                                <input wire:model="work_start_time" type="time" class="form-control  @error('work_start_time') is-invalid @enderror" value="{{now()->format('Y-m-d\TH:i')}}" min="{{now()->subMonths(1)->format('Y-m-d\TH:i')}}" max="{{now()->format('Y-m-d\TH:i')}}" required="">
+                                @error('work_start_time')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col'>
+                                <label for="work_end_time">{{__('Work end time')}}</label>
+                                <input wire:model="work_end_time" type="time" class="form-control  @error('work_end_time') is-invalid @enderror" value="{{now()->format('Y-m-d\TH:i')}}" min="{{now()->subMonths(1)->format('Y-m-d\TH:i')}}" max="{{now()->format('Y-m-d\TH:i')}}" required="">
+                                @error('work_end_time')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group mb-2 row">
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="status">{{__('Status')}}</label>
+                                <select wire:model="status" name="status" class="form-select  @error('status') is-invalid @enderror" required>
+                                    <option value="">{{__('Select status')}}</option>
+                                    <option value="true">{{__('Active')}}</option>
+                                    <option value="false">{{__('Banned')}}</option>
+                                </select>
+                                @error('status')
+                                <div class=" invalid-feedback">{{$message}}
+                                </div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="contract_end">{{__('Contract End Date')}}</label>
+                                <input wire:model="contract_end" type="date" class="form-control  @error('contract_end') is-invalid @enderror" autofocus="" name="contract_end">
+                                @error('contract_end')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="password">{{__('Reset Employee\'s Password')}}</label>
+                            <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password">
+                            @error('password')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" wire:click.prevent="close" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
+                            <button type="submit" wire:click.prevent="update" class="btn btn-primary " wire:loading.attr="disabled">{{__('Update')}}</button>
+                        </div>
+                    </x-form-items.form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

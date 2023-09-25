@@ -43,6 +43,24 @@ return [
             'visibility' => 'public',
             'throw' => false,
         ],
+        
+        'splitted' => [
+            'driver' => 'local',
+            'root' => storage_path('app/processor/splitted'),
+            'url' => env('APP_URL') . '/splitted',
+        ],
+        'modified' => [
+            'driver' => 'local',
+            'root' => storage_path('app/processor/modified'),
+            'url' => env('APP_URL') . '/modified',
+
+        ],
+        'raw' => [
+            'driver' => 'local',
+            'root' => storage_path('app/processor/raw'),
+            'url' => env('APP_URL') . '/raw',
+
+        ],
 
         's3' => [
             'driver' => 's3',
