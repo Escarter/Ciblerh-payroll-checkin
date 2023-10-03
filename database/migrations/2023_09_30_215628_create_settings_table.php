@@ -29,7 +29,6 @@ return new class extends Migration
             $table->string('replyTo_email')->nullable();
             $table->string('replyTo_name')->nullable();
             //sms 
-            $table->boolean('send_appointments_reminders')->default(0);
             $table->string('sms_provider_username')->nullable();
             $table->string('sms_provider_password')->nullable();
             $table->string('sms_provider_senderid')->nullable();

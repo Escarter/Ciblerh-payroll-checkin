@@ -9,6 +9,6 @@ Entrer le mot de passe reçu par sms<br>
 
 En cas de difficulté, prière de nous appeler ou nous écrire a travers les coordonnées ci-dessous:<br>
 
-Appel et sms: <a href="tel:691117316">691117316</a><br>
-Mail: <a href="mailto:helpdesk.crhe@groupe-cible.com">helpdesk.crhe@groupe-cible.com</a><br>
+Appel et sms: <a href="tel:"></a><br>
+Mail: <a href="mailto:helpdesk.">helpdesk.</a><br>
 @endcomponent

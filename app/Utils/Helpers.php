@@ -2,6 +2,8 @@
 
 use App\Models\User;
 use App\Models\AuditLog;
+use App\Models\Setting;
+use Illuminate\Support\Facades\Config;
 
 function initials($string)
 {
@@ -71,6 +73,23 @@ if (!function_exists('countPages')) {
     {
         $pdf = file_get_contents($path);
         return preg_match_all("/\/Page\W/", $pdf, $dummy);
+    }
+}
+if (!function_exists('setSavedSmtpCredentials')) {
+    function setSavedSmtpCredentials(): void
+    {
+        $setting = Setting::first();
+
+        if(!empty($setting)){
+
+            Config::set('mail.mailers.smtp.host', $setting->smtp_host);
+            Config::set('mail.mailers.smtp.port', $setting->smtp_port);
+            Config::set('mail.mailers.smtp.username', $setting->smtp_username);
+            Config::set('mail.mailers.smtp.password', $setting->smtp_password);
+            Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption);
+            Config::set('mail.mailers.smtp.transport', !empty($setting->smtp_provider) ? $setting->smtp_provider : 'smtp');
+        }
+
     }
 }
 

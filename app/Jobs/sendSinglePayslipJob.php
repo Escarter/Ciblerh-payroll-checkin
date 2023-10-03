@@ -54,6 +54,8 @@ class sendSinglePayslipJob implements ShouldQueue
 
         if (!is_null($this->employee->email)) {
 
+            setSavedSmtpCredentials();
+            
             Mail::to($this->employee->email)->send(new SendPayslip($this->employee, $destination, $this->record->month))->onQueue('emails');
 
             if (Mail::failures()) {

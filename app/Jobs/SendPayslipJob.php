@@ -115,6 +115,8 @@ class SendPayslipJob implements ShouldQueue
                         
                         if(!is_null($employee->email)){
 
+                            setSavedSmtpCredentials();
+
                             Mail::to($employee->email)->send(new SendPayslip($employee,$dest,$pay_month));
 
                             if(Mail::failures()){
