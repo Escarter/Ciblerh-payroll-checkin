@@ -22,4 +22,10 @@ trait WithDataTable {
         $this->dispatch('cancel', modalId: $modal);
         session()->flash('message', $message);
     }
+
+    public function updatingQuery()
+    {
+        $this->resetPage();
+    }
+ 
 }

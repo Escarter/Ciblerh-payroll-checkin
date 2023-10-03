@@ -57,7 +57,8 @@ class AuditLog extends Model
             'imported' => 'gray-400',
             'rejected' => 'danger',
             'approved' => 'success',
-            'sending' => 'warning'
+            'sending' => 'warning',
+            'type' => 'warning'
         ][$action];
     }
     public static function search($query)

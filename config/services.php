@@ -31,4 +31,7 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'nexah' => [
+        'api_url' => env('NEXAH_BASE_URL', 'https://smsvas.com/bulk/public/index.php/api/v1/'),
+    ]
 ];

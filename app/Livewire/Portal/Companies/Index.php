@@ -168,9 +168,15 @@ class Index extends Component
             'manager' => Company::search($this->query)->manager()->with(['employees','departments','services'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
             default=>[],
         };
+        $companies_count = match($this->role){
+            'admin' => Company::search($this->query)->count(),
+            'manager' => Company::search($this->query)->manager()->count(),
+            default=>[],
+        };
         
         return view('livewire.portal.companies.index',[
             'companies' => $companies,
+            'companies_count' => $companies_count,
         ])->layout('components.layouts.dashboard');
     }
 }

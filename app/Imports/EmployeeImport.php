@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\User;
 use App\Models\Company;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use App\Events\EmployeeCreated;
 use Illuminate\Support\Collection;
@@ -54,7 +55,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                 'first_name' => $row[0],
                 'last_name' => $row[1],
                 'email' => $row[2],
-                'phone_number' => $row[3],
+                'professional_phone_number' => $row[3],
                 'matricule' => $row[4],
                 'position' => $row[5],
                 'net_salary' => $row[6],
@@ -65,7 +66,10 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                 'service_id' => $row[10],
                 'status' => $row[12],
                 'password' => bcrypt($row[13]),
+                'remaining_leave_days' => $row[14],
+                'monthly_leave_allocation' => $row[15],
                 'author_id' => auth()->user()->id,
+                'pdf_password' => Str::random(10),
             ]);
 
             $user->assignRole($row[11]);
@@ -96,9 +100,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                 if ($contains) {
                     $onFailure(__('Role not found'));
                 }
-
             }
-            
         ];
     }
 }

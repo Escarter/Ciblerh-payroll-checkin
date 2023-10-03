@@ -12,8 +12,8 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Profile settings')}}</li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page" wire:navigate>{{__('Profile settings')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">

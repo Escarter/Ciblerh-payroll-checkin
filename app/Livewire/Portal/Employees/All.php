@@ -34,6 +34,8 @@ class All extends Component
     public $last_name = null;
     public $email = null;
     public $phone_number = null;
+    public $professional_phone_number = null;
+    public $personal_phone_number = null;
     public $net_salary = null;
     public $contract_end = null;
     public $matricule = null;
@@ -51,12 +53,11 @@ class All extends Component
     public $role = null;
     public $auth_role = null;
 
-    protected $listerners = ['forcedCloseModal' => 'clearFields'];
     //Update & Store Rules
     protected array $rules = [
         'first_name' => 'required',
         'last_name' => 'required',
-        'phone_number' => 'required',
+        'phone_number' => 'sometimes',
         'email' => 'required|email|unique:users',
     ];
 
@@ -94,9 +95,10 @@ class All extends Component
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'phone_number' => $this->phone_number,
+            'professional_phone_number' => $this->phone_number,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => bcrypt($this->password),
+            'pdf_password' => Str::random(10),
         ]);
 
         $user->assignRole($this->role_name);
@@ -123,7 +125,7 @@ class All extends Component
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'phone_number' => $this->phone_number,
+            'professional_phone_number' => $this->phone_number,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
         ]);
@@ -145,7 +147,7 @@ class All extends Component
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'phone_number' => $this->phone_number,
+            'professional_phone_number' => $this->phone_number,
             'matricule' => $this->matricule,
             'position' => $this->position,
             'net_salary' => $this->net_salary,
@@ -158,6 +160,7 @@ class All extends Component
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
+            'pdf_password' => Str::random(10),
         ]);
 
         if ($this->employee->getRoleNames()->first() != $this->role_name) {
@@ -190,10 +193,9 @@ class All extends Component
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
         $this->email = $employee->email;
-        $this->phone_number = $employee->phone_number;
+        $this->phone_number = $employee->professional_phone_number;
         $this->status = $employee->status;
         $this->role_name = $employee->getRoleNames()->first();
-    
     }
 
     public function initData($employee_id)
@@ -209,7 +211,8 @@ class All extends Component
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
         $this->email = $employee->email;
-        $this->phone_number = $employee->phone_number;
+        $this->professional_phone_number = $employee->professional_phone_number;
+        $this->personal_phone_number = $employee->personal_phone_number;
         $this->net_salary = $employee->net_salary;
         $this->salary_grade = $employee->salary_grade;
         $this->position = $employee->position;
@@ -233,7 +236,7 @@ class All extends Component
             auth()->user(),
             'employee_imported',
             'web',
-             __('Imported excel file for employees for company ') . $this->company->name
+            __('Imported excel file for employees for company ') . $this->company->name
         );
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('Employee successfully imported!'), 'importEmployeesModal');
@@ -245,7 +248,7 @@ class All extends Component
             auth()->user(),
             'employee_exported',
             'web',
-             __('Exported excel file for all employees')
+            __('Exported excel file for all employees')
         );
         return (new EmployeeExport($this->company, $this->query))->download('All-Employees-' . Str::random(5) . '.xlsx');
     }
@@ -262,6 +265,8 @@ class All extends Component
             'last_name',
             'email',
             'phone_number',
+            'professional_phone_number',
+            'personal_phone_number',
             'matricule',
             'position',
             'net_salary',
@@ -280,7 +285,7 @@ class All extends Component
             return abort(401);
         }
 
-        $employees  = match($this->auth_role){
+        $employees  = match ($this->auth_role) {
             'supervisor' => User::search($this->query)->supervisor()->with([
                 'company:id,name',
                 'department:id,name',
@@ -294,35 +299,35 @@ class All extends Component
                 'service:id,name',
                 'roles:id,name'
             ])->role(['employee', 'supervisor'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            
+
             'admin' => User::search($this->query)->with([
                 'company:id,name',
                 'department:id,name',
                 'service:id,name',
                 'roles:id,name'
-            ])->role(['admin','employee', 'supervisor','manager'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            default=> [],
+            ])->role(['admin', 'employee', 'supervisor', 'manager'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
+            default => [],
         };
 
-        $employees_count = match($this->auth_role) {
+        $employees_count = match ($this->auth_role) {
             'supervisor' => User::supervisor()->with('roles')->role(['employee'])->count(),
             'manager' => User::manager()->with('roles')->role(['employee', 'supervisor'])->count(),
-            'admin' => User::with('roles')->role(['admin','employee', 'supervisor', 'manager'])->count(),
-            default=> [],
+            'admin' => User::with('roles')->role(['admin', 'employee', 'supervisor', 'manager'])->count(),
+            default => [],
         };
-        $active_employees = match($this->auth_role) {
+        $active_employees = match ($this->auth_role) {
             'supervisor' => User::supervisor()->with('roles')->where('status', true)->role(['employee'])->count(),
             'manager' => User::manager()->with('roles')->where('status', true)->role(['employee', 'supervisor'])->count(),
             'admin' => User::with('roles')->where('status', true)->role(['admin', 'employee', 'supervisor', 'manager'])->count(),
-            default=> [],
+            default => [],
         };
-        $banned_employees = match($this->auth_role) {
+        $banned_employees = match ($this->auth_role) {
             'supervisor' => User::supervisor()->with('roles')->where('status', false)->role(['employee'])->count(),
             'manager' => User::manager()->with('roles')->where('status', false)->role(['employee', 'supervisor'])->count(),
             'admin' => User::with('roles')->where('status', false)->role(['admin', 'employee', 'supervisor', 'manager'])->count(),
-            default=> [],
+            default => [],
         };
-       
+
 
         return view('livewire.portal.employees.all', [
             'employees' => $employees,

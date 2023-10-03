@@ -16,8 +16,8 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item "><a href="{{route('portal.companies.index')}}">{{__('Companies')}}</a></li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
+                        <li class="breadcrumb-item "><a href="{{route('portal.companies.index')}}" wire:navigate>{{__('Companies')}}</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{__('Employees')}}</li>
                     </ol>
                 </nav>
@@ -40,14 +40,14 @@
                 </a>
                 @endhasrole
                 @endcan
-                @can('create-import')
+                @can('employee-import')
                 <a href="#" data-bs-toggle="modal" data-bs-target="#importEmployeesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg> {{__('Import')}}
                 </a>
                 @endcan
-                @can('export-read')
+                @can('employee-export')
                 <div class="mx-2" wire:loading.remove>
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center  {{count($employees) > 0 ? '' :'disabled'}}">
 
@@ -89,7 +89,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{__('Total Employees')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($employees_count)}}</h3>
                                 </a>
@@ -117,7 +117,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural(__('Employee'), $active_employees) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_employees)}}</h3>
                                 </a>
@@ -145,7 +145,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural(__('Employee'), $banned_employees) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($banned_employees)}} </h3>
                                 </a>
@@ -207,14 +207,16 @@
                         <th class="border-bottom">{{__('Role')}}</th>
                         <th class="border-bottom">{{__('Status')}}</th>
                         <th class="border-bottom">{{__('Date created')}}</th>
+                        @canany('employee-delete','employee-update')
                         <th class="border-bottom">{{__('Action')}}</th>
+                        @endcanany
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($employees as $employee)
                     <tr>
                         <td>
-                            <a href="{{ $employee->getRoleNames()->first() === 'employee' ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" class="d-flex align-items-center">
+                            <a href="{{ $employee->getRoleNames()->first() === 'employee' ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" wire:navigate class="d-flex align-items-center">
                                 <div class="avatar avatar-md d-flex align-items-center justify-content-center fw-bold fs-6 rounded bg-primary me-2"><span class="text-white">{{$employee->initials}}</span></div>
                                 <div class="d-block"><span class="fw-bolder fs-6">{{ucwords($employee->name)}}</span>
                                     <div class="small text-gray">
@@ -252,6 +254,7 @@
                         <td>
                             <span class="fw-normal">{{$employee->created_at->format('Y-m-d')}}</span>
                         </td>
+                        @canany('employee-delete','employee-update')
                         <td>
 
                             @can('employee-update')
@@ -283,9 +286,9 @@
                                 </svg>
                             </a>
                             @endif
-
                             @endcan
                         </td>
+                        @endcanany
                     </tr>
                     @empty
                     <tr>

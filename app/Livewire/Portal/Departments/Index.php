@@ -194,9 +194,16 @@ class Index extends Component
             "supervisor" => [],
            default => [],
         };
+        $departments_count = match ($this->role) {
+            "manager" => Department::search($this->query)->manager()->where('company_id', $this->company->id)->count(),
+            "admin" => Department::search($this->query)->where('company_id', $this->company->id)->count(),
+            "supervisor" => [],
+           default => [],
+        };
 
         return view('livewire.portal.departments.index', [
             'departments' => $departments,
+            'departments_count' => $departments_count,
         ])->layout('components.layouts.dashboard');
     }
 }

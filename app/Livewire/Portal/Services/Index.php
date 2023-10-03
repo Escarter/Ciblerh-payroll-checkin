@@ -44,7 +44,7 @@ class Index extends Component
 
         $this->service = $service;
         $this->name = $service->name;
-        $this->is_active = $service->is_active;
+        $this->is_active = $service->is_active == "true" ? true : false;
         // $this->selectedDepartmentId = $service->department_id;
     }
     public function store()
@@ -72,10 +72,9 @@ class Index extends Component
         }
         $this->validate();
 
-
         $this->service->update([
             'name' => $this->name,
-            'is_active' => $this->is_active,
+            'is_active' => $this->is_active == "true" ? 1 : 0,
         ]);
 
         $this->clearFields();

@@ -1,0 +1,100 @@
+<div wire:ignore.self class="modal side-layout-modal fade" id="EditLeaveModal" tabindex="-1" aria-labelledby="modal-form" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered " role="document">
+        <div class="modal-content">
+            <div class="modal-body p-0">
+                <div class="p-3 p-lg-4">
+                    <div class="mb-4 mt-md-0">
+                        <h1 class="mb-0 h4">{{__('Update or Approve Leave')}}</h1>
+                        <p>{{__('Upate or Approvel Employee Leave record')}} &#128522;</p>
+                    </div>
+                    <x-form-items.form wire:submit="update">
+                        <div class='row form-group mb-4'>
+                            <div class="col">
+                                <label for="user">{{__('Employee')}}</label>
+                                <input wire:model="user" type="text" class="form-control  @error('user') is-invalid @enderror " required="" name="user" disabled>
+                                @error('user')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class="col">
+                                <label for="user">{{__('Leave type')}}</label>
+                                <input wire:model="leave_type" type="text" class="form-control  @error('leave_type') is-invalid @enderror " required="" name="leave_type" disabled>
+                                @error('leave_type')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group row mb-4">
+                            <div class='col-md-6'>
+                                <label for="start_date">{{__('Start date')}}</label>
+                                <input wire:model="start_date" type="date" class="form-control  @error('start_date') is-invalid @enderror" required="" name="start_date">
+                                @error('start_date')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6'>
+                                <label for="end_date">{{__('End date')}}</label>
+                                <input wire:model="end_date" type="date" class="form-control  @error('end_date') is-invalid @enderror" required="" name="end_date">
+                                @error('end_date')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="leave_reason">{{__('Leave Reason')}}</label>
+                            <textarea wire:model="leave_reason" name="leave_reason" class="form-control  @error('leave_reason') is-invalid @enderror" id='' cols='3' rows='3'></textarea>
+                            @error('leave_reason')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        <h3 class="fw-bold fs-5">{{__('Approval section')}}</h3>
+                        <hr>
+                        @if($role === "supervisor")
+                        <div class='form-group mb-4'>
+                            <label for="supervisor_approval_status">{{__('Approval Status')}}</label>
+                            <select wire:model="supervisor_approval_status" name="supervisor_approval_status" class="form-select  @error('supervisor_approval_status') is-invalid @enderror" required="required">
+                                <option value="">{{__('Select status')}}</option>
+                                <option value="1">{{__('Approve')}}</option>
+                                <option value="2">{{__('Reject')}}</option>
+                            </select>
+                            @error('supervisor_approval_status')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="supervisor_approval_reason">{{__('Approval/Rejection Reason')}}</label>
+                            <textarea wire:model="supervisor_approval_reason" name="supervisor_approval_reason" class="form-control  @error('supervisor_approval_reason') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
+                            @error('supervisor_approval_reason')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        @else
+                        <div class='form-group mb-4'>
+                            <label for="manager_approval_status">{{__('Approval Status')}}</label>
+                            <select wire:model="manager_approval_status" name="manager_approval_status" class="form-select  @error('manager_approval_status') is-invalid @enderror">
+                                <option value="">{{__('Select status')}}</option>
+                                <option value="1">{{__('Approve')}}</option>
+                                <option value="2">{{__('Reject')}}</option>
+                            </select>
+                            @error('manager_approval_status')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="manager_approval_reason">{{__('Approval/Rejection Reason')}}</label>
+                            <textarea wire:model="manager_approval_reason" name="manager_approval_reason" class="form-control  @error('manager_approval_reason') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
+                            @error('manager_approval_reason')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        @endif
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
+                            <button type="submit" wire:click.prevent="update" class="btn btn-primary " wire:loading.attr="disabled">{{__('Confirm')}}</button>
+                        </div>
+                    </x-form-items.form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

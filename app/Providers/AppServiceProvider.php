@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Leave;
 use DatePeriod;
 use DateInterval;
 use App\Models\Ticking;
@@ -45,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
         //to be refactored
         Builder::macro('approvalStatusText', function ($status_owner = '', $type = '') {
             $model = $this->getModel();
-            if ($model instanceof Ticking) {
+            if ($model instanceof Ticking || $model instanceof  Leave) {
                 $match = match ($status_owner) {
                     'supervisor' => match ($model->supervisor_approval_status) {
                         $model::SUPERVISOR_APPROVAL_PENDING => __('Pending'),
@@ -81,7 +82,7 @@ class AppServiceProvider extends ServiceProvider
         });
         Builder::macro('approvalStatusStyle', function ($status_owner = '', $type = '') {
             $model = $this->getModel();
-            if ($model instanceof Ticking) {
+            if ($model instanceof Ticking || $model instanceof  Leave) {
                 $match = match ($status_owner) {
                     'supervisor' => match ($model->supervisor_approval_status) {
                         $model::SUPERVISOR_APPROVAL_PENDING => 'warning',

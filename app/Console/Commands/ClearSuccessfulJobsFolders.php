@@ -14,7 +14,7 @@ class ClearSuccessfulJobsFolders extends Command
      *
      * @var string
      */
-    protected $signature = 'ciblerh:clean-processed';
+    protected $signature = 'wima:clean-processed';
 
     /**
      * The console command description.

@@ -8,7 +8,7 @@
                         <li class="breadcrumb-item"><a href="#"><svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg></a></li>
-                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>Home</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{__('Payslips Management')}}</li>
                     </ol>
                 </nav>
@@ -64,6 +64,7 @@
                     <div class='form-group mb-4'>
                         <label for="month">{{__('Month')}}</label>
                         <select wire:model.live="month" class="form-select @error('month') is-invalid @enderror">
+                            <option value=''>{{__('--Select--')}}</option>
                             <option value='January'>{{__('January')}}</option>
                             <option value='February'>{{__('February')}}</option>
                             <option value='March'>{{__('March')}}</option>
@@ -119,7 +120,7 @@
                             <tr>
                                 <td>
                                     @if (!is_null($job->department))
-                                    <a href="/admin/payslips/{{$job->id}}/details" class="d-flex align-items-center">
+                                    <a href="/portal/payslips/{{$job->id}}/details" wire:navigate class="d-flex align-items-center">
                                         <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3 text-white"><span>{{initials($job->department->name)}}</span></div>
                                         <div class="d-block"><span class="fw-bold">{{$job->department->name}}</span>
                                             @hasanyrole('admin')

@@ -16,9 +16,9 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item "><a href="{{route('portal.companies.index')}}">{{__('Companies')}}</a></li>
-                        <li class="breadcrumb-item "><a href="{{route('portal.departments.index',['company_uuid' => $department->company->uuid])}}">{{__('Departments')}}</a></li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
+                        <li class="breadcrumb-item "><a href="{{route('portal.companies.index')}}" wire:navigate>{{__('Companies')}}</a></li>
+                        <li class="breadcrumb-item "><a href="{{route('portal.departments.index',['company_uuid' => $department->company->uuid])}}" wire:navigate>{{__('Departments')}}</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{__('Services')}}</li>
                     </ol>
                 </nav>
@@ -32,21 +32,21 @@
             </div>
             <div>
                 <div class="d-flex justify-content-between">
-                    @can('employee-create')
+                    @can('service-create')
                     <a href="#" data-bs-toggle="modal" data-bs-target="#CreateServiceModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg> {{__('New')}}
                     </a>
                     @endcan
-                    @can('import-read')
+                    @can('service-import')
                     <a href="#" data-bs-toggle="modal" data-bs-target="#importServicesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg> {{__('Import')}}
                     </a>
                     @endcan
-                    @can('export-read')
+                    @can('service-export')
                     <div class="mx-2" wire:loading.remove>
                         <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center">
                             <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -87,7 +87,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{__('Total Services')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($services_count)}}</h3>
                                 </a>
@@ -115,7 +115,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural('Services', $active_services) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_services)}}</h3>
                                 </a>
@@ -143,7 +143,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural(__('Service'), $inactive_services) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($inactive_services)}} </h3>
                                 </a>
@@ -200,7 +200,9 @@
                         <th class="border-bottom">{{__('Company')}}</th>
                         <th class="border-bottom">{{__('Status')}}</th>
                         <th class="border-bottom">{{__('Date created')}}</th>
+                        @canany('service-update','service-delete')
                         <th class="border-bottom">{{__('Action')}}</th>
+                        @endcanany
                     </tr>
                 </thead>
                 <tbody>
@@ -236,6 +238,7 @@
                         <td>
                             <span class="fw-normal">{{$service->created_at->format('Y-m-d')}}</span>
                         </td>
+                        @canany('service-update','service-delete')
                         <td>
                             @can('service-update')
                             <a href='#' wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#EditServiceModal">
@@ -252,6 +255,7 @@
                             </a>
                             @endcan
                         </td>
+                        @endcanany
                     </tr>
                     @empty
                     <tr>
@@ -265,7 +269,10 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class='d-flex justify-content-end pt-3 px-3 '>
+            <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
+                <div>
+                    {{__('Showing')}} {{$perPage > $services_count ? $services_count : $perPage  }} {{__(' items of ')}} {{$services_count}}
+                </div>
                 {{ $services->links() }}
             </div>
         </div>

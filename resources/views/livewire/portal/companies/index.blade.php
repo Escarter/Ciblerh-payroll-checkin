@@ -16,7 +16,7 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}">{{ __('Dashboard') }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{ __('Dashboard') }}</a></li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
@@ -28,18 +28,21 @@
                 <p class="mt-n2">{{__('Manage companies and their related details')}} &#128524;</p>
             </div>
             <div class="d-flex justify-content-between mb-2">
-
+                @can('company-create')
                 <a href="#" data-bs-toggle="modal" data-bs-target="#CreateCompanyModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg> {{__('New')}}
                 </a>
+                @endcan
+                @can('company-import')
                 <a href="#" data-bs-toggle="modal" data-bs-target="#importCompaniesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>{{__('Import')}}
                 </a>
-                @can('export-read')
+                @endcan
+                @can('company-export')
                 <div class="mx-2" wire:loading.remove>
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center {{count($companies) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -137,13 +140,13 @@
                 <hr>
                 <div class='d-flex align-items-center justify-content-between'>
                     <div>
-                        <a href="{{route('portal.departments.index',['company_uuid'=>$company->uuid])}}" class="btn btn-sm btn-outline-primary py-2 d-inline-flex align-items-center ">
+                        <a href="{{route('portal.departments.index',['company_uuid'=>$company->uuid])}}" wire:navigate class="btn btn-sm btn-outline-primary py-2 d-inline-flex align-items-center ">
                             <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
                             <div class="d-none d-md-block">{{__('Departments')}}</div>
                         </a>
-                        <a href="{{route('portal.employees.index',['company_uuid'=>$company->uuid])}}" class="btn btn-sm btn-outline-tertiary py-2 d-inline-flex align-items-center ">
+                        <a href="{{route('portal.employees.index',['company_uuid'=>$company->id])}}" wire:navigate class="btn btn-sm btn-outline-tertiary py-2 d-inline-flex align-items-center ">
                             <svg class="icon icon-xxs me-md-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                             </svg>
@@ -188,7 +191,11 @@
         @endforelse
 
     </div>
-    <div class='d-flex justify-content-end pt-3 px-3 '>
+    <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
+        <div>
+            {{__('Showing')}} {{$perPage > $companies_count ? $companies_count : $perPage  }} {{__(' items of ')}} {{$companies_count}}
+        </div>
         {{ $companies->links() }}
     </div>
+
 </div>

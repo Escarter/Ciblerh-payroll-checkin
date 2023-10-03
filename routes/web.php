@@ -33,36 +33,36 @@ Route::any('/logout', [LoginController::class, 'logout']);
 Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']], function () {
     Route::get('/dashboard', App\Livewire\Employee\Dashboard::class)->name('employee.dashboard');
 
-    // Route::get('/profile', App\Livewire\Employee\Profile::class)->name('employee.profile');
+    Route::get('/profile', App\Livewire\Employee\Profile::class)->name('employee.profile');
 
-    // //AuditLogs
-    // Route::prefix('auditlogs')->group(function () {
-    //     Route::get('/', App\Livewire\Employee\AuditLogs\Index::class)->name('employee.auditlogs');
-    // });
+    //AuditLogs
+    Route::prefix('auditlogs')->group(function () {
+        Route::get('/', App\Livewire\Employee\AuditLogs\Index::class)->name('employee.auditlogs');
+    });
 
 
-    // Route::prefix('checklogs')->group(function(){
-    //     Route::get('/', App\Livewire\Employee\Checklog\Index::class)->name('employee.checklogs');
-    // });
+    Route::prefix('checklogs')->group(function(){
+        Route::get('/', App\Livewire\Employee\Checklog\Index::class)->name('employee.checklogs');
+    });
 
-    // Route::prefix('overtimes')->group(function () {
-    //     Route::get('/', App\Livewire\Employee\Overtime\Index::class)->name('employee.overtimes');
-    // });
+    Route::prefix('overtimes')->group(function () {
+        Route::get('/', App\Livewire\Employee\Overtime\Index::class)->name('employee.overtimes');
+    });
 
-    // //Advance Salary
-    // Route::prefix('advance-salaries')->group(function () {
-    //     Route::get('/', App\Livewire\Employee\AdvanceSalary\Index::class)->name('employee.advance-salaries');
-    // });
+    //Advance Salary
+    Route::prefix('advance-salaries')->group(function () {
+        Route::get('/', App\Livewire\Employee\AdvanceSalary\Index::class)->name('employee.advance-salaries');
+    });
 
-    // Route::controller(AbsenceController::class)->group(function () {
-    //     Route::prefix('absences')->group(function () {
-    //         Route::get('/', 'index')->name('employee.absences');
-    //         Route::post('/', 'store')->name('employee.absence.store');
-    //         Route::get('/edit/{id}', 'edit')->name('employee.absence.edit');
-    //         Route::post('/update', 'update')->name('employee.absence.update');
-    //         Route::get('/destroy/{id}', 'destory')->name('employee.absence.destory');
-    //     });
-    // });
+    //Absences
+    Route::prefix('absences')->group(function () {
+        Route::get('/', App\Livewire\Employee\Absences\Index::class)->name('employee.absences');
+    });
+
+    //Leaves
+    Route::prefix('leaves')->group(function () {
+        Route::get('/', App\Livewire\Employee\Leaves\Index::class)->name('employee.leaves');
+    });
 
 });
 
@@ -127,10 +127,26 @@ Route::group(
             Route::get('/history', App\Livewire\Portal\Payslips\All::class)->name('portal.payslips.history');
         });
 
+        //Leave Management
+        Route::prefix('leaves')->group(function () {
+            Route::get('/', App\Livewire\Portal\Leaves\Index::class)->name('portal.leaves.index');
+            Route::get('/types', App\Livewire\Portal\Leaves\Types\Index::class)->name('portal.leaves.types');
+        });
+
         //AuditLogs
         Route::prefix('auditlogs')->group(function () {
             Route::get('/', App\Livewire\Portal\AuditLogs\Index::class)->name('portal.auditlogs.index');
         });
+
+        //roles
+        Route::prefix('roles')->group(function () {
+            Route::get('/', App\Livewire\Portal\Roles\Index::class)->name('portal.roles.index');
+        });
+        //Setting
+        Route::prefix('settings')->group(function () {
+            Route::get('/', App\Livewire\Portal\Settings\Index::class)->name('portal.settings.index');
+        });
+
 
         Route::get('/checkin-report-template',function(){
             $month = '2022-03';

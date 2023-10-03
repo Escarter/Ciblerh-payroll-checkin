@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Portal\Reports;
 
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Company;

@@ -11,7 +11,7 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{__('Employees Checkins Reports')}}</li>
                     </ol>
                 </nav>

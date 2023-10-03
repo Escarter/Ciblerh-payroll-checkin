@@ -15,7 +15,7 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{__('Employees Overtimes')}}</li>
                     </ol>
                 </nav>
@@ -28,7 +28,7 @@
                 <p class="mt-n1 mx-2">{{__('Manage Employees Overtimes')}} &#x23F0; </p>
             </div>
             <div>
-                @can('export-read')
+                @can('overtime-export')
                 <div class="mx-2" wire:loading.remove>
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center  {{count($overtimes) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -67,7 +67,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{__('Total Overtimes')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($overtimes_count)}}</h3>
                                 </a>
@@ -95,7 +95,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural(__('Overtimes'), $approved_overtimes_count) }} {{__('Approved')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($approved_overtimes_count)}}</h3>
                                 </a>
@@ -123,7 +123,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural(__('Overtime'), $pending_overtimes_count) }} {{__('pending')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($pending_overtimes_count)}}</h3>
                                 </a>
@@ -151,7 +151,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural(__('Overtime'), $rejected_overtimes_count) }} {{__('Rejected')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_overtimes_count)}} </h3>
                                 </a>
@@ -165,15 +165,16 @@
             </div>
         </div>
     </div>
-
-    <div class='px-3 pt-1'>
+    @can('overtime-update')
+    <div class='pt-1'>
         <button wire:click.prevent="initDataBulk('reject')" data-bs-toggle="modal" data-bs-target="#EditBulkOvertimeModal" class="btn btn-danger btn-md mb-2" {{ $bulkDisabled ? 'disabled' : null }}>{{__('Bulk Reject')}}
         </button>
 
         <button wire:click.prevent="initDataBulk('approve')" data-bs-toggle="modal" data-bs-target="#EditBulkOvertimeModal" class="btn btn-success text-white btn-md mb-2" {{ $bulkDisabled ? 'disabled' : null }}>{{__('Bulk Approve')}}
         </button>
     </div>
-    <div class="row p-3">
+    @endcan
+    <div class="row py-3">
         <div class="col-md-3">
             <label for="search">{{__('Search')}}: </label>
             <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
@@ -224,7 +225,9 @@
                         <th class="border-bottom">{{__('Hours Worked')}}</th>
                         <th class="border-bottom">{{__('Approval')}}</th>
                         <th class="border-bottom">{{__('Date created')}}</th>
+                        @canany('overtime-update','overtime-delete')
                         <th class="border-bottom">{{__('Action')}}</th>
+                        @endcanany
                     </tr>
                 </thead>
                 <tbody>
@@ -267,6 +270,7 @@
                         <td>
                             <span class="fw-normal">{{$overtime->created_at->format('Y-m-d')}}</span>
                         </td>
+                        @canany('overtime-update','overtime-delete')
                         <td>
                             @can('overtime-update')
                             <a href="#" wire:click="initData({{ $overtime->id }})" data-bs-toggle="modal" data-bs-target="#EditOvertimeModal">
@@ -283,6 +287,7 @@
                             </a>
                             @endcan
                         </td>
+                        @endcanany
                     </tr>
                     @endif
                     @empty
@@ -297,7 +302,10 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class='d-flex justify-content-end pt-3 px-3 '>
+            <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
+                <div>
+                    {{__('Showing')}} {{$perPage > $overtimes_count ? $overtimes_count : $perPage  }} {{__(' items of ')}} {{$overtimes_count}}
+                </div>
                 {{ $overtimes->links() }}
             </div>
         </div>

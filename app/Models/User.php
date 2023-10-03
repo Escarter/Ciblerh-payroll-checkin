@@ -127,9 +127,13 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->hasMany(SupervisorDepartment::class,'supervisor_id');
     }
 
+    public function leaves()
+    {
+        return $this->hasMany(Leave::class,'user_id');
+    }
     public function auditlogs()
     {
-        $this->hasMany(AuditLog::class,'user_id');
+        return $this->hasMany(AuditLog::class,'user_id');
     }
     public function company(): BelongsTo
     {

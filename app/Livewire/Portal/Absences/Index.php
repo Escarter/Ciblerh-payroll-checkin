@@ -168,6 +168,12 @@ class Index extends Component
             'admin' => Absence::search($this->query)->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
             default => [],
         };
+        $absences_count = match($this->role){
+            'supervisor' => Absence::search($this->query)->supervisor()->count(),
+            'manager' => Absence::search($this->query)->manager()->count(),
+            'admin' => Absence::search($this->query)->count(),
+            default => [],
+        };
 
         $pending_absences_count = match($this->role){
             'supervisor' => Absence::supervisor()->where('approval_status', Absence::APPROVAL_STATUS_PENDING)->count(),
@@ -192,6 +198,7 @@ class Index extends Component
        
         return view('livewire.portal.absences.index', [
             'absences' => $absences,
+            'absences_count' => $absences_count,
             'pending_absences_count' => $pending_absences_count,
             'approved_absences_count' => $approved_absences_count,
             'rejected_absences_count' => $rejected_absences_count,

@@ -145,6 +145,7 @@ class SendPayslipJob implements ShouldQueue
        return
         Payslip::create([
             'user_id' => $this->user_id,
+            'author_id' => $this->user_id,
             'send_payslip_process_id' => $this->process_id,
             'employee_id' => $employee->id,
             'first_name' => $employee->first_name,

@@ -27,6 +27,7 @@
                 <p class="mt-n1 mx-2">{{__('Manage Employees Advance salaries requests!')}} &#x23F0; </p>
             </div>
             <div class="mb-2 mx-3">
+                @can('advance_salary-export')
                 <div class="btn-toolbar" wire:loading.remove>
                     <a wire:click="export()" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -43,6 +44,7 @@
                         <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
                     </div>
                 </div>
+                @endcan
             </div>
         </div>
     </div>
@@ -65,11 +67,11 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{__('Total advance salaries')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat(count($advance_salaries))}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
+                                <div class="d-flex mt-1" style="font-size:x-small;">
                                     <div> {{__('recorded by employees')}}</div>
                                 </div>
                             </div>
@@ -88,16 +90,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Advance  salary'), $approved_advance_salaries_count) }} {{__('Approved')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('Approved')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($approved_advance_salaries_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Advance salary'), $approved_advance_salaries_count) }} {{__('Approved')}}</h2>
+                                <a href="#" class="d-none d-sm-block">
+                                    <h2 class="h5">{{__('Approved')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($approved_advance_salaries_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
+                                <div class="d-flex mt-1" style="font-size:x-small;">
                                     <div>{{ \Str::plural(__('Advance salary'), $approved_advance_salaries_count) }} {{__('you approved!')}}</div>
                                 </div>
                             </div>
@@ -116,16 +118,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Advance salary'), $pending_advance_salaries_count) }} {{__('pending')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('Pending')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($pending_advance_salaries_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Advance salary'), $pending_advance_salaries_count) }} {{__('pending')}}</h2>
+                                <a href="#" class="d-none d-sm-block">
+                                    <h2 class="h5">{{__('Pending')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($pending_advance_salaries_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
+                                <div class="d-flex mt-1" style="font-size:x-small;">
                                     <div> {{ \Str::plural(__('Advance salary'), $pending_advance_salaries_count) }} {{__('pending your validation')}}</div>
                                 </div>
                             </div>
@@ -144,16 +146,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Advance salary'), $rejected_advance_salaries_count) }} {{__('Rejected')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('Rejected')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($rejected_advance_salaries_count)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Advance salary'), $rejected_advance_salaries_count) }} {{__('Rejected')}}</h2>
+                                <a href="#" class="d-none d-sm-block">
+                                    <h2 class="h5"> {{__('Rejected')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_advance_salaries_count)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
+                                <div class="d-flex mt-1" style="font-size:x-small;">
                                     <div>{{ \Str::plural(__('Advance salary'), $rejected_advance_salaries_count) }} {{__('you rejected!')}}</div>
                                 </div>
                             </div>
@@ -164,14 +166,16 @@
         </div>
     </div>
     <x-alert />
-    <div class='px-3 pt-1'>
+    @can('advance_salary-update')
+    <div class='pt-1'>
         <button wire:click.prevent="initDataBulk('reject')" data-bs-toggle="modal" data-bs-target="#EditBulkAdvanceSalaryModal" class="btn btn-danger btn-md mb-2" {{ $bulkDisabled ? 'disabled' : null }}>{{__('Bulk Reject')}}
         </button>
 
         <button wire:click.prevent="initDataBulk('approve')" data-bs-toggle="modal" data-bs-target="#EditBulkAdvanceSalaryModal" class="btn btn-success text-white btn-md mb-2" {{ $bulkDisabled ? 'disabled' : null }}>{{__('Bulk Approve')}}
         </button>
     </div>
-    <div class="row p-3">
+    @endcan
+    <div class="row py-3">
         <div class="col-md-3">
             <label for="search">{{__('Search')}}: </label>
             <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
@@ -223,7 +227,9 @@
                         <th class="border-bottom">{{__('Repayment End')}}</th>
                         <th class="border-bottom">{{__('Status')}}</th>
                         <th class="border-bottom">{{__('Date created')}}</th>
+                        @canany('advance_salary-update','advance_salary-delete')
                         <th class="border-bottom">{{__('Action')}}</th>
+                        @endcanany
                     </tr>
                 </thead>
                 <tbody>
@@ -266,8 +272,9 @@
                         <td>
                             <span class="fw-normal">{{$advance_salary->created_at->format('Y-m-d')}}</span>
                         </td>
+                        @canany('advance_salary-update','advance_salary-delete','advance_salary-export')
                         <td>
-                            @can('advance_salary-update')
+                            @can('advance_salary-export')
                             <a href='#' class="text-info" wire:click="generatePDF({{ $advance_salary->id }})" wire:loading.remove>
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -296,6 +303,7 @@
                             </a>
                             @endcan
                         </td>
+                        @endcanany
                     </tr>
                     @empty
                     <tr>
@@ -309,7 +317,10 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class='d-flex justify-content-end pt-3 px-3 '>
+            <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
+                <div>
+                    {{__('Showing')}} {{$perPage > $advance_salaries_count ? $advance_salaries_count : $perPage  }} {{__(' items of ')}} {{$advance_salaries_count}}
+                </div>
                 {{ $advance_salaries->links() }}
             </div>
         </div>

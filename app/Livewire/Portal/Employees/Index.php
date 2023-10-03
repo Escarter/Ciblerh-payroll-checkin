@@ -36,6 +36,8 @@ class Index extends Component
     public $email = null;
     public $professional_phone_number = null;
     public $personal_phone_number = null;
+    public $remaining_leave_days = null;
+    public $monthly_leave_allocation = null;
     public $net_salary = null;
     public $contract_end = null;
     public $matricule = null;
@@ -57,6 +59,8 @@ class Index extends Component
         'first_name' => 'required',
         'last_name' => 'required',
         'professional_phone_number' => 'required',
+        'remaining_leave_days' => 'required',
+        'monthly_leave_allocation' => 'required',
         'net_salary' => 'required|integer',
         'email' => 'required|email|unique:users',
         'matricule' => 'required',
@@ -70,7 +74,7 @@ class Index extends Component
 
     public function mount($company_uuid)
     {
-        $this->company = Company::findByUuid($company_uuid);
+        $this->company = Company::findOrFail($company_uuid);
         $this->departments = $this->company->departments;
         $this->roles = auth()->user()->getRoleNames()->first() == 'admin' ? Role::orderBy('name', 'desc')->get() : Role::whereIn('name',['employee','supervisor'])->orderBy('name','desc')->get();
         $this->password = Str::random(15);
@@ -99,6 +103,8 @@ class Index extends Component
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
+            'remaining_leave_days' => $this->remaining_leave_days,
+            'monthly_leave_allocation' => $this->monthly_leave_allocation,
             'matricule' => $this->matricule,
             'position' => $this->position,
             'net_salary' => $this->net_salary,
@@ -111,6 +117,7 @@ class Index extends Component
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => bcrypt($this->password),
+            'pdf_password' => Str::random(10),
             'author_id' => auth()->user()->id,
         ]);
 
@@ -131,6 +138,8 @@ class Index extends Component
             'first_name' => 'required',
             'last_name' => 'required',
             'professional_phone_number' => 'required',
+            'remaining_leave_days' => 'required',
+            'monthly_leave_allocation' => 'required',
             'net_salary' => 'required|integer',
             'email' => ['required','email', Rule::unique('users')->ignore($this->employee->id)],
             'matricule' => 'required',
@@ -148,6 +157,8 @@ class Index extends Component
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
+            'remaining_leave_days' => $this->remaining_leave_days,
+            'monthly_leave_allocation' => $this->monthly_leave_allocation,
             'matricule' => $this->matricule,
             'position' => $this->position,
             'net_salary' => $this->net_salary,
@@ -160,6 +171,7 @@ class Index extends Component
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
+            'pdf_password' => Str::random(10),
         ]);
 
         if($this->employee->getRoleNames()->first() != $this->role_name){
@@ -195,6 +207,8 @@ class Index extends Component
         $this->email = $employee->email;
         $this->professional_phone_number = $employee->professional_phone_number;
         $this->personal_phone_number = $employee->personal_phone_number;
+        $this->remaining_leave_days = $employee->remaining_leave_days;
+        $this->monthly_leave_allocation = $employee->monthly_leave_allocation;
         $this->net_salary = $employee->net_salary;
         $this->salary_grade = $employee->salary_grade;
         $this->position = $employee->position;
@@ -250,6 +264,8 @@ class Index extends Component
             'email',
             'professional_phone_number',
             'personal_phone_number',
+            'remaining_leave_days',
+            'monthly_leave_allocation',
             'matricule',
             'position',
             'net_salary',
@@ -264,7 +280,7 @@ class Index extends Component
     }
     public function render()
     {
-        if (!Gate::allows('department-read')) {
+        if (!Gate::allows('employee-read')) {
             return abort(401);
         }
         $employees  = match ($this->auth_role) {

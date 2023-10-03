@@ -2,17 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Company;
-use App\Models\Department;
-use App\Models\Service;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\PermissionRegistrar;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -23,57 +18,198 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public function run()
     {
-        $config = Config::get('db_seeder.roles_structure');
+        $data = [
 
-        $mapPermission = collect(config('db_seeder.permissions_map'));
+            ['name' => 'user-read'],
+            ['name' => 'user-create'],
+            ['name' => 'user-update'],
+            ['name' => 'user-delete'],
 
-        foreach ($config as $key => $modules) {
+            ['name' => 'user-export'],
+            ['name' => 'user-import'],
 
-            // Create a new role
-            $role = Role::firstOrCreate(['name' => $key]);
+            ['name' => 'company-read'],
+            ['name' => 'company-create'],
+            ['name' => 'company-update'],
+            ['name' => 'company-delete'],
 
-            $permissions = [];
+            ['name' => 'company-import'],
+            ['name' => 'company-export'],
 
-            $this->command->info('Creating Role ' . strtoupper($key));
+            ['name' => 'department-read'],
+            ['name' => 'department-create'],
+            ['name' => 'department-update'],
+            ['name' => 'department-delete'],
 
-            // Reading role permission modules
-            foreach ($modules as $module => $value) {
+            ['name' => 'department-import'],
+            ['name' => 'department-export'],
 
-                foreach (explode(',', $value) as $p => $perm) {
+            ['name' => 'service-read'],
+            ['name' => 'service-create'],
+            ['name' => 'service-update'],
+            ['name' => 'service-delete'],
 
-                    $permissionValue = $mapPermission->get($perm);
+            ['name' => 'service-import'],
+            ['name' => 'service-export'],
 
-                    $permissions[] = Permission::firstOrCreate([
-                        'name' => $module . '-' . $permissionValue,
-                    ])->id;
+            ['name' => 'payslip-read'],
+            ['name' => 'payslip-create'],
+            ['name' => 'payslip-update'],
+            ['name' => 'payslip-delete'],
 
-                    $this->command->info('Creating Permission to ' . $permissionValue . ' for ' . $module);
-                }
-            }
+            ['name' => 'payslip-sending'],
+            ['name' => 'payslip-export'],
 
-            // Attach all permissions to the role
-            $role->permissions()->sync($permissions);
+            ['name' => 'audit_log-read_all'],
+            ['name' => 'audit_log-read_own_only'],
+            ['name' => 'audit_log-delete'],
 
-            if (Config::get('db_seeder.create_users')) {
-                $this->command->info("Creating '{$key}' user");
-                // Create default user for each role
-                $user = User::create([
-                    'uuid' => Str::uuid(),
-                    'first_name' => ucwords(str_replace('_', ' ', $key)),
-                    'last_name' => ucwords(str_replace('_', ' ', $key)),
-                    'email' => $key . '@app.com',
-                    'matricule' => Str::random(10),
-                    'personal_phone_number' => fake()->phoneNumber,
-                    'professional_phone_number' => fake()->phoneNumber,
-                    'pdf_password' => Str::random(10),
-                    'company_id'=> Company::pluck('id')->first(),
-                    'department_id'=> Department::pluck('id')->first(),
-                    'service_id'=> Service::pluck('id')->first(),
-                    'password' => bcrypt('password')
-                ]);
-                $user->assignRole($role);
-            }
+            ['name' => 'role-read'],
+            ['name' => 'role-create'],
+            ['name' => 'role-update'],
+            ['name' => 'role-delete'],
+
+            ['name' => 'role-import'],
+            ['name' => 'role-export'],
+
+            ['name' => 'advance_salary-read'],
+            ['name' => 'advance_salary-create'],
+            ['name' => 'advance_salary-update'],
+            ['name' => 'advance_salary-delete'],
+            ['name' => 'advance_salary-import'],
+            ['name' => 'advance_salary-export'],
+            
+            ['name' => 'profile-read'],
+            ['name' => 'profile-update'],
+            ['name' => 'profile-delete'],
+
+            ['name' => 'employee-read'],
+            ['name' => 'employee-create'],
+            ['name' => 'employee-update'],
+            ['name' => 'employee-delete'],
+            ['name' => 'employee-import'],
+            ['name' => 'employee-export'],
+
+            ['name' => 'absence-read'],
+            ['name' => 'absence-create'],
+            ['name' => 'absence-update'],
+            ['name' => 'absence-delete'],
+            ['name' => 'absence-export'],
+
+            ['name' => 'overtime-read'],
+            ['name' => 'overtime-create'],
+            ['name' => 'overtime-update'],
+            ['name' => 'overtime-delete'],
+            ['name' => 'overtime-import'],
+            ['name' => 'overtime-export'],
+
+            ['name' => 'ticking-read'],
+            ['name' => 'ticking-create'],
+            ['name' => 'ticking-update'],
+            ['name' => 'ticking-delete'],
+            ['name' => 'ticking-export'],
+            ['name' => 'ticking-import'],
+
+            ['name' => 'leave-read'],
+            ['name' => 'leave-create'],
+            ['name' => 'leave-update'],
+            ['name' => 'leave-delete'],
+            ['name' => 'leave-export'],
+            ['name' => 'leave-import'],
+
+            ['name' => 'leave_type-read'],
+            ['name' => 'leave_type-create'],
+            ['name' => 'leave_type-update'],
+            ['name' => 'leave_type-delete'],
+            ['name' => 'leave_type-export'],
+            ['name' => 'leave_type-import'],
+            
+            ['name' => 'setting-read'],
+            ['name' => 'setting-save'],
+            ['name' => 'setting-sms'],
+            ['name' => 'setting-smtp'],
+
+        ];
+
+        $insert_data = [];
+        $time_stamp = Carbon::now()->toDateTimeString();
+        foreach ($data as $d) {
+            $this->command->info('Creating Permissions');
+            Permission::firstOrCreate([
+                'name' => $d['name']
+            ],[
+                'guard_name' => 'web',
+                'created_at' => $time_stamp, 
+            ]);
         }
+        // $this->command->info('Creating Permissions');
+        // Permission::firstOrCr($insert_data);
+
+        $this->command->info('Creating Default Roles');
+
+        $this->command->info('Creating Admin\'s Role');
+        $admin = Role::firstOrCreate(['name' => 'admin']);
+
+        $this->command->info('Creating Manager\'s Role');
+        $manager = Role::firstOrCreate(['name' => 'manager']);
+
+        $this->command->info('Creating Supervisor User\'s Role');
+        $supervisor = Role::firstOrCreate(['name' => 'supervisor']);
+
+        $this->command->info('Creating employee\'s Role');
+        $user_role = Role::firstOrCreate(['name' => 'employee']);
+
+        $this->command->info('Syncing Permissions for default Roles');
+        $all_permissions = Permission::where('guard_name', 'web')->get();
+        $admin->syncPermissions($all_permissions);
+
+        $this->command->info('Syncing Permissions for default User Role');
+        $manager->syncPermissions([
+            'profile-read','profile-update', 'profile-delete',
+            'employee-read', 'employee-create', 'employee-update', 'employee-delete',
+            'absence-read', 'absence-create', 'absence-update', 'absence-delete',
+            'advance_salary-read', 'advance_salary-create', 'advance_salary-update', 'advance_salary-delete',
+            'company-read', 'company-create', 'company-update', 'company-delete',
+            'department-read', 'department-create', 'department-update', 'department-delete',
+            'service-read', 'service-create', 'service-update', 'service-delete',
+            'overtime-read', 'overtime-create', 'overtime-update', 'overtime-delete',
+            'ticking-read', 'ticking-create', 'ticking-update', 'ticking-delete',
+            'payslip-read', 'payslip-create', 'payslip-update', 'payslip-delete',
+            'leave_type-read', 'leave_type-create', 'leave_type-update', 'leave_type-delete',
+            'leave-read', 'leave-create', 'leave-update', 'leave-delete',
+            'role-read', 'role-create', 'role-update', 'role-delete',
+            'setting-read', 'setting-save', 'setting-sms', 'setting-smtp',
+        ]);
+
+        $this->command->info('Syncing Permissions for default User Role');
+        $supervisor->syncPermissions([
+            'profile-read', 'profile-update', 'profile-delete',
+            'employee-read', 'employee-create', 'employee-update', 'employee-delete',
+            'absence-read', 'absence-create', 'absence-update', 'absence-delete',
+            'advance_salary-read', 'advance_salary-create', 'advance_salary-update', 'advance_salary-delete',
+            'company-read', 'company-create', 'company-update', 'company-delete',
+            'department-read', 'department-create', 'department-update', 'department-delete',
+            'service-read', 'service-create', 'service-update', 'service-delete',
+            'overtime-read', 'overtime-create', 'overtime-update', 'overtime-delete',
+            'ticking-read', 'ticking-create', 'ticking-update', 'ticking-delete',
+            'payslip-read', 'payslip-create', 'payslip-update', 'payslip-delete',
+            'leave_type-read', 'leave_type-create', 'leave_type-update', 'leave_type-delete',
+            'leave-read', 'leave-create', 'leave-update', 'leave-delete',
+            'role-read', 'role-create', 'role-update', 'role-delete',
+            'setting-read', 'setting-save', 'setting-sms', 'setting-smtp',
+        ]);
+
+        $this->command->info('Syncing Permissions for default User Role');
+        $user_role->syncPermissions([
+            'profile-read', 'profile-update', 'profile-delete',
+            'absence-read', 'absence-create', 'absence-update', 'absence-delete',
+            'advance_salary-read', 'advance_salary-create', 'advance_salary-update', 'advance_salary-delete',
+            'overtime-read', 'overtime-create', 'overtime-update',
+            'ticking-read', 'ticking-create', 'ticking-update',
+            'payslip-read', 'payslip-create', 'payslip-update',
+            'leave-read', 'leave-create', 'leave-update', 'leave-delete',
+        ]);
+        
     }
 
     /**
@@ -86,6 +222,5 @@ class RolesAndPermissionsSeeder extends Seeder
         $this->command->info('Truncating User, Role and Permission tables');
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
     }
 }

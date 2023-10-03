@@ -99,6 +99,22 @@
                                 @enderror
                             </div>
                         </div>
+                        <div class="form-group mb-2 row">
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="remaining_leave_days">{{__('Total Leave Days')}}</label>
+                                <input wire:model="remaining_leave_days" type="number" class="form-control  @error('remaining_leave_days') is-invalid @enderror" placeholder="18" name="remaining_leave_days">
+                                @error('remaining_leave_days')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="monthly_leave_allocation">{{__('Monthly Allocations')}}</label>
+                                <input wire:model="monthly_leave_allocation" type="number" class="form-control  @error('monthly_leave_allocation') is-invalid @enderror" placeholder="1.5" name="monthly_leave_allocation">
+                                @error('monthly_leave_allocation')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
                         <div class="form-group mb-2">
                             <label for="net_salary">{{__('Net Salary')}}</label>
                             <input wire:model="net_salary" type="text" class="form-control  @error('net_salary') is-invalid @enderror" name="net_salary">

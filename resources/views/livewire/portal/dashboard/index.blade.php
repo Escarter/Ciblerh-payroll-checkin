@@ -74,11 +74,11 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="" class="d-none d-sm-block">
+                                    <a href="#" class="d-none d-sm-block">
                                         <h2 class="h5">{{__('Total Checkins')}}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($checklogs_count)}}</h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div>{{ __(\Str::plural(__('Total Checkin'), $checklogs_count)) }}</div>
                                     </div>
                                 </div>
@@ -102,11 +102,11 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="" class="d-none d-sm-block">
+                                    <a href="#" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Approved Checkin', $approved_checklogs_count)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($approved_checklogs_count)}}</h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div>{{ __(\Str::plural(__('Checkin'), $approved_checklogs_count)) }} {{__('you approved!')}}</div>
                                     </div>
                                 </div>
@@ -130,11 +130,11 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="" class="d-none d-sm-block">
+                                    <a href="#" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Pending Checkin', $pending_checklogs_count)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($pending_checklogs_count)}}</h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div>{{ __(\Str::plural('Checkin', $pending_checklogs_count)) }} {{__('pending your validation')}}</div>
                                     </div>
                                 </div>
@@ -158,11 +158,11 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="" class="d-none d-sm-block">
+                                    <a href="#" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Rejected Checkin', $rejected_checklogs_count)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_checklogs_count)}} </h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div>{{ __(\Str::plural('Checkin', $rejected_checklogs_count)) }} {{__('you rejected!')}}</div>
                                     </div>
                                 </div>
@@ -191,11 +191,11 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="" class="d-none d-sm-block">
+                                    <a href="#" class="d-none d-sm-block">
                                         <h2 class="h5">{{__('Companies')}}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($total_companies)}}</h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div>{{ \Str::plural(__('Company'), $total_companies) }} {{__('you manage')}}</div>
                                     </div>
                                 </div>
@@ -208,7 +208,7 @@
                     <div class="card border-0 shadow">
                         <div class="card-body">
                             <div class="row d-block d-xl-flex align-items-center">
-                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center ">
                                     <div class="icon-shape text-info rounded me-2 me-sm-0">
                                         <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
@@ -220,11 +220,11 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="" class="d-none d-sm-block">
+                                    <a href="#" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Department', $total_departments)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($total_departments)}}</h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div>{{ \Str::plural(__('Department'), $total_departments) }} {{__('for these companies!')}}</div>
                                     </div>
                                 </div>
@@ -248,11 +248,11 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="" class="d-none d-sm-block">
+                                    <a href="#" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Service', $total_services)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($total_services)}}</h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div>{{ __(\Str::plural('Service', $total_services)) }} {{__('for these departments')}}</div>
                                     </div>
                                 </div>
@@ -276,11 +276,11 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="" class="d-none d-sm-block">
+                                    <a href="#" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural(__('Employee'), $total_employees)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($total_employees)}} </h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div>{{ __(\Str::plural(__('Employee'), $total_employees)) }} {{__('you manage!')}}</div>
                                     </div>
                                 </div>

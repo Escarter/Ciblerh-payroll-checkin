@@ -33,8 +33,8 @@
                             <label for="is_active">{{__('Status')}}?</label>
                             <select wire:model="is_active" name="is_active" class="form-select  @error('is_active') is-invalid @enderror">
                                 <option value="">{{__('Select status')}}</option>
-                                <option value="1" {{$is_active == 1 ? 'selected' : ''}}>{{__('Active')}}</option>
-                                <option value="0" {{$is_active == 0 ? '' : 'selected'}}>{{__('Inactive')}}</option>
+                                <option value="1">{{__('Active')}}</option>
+                                <option value="0">{{__('Inactive')}}</option>
                             </select>
                             @error('is_active')
                             <div class="invalid-feedback">{{$message}}</div>

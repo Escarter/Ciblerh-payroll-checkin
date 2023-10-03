@@ -26,7 +26,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('ciblerh:clean-processed ')->dailyAt('01:30');
+        $schedule->command('wima:clean-processed ')->dailyAt('01:30');
     }
 
     /**

@@ -17,8 +17,8 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}">{{ __('Dashboard') }}</a></li>
-                        <li class="breadcrumb-item"><a href="{{route('portal.companies.index')}}">{{ __('Companies') }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{ __('Dashboard') }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('portal.companies.index')}}" wire:navigate>{{ __('Companies') }}</a></li>
                         <li class="breadcrumb-item active">{{ __('Departments') }}</li>
                     </ol>
                 </nav>
@@ -38,21 +38,21 @@
                     </svg> {{__('New')}}
                 </a>
                 @endcan
-                @can('import-read')
+                @can('department-update')
                 <a href="#" data-bs-toggle="modal" data-bs-target="#AssignSupModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                     </svg> {{__('Assign Supervisor')}}
                 </a>
                 @endcan
-                @can('import-read')
+                @can('department-import')
                 <a href="#" data-bs-toggle="modal" data-bs-target="#importDepartmentsModal" class="btn btn-sm btn-secondary py-2 d-inline-flex align-items-center">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg> {{__('Import')}}
                 </a>
                 @endcan
-                @can('export-read')
+                @can('department-export')
                 <div class="mx-2" wire:loading.remove>
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center {{count($departments) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -169,12 +169,13 @@
                 </div>
                 <hr>
                 <div class='d-flex align-items-center justify-content-between'>
-                    <a href="{{route('portal.services.index',['department_uuid'=>$department->uuid])}}" class="btn btn-sm btn-outline-gray-600 py-2 d-inline-flex align-items-center ">
+                    <a href="{{route('portal.services.index',['department_uuid'=>$department->uuid])}}" wire:navigate class="btn btn-sm btn-outline-gray-600 py-2 d-inline-flex align-items-center ">
                         <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                         <div class="d-none d-md-block">{{__('Services')}}</div>
                     </a>
+                    @canany('department-update','department-delete')
                     <div>
                         @can('department-update')
                         <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#EditDepartmentModal" draggable="false">
@@ -191,6 +192,7 @@
                         </a>
                         @endcan
                     </div>
+                    @endcanany
                 </div>
             </div>
         </div>
@@ -213,7 +215,10 @@
         @endforelse
 
     </div>
-    <div class='d-flex justify-content-end pt-3 px-3 '>
+    <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
+        <div>
+            {{__('Showing')}} {{$perPage > $departments_count ? $departments_count : $perPage  }} {{__(' items of ')}} {{$departments_count}}
+        </div>
         {{ $departments->links() }}
     </div>
 </div>

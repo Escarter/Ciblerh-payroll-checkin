@@ -18,7 +18,7 @@
                         </div>
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="bulkApproval" class="btn btn-{{$bulk_approval_status ? 'success' : 'danger'}} text-white btn-loading">{{$bulk_approval_status ? __('Approve') : __('Reject')}}</button>
+                            <button type="submit" wire:click.prevent="bulkApproval" class="btn btn-{{$bulk_approval_status ? 'success' : 'danger'}} text-white " wire:loading.attr="disabled">{{$bulk_approval_status ? __('Approve') : __('Reject')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

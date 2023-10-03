@@ -11,7 +11,7 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{__('Audit Logs')}}</li>
                     </ol>
                 </nav>
@@ -46,7 +46,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{__('Total Audit Logs')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat(count($logs))}}</h3>
                                 </a>
@@ -74,7 +74,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural(__('Creation Logs'), $creation_log_count) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($creation_log_count)}}</h3>
                                 </a>
@@ -102,7 +102,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural(__('Update Log'), $update_log_count) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($update_log_count)}}</h3>
                                 </a>
@@ -130,7 +130,7 @@
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
-                                <a href="" class="d-none d-sm-block">
+                                <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ \Str::plural(__('Deletion Log'), $deletion_log_count) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deletion_log_count)}} </h3>
                                 </a>
@@ -224,7 +224,10 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class='d-flex justify-content-end pt-3 px-3 '>
+            <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
+                <div>
+                    {{__('Showing')}} {{$perPage > $logs_count ? $logs_count : $perPage  }} {{__(' items of ')}} {{$logs_count}}
+                </div>
                 {{ $logs->links() }}
             </div>
         </div>

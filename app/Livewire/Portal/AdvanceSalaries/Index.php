@@ -214,6 +214,12 @@ class Index extends Component
                 "supervisor" => [],
                default => [],
         };
+        $advance_salaries_count = match($this->role) {
+                "manager" => AdvanceSalary::search($this->query)->manager()->count(),
+                "admin" => AdvanceSalary::search($this->query)->count(),
+                "supervisor" => [],
+               default => [],
+        };
         $pending_advance_salaries_count = match($this->role) {
                 "manager" => AdvanceSalary::manager()->where('approval_status', AdvanceSalary::APPROVAL_STATUS_PENDING)->count(),
                 "admin" => AdvanceSalary::where('approval_status', AdvanceSalary::APPROVAL_STATUS_PENDING)->count(),
@@ -236,6 +242,7 @@ class Index extends Component
 
         return view('livewire.portal.advance-salaries.index', [
             'advance_salaries' => $advance_salaries,
+            'advance_salaries_count' => $advance_salaries_count,
             'pending_advance_salaries_count' => $pending_advance_salaries_count,
             'approved_advance_salaries_count' => $approved_advance_salaries_count,
             'rejected_advance_salaries_count' => $rejected_advance_salaries_count,
