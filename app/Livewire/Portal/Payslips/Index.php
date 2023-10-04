@@ -3,19 +3,19 @@
 namespace App\Livewire\Portal\Payslips;
 
 use App\Models\Company;
+use App\Models\Setting;
 use Livewire\Component;
 use App\Models\Department;
 use Illuminate\Support\Str;
-use Livewire\WithPagination;
-use Livewire\WithFileUploads;
 use App\Models\SendPayslipProcess;
 use Illuminate\Support\Facades\Gate;
 use App\Jobs\Plan\PayslipSendingPlan;
+use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
 
 class Index extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithDataTable;
     
     public $companies = [];
     public $departments = [];
@@ -58,6 +58,25 @@ class Index extends Component
             'month' => 'required',
             'payslip_file' => 'required|mimes:pdf'
         ]);
+
+        $setting = Setting::first();
+        
+        if(!empty($setting)){
+          
+
+            if (empty($setting->smtp_host) && empty($setting->smtp_port)) {
+                session()->flash('error', __('Setting for SMTP required!!'));
+                return;
+            }
+
+            if (empty($setting->sms_provider_username) && empty($setting->sms_provider_password)) {
+                session()->flash('error', __('Setting for SMS required!'));
+                return;
+            }
+        }else{
+            session()->flash('error', __('Setting for SMS and SMTP configurations required!!'));
+            return;
+        }
 
         $raw_file_path = $this->payslip_file->store(auth()->user()->id, 'raw');
 

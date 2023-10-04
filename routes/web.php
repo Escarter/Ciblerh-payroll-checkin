@@ -59,6 +59,10 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']]
         Route::get('/', App\Livewire\Employee\Absences\Index::class)->name('employee.absences');
     });
 
+    //Payslip
+    Route::prefix('payslips')->group(function () {
+        Route::get('/', App\Livewire\Employee\Payslip\Index::class)->name('employee.payslips');
+    });
     //Leaves
     Route::prefix('leaves')->group(function () {
         Route::get('/', App\Livewire\Employee\Leaves\Index::class)->name('employee.leaves');

@@ -1,6 +1,7 @@
 <div>
     @include('livewire.portal.employees.others.create-employee')
     @include('livewire.portal.employees.others.edit-employee')
+    @include('livewire.portal.employees.manager.edit-manager')
     @include('livewire.portal.employees.others.import-employees')
     @include('livewire.partials.delete-modal')
     <div class='p-0'>
@@ -269,7 +270,7 @@
                             </a>
                             @endif
                             @endcan
-                            
+
                             @can('employee-delete')
                             @if($employee->getRoleNames()->first() === 'manager' || $employee->getRoleNames()->first() === 'admin')
                             <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">

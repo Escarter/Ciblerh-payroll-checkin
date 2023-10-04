@@ -31,6 +31,7 @@ class Index extends Component
     public $replyTo_email;
     public $replyTo_name;
     public $test_email_address;
+    public $test_phone_number;
 
     public function mount() {
 
@@ -92,8 +93,8 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('Setting for SMTP successfully added!'),'');
     }
 
-     public function sendTestEmail()
-     {
+    public function sendTestEmail()
+    {
         $setting = Setting::first();
 
         $this->validate(['test_email_address'=>'required|email']);
@@ -108,7 +109,34 @@ class Index extends Component
         Mail::to($this->test_email_address)->send(new TestEmail);
 
         $this->closeModalAndFlashMessage(__('TestEmail sent successfully!'), '');
-     }
+    }
+
+    public function sendTestSms()
+    {
+        $setting = Setting::first();
+
+        $this->validate(['test_phone_number'=>'required|integer']);
+
+        if (!empty($this->setting)) {
+            if (empty($setting->sms_provider_username) && empty($setting->sms_provider_password)) {
+                $this->closeModalAndFlashMessage(__('Setting for SMS required!'), '');
+            }
+
+            $sms_client = new Nexah($setting);
+
+            $response = $sms_client->sendSMS([
+                'sms' =>  'This is a test sms!',
+                'mobiles' => $this->test_phone_number,
+            ]);
+
+            if ($response['responsecode'] === 1) {
+                $this->closeModalAndFlashMessage(__('TestSms sent successfully!'), '');
+            } else {
+                $this->closeModalAndFlashMessage(__('TestSms sent Failed!'), '');
+            }
+        }
+    }
+
 
     public function render()
     {
@@ -118,7 +146,7 @@ class Index extends Component
 
         if (!empty($this->setting)) {
 
-            if (!is_null($this->setting->sms_provider_username) && !is_null($this->setting->sms_provider_password)) {
+            if (!empty($this->setting->sms_provider_username) && !empty($this->setting->sms_provider_password)) {
                 $sms_client = new Nexah($this->setting);
 
                 $response = $sms_client->getBalance();

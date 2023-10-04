@@ -8,7 +8,7 @@
                     <div class="py-4 px-5 card-body">
                         <div class="card-title h5 ">{{__('SMS Package Configuration')}} </div>
                         <x-form-items.form wire:submit="saveSmsConfig">
-                            <div class='form-group row mb-2'>
+                            <div class='form-group row mb-4'>
                                 <div class='col'>
                                     <label for="sms_provider_username">{{ __('SMS Provider') }}</label>
                                     <input type="text" class="form-control w-100" value="NEXAH" disabled>
@@ -19,7 +19,7 @@
                                     <input wire:model="sms_provider_username" type="text" class="form-control w-100 @error('sms_provider_username') is-invalid @enderror" required autofocus>
                                 </div>
                             </div>
-                            <div class='form-group row mb-2'>
+                            <div class='form-group row mb-4'>
                                 <div class="col">
                                     <label for="sms_provider_password">{{ __('Package password') }}</label>
                                     <input wire:model="sms_provider_password" type="text" class="form-control w-100 @error('sms_provider_password') is-invalid @enderror" required autofocus>
@@ -41,12 +41,26 @@
             <div class="col-lg-5">
                 <!-- Notifications preferences card-->
                 <div class="mb-5 card card-raised">
-                    <div class="p-3 text-center card-body">
-                        <p class='display-4 pt-5'>
-                            {{ $sms_balance }}
-                        </p>
-                        <div class="card-title">{{__('SMS Balance')}}</div>
-                        <div class="mb-4 text-muted text-xs">{{__('You can check the detail of SMS sent on sms management section')}}.</div>
+                    <div class="px-3 pt-3 card-body">
+                        <div class='text-center'>
+                            <p class='display-4'>
+                                {{ $sms_balance }}
+                            </p>
+                            <div class="card-title">{{__('SMS Balance')}}</div>
+                            <div class="mb-2 text-muted text-xs">{{__('You can check the detail of SMS sent on sms management section')}}.</div>
+                        </div>
+                        <x-form-items.form wire:submit="sendTestSms" class="px-4">
+                            <div class="form-group mb-2">
+                                <label for="test_phone_number">{{ __('Enter Phone number') }}</label>
+                                <input wire:model="test_phone_number" type="text" class="form-control w-100 @error('test_phone_number') is-invalid @enderror" required autofocus>
+                            </div>
+
+                            <div class="mt-4 mb-0 form-group d-flex justify-content-end">
+                                <button type="submit" wire:click.prevent="sendTestSms" class="btn btn-primary">
+                                    {{ __('Send Test Sms') }}
+                                </button>
+                            </div>
+                        </x-form-items.form>
                     </div>
                 </div>
             </div>
@@ -112,16 +126,16 @@
                                     <li>{{__('Create also password for the given user')}}</li>
                                     <li>{{__('Copy the smtp host and port provider by your provider')}}</li>
                                     <li>{{__('Now put these values in the fields configuration and save')}}</li>
-                                    <li>{{__('Lastly send a test email by using the form below')}}</li>
+                                    <li>{{__('Use below form to test email configurations.')}}</li>
                                 </ol>
                             </div>
-                            <x-form-items.form wire:submit="sendTestEmail" class="p-4">
+                            <x-form-items.form wire:submit="sendTestEmail" class="px-4 ">
                                 <div class="form-group mb-2">
                                     <label for="test_email_address">{{ __('Enter Email Address') }}</label>
-                                    <input wire:model="test_email_address" type="text" class="form-control w-100 @error('test_email_address') is-invalid @enderror" required autofocus>
+                                    <input wire:model="test_email_address" type="email" class="form-control w-100 @error('test_email_address') is-invalid @enderror" required autofocus>
                                 </div>
 
-                                <div class="mt-4 mb-0 form-group d-flex justify-content-end">
+                                <div class="mt-3 mb-0 form-group d-flex justify-content-end">
                                     <button type="submit" wire:click.prevent="sendTestEmail" class="btn btn-primary">
                                         {{ __('Send Test Email') }}
                                     </button>

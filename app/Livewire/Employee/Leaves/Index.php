@@ -7,6 +7,7 @@ use Livewire\Component;
 use App\Models\LeaveType;
 use Illuminate\Support\Facades\Gate;
 use App\Livewire\Traits\WithDataTable;
+use Carbon\Carbon;
 
 class Index extends Component
 {
@@ -18,7 +19,24 @@ class Index extends Component
     public  $leave_type_id;
     public  $types;
     public  $leave_reason;
+    public  $interval;
     public ?Leave $leave = null;
+
+
+    public function updatedEndDate($value)
+    {
+        if(!empty($value))
+        {
+            $this->interval = Carbon::parse($this->start_date)->lt(Carbon::parse($this->end_date)) ? __('Selected Leave days are '). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->start_date)) . '</strong>'.__(' days'): __('Start date must be less than end_date');
+        }
+    }
+    public function updatedStartDate($value)
+    {
+        if(!empty($value))
+        {
+            $this->interval = Carbon::parse($value)->lt(Carbon::parse($this->end_date)) ? __('Selected Leave days are '). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->end_date)) .'</strong>'.__(' days'): __('Start date must be less than end_date');
+        }
+    }
 
     public function mount()
     {
@@ -33,7 +51,7 @@ class Index extends Component
 
         $this->validate([
             'start_date' => 'required|date',
-            'end_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
             'leave_type_id' => 'required',
             'leave_reason' => 'required',
         ]);
@@ -73,7 +91,7 @@ class Index extends Component
 
         $this->validate([
             'start_date' => 'required|date',
-            'end_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
             'leave_type_id' => 'required',
             'leave_reason' => 'required',
         ]);
@@ -113,6 +131,7 @@ class Index extends Component
             'end_date',
             'leave_type_id',
             'leave_reason',
+            'interval',
         ]);
     }
 

@@ -33,7 +33,6 @@ class All extends Component
     public $first_name = null;
     public $last_name = null;
     public $email = null;
-    public $phone_number = null;
     public $professional_phone_number = null;
     public $personal_phone_number = null;
     public $net_salary = null;
@@ -57,8 +56,9 @@ class All extends Component
     protected array $rules = [
         'first_name' => 'required',
         'last_name' => 'required',
-        'phone_number' => 'sometimes',
-        'email' => 'required|email|unique:users',
+        'professional_phone_number' => 'required',
+        'personal_phone_number' => 'required',
+        'email' => 'required|email',
     ];
 
     public function mount()
@@ -86,7 +86,7 @@ class All extends Component
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
-            'phone_number' => 'required',
+            'personal_phone_number' => 'required',
             'password' => 'required',
             'email' => 'required|email|unique:users',
         ]);
@@ -95,7 +95,8 @@ class All extends Component
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'professional_phone_number' => $this->phone_number,
+            'professional_phone_number' => $this->professional_phone_number,
+            'personal_phone_number' => $this->personal_phone_number,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => bcrypt($this->password),
             'pdf_password' => Str::random(10),
@@ -117,7 +118,8 @@ class All extends Component
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
-            'phone_number' => 'required',
+            'professional_phone_number' => 'required',
+            'personal_phone_number' => 'required',
             'email' => 'required|email',
         ]);
 
@@ -125,7 +127,8 @@ class All extends Component
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'professional_phone_number' => $this->phone_number,
+            'professional_phone_number' => $this->professional_phone_number,
+            'personal_phone_number' => $this->personal_phone_number,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
         ]);
@@ -147,7 +150,8 @@ class All extends Component
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'professional_phone_number' => $this->phone_number,
+            'professional_phone_number' => $this->professional_phone_number,
+            'personal_phone_number' => $this->personal_phone_number,
             'matricule' => $this->matricule,
             'position' => $this->position,
             'net_salary' => $this->net_salary,
@@ -264,7 +268,6 @@ class All extends Component
             'first_name',
             'last_name',
             'email',
-            'phone_number',
             'professional_phone_number',
             'personal_phone_number',
             'matricule',

@@ -1,8 +1,9 @@
 <?php 
 
 use App\Models\User;
-use App\Models\AuditLog;
 use App\Models\Setting;
+use App\Services\Nexah;
+use App\Models\AuditLog;
 use Illuminate\Support\Facades\Config;
 
 function initials($string)
@@ -31,34 +32,37 @@ if (!function_exists('auditLog')) {
     }
 }
 
-if (!function_exists('sendSms')) {
-    function sendSms($emp, $month = '')
-    {
-        $phone = !empty($emp->professional_phone_number) ? $emp->professional_phone_number : $emp->personal_phone_number;
-
-        if (!empty($month)) {
-            $year = now()->year;
-        } else {
-            $year = '';
-        }
-
-        $message = "Mr/Mme " . trim($emp->name) . ", votre bulletin de paie du mois de {$month}-{$year} a été envoyé dans votre boite mail. Veuillez utiliser le mot de passe suivant : {$emp->pdf_password} pour le consulter. ";
-        $endpoint = "https://sms.etech-keys.com/ss/api.php?login=691911568&password=ciblerh&sender_id=CibleRH&destinataire={$phone}&message={$message}&ext_id=" . Str::random(10) . "&programmation=0";
-
-        return Http::get($endpoint);
-    }
-}
 if (!function_exists('sendSmsAndUpdateRecord')) {
     function sendSmsAndUpdateRecord($emp, $month, $record)
     {
-        if (
-            !empty($emp->professional_phone_number) ||
-            !empty($emp->personal_phone_number)
-        ) {
-            // global sendSms method found in helper.php
-            $response = sendSms($emp, $month);
+        $setting = Setting::first();
 
-            if ($response->ok()) {
+        if ( !empty($emp->professional_phone_number) || !empty($emp->personal_phone_number) ) {
+
+            $phone = !empty($emp->professional_phone_number) ? $emp->professional_phone_number : $emp->personal_phone_number;
+
+            if (!empty($month)) {
+                $year = now()->year;
+            } else {
+                $year = '';
+            }
+
+            $sms_client = new Nexah($setting);
+
+            $message = '';
+
+            if($emp->preferred_language === 'en'){
+                $message = "Mr/Mrs" . trim($emp->name) . ", your pay slip for the month of {$month}-{$year} has been sent to your mailbox. Please use the following password: {$emp->pdf_password} to view it. ";
+            }else{
+                $message = "Mr/Mme " . trim($emp->name) . ", votre bulletin de paie du mois de {$month}-{$year} a été envoyé dans votre boite mail. Veuillez utiliser le mot de passe suivant : {$emp->pdf_password} pour le consulter. ";
+            }
+
+            $response = $sms_client->sendSMS([
+                    'sms' =>  $message,
+                    'mobiles' => $phone,
+                ]);
+
+            if ($response['responsecode'] === 1) {
                 $record->update(['sms_sent_status' => 'successful']);
             } else {
                 $record->update(['sms_sent_status' => 'failed', 'failure_reason' => __('Failed sending SMS')]);

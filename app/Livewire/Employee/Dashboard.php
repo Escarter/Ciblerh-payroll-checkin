@@ -14,8 +14,9 @@ class Dashboard extends Component
         $total_advance_salary = $user->advanceSalaries()->count();
         $total_absences = $user->absences()->count();
         $total_checklogs = $user->tickings()->count();
+        $total_payslips = $user->payslips()->count();
         $logs = AuditLog::where('user_id', $user->id)->orderBy('created_at', 'desc')->get()->take(10);
     
-        return view('livewire.employee.dashboard', compact('user', 'total_overtime', 'total_advance_salary', 'total_absences', 'total_checklogs', 'logs'))->layout('components.layouts.employee.master');
+        return view('livewire.employee.dashboard', compact('user', 'total_overtime','total_payslips',  'total_advance_salary', 'total_absences', 'total_checklogs', 'logs'))->layout('components.layouts.employee.master');
     }
 }

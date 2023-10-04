@@ -1,14 +1,14 @@
 @component('mail::message')
-# Cher {{$employee->name}},
+# {{__('Dear')}} {{$employee->name}},
 
-Veuillez trouver en fichier joint votre bulletin de paie,<br>
-Comment ouvrir votre bulletin:<br>
+{{__('Please find your pay slip attached,')}}<br>
+{{__('How to open your pay slip')}}:<br>
 
-Télécharger le document PDF joint au mail. On vous demandera votre mot de passe<br>
-Entrer le mot de passe reçu par sms<br>
+{{__('Download the PDF document attached to the email. You will be asked for your password')}}<br>
+{{__('Enter the password received by SMS')}}<br>
 
-En cas de difficulté, prière de nous appeler ou nous écrire a travers les coordonnées ci-dessous:<br>
+{{__('In case of difficulty, please call us or write to us using the contact details below')}}:<br>
 
-Appel et sms: <a href="tel:"></a><br>
+{{__('Call and text')}}: <a href="tel:"></a><br>
 Mail: <a href="mailto:helpdesk.">helpdesk.</a><br>
 @endcomponent

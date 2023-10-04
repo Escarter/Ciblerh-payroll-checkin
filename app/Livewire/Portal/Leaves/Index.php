@@ -148,6 +148,8 @@ class Index extends Component
                         'manager_approval_status' => $this->manager_approval_status,
                         'manager_approval_reason' => $this->manager_approval_reason,
                     ]);
+
+                    $this->leave->user->decrement('remaining_leave_days', Carbon::parse($this->leave->start_date)->diffInDays(Carbon::parse( $this->leave->end_date)));
                 }
             );
         }

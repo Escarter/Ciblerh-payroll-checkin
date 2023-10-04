@@ -465,5 +465,11 @@
     "Departments Management":"Gestion des départements",
     "Manage Services for the":"Gérer les services pour le",
     "department":"département",
-    "Exported excel file for all employees":"Fichier Excel exporté pour tous les employés"
+    "Exported excel file for all employees":"Fichier Excel exporté pour tous les employés",
+    "Please find your pay slip attached,":"Veuillez trouver en fichier joint votre bulletin de paie,",
+    "How to open your pay slip": "Comment ouvrir votre bulletin",
+    "Download the PDF document attached to the email. You will be asked for your password":"Télécharger le document PDF joint au mail. On vous demandera votre mot de passe",
+    "Enter the password received by SMS":"Entrer le mot de passe reçu par sms",
+    "In case of difficulty, please call us or write to us using the contact details below": "En cas de difficulté, prière de nous appeler ou nous écrire a travers les coordonnées ci-dessous",
+    "Call and text":"Appel et sms"
 }

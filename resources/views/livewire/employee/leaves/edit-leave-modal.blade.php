@@ -23,14 +23,14 @@
                         <div class='form-group row mb-4'>
                             <div class="col ">
                                 <label for="start_date">{{__('Leave Date')}}</label>
-                                <input type="date" wire:model.defer="start_date" class="form-control  @error('start_date') is-invalid @enderror" required="">
+                                <input type="date" wire:model.live="start_date" class="form-control  @error('start_date') is-invalid @enderror" required="">
                                 @error('start_date')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class="col">
                                 <label for="end_date">{{__('Leave Date')}}</label>
-                                <input type="date" wire:model.defer="end_date" class="form-control  @error('end_date') is-invalid @enderror" required="">
+                                <input type="date" wire:model.live="end_date" class="form-control  @error('end_date') is-invalid @enderror" required="">
                                 @error('end_date')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -44,6 +44,9 @@
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
+                            <div>
+                                @if($interval) {!! $interval !!} @endif
+                            </div>
                             <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
                             <button type="submit" wire:click.prevent="update" class="btn btn-primary" wire:loading.attr="disabled">{{__('Update')}}</button>
                         </div>

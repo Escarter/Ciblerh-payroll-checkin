@@ -223,6 +223,48 @@ class Index extends Component
         $this->role_name = $employee->getRoleNames()->first();
     }
 
+    public function initDataManager($employee_id)
+    {
+        $employee = User::findOrFail($employee_id);
+
+        $this->employee = $employee;
+        $this->first_name = $employee->first_name;
+        $this->last_name = $employee->last_name;
+        $this->email = $employee->email;
+        $this->phone_number = $employee->professional_phone_number;
+        $this->status = $employee->status;
+        $this->role_name = $employee->getRoleNames()->first();
+    }
+
+    public function updateManager()
+    {
+        if (!Gate::allows('employee-update')) {
+            return abort(401);
+        }
+
+        $this->validate([
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'professional_phone_number' => 'required',
+            'personal_phone_number' => 'required',
+            'email' => 'required|email',
+        ]);
+
+        $this->employee->update([
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'email' => $this->email,
+            'professional_phone_number' => $this->professional_phone_number,
+            'personal_phone_number' => $this->personal_phone_number,
+            'status' => $this->status === "true" ?  1 : 0,
+            'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
+        ]);
+
+        $this->employee->assignRole($this->role_name);
+
+        $this->clearFields();
+        $this->closeModalAndFlashMessage(__('Manager updated successfully!'), 'EditManagerModal');
+    }
     public function import()
     {
         $this->validate([

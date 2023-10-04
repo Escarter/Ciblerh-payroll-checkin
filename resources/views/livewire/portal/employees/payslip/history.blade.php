@@ -1,6 +1,6 @@
 <div>
     <div>
-        <div class='py-2 pb-2'>
+        <div class='pt-2'>
             <div class="d-flex justify-content-between w-100 flex-wrap mb-4 align-items-center">
                 <div class="mb-lg-0">
                     <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
@@ -24,8 +24,41 @@
             </div>
         </div>
         <div>
-            @include('flash::message')
             <x-alert />
+            <div class="row pb-3">
+                <div class="col-md-3">
+                    <label for="search">{{__('Search')}}: </label>
+                    <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+                    <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
+                </div>
+                <div class="col-md-3">
+                    <label for="orderBy">{{__('Order By')}}: </label>
+                    <select wire:model.live="orderBy" id="orderBy" class="form-select">
+                        <option value="first_name">{{__('First Name')}}</option>
+                        <option value="last_name">{{__('Last Name')}}</option>
+                        <option value="created_at">{{__('Created Date')}}</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="direction">{{__('Order direction')}}: </label>
+                    <select wire:model.live="orderAsc" id="direction" class="form-select">
+                        <option value="asc">{{__('Ascending')}}</option>
+                        <option value="desc">{{__('Descending')}}</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="perPage">{{__('Items Per Page')}}: </label>
+                    <select wire:model.live="perPage" id="perPage" class="form-select">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                    </select>
+                </div>
+            </div>
             <div class="card">
                 <div class="table-responsive py-4">
                     <table class="table employee-table table-hover align-items-center dataTable" id="datatable">
@@ -43,13 +76,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($payslips as $payslip)
+                            @forelse($payslips as $payslip)
                             <tr>
                                 <td>
-                                    @php
-                                    $url = '/admin/groups/'.$employee->department->id.'/employees?employee_id='.$payslip->employee_id;
-                                    @endphp
-                                    <a href="{{$url}}" class="d-flex align-items-center">
+
+                                    <a href="#" class="d-flex align-items-center">
                                         <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded text-white bg-primary me-3"><span>{{$payslip->initials}}</span></div>
                                         <div class="d-block"><span class="fw-bold">{{$payslip->name}}</span>
                                             <div class="small text-gray">{{$payslip->email}}</div>
@@ -103,14 +134,14 @@
                                 </td>
                                 <td>
                                     @if($payslip->email_sent_status == 'failed' || $payslip->email_sent_status == 'pending' )
-                                    <a href='#' data-id="{{$payslip->id}}" data-bs-url="/admin/payslips/edit/{{$payslip->id}}" data-bs-toggle="modal" data-bs-target="#resendPayslipModal">
+                                    <a href='#' data-id="{{$payslip->id}}" data-bs-url="/portal/payslips/edit/{{$payslip->id}}" data-bs-toggle="modal" data-bs-target="#resendPayslipModal">
                                         <svg class="icon icon-xs text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                         </svg>
                                     </a>
                                     @endif
                                     @if($payslip->sms_sent_status == 'failed' && $payslip->sms_sent_status == 'successful')
-                                    <a href='/admin/payslips/{{$payslip->id}}/resend-sms' class="mr-4">
+                                    <a href='/portal/payslips/{{$payslip->id}}/resend-sms' class="mr-4">
                                         <svg class="icon icon-xs text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                                         </svg>
@@ -119,9 +150,24 @@
 
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="10">
+                                    <div class="text-center text-gray-800 mt-2">
+                                        <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
+                                        <p>{{__('No Record Found..!')}}</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
+                    <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
+                        <div>
+                            {{__('Showing')}} {{$perPage > $payslips_count ? $payslips_count : $perPage  }} {{__('items of')}} {{$payslips_count}}
+                        </div>
+                        {{ $payslips->links() }}
+                    </div>
                 </div>
             </div>
         </div>

@@ -2,15 +2,17 @@
 
 namespace App\Jobs;
 
+use Exception;
 use App\Models\Group;
 use App\Models\Payslip;
 use App\Mail\SendPayslip;
-use App\Models\Department;
 use mikehaertl\pdftk\Pdf;
+use App\Models\Department;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use App\Models\SendPayslipProcess;
 use Escarter\PopplerPhp\PdfToText;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Queue\SerializesModels;
@@ -85,6 +87,7 @@ class RenameEncryptPdfJob implements ShouldQueue
             $pdf_text = PdfToText::getText($from_path, config('ciblerh.pdftotext_path'));
             // dd(strpos(PdfToText::getText($from_path, '/usr/local/bin/pdftotext'), 'Matricule 135121') !== FALSE);
 
+
             collect($this->department->employees)->each(function ($employee) use ($pdf_text, $file, $pay_month) {
 
                 if (empty($employee->matricule)) {
@@ -99,6 +102,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                     preg_match("/\b" . $employee->matricule . "\b/i", $pdf_text, $matches);
 
                     if (!empty($matches) && $matches[0] === $employee->matricule) {
+
                         $destination_file = $this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf';
                         if (Storage::disk('splitted')->exists($file)) {
                             //  Storage::disk('modified')->put($employee['matricule'].'.pdf', Storage::disk('splitted')->get($file));
@@ -107,8 +111,9 @@ class RenameEncryptPdfJob implements ShouldQueue
                             $result = $pdf->setUserPassword($employee->pdf_password)
                                 ->passwordEncryption(128)
                                 ->saveAs(Storage::disk('modified')->path($destination_file));
-
+                          
                             if (Storage::disk('modified')->exists($destination_file)) {
+                               
                                 $this->sendSlip($employee, $pay_month, $destination_file);
                             }
                         }
@@ -125,7 +130,7 @@ class RenameEncryptPdfJob implements ShouldQueue
             ->where('year', now()->year)
             ->first();
 
-        if ($record_exists === null) {
+        if (empty($record_exists)) {
             $record = $this->createPayslipRecord($employee, $month);
         } else {
             if ($record_exists->successful()) {
@@ -136,21 +141,48 @@ class RenameEncryptPdfJob implements ShouldQueue
 
         if (!empty($employee->email)) {
 
-            Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination, $month));
+            try {
+                
+                setSavedSmtpCredentials();
 
-            if (Mail::flushMacros()) {
+                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination, $month));
+
+                $record->update([
+                    'email_sent_status' => 'successful',
+                    'file' => Storage::disk('modified')->path($destination)
+                ]);
+                sendSmsAndUpdateRecord($employee, $month, $record);
+
+            } catch (\Swift_TransportException $e) {
+
+                Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
+                Log::info('' . PHP_EOL . '');
                 $record->update([
                     'email_sent_status' => 'failed',
                     'sms_sent_status' => 'failed',
-                    'failure_reason' => __('Failed sending Email & SMS')
+                    'failure_reason' => $e->getMessage()
                 ]);
-            } else {
+
+            } catch (\Swift_RfcComplianceException $e) {
+                Log::info('------> err Swift_Rfc:' . $e->getMessage());
+                Log::info('' . PHP_EOL . '');
+
                 $record->update([
-                    'email_sent_status' => 'successful',
-                    'file' => Storage::disk('modified')->exists($destination)
+                    'email_sent_status' => 'failed',
+                    'sms_sent_status' => 'failed',
+                    'failure_reason' => $e->getMessage()
                 ]);
-                sendSmsAndUpdateRecord($employee, $month, $record);
+            } catch (Exception $e) {
+                Log::info('------> err' . $e->getMessage());
+                Log::info('' . PHP_EOL . '');
+
+                $record->update([
+                    'email_sent_status' => 'failed',
+                    'sms_sent_status' => 'failed',
+                    'failure_reason' => $e->getMessage()
+                ]);
             }
+
         } else {
             $record->update([
                 'email_sent_status' => 'failed',

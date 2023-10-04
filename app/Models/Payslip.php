@@ -50,4 +50,27 @@ class Payslip extends Model
     {
         return $this->belongsTo(Employee::class,'employee_id');
     }
+
+    public static function search($query)
+    {
+        return empty($query) ?
+            static::query()
+            ->when(auth()->user()->getRoleNames()->first() === "supervisor", function ($query) {
+                return $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
+            }) :
+            static::query()
+            ->when(auth()->user()->getRoleNames()->first() === "supervisor", function ($query) {
+                return $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
+            })
+            ->where(function ($q) use ($query) {
+                $q->where('first_name', 'like', '%' . $query . '%');
+                $q->orWhere('last_name', 'like', '%' . $query . '%');
+                $q->orWhere('email', 'like', '%' . $query . '%');
+                $q->orWhere('matricule', 'like', '%' . $query . '%');
+                $q->orWhere('phone', 'like', '%' . $query . '%');
+                $q->orWhere('month', 'like', '%' . $query . '%');
+                $q->orWhere('email_sent_status', 'like', '%' . $query . '%');
+                $q->orWhere('sms_sent_status', 'like', '%' . $query . '%');
+            });
+    }
 }

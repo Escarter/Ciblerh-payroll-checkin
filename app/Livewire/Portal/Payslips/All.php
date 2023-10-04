@@ -18,12 +18,18 @@ class All extends Component
         }
 
         $jobs =  match (auth()->user()->getRoleNames()->first()) {
-            'manager' => SendPayslipProcess::manager()->orderBy('created_at', 'desc')->get(),
-            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->get(),
-            'admin' => SendPayslipProcess::orderBy('created_at', 'desc')->get(),
+            'manager' => SendPayslipProcess::manager()->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
+            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
+            'admin' => SendPayslipProcess::orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
+            default => [],
+        };
+        $jobs_count =  match (auth()->user()->getRoleNames()->first()) {
+            'manager' => SendPayslipProcess::manager()->count(),
+            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->count(),
+            'admin' => SendPayslipProcess::count(),
             default => [],
         };
 
-        return view('livewire.portal.payslips.all', compact('jobs'))->layout('components.layouts.dashboard');
+        return view('livewire.portal.payslips.all', compact('jobs','jobs_count'))->layout('components.layouts.dashboard');
     }
 }

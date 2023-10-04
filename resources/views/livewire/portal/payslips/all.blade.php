@@ -92,6 +92,12 @@
                     @endforeach
                 </tbody>
             </table>
+            <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
+                <div>
+                    {{__('Showing')}} {{$perPage > $jobs_count ? $jobs_count : $perPage  }} {{__('items of')}} {{$jobs_count}}
+                </div>
+                {{ $jobs->links() }}
+            </div>
         </div>
         @else
         <div class='p-5 text-center '>

@@ -6,6 +6,7 @@ use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Facades\Gate;
 use App\Livewire\Traits\WithDataTable;
+use App\Models\Payslip;
 
 class History extends Component
 {
@@ -28,8 +29,9 @@ class History extends Component
         //     return abort(401);
         // }
         
-        $payslips = $this->employee->payslips->sortByDesc('created_at');
+        $payslips = Payslip::search($this->query)->where('employee_id', $this->employee->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        $payslips_count = Payslip::where('employee_id', $this->employee->id)->count();
 
-        return view('livewire.portal.employees.payslip.history', compact('payslips'))->layout('components.layouts.dashboard');
+        return view('livewire.portal.employees.payslip.history', compact('payslips', 'payslips_count'))->layout('components.layouts.dashboard');
     }
 }
