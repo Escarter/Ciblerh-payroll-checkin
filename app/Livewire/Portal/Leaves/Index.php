@@ -4,6 +4,7 @@ namespace App\Livewire\Portal\Leaves;
 
 use App\Models\Leave;
 use Livewire\Component;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use App\Livewire\Traits\WithDataTable;
@@ -149,7 +150,10 @@ class Index extends Component
                         'manager_approval_reason' => $this->manager_approval_reason,
                     ]);
 
-                    $this->leave->user->decrement('remaining_leave_days', Carbon::parse($this->leave->start_date)->diffInDays(Carbon::parse( $this->leave->end_date)));
+                    if($this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED){
+
+                        $this->leave->user->decrement('remaining_leave_days', Carbon::parse($this->leave->start_date)->diffInDays(Carbon::parse( $this->leave->end_date)));
+                    }
                 }
             );
         }
