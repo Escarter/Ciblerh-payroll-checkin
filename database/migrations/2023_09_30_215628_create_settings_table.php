@@ -29,9 +29,19 @@ return new class extends Migration
             $table->string('replyTo_email')->nullable();
             $table->string('replyTo_name')->nullable();
             //sms 
+            $table->enum('sms_provider',['twilio','nexah'])->default('nexah');
+            $table->integer('sms_balance')->nullable();
             $table->string('sms_provider_username')->nullable();
             $table->string('sms_provider_password')->nullable();
             $table->string('sms_provider_senderid')->nullable();
+
+            $table->string('email_subject_fr')->nullable();
+            $table->string('email_subject_en')->nullable();
+
+            $table->longText('sms_content_fr')->nullable();
+            $table->longText('sms_content_en')->nullable();
+            $table->longText('email_content_fr')->nullable();
+            $table->longText('email_content_en')->nullable();
 
             $table->foreignId('company_id')->nullable();
             $table->foreignId('author_id')->nullable();

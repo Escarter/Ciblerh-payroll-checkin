@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 
@@ -25,7 +27,22 @@ Route::get('/', function () {
     return redirect('login');
 });
 
-Auth::routes();
+
+Auth::routes(['register'=>'false']);
+
+Route::get('test', function(){
+
+    $setting = Setting::first();
+
+    $emp = User::find(1);
+    $month = now()->month;
+    $year = now()->year;
+
+    $sms_content = "Mr/Mrs :name:, your pay slip for the month of :month:-:year: has been sent to your mailbox. Please use the following password: :pdf_password: to view it.";
+
+    $new_message = str_replace([':name:',':month:',':year:',':pdf_password:'],[$emp->name,$month,$year,$emp->pdf_password],$sms_content);
+    return $new_message;
+});
 
 Route::any('/logout', [LoginController::class, 'logout']);
 

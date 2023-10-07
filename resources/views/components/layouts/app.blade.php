@@ -26,6 +26,8 @@
     <link type="text/css" href="{{ asset('vendor/dropzone/dist/min/dropzone.min.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/choices.js/public/assets/styles/choices.min.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/leaflet/dist/leaflet.css')}}" rel="stylesheet">
+    <link type="text/css" href="{{ asset('vendor/medium-editor/css/medium-editor.css')}}" rel="stylesheet">
+    <link type="text/css" href="{{ asset('vendor/medium-editor/css/themes/default.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('css/theme.css')}}" rel="stylesheet">
 
     @livewireStyles
@@ -52,13 +54,14 @@
     <script src="{{ asset('vendor/leaflet/dist/leaflet.js')}}"></script>
     <script src="{{ asset('vendor/simplebar/dist/simplebar.min.js')}}"></script>
     <script src="{{ asset('vendor/choices.js/public/assets/scripts/choices.min.js')}}"></script>
+    <script src="{{ asset('vendor/medium-editor/js/medium-editor.js')}}"></script>
     <script src="{{ asset('js/theme.js')}}"></script>
 
 
 
     @livewireScripts
 
-    @yield('scripts')
+
     <script>
         document.addEventListener('livewire:init', () => {
             // Runs after Livewire is loaded but before it's initialized
@@ -86,7 +89,7 @@
 
         })
     </script>
-
+    @stack('scripts')
 </body>
 
 </html>

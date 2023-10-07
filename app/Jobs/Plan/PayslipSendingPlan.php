@@ -28,7 +28,7 @@ class PayslipSendingPlan {
 
         if(count($files) > 0){
 
-            $chunks = array_chunk($files,25);
+            $chunks = array_chunk($files,5);
     
             $jobs = collect($chunks)->map(function ($chunk) use ($payslip_process) {
                 return new  RenameEncryptPdfJob($chunk, $payslip_process->id);

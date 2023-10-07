@@ -4,6 +4,7 @@ use App\Models\User;
 use App\Models\Setting;
 use App\Services\Nexah;
 use App\Models\AuditLog;
+use App\Services\TwilioSMS;
 use Illuminate\Support\Facades\Config;
 
 function initials($string)
@@ -47,14 +48,18 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 $year = '';
             }
 
-            $sms_client = new Nexah($setting);
+             $sms_client = match ($setting->sms_provider) {
+                'twilio' => new TwilioSMS($setting),
+                'nexah' =>  new Nexah($setting),
+                default => new Nexah($setting)
+             };
 
             $message = '';
 
             if($emp->preferred_language === 'en'){
-                $message = "Mr/Mrs" . trim($emp->name) . ", your pay slip for the month of {$month}-{$year} has been sent to your mailbox. Please use the following password: {$emp->pdf_password} to view it. ";
+                $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_en);
             }else{
-                $message = "Mr/Mme " . trim($emp->name) . ", votre bulletin de paie du mois de {$month}-{$year} a été envoyé dans votre boite mail. Veuillez utiliser le mot de passe suivant : {$emp->pdf_password} pour le consulter. ";
+                $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_fr);
             }
 
             $response = $sms_client->sendSMS([
@@ -85,12 +90,13 @@ if (!function_exists('setSavedSmtpCredentials')) {
         $setting = Setting::first();
 
         if(!empty($setting)){
-
             Config::set('mail.mailers.smtp.host', $setting->smtp_host);
             Config::set('mail.mailers.smtp.port', $setting->smtp_port);
             Config::set('mail.mailers.smtp.username', $setting->smtp_username);
             Config::set('mail.mailers.smtp.password', $setting->smtp_password);
             Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption);
+            Config::set('mail.from.address', $setting->from_email);
+            Config::set('mail.from.name', $setting->from_name);
             Config::set('mail.mailers.smtp.transport', !empty($setting->smtp_provider) ? $setting->smtp_provider : 'smtp');
         }
 

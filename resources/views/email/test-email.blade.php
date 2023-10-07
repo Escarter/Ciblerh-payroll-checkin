@@ -1,7 +1,7 @@
 <x-mail::message>
-# Test Email
+# Wima HR Test Email
 
-Hello, this is a test email.
+{{$message}}
 
 Thanks,<br>
 {{ config('app.name') }}

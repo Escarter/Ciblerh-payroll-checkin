@@ -3,24 +3,16 @@
 
 namespace App\Services;
 
+use GuzzleHttp\Client;
 use App\Models\Company;
 use App\Models\Setting;
-use GuzzleHttp\Client;
 use Illuminate\Support\Str;
+use App\Services\SmsProvider;
 use Illuminate\Support\Facades\Log;
 
-class Nexah
+class Nexah extends SmsProvider
 {
-    protected string $username;
-    protected string $password;
-    protected string $senderid;
-
-    public function __construct(Setting $setting)
-    {
-        $this->username = $setting->sms_provider_username;
-        $this->password = $setting->sms_provider_password;
-        $this->senderid = $setting->sms_provider_senderid;
-    }                     
+        
     public function sendSMS(array $data): array
     {
         try {

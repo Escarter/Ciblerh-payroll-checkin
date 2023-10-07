@@ -2,19 +2,20 @@
 
 namespace App\Livewire\Portal\Settings;
 
+use App\Mail\TestEmail;
 use App\Models\Setting;
 use App\Services\Nexah;
 use Livewire\Component;
+use App\Services\TwilioSMS;
 use Illuminate\Support\Facades\Mail;
 use App\Livewire\Traits\WithDataTable;
-use App\Mail\TestEmail;
 use Illuminate\Support\Facades\Config;
 
 class Index extends Component
 {
     use WithDataTable;
 
-    public $setting, $sms_provider_username, $sms_provider_password, $sms_provider_senderid;
+    public $setting, $sms_provider, $sms_provider_username, $sms_provider_password, $sms_provider_senderid;
 
     public $smtp_provider;
     public $mailgun_domain;
@@ -31,12 +32,22 @@ class Index extends Component
     public $replyTo_email;
     public $replyTo_name;
     public $test_email_address;
+    public $test_email_message;
     public $test_phone_number;
+    public $test_sms_message;
+    public $sms_balance = 0;
+    public $sms_content_en;
+    public $sms_content_fr;
+    public $email_content_en ;
+    public $email_content_fr;
+    public $email_subject_en ;
+    public $email_subject_fr;
 
     public function mount() {
 
         $this->setting = Setting::first();
 
+        $this->sms_provider= !empty($this->setting) ? $this->setting->sms_provider: '';
         $this->sms_provider_username = !empty($this->setting) ? $this->setting->sms_provider_username : '';
         $this->sms_provider_password = !empty($this->setting) ? $this->setting->sms_provider_password :'';
         $this->sms_provider_senderid = !empty($this->setting) ? $this->setting->sms_provider_senderid :'';
@@ -49,6 +60,17 @@ class Index extends Component
         $this->from_name = !empty($this->setting) ? $this->setting->from_name :'';
         $this->replyTo_email = !empty($this->setting) ? $this->setting->replyTo_email :'';
         $this->replyTo_name = !empty($this->setting) ? $this->setting->replyTo_name :'';
+        $this->sms_balance = !empty($this->setting) ? $this->setting->sms_balance :'';
+
+        $this->sms_content_en = !empty($this->setting) ? (!empty($this->setting->sms_content_en) ? $this->setting->sms_content_en  : "Mr/Mrs :name:, your pay slip for the month of :month:-:year: has been sent to your mailbox. Please use the following password: :pdf_password: to view it.") :'';
+        $this->sms_content_fr = !empty($this->setting) ? (!empty($this->setting->sms_content_fr) ? $this->setting->sms_content_fr : "M./Mme :name:, votre fiche de paie du mois de :month:-:year: a été envoyée dans votre boîte mail. Merci d'utiliser le mot de passe suivant : :pdf_password: pour la consulter."):'';
+        $this->email_subject_en = !empty($this->setting) ? (!empty($this->setting->email_subject_en) ? $this->setting->email_subject_en  : "Your :month :year: payslip.") :'';
+        $this->email_subject_fr = !empty($this->setting) ? (!empty($this->setting->email_subject_fr) ? $this->setting->email_subject_fr : "Votre fiche de salaire :month: :year:."):'';
+        $this->email_content_en = !empty($this->setting) ? (!empty($this->setting->email_content_en) ? $this->setting->email_content_en : "<h2>Dear :name:,</h2> <p>Please find your pay slip attached,</p> <p>How to open your pay slip:</p> <p>Download the PDF document attached to the email. You will be asked for your password</p><p>Enter the password received by SMS</p> <p>In case of difficulty, please call us or write to us using the contact details below:</p> <p>Call and text: :support_number:</p> <p>Mail: :mail_address:</p>") : '';
+        $this->email_content_fr = !empty($this->setting) ? (!empty($this->setting->email_content_fr) ? $this->setting->email_content_fr : "<h2>Cher :name:,</h2> <p>Veuillez trouver votre fiche de paie en pièce jointe,</p> <p>Comment ouvrir votre fiche de paie :</p> <p>Téléchargez le document PDF joint au e-mail. Votre mot de passe vous sera demandé</p> <p>Saisissez le mot de passe reçu par SMS</p> <p>En cas de difficulté, merci de nous appeler ou de nous écrire aux coordonnées ci-dessous :</p> <p>Appel et SMS : support_number :</p> <p>Mail : mail_address :</p>") :'';
+
+
+    
     }
 
 
@@ -58,12 +80,43 @@ class Index extends Component
             ['company_id'=> 1],
             [
                 'company_id'=> 1,
+                'sms_provider' => $this->sms_provider,
                 'sms_provider_username' => $this->sms_provider_username,
                 'sms_provider_password' => $this->sms_provider_password,
                 'sms_provider_senderid' => $this->sms_provider_senderid,
+                'sms_content_en' => $this->sms_content_en,
+                'sms_content_fr' => $this->sms_content_fr,
+              
             ]);
 
+        if (!empty($setting)) {
+
+            if (!empty($setting->sms_provider_username) && !empty($setting->sms_provider_password)) {
+
+                $sms_client = match ($setting->sms_provider) {
+                    'twilio' => new TwilioSMS($setting),
+                    'nexah' =>  new Nexah($setting),
+                    default => new Nexah($setting)
+                };
+
+                $response = match ($setting->sms_provider) {
+                    'twilio' => ['responsecode' => 0],
+                    'nexah' =>  $sms_client->getBalance(),
+                    default => ['responsecode' => 0]
+                };
+
+                $this->sms_balance = $response['responsecode'] === 1 ? $response['credit'] : 0;
+
+                $setting->update([
+                      'sms_balance' => $response['responsecode'] === 1 ? $response['credit'] : 0,
+                ]);
+                
+            }
+        }
+
         $this->closeModalAndFlashMessage(__('Setting for SMS successfully added!'),'');
+        return $this->redirect(route('portal.settings.index'), navigate: true);
+
     }
     public function saveSmtpConfig()
     {
@@ -85,12 +138,18 @@ class Index extends Component
                 'from_name' => $this->from_name,
                 'replyTo_email' => $this->replyTo_email,
                 'replyTo_name' => $this->replyTo_name,
+                'email_content_en' => $this->email_content_en,
+                'email_content_fr' => $this->email_content_fr,
+                'email_subject_fr' => $this->email_subject_fr,
+                'email_subject_en' => $this->email_subject_en,
             ]
         );
 
         setSavedSmtpCredentials();
 
         $this->closeModalAndFlashMessage(__('Setting for SMTP successfully added!'),'');
+
+        return $this->redirect(route('portal.settings.index'), navigate: true);
     }
 
     public function sendTestEmail()
@@ -106,9 +165,11 @@ class Index extends Component
 
         setSavedSmtpCredentials();
 
-        Mail::to($this->test_email_address)->send(new TestEmail);
+        Mail::to($this->test_email_address)->send(new TestEmail($this->test_email_message));
 
         $this->closeModalAndFlashMessage(__('TestEmail sent successfully!'), '');
+
+        return $this->redirect(route('portal.settings.index'), navigate: true);
     }
 
     public function sendTestSms()
@@ -122,10 +183,14 @@ class Index extends Component
                 $this->closeModalAndFlashMessage(__('Setting for SMS required!'), '');
             }
 
-            $sms_client = new Nexah($setting);
+            $sms_client = match ($setting->sms_provider) {
+                'twilio' => new TwilioSMS($setting),
+                'nexah' =>  new Nexah($setting),
+                default => new Nexah($setting)
+            };
 
             $response = $sms_client->sendSMS([
-                'sms' =>  'This is a test sms!',
+                'sms' =>  $this->test_sms_message,
                 'mobiles' => $this->test_phone_number,
             ]);
 
@@ -135,26 +200,12 @@ class Index extends Component
                 $this->closeModalAndFlashMessage(__('TestSms sent Failed!'), '');
             }
         }
-    }
 
+        return $this->redirect(route('portal.settings.index'), navigate: true);
+    }
 
     public function render()
     {
-        $setting = 
-
-        $sms_balance = 0;
-
-        if (!empty($this->setting)) {
-
-            if (!empty($this->setting->sms_provider_username) && !empty($this->setting->sms_provider_password)) {
-                $sms_client = new Nexah($this->setting);
-
-                $response = $sms_client->getBalance();
-
-                $sms_balance = $response['responsecode'] === 1 ? $response['credit'] : 0;
-            }
-        }
-
-        return view('livewire.portal.settings.index', compact('setting', 'sms_balance'))->layout('components.layouts.dashboard');
+        return view('livewire.portal.settings.index')->layout('components.layouts.dashboard');
     }
 }

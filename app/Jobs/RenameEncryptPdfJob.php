@@ -149,7 +149,7 @@ class RenameEncryptPdfJob implements ShouldQueue
 
                 $record->update([
                     'email_sent_status' => 'successful',
-                    'file' => Storage::disk('modified')->path($destination)
+                    'file' => $destination
                 ]);
                 sendSmsAndUpdateRecord($employee, $month, $record);
 
