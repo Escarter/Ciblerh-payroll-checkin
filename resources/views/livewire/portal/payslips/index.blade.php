@@ -94,7 +94,7 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-end">
-                        <button type="submit" wire:click.prevent="send" wire:loading.attr="disabled" class="btn btn-gray-800">{{__('Start Processing')}}</button>
+                        <button type="submit" wire:click.prevent="send" wire:loading.attr="disabled" class="btn btn-gray-800" {{empty($payslip_file) ? "disabled" : '' }}>{{__('Start Processing')}}</button>
                     </div>
                 </x-form-items.form>
             </div>
