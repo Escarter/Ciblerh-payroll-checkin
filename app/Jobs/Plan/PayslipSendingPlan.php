@@ -28,7 +28,7 @@ class PayslipSendingPlan {
 
         if(count($files) > 0){
 
-            $chunks = array_chunk($files,2);
+            $chunks = array_chunk($files,config('ciblerh.chunk_size'));
     
             $jobs = collect($chunks)->map(function ($chunk) use ($payslip_process) {
                 return new  RenameEncryptPdfJob($chunk, $payslip_process->id);
