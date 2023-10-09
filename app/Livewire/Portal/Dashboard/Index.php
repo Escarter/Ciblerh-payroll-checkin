@@ -2,14 +2,17 @@
 
 namespace App\Livewire\Portal\Dashboard;
 
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Company;
+use App\Models\Payslip;
 use App\Models\Service;
 use App\Models\Ticking;
 use Livewire\Component;
 use App\Models\AuditLog;
 use App\Models\Department;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\DB;
 
 class Index extends Component
 {
@@ -49,6 +52,52 @@ class Index extends Component
         }
     }
 
+    public function prepareWeeklyChart($stats)
+    {
+        $weeks = [];
+        $failed = [];
+        $success = [];
+        $pending = [];
+
+        foreach ($stats as $stat) {
+            if (!in_array('Wk - ' . $stat->week, $weeks, true)) {
+                array_push($weeks, 'Wk - ' . $stat->week);
+            }
+            if ($stat->email_sent_status === "successful") {
+                array_push($success, $stat->data);
+            } elseif ($stat->email_sent_status === "failed") {
+                array_push($failed, $stat->data);
+            } else {
+                array_push($pending, $stat->data);
+            }
+        }
+        // dd(json_encode(array_reverse($weeks)));
+
+        return $chart_data = [json_encode($weeks), json_encode($success), json_encode($failed), json_encode($pending)];
+    }
+    public function prepareDailyChart($stats)
+    {
+        $days = [];
+        $failed = [];
+        $success = [];
+        $pending = [];
+        foreach ($stats as $stat) {
+            if (!in_array(Carbon::parse($stat->day)->format('D'), $days, true)) {
+                array_push($days, Carbon::parse($stat->day)->format('D'));
+            }
+            if ($stat->email_sent_status === "successful") {
+                array_push($success, $stat->data);
+            } elseif ($stat->email_sent_status === "failed") {
+                array_push($failed, $stat->data);
+            } else {
+                array_push($pending, $stat->data);
+            }
+        }
+        // dd(json_encode(array_reverse($days)));
+
+        return $chart_data = [json_encode($days), json_encode($success), json_encode($failed), json_encode($pending)];
+    }
+
     public function render()
     {
         $checklogs = match ($this->role) {
@@ -73,6 +122,55 @@ class Index extends Component
             "admin" => AuditLog::orderBy('created_at','desc')->dateFilter('created_at',$this->period)->get()->take(10),
             "default"=> [],
         };
+
+        $payslips = Payslip::select('id', 'email_sent_status', 'created_at')->get();
+        $payslips_last_month_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('email_sent_status', 'failed')->orWhere('email_sent_status', 'successful')->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
+        $payslips_last_month_success_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('email_sent_status', 'successful')->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
+
+
+        if (auth()->user()->hasRole('admin')) {
+         
+            $stats = Payslip::whereBetween(DB::raw('month(created_at)'), [now()->startOfMonth()->subMonth(3)->month, now()->endOfMonth()->month])
+                ->select('email_sent_status', DB::raw('count(id) as `data`'), DB::raw('month(created_at) month'), DB::raw('week(created_at) week'))
+                ->groupBy('email_sent_status', DB::raw('week(created_at)'), DB::raw('month(created_at)'))
+                ->orderBy(DB::raw('week(created_at)'), 'asc')
+                ->get();
+            $day_stats = Payslip::whereBetween(DB::raw('date(created_at)'), [now()->startOfWeek()->subDay(7), now()->endOfWeek()])
+                ->select('email_sent_status', DB::raw('count(id) as `data`'), DB::raw('date(created_at) day'), DB::raw('week(created_at) week'))
+                ->groupBy('email_sent_status', DB::raw('date(created_at)'), DB::raw('week(created_at)'))
+                ->orderBy(DB::raw('date(created_at)'), 'asc')
+                ->get();
+
+            
+        
+        } else {
+         
+
+            $stats = Payslip::where('user_id', auth()->user()->id)->whereBetween(DB::raw('month(created_at)'), [now()->startOfMonth()->subMonth(10)->month, now()->endOfMonth()->month])
+                ->select('email_sent_status', DB::raw('count(id) as `data`'), DB::raw('month(created_at) month'), DB::raw('week(created_at) week'))
+                ->groupBy('email_sent_status', DB::raw('week(created_at)'), DB::raw('month(created_at)'))
+                ->orderBy(DB::raw('week(created_at)'), 'asc')
+                ->get();
+            $day_stats = Payslip::where('user_id', auth()->user()->id)->whereBetween(DB::raw('date(created_at)'), [now()->startOfWeek()->subDay(7), now()->endOfWeek()])
+                ->select('email_sent_status', DB::raw('count(id) as `data`'), DB::raw('date(created_at) day'), DB::raw('week(created_at) week'))
+                ->groupBy('email_sent_status', DB::raw('date(created_at)'), DB::raw('week(created_at)'))
+                ->orderBy(DB::raw('date(created_at)'), 'asc')
+                ->get();
+
+            $payslips = Payslip::select('id', 'email_sent_status', 'created_at')->where('user_id', auth()->user()->id)->get();
+            $payslips_last_month_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('user_id', auth()->user()->id)->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
+            $payslips_last_month_success_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('user_id', auth()->user()->id)->where('email_sent_status', 'successful')->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
+
+    
+        }
+
+        // dd(now()->startOfMonth()->subMonth(10)->month);
+
+        $pie_chart = json_encode([
+            array_sum(json_decode($this->prepareDailyChart($day_stats)[3])),
+            array_sum(json_decode($this->prepareDailyChart($day_stats)[2])),
+            array_sum(json_decode($this->prepareDailyChart($day_stats)[1]))
+        ]);
 
             // dd($checklogs);
         return view('livewire.portal.dashboard.index',[
@@ -202,6 +300,16 @@ class Index extends Component
                     return $q->where('company_id', $this->selectedCompanyId);
                 })->dateFilter('created_at',$this->period)->count(),
             },
+
+            'payslips_success' => count($payslips->where('email_sent_status', 'successful')),
+            'payslips_success_week' => count($payslips->where('email_sent_status', 'successful')->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])),
+            'payslips_failed' => count($payslips->where('email_sent_status', 'failed')),
+            'payslips_failed_week' => count($payslips->where('email_sent_status', 'failed')->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])),
+            'payslips_last_month_total_count' => $payslips_last_month_count,
+            'payslips_last_month_success_count' => $payslips_last_month_success_count,
+            'chart_data' => $this->prepareWeeklyChart($stats),
+            'chart_daily' => $this->prepareDailyChart($day_stats),
+            'chart_pie_daily' => $pie_chart,
 
         ])->layout('components.layouts.dashboard');
     }

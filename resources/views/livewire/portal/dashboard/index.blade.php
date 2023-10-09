@@ -290,6 +290,110 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class='col-12 col-md-9'>
+                <div class="card bg-yellow-100 border-0 shadow pb-5">
+                    <div class="card-header d-sm-flex flex-row align-items-center flex-0">
+                        <div class="d-block mb-3 mb-sm-0">
+                            <div class="fs-5 fw-normal mb-2">{{__('Total payslips sent')}}</div>
+                            <h2 class="fs-3 fw-extrabold">{{number_format($payslips_failed + $payslips_success)}}</h2>
+                            <div class="small mt-2">
+                                <span class="fw-normal me-2"> {{now()->subMonth()->format('F') ." - ". now()->year}} {{__('success rate')}} - </span>
+                                <span class="fas fa-angle-up text-success"></span> <span class="text-success fw-bold">{{ ceil(($payslips_last_month_success_count/($payslips_last_month_total_count == 0 ? 1 : $payslips_last_month_total_count))*100)}}%</span>
+                            </div>
+                        </div>
+                        <div class="d-block ms-auto">
+                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-success me-2"></span> <span class="fw-normal small">{{__('Success')}}</span></div>
+                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-secondary me-2"></span> <span class="fw-normal small">{{__('Failed')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-2"><span class="dot rounded-circle bg-gray-500 me-2"></span> <span class="fw-normal small">{{__('Pending')}}</span></div>
+                        </div>
+                    </div>
+                    <div class="card-body p-2 ">
+                        <div class='line-chart ct-double-octave flex-grow'></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-3 ">
+                <div class="card border-0 shadow mb-3">
+                    <div class="card-body">
+                        <a href="{{route('portal.payslips.index')}}" class="row d-block d-xl-flex align-items-center">
+                            <div class="col-12 col-xl-3 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                <div class="icon-shape icon-shape-success rounded me-4 me-sm-0">
+                                    <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76"></path>
+                                    </svg>
+                                </div>
+                                <div class="d-sm-none">
+                                    <h2 class="fw-extrabold h5">{{__('Payslips Sent')}}</h2>
+                                    <h3 class="mb-1">{{numberFormat($payslips_success)}}</h3>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-9 px-xl-0">
+                                <div class="d-none d-sm-block">
+                                    <h2 class="h5">{{__('Payslips Sent')}}</h2>
+                                    <h3 class="fw-extrabold mb-1">{{numberFormat($payslips_success)}}</h3>
+                                </div>
+                                <small class="d-flex align-items-center">
+                                    <svg class="icon icon-xxs text-gray-600 ms-2 me-1" stroke="currentColor" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>{{$payslips_success_week}} {{__('sent this week')}}, {{__('success rate')}} <span class="text-success fw-bolder mx-1">{{ceil(($payslips_success / (($payslips_failed + $payslips_success) == 0 ? 1 :($payslips_failed + $payslips_success)))*100)}}%</span>
+                                </small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="card border-0 shadow mb-3">
+                    <div class="card-body">
+                        <a href="{{route('portal.payslips.index')}}" class="row d-block d-xl-flex align-items-center">
+                            <div class="col-12 col-xl-4 text-xl-center mb-3 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                <div class="icon-shape icon-shape-danger rounded me-4 me-sm-0">
+                                    <svg class="icon icon-md text-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <div class="d-sm-none">
+                                    <h2 class="fw-extrabold h5">{{__('Payslips not sent')}}</h2>
+                                    <h3 class="mb-1">{{numberFormat($payslips_failed)}}</h3>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-8 px-xl-0">
+                                <div class="d-none d-sm-block">
+                                    <h2 class="h5">{{__('Payslips not sent')}}</h2>
+                                    <h3 class="fw-extrabold mb-1">{{numberFormat($payslips_failed)}}</h3>
+                                </div>
+                                <small>
+                                    <svg class="icon icon-xxs text-red-500 ms-2 me-1" stroke="currentColor" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                                    </svg>
+                                    {{$payslips_failed_week}} {{__('failed this week')}}
+                                </small>
+                                <div class="small d-flex mt-1">
+                                    <div><span class="text-success fw-bolder me-1">{{ceil($payslips_failed / (($payslips_failed + $payslips_success) == 0 ? 1 : $payslips_failed + $payslips_success)*100)}}%</span> {{__('failure rate')}}</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow mb-3">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('Total payslips sent this week')}}</div>
+                            <h2 class="h3 fw-extrabold">{{$payslips_failed_week + $payslips_success_week}}</h2>
+                            <div class="small mt-2"><span class="fas fa-angle-up text-success"></span> <span class="text-success fw-bold">{{ ceil(($payslips_success_week/(($payslips_success_week+$payslips_failed_week) == 0 ? 1 : ($payslips_success_week+$payslips_failed_week) ))*100)}}%</span></div>
+                        </div>
+                        <div class="d-block ms-auto">
+                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-success me-2"></span> <span class="fw-normal small">{{__('Success')}}</span></div>
+                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-secondary me-2"></span> <span class="fw-normal small">{{('Failed')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-2"><span class="dot rounded-circle bg-gray-600 me-2"></span> <span class="fw-normal small">{{('Pending')}}</span></div>
+                        </div>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="bar-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="mt-3 ">
         <div class='d-flex justify-content-between align-items-end mx-2'>
@@ -421,4 +525,57 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script type="text/javascript">
+        new Chartist.Bar('.bar-chart', {
+            labels: {!!html_entity_decode($chart_daily[0]) !!},
+            series: [{!!html_entity_decode($chart_daily[3]) !!},
+                {!!html_entity_decode($chart_daily[2]) !!},
+                {!!html_entity_decode($chart_daily[1]) !!},
+            ]
+        }, {
+            low: 0,
+            showArea: true,
+            plugins: [
+                Chartist.plugins.tooltip()
+            ],
+            axisX: {
+                // On the x-axis start means top and end means bottom
+                position: 'end'
+            },
+            axisY: {
+                // On the y-axis start means left and end means right
+                showGrid: false,
+                showLabel: false,
+                offset: 0
+            }
+        });
+        new Chartist.Line('.line-chart', {
+            labels: {!!html_entity_decode($chart_data[0]) !!},
+            series: [{!!html_entity_decode($chart_data[3]) !!},
+                {!!html_entity_decode($chart_data[2]) !!},
+                {!!html_entity_decode($chart_data[1]) !!},
+            ]
+        }, {
+            low: 0,
+            scaleMinSpace: 10,
+            showArea: true,
+            fullWidth: true,
+            plugins: [
+                Chartist.plugins.tooltip()
+            ],
+            axisX: {
+                // On the x-axis start means top and end means bottom
+                position: 'end',
+                showGrid: true
+            },
+            axisY: {
+                // On the y-axis start means left and end means right
+                showGrid: true,
+                showLabel: true,
+            }
+        });
+    </script>
+    @endpush
 </div>
