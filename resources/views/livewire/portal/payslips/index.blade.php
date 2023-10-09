@@ -86,7 +86,16 @@
                     </div>
                     <div class="form-group mb-4">
                         <label for="payslip_file" class="form-label">{{__('Select Payslip')}}</label>
-                        <input class="form-control  @error('payslip_file') is-invalid @enderror" type="file" wire:model.live="payslip_file" id="payslip_file">
+
+                        <div x-data="{ uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true" x-on:livewire-upload-finish="uploading = false" x-on:livewire-upload-error="uploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress">
+                            <!-- File Input -->
+                            <input class="form-control  @error('payslip_file') is-invalid @enderror" type="file" wire:model.live="payslip_file" id="payslip_file">
+
+                            <!-- Progress Bar -->
+                            <div x-show="uploading">
+                                <progress max="100" x-bind:value="progress"></progress>
+                            </div>
+                        </div>
                         <div>
                             @error('payslip_file')
                             <div class="invalid-feedback">{{$message}}</div>
