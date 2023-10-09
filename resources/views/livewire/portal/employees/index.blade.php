@@ -214,7 +214,7 @@
                     @forelse($employees as $employee)
                     <tr>
                         <td>
-                            <a href="#" class="d-flex align-items-center">
+                            <a href="{{ $employee->getRoleNames()->first() === 'employee' ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" class="d-flex align-items-center">
                                 <div class="avatar avatar-md d-flex align-items-center justify-content-center fw-bold fs-6 rounded bg-primary me-2"><span class="text-white">{{$employee->initials}}</span></div>
                                 <div class="d-block"><span class="fw-bolder fs-6">{{ucwords($employee->name)}}</span>
                                     <div class="small text-gray">
