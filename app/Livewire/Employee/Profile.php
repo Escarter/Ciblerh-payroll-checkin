@@ -14,7 +14,6 @@ class Profile extends Component
     public $first_name;
     public $last_name;
     public $email;
-    public $phone_number;
     public $position;
     public $matricule;
     public $current_password;
@@ -22,6 +21,10 @@ class Profile extends Component
     public $password_confirmation;
     public $signature;
     public $preferred_language;
+    public $professional_phone_number;
+    public $personal_phone_number;
+    public $pdf_password;
+    public $work_time;
     
     public function mount()
     {
@@ -30,7 +33,10 @@ class Profile extends Component
         $this->email = auth()->user()->email;
         $this->matricule = auth()->user()->matricule;
         $this->position = auth()->user()->position;
-        $this->phone_number = auth()->user()->phone_number;
+        $this->professional_phone_number = auth()->user()->professional_phone_number;
+        $this->personal_phone_number = auth()->user()->personal_phone_number;
+        $this->pdf_password = auth()->user()->pdf_password;
+        $this->work_time = auth()->user()->work_start_time ." - ". auth()->user()->work_end_time;
         $this->preferred_language = auth()->user()->preferred_language;
     }
 
@@ -43,7 +49,8 @@ class Profile extends Component
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'phone_number' => $this->phone_number,
+            'professional_phone_number' => $this->professional_phone_number,
+            'personal_phone_number' => $this->personal_phone_number,
             'position' => $this->position,
             'matricule' => $this->matricule,
             'preferred_language' => $this->preferred_language,

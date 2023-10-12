@@ -66,17 +66,41 @@
 
                             </div>
                         </div>
+                        <div class='form-group mb-4'>
+                            <label for="pdf_password">{{__('PDF Password')}}</label>
+                            <input wire:model.defer="pdf_password" type="text" class="form-control  @error('pdf_password') is-invalid @enderror" disabled>
+                            @error('pdf_password')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="phone_number">{{__('Phone Number')}}</label>
-                                <input wire:model.defer="phone_number" type="text" class="form-control  @error('phone_number') is-invalid @enderror" value="{{auth()->user()->phone}}" name="phone_number">
-                                @error('phone_number')
+                                <label for="professional_phone_number">{{__('Phone Number')}}</label>
+                                <input wire:model.defer="professional_phone_number" type="text" class="form-control  @error('professional_phone_number') is-invalid @enderror" value="{{auth()->user()->phone}}" name="professional_phone_number">
+                                @error('professional_phone_number')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="personal_phone_number">{{__('personal_phone_number')}}</label>
+                                <input wire:model.defer="personal_phone_number" type="text" class="form-control  @error('personal_phone_number') is-invalid @enderror" autofocus="" name="personal_phone_number">
+                                @error('personal_phone_number')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group mb-4 row">
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="work_time">{{__('Work Time')}}</label>
+                                <input wire:model="work_time" type="text" class="form-control  @error('work_time') is-invalid @enderror" value="{{auth()->user()->work_time}}" name="work_time" disabled>
+                                @error('work_time')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="position">{{__('Position')}}</label>
-                                <input wire:model.defer="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position">
+                                <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position">
                                 @error('position')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
