@@ -113,10 +113,10 @@ class RenameEncryptPdfJob implements ShouldQueue
                                 ->passwordEncryption(128)
                                 ->saveAs(Storage::disk('modified')->path($destination_file));
                           
-                            if (Storage::disk('modified')->exists($destination_file)) {
+                            // if (Storage::disk('modified')->exists($destination_file)) {
                                
-                                $this->sendSlip($employee, $pay_month, $destination_file);
-                            }
+                            //     $this->sendSlip($employee, $pay_month, $destination_file);
+                            // }
                         }
                     }
                 }
@@ -124,74 +124,74 @@ class RenameEncryptPdfJob implements ShouldQueue
         }
     }
 
-    public function sendSlip($employee, $month, $destination)
-    {
-        $record_exists = Payslip::where('employee_id', $employee->id)
-            ->where('month', $month)
-            ->where('year', now()->year)
-            ->first();
+    // public function sendSlip($employee, $month, $destination)
+    // {
+    //     $record_exists = Payslip::where('employee_id', $employee->id)
+    //         ->where('month', $month)
+    //         ->where('year', now()->year)
+    //         ->first();
 
-        if (empty($record_exists)) {
-            $record = $this->createPayslipRecord($employee, $month);
-        } else {
-            if ($record_exists->successful()) {
-                return;
-            }
-            $record = $record_exists;
-        }
+    //     if (empty($record_exists)) {
+    //         $record = $this->createPayslipRecord($employee, $month);
+    //     } else {
+    //         if ($record_exists->successful()) {
+    //             return;
+    //         }
+    //         $record = $record_exists;
+    //     }
 
-        if (!empty($employee->email)) {
+    //     if (!empty($employee->email)) {
 
-            try {
+    //         try {
                 
-                setSavedSmtpCredentials();
+    //             setSavedSmtpCredentials();
 
-                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination, $month));
+    //             Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination, $month));
 
-                $record->update([
-                    'email_sent_status' => 'successful',
-                    'file' => $destination
-                ]);
-                sendSmsAndUpdateRecord($employee, $month, $record);
+    //             $record->update([
+    //                 'email_sent_status' => 'successful',
+    //                 'file' => $destination
+    //             ]);
+    //             sendSmsAndUpdateRecord($employee, $month, $record);
 
-            } catch (\Swift_TransportException $e) {
+    //         } catch (\Swift_TransportException $e) {
 
-                Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
-                Log::info('' . PHP_EOL . '');
-                $record->update([
-                    'email_sent_status' => 'failed',
-                    'sms_sent_status' => 'failed',
-                    'failure_reason' => $e->getMessage()
-                ]);
+    //             Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
+    //             Log::info('' . PHP_EOL . '');
+    //             $record->update([
+    //                 'email_sent_status' => 'failed',
+    //                 'sms_sent_status' => 'failed',
+    //                 'failure_reason' => $e->getMessage()
+    //             ]);
 
-            } catch (\Swift_RfcComplianceException $e) {
-                Log::info('------> err Swift_Rfc:' . $e->getMessage());
-                Log::info('' . PHP_EOL . '');
+    //         } catch (\Swift_RfcComplianceException $e) {
+    //             Log::info('------> err Swift_Rfc:' . $e->getMessage());
+    //             Log::info('' . PHP_EOL . '');
 
-                $record->update([
-                    'email_sent_status' => 'failed',
-                    'sms_sent_status' => 'failed',
-                    'failure_reason' => $e->getMessage()
-                ]);
-            } catch (Exception $e) {
-                Log::info('------> err' . $e->getMessage());
-                Log::info('' . PHP_EOL . '');
+    //             $record->update([
+    //                 'email_sent_status' => 'failed',
+    //                 'sms_sent_status' => 'failed',
+    //                 'failure_reason' => $e->getMessage()
+    //             ]);
+    //         } catch (Exception $e) {
+    //             Log::info('------> err' . $e->getMessage());
+    //             Log::info('' . PHP_EOL . '');
 
-                $record->update([
-                    'email_sent_status' => 'failed',
-                    'sms_sent_status' => 'failed',
-                    'failure_reason' => $e->getMessage()
-                ]);
-            }
+    //             $record->update([
+    //                 'email_sent_status' => 'failed',
+    //                 'sms_sent_status' => 'failed',
+    //                 'failure_reason' => $e->getMessage()
+    //             ]);
+    //         }
 
-        } else {
-            $record->update([
-                'email_sent_status' => 'failed',
-                'sms_sent_status' => 'failed',
-                'failure_reason' => __('No valid email address for User')
-            ]);
-        }
-    }
+    //     } else {
+    //         $record->update([
+    //             'email_sent_status' => 'failed',
+    //             'sms_sent_status' => 'failed',
+    //             'failure_reason' => __('No valid email address for User')
+    //         ]);
+    //     }
+    // }
     public function createPayslipRecord($employee, $month)
     {
         return
