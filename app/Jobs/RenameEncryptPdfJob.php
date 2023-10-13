@@ -21,6 +21,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Support\Collection;
 
 class RenameEncryptPdfJob implements ShouldQueue
 {
@@ -53,7 +54,7 @@ class RenameEncryptPdfJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(array $chunk, $process_id)
+    public function __construct(Collection $chunk, $process_id)
     {
         $this->process = SendPayslipProcess::findOrFail($process_id);
         $this->department = Department::findOrFail($this->process->department_id);

@@ -115,8 +115,9 @@ class SendPayslipJob implements ShouldQueue
 
                         if (!empty($employee->email)) {
 
+                            $dest = $this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf';
+                            
                             try {
-
                                 setSavedSmtpCredentials();
 
                                 Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $dest, $pay_month));
@@ -125,7 +126,9 @@ class SendPayslipJob implements ShouldQueue
                                     'email_sent_status' => 'successful',
                                     'file' => $dest
                                 ]);
+
                                 sendSmsAndUpdateRecord($employee, $pay_month, $record);
+
                             } catch (\Swift_TransportException $e) {
 
                                 Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
@@ -161,30 +164,6 @@ class SendPayslipJob implements ShouldQueue
                                 'failure_reason' => __('No valid email address for User')
                             ]);
                         }
-                        
-                        // if(!is_null($employee->email)){
-
-                        //     setSavedSmtpCredentials();
-
-                        //     Mail::to($employee->email)->send(new SendPayslip($employee,$dest,$pay_month));
-
-                        //     if(Mail::failures()){
-                        //         $record->update([
-                        //                 'email_sent_status' => 'failed',
-                        //                 'sms_sent_status' => 'failed',
-                        //                 'failure_reason'=> __('Failed sending Email & SMS')
-                        //             ]);
-                        //     }else{
-                        //             $record->update(['email_sent_status' => 'successful']);
-                        //             sendSmsAndUpdateRecord($employee,$pay_month,$record);
-                        //     }
-                        // }else{
-                        //     $record->update([
-                        //         'email_sent_status' => 'failed',
-                        //         'sms_sent_status' => 'failed',
-                        //         'failure_reason' => __('No valid email address for User')
-                        //     ]);
-                        // }
                     }
                 }
             });
