@@ -44,7 +44,7 @@
         </div>
     </div>
 
-    <div class="row p-3">
+    <div class="row py-3">
         @hasanyrole('manager|admin')
         <div class="col">
             <label for="company">{{__('Company')}}: </label>

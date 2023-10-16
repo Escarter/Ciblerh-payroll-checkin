@@ -92,10 +92,10 @@ class RenameEncryptPdfJob implements ShouldQueue
             collect($this->department->employees)->each(function ($employee) use ($pdf_text, $file, $pay_month) {
 
                 if (empty($employee->matricule)) {
-                    $created_record = $this->createPayslipRecord($employee, $pay_month);
+                    $created_record = $this->createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id);
                     $created_record->update([
-                        'email_sent_status' => 'failed',
-                        'sms_sent_status' => 'failed',
+                        'email_sent_status' => Payslip::STATUS_FAILED,
+                        'sms_sent_status' => Payslip::STATUS_FAILED,
                         'failure_reason' => __('User Matricule is empty')
                     ]);
                 } else {
@@ -105,6 +105,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                     if (!empty($matches) && $matches[0] === $employee->matricule) {
 
                         $destination_file = $this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf';
+
                         if (Storage::disk('splitted')->exists($file)) {
                             //  Storage::disk('modified')->put($employee['matricule'].'.pdf', Storage::disk('splitted')->get($file));
                             $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
@@ -112,11 +113,27 @@ class RenameEncryptPdfJob implements ShouldQueue
                             $result = $pdf->setUserPassword($employee->pdf_password)
                                 ->passwordEncryption(128)
                                 ->saveAs(Storage::disk('modified')->path($destination_file));
-                          
-                            // if (Storage::disk('modified')->exists($destination_file)) {
-                               
-                            //     $this->sendSlip($employee, $pay_month, $destination_file);
-                            // }
+
+                            if (Storage::disk('modified')->exists($destination_file)) {
+
+                                $record_exists = Payslip::where('employee_id', $employee->id)
+                                    ->where('month', $pay_month)
+                                    ->where('year', now()->year)
+                                    ->first();
+
+                                if (empty($record_exists)) {
+                                    // global utility function
+                                    createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id,$destination_file);
+                                } else {
+                                    if ($record_exists->successful()) {
+                                        return;
+                                    }
+                                    $record_exists->update([
+                                        'file' =>  $destination_file
+                                    ]);
+                                }
+
+                            }
                         }
                     }
                 }
@@ -124,88 +141,4 @@ class RenameEncryptPdfJob implements ShouldQueue
         }
     }
 
-    // public function sendSlip($employee, $month, $destination)
-    // {
-    //     $record_exists = Payslip::where('employee_id', $employee->id)
-    //         ->where('month', $month)
-    //         ->where('year', now()->year)
-    //         ->first();
-
-    //     if (empty($record_exists)) {
-    //         $record = $this->createPayslipRecord($employee, $month);
-    //     } else {
-    //         if ($record_exists->successful()) {
-    //             return;
-    //         }
-    //         $record = $record_exists;
-    //     }
-
-    //     if (!empty($employee->email)) {
-
-    //         try {
-                
-    //             setSavedSmtpCredentials();
-
-    //             Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination, $month));
-
-    //             $record->update([
-    //                 'email_sent_status' => 'successful',
-    //                 'file' => $destination
-    //             ]);
-    //             sendSmsAndUpdateRecord($employee, $month, $record);
-
-    //         } catch (\Swift_TransportException $e) {
-
-    //             Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
-    //             Log::info('' . PHP_EOL . '');
-    //             $record->update([
-    //                 'email_sent_status' => 'failed',
-    //                 'sms_sent_status' => 'failed',
-    //                 'failure_reason' => $e->getMessage()
-    //             ]);
-
-    //         } catch (\Swift_RfcComplianceException $e) {
-    //             Log::info('------> err Swift_Rfc:' . $e->getMessage());
-    //             Log::info('' . PHP_EOL . '');
-
-    //             $record->update([
-    //                 'email_sent_status' => 'failed',
-    //                 'sms_sent_status' => 'failed',
-    //                 'failure_reason' => $e->getMessage()
-    //             ]);
-    //         } catch (Exception $e) {
-    //             Log::info('------> err' . $e->getMessage());
-    //             Log::info('' . PHP_EOL . '');
-
-    //             $record->update([
-    //                 'email_sent_status' => 'failed',
-    //                 'sms_sent_status' => 'failed',
-    //                 'failure_reason' => $e->getMessage()
-    //             ]);
-    //         }
-
-    //     } else {
-    //         $record->update([
-    //             'email_sent_status' => 'failed',
-    //             'sms_sent_status' => 'failed',
-    //             'failure_reason' => __('No valid email address for User')
-    //         ]);
-    //     }
-    // }
-    public function createPayslipRecord($employee, $month)
-    {
-        return
-            Payslip::create([
-                'user_id' => $this->user_id,
-                'send_payslip_process_id' => $this->process_id,
-                'employee_id' => $employee->id,
-                'first_name' => $employee->first_name,
-                'last_name' => $employee->last_name,
-                'email' => $employee->email,
-                'phone' => !is_null($employee->professional_phone_number) ? $employee->professional_phone_number : $employee->personal_phone_number,
-                'matricule' => $employee->matricule,
-                'month' => $this->month,
-                'year' => now()->year,
-            ]);
-    }
 }

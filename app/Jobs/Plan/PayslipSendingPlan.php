@@ -49,7 +49,6 @@ class PayslipSendingPlan
     }
     private static function step3($payslip_process)
     {
-
         $department = Department::findOrFail($payslip_process->department_id);
 
         if (!empty($department)) {

@@ -6,6 +6,7 @@ use App\Services\Nexah;
 use App\Models\AuditLog;
 use App\Services\TwilioSMS;
 use Illuminate\Support\Facades\Config;
+use App\Models\Payslip;
 
 function initials($string)
 {
@@ -32,7 +33,28 @@ if (!function_exists('auditLog')) {
         ]);
     }
 }
-
+if (!function_exists('createPayslipRecord')) {
+function createPayslipRecord($employee, $month, $process_id, $user_id, $file = null)
+    {
+        return
+            Payslip::create([
+                'user_id' => $user_id,
+                'send_payslip_process_id' => $process_id,
+                'employee_id' => $employee->id,
+                'company_id' => $employee->company_id,
+                'department_id' => $employee->department_id,
+                'service_id' => $employee->service_id,
+                'first_name' => $employee->first_name,
+                'last_name' => $employee->last_name,
+                'email' => $employee->email,
+                'file' => $file,
+                'phone' => !is_null($employee->professional_phone_number) ? $employee->professional_phone_number : $employee->personal_phone_number,
+                'matricule' => $employee->matricule,
+                'month' => $month,
+                'year' => now()->year,
+            ]);
+    }
+}
 if (!function_exists('sendSmsAndUpdateRecord')) {
     function sendSmsAndUpdateRecord($emp, $month, $record)
     {
@@ -68,12 +90,12 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 ]);
 
             if ($response['responsecode'] === 1) {
-                $record->update(['sms_sent_status' => 'successful']);
+                $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
             } else {
-                $record->update(['sms_sent_status' => 'failed', 'failure_reason' => __('Failed sending SMS')]);
+                $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('Failed sending SMS')]);
             }
         } else {
-            $record->update(['sms_sent_status' => 'failed', 'failure_reason' => __('No valid phone number for user')]);
+            $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('No valid phone number for user')]);
         }
     }
 }

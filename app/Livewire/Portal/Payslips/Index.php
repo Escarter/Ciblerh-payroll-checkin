@@ -101,7 +101,7 @@ class Index extends Component
             $payslip_process =
                 SendPayslipProcess::create([
                     'user_id' => auth()->user()->id,
-                    'company_id' => auth()->user()->company_id,
+                    'company_id' => !empty($this->company_id) ? $this->company_id : auth()->user()->company_id,
                     'department_id' => $this->department_id,
                     'author_id' => auth()->user()->id,
                     'raw_file' => $raw_file,

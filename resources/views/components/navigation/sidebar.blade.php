@@ -213,7 +213,7 @@
                                 </li>
                                 @endcan
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
-                                @can('export-read')
+                                @canany('report-payslip-read','report-checkin-read')
                                 <li class="nav-item">
                                     <span class="nav-link d-flex justify-content-between align-items-center {{ $request->routeIs('portal.reports.*') ? '' : 'collapsed' }} " data-bs-toggle="collapse" data-bs-target="#submenu-user" aria-expanded="{{ $request->routeIs('portal.reports.*') ? 'true' : 'false' }}"><span>
                                             <span class="sidebar-icon">
@@ -241,10 +241,16 @@
                                                     <span class="sidebar-text-contracted">O</span><span class="sidebar-text">{{__('Overtime')}}</span>
                                                 </a>
                                             </li>
+                                            <li class="nav-item {{ $request->routeIs('portal.reports.payslip') ? 'active' : '' }}">
+                                                <a href="{{route('portal.reports.payslip')}}" wire:navigate class="nav-link">
+                                                    <span class="sidebar-text-contracted">O</span><span class="sidebar-text">{{__('Payslips')}}</span>
+                                                </a>
+                                            </li>
                                         </ul>
                                     </div>
                                 </li>
-                                @endcan
+                                @endcanany
+                                <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('role-read')
                                 <li class="nav-item {{ $request->routeIs('portal.roles.*') ? 'active' : '' }}">
                                     <a href="{{ route('portal.roles.index') }}" wire:navigate class="nav-link">

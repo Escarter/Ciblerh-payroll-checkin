@@ -9,6 +9,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 
 class SendPayslip extends Mailable //implements ShouldQueue
 {
@@ -48,7 +49,6 @@ class SendPayslip extends Mailable //implements ShouldQueue
         $mail_content = $this->user->preferred_language === 'en' ?
             str_replace([':name:', ':month:'], [$this->user->name, now()->month], $setting->email_content_en) :
             str_replace([':name:', ':month:'], [$this->user->name, now()->month], $setting->email_content_fr);
-
 
         return $this->markdown('email.payslip.send',['message'=> $mail_content])
                     ->subject($email_subject)

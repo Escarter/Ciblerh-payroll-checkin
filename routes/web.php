@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Models\Setting;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 
@@ -30,19 +31,6 @@ Route::get('/', function () {
 
 Auth::routes(['register'=>'false']);
 
-Route::get('test', function(){
-
-    $setting = Setting::first();
-
-    $emp = User::find(1);
-    $month = now()->month;
-    $year = now()->year;
-
-    $sms_content = "Mr/Mrs :name:, your pay slip for the month of :month:-:year: has been sent to your mailbox. Please use the following password: :pdf_password: to view it.";
-
-    $new_message = str_replace([':name:',':month:',':year:',':pdf_password:'],[$emp->name,$month,$year,$emp->pdf_password],$sms_content);
-    return $new_message;
-});
 
 Route::any('/logout', [LoginController::class, 'logout']);
 
@@ -135,11 +123,7 @@ Route::group(
         Route::prefix('advance-salaries')->group(function () {
             Route::get('/', App\Livewire\Portal\AdvanceSalaries\Index::class)->name('portal.advance-salaries.index');
         });
-        //Checklog management
-        Route::prefix('reports')->group(function () {
-            Route::get('/checklogs', App\Livewire\Portal\Reports\Checklog::class)->name('portal.reports.checklogs');
-            Route::get('/overtimes', App\Livewire\Portal\Reports\Overtime::class)->name('portal.reports.overtime');
-        });
+       
 
         //Payslip Salaries
         Route::prefix('payslips')->group(function () {
@@ -168,6 +152,13 @@ Route::group(
             Route::get('/', App\Livewire\Portal\Settings\Index::class)->name('portal.settings.index');
         });
 
+        //Checklog management
+        Route::prefix('reports')->group(function () {
+            Route::get('/checklogs', App\Livewire\Portal\Reports\Checklog::class)->name('portal.reports.checklogs');
+            Route::get('/overtimes', App\Livewire\Portal\Reports\Overtime::class)->name('portal.reports.overtime');
+            Route::get('/payslips', App\Livewire\Portal\Reports\Payslip::class)->name('portal.reports.payslip');
+            
+        });
 
         Route::get('/checkin-report-template',function(){
             $month = '2022-03';

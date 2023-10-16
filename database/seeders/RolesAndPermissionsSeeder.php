@@ -129,6 +129,10 @@ class RolesAndPermissionsSeeder extends Seeder
             ['name' => 'setting-sms'],
             ['name' => 'setting-smtp'],
 
+            ['name' => 'report-checkin-read'],
+            ['name' => 'report-payslip-read'],
+            ['name' => 'report-export'],
+
         ];
 
         $insert_data = [];

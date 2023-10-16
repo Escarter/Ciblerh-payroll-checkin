@@ -20,6 +20,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Support\Facades\Log;
 
 class SendPayslipJob implements ShouldQueue
 {
@@ -91,51 +92,59 @@ class SendPayslipJob implements ShouldQueue
 
         $encrypted_files = Storage::disk('modified')->allFiles($this->destination);
 
+        Log::info($encrypted_files);
+
         foreach ($this->employee_chunk as $employee) {
 
             collect($encrypted_files)->each(function ($file) use ($employee, $pay_month, $dest) {
 
                 if (strpos($file, $employee->matricule .'_'.$pay_month.'.pdf') !== FALSE) {
 
+                    Log::info(Storage::disk('modified')->path($file));
+
                     if (Storage::disk('modified')->exists($file)) {
+
+                        $destination_file = $this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf';
 
                         $record_exists = Payslip::where('employee_id',$employee->id)
                                                 ->where('month',$this->month)
                                                 ->where('year',now()->year)
                                                 ->first();
+                        
 
-                        if($record_exists){
-                            if($record_exists->successful()){
-                                return ;
+                        if (empty($record_exists)) {
+                            // global utility function
+                            $record = createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $destination_file);
+                        } else {
+                            if ($record_exists->email_sent_status === Payslip::STATUS_SUCCESSFUL && $record_exists->sms_sent_status === Payslip::STATUS_SUCCESSFUL) {
+                                return;
                             }
                             $record = $record_exists;
-                        }else{
-                            $record = $this->createPayslipRecord($employee,$pay_month);
                         }
+
 
                         if (!empty($employee->email)) {
 
-                            $dest = $this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf';
-                            
                             try {
                                 setSavedSmtpCredentials();
 
-                                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $dest, $pay_month));
+                                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination_file, $pay_month));
 
                                 $record->update([
-                                    'email_sent_status' => 'successful',
-                                    'file' => $dest
+                                    'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
                                 ]);
 
                                 sendSmsAndUpdateRecord($employee, $pay_month, $record);
+
+                                Log::info('mail-sent');
 
                             } catch (\Swift_TransportException $e) {
 
                                 Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
                                 Log::info('' . PHP_EOL . '');
                                 $record->update([
-                                    'email_sent_status' => 'failed',
-                                    'sms_sent_status' => 'failed',
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'sms_sent_status' => Payslip::STATUS_FAILED,
                                     'failure_reason' => $e->getMessage()
                                 ]);
                             } catch (\Swift_RfcComplianceException $e) {
@@ -143,8 +152,8 @@ class SendPayslipJob implements ShouldQueue
                                 Log::info('' . PHP_EOL . '');
 
                                 $record->update([
-                                    'email_sent_status' => 'failed',
-                                    'sms_sent_status' => 'failed',
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'sms_sent_status' => Payslip::STATUS_FAILED,
                                     'failure_reason' => $e->getMessage()
                                 ]);
                             } catch (Exception $e) {
@@ -152,15 +161,15 @@ class SendPayslipJob implements ShouldQueue
                                 Log::info('' . PHP_EOL . '');
 
                                 $record->update([
-                                    'email_sent_status' => 'failed',
-                                    'sms_sent_status' => 'failed',
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'sms_sent_status' => Payslip::STATUS_FAILED,
                                     'failure_reason' => $e->getMessage()
                                 ]);
                             }
                         } else {
                             $record->update([
-                                'email_sent_status' => 'failed',
-                                'sms_sent_status' => 'failed',
+                                'email_sent_status' => Payslip::STATUS_FAILED,
+                                'sms_sent_status' => Payslip::STATUS_FAILED,
                                 'failure_reason' => __('No valid email address for User')
                             ]);
                         }
@@ -169,22 +178,5 @@ class SendPayslipJob implements ShouldQueue
             });
         }
     }
- 
-    public function createPayslipRecord($employee,$month)
-    {
-       return
-        Payslip::create([
-            'user_id' => $this->user_id,
-            'author_id' => $this->user_id,
-            'send_payslip_process_id' => $this->process_id,
-            'employee_id' => $employee->id,
-            'first_name' => $employee->first_name,
-            'last_name' => $employee->last_name,
-            'email' => $employee->email,
-            'phone' => !is_null($employee->professional_phone_number) ? $employee->professional_phone_number : $employee->personal_phone_number,
-            'matricule' => $employee->matricule,
-            'month' => $this->month,
-            'year' => now()->year,
-        ]);
-    }
+
 }

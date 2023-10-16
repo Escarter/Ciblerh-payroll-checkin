@@ -2,17 +2,13 @@
 
 namespace App\Exports;
 
-use App\Models\User;
-use App\Models\Company;
-use App\Models\Department;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
 
-class EmployeeExport implements FromQuery, WithMapping, WithHeadings
+class PayslipReportExport implements FromQuery, WithMapping, WithHeadings
 {
     use Exportable;
 
@@ -53,8 +49,8 @@ class EmployeeExport implements FromQuery, WithMapping, WithHeadings
 
     public function query()
     {
-        return User::search($this->query)->when(!empty($this->company) , function($query){
-             return $query->where('company_id',$this->company->id);
+        return User::search($this->query)->when(!empty($this->company), function ($query) {
+            return $query->where('company_id', $this->company->id);
         });
     }
 
@@ -73,9 +69,9 @@ class EmployeeExport implements FromQuery, WithMapping, WithHeadings
             $user->position,
             $user->salary_grade,
             $user->net_salary,
-            !is_null($user->company)? $user->company->name : '',
-            !is_null($user->department)? $user->department->name : '',
-            !is_null($user->service)? $user->service->name : '',
+            !is_null($user->company) ? $user->company->name : '',
+            !is_null($user->department) ? $user->department->name : '',
+            !is_null($user->service) ? $user->service->name : '',
             $user->pdf_password,
             $user->remaining_leave_days,
             $user->monthly_leave_allocation,

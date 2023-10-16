@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Portal\Reports;
 
+use App\Livewire\Traits\WithDataTable;
 use PDF;
 use Carbon\Carbon;
 use App\Models\User;
@@ -15,16 +16,7 @@ use App\Models\Overtime as EmployeeOvertime;
 
 class Overtime extends Component
 {
-    use WithPagination;
-
-    //DataTable props
-    public ?string $query = null;
-    public ?string $resultCount;
-    public string $orderBy = 'created_at';
-    public string $orderAsc = 'desc';
-    public int $perPage = 15;
-
-    protected $paginationTheme = "bootstrap";
+    use WithDataTable;
 
     public $companies = [];
     public $selectedCompanyId = null;

@@ -18,6 +18,9 @@ class CreatePayslipsTable extends Migration
             $table->foreignId('user_id')->nullable();
             $table->foreignId('send_payslip_process_id')->nullable();
             $table->foreignId('employee_id')->nullable();
+            $table->foreignId('company_id')->nullable()->constrained();
+            $table->foreignId('department_id')->nullable()->constrained();
+            $table->foreignId('service_id')->nullable()->constrained();
             $table->foreignId('author_id')->index()->nullable()->constrained('users');
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
@@ -27,8 +30,8 @@ class CreatePayslipsTable extends Migration
             $table->string('month')->nullable();
             $table->string('year')->nullable();
             $table->string('file')->nullable();
-            $table->enum('email_sent_status',['pending','failed','successful'])->default('pending');
-            $table->enum('sms_sent_status',['pending','failed','successful'])->default('pending');
+            $table->tinyInteger('email_sent_status')->default(0);
+            $table->tinyInteger('sms_sent_status')->default(0);
             $table->longText('failure_reason')->nullable();
             $table->timestamps();
         });

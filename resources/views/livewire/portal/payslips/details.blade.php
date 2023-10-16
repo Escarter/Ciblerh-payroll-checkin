@@ -104,32 +104,32 @@
                                 <span class="fw-normal">{{$payslip->created_at->diffForHumans()}}</span>
                             </td>
                             <td>
-                                @if($payslip->email_sent_status == 'successful')
+                                @if($payslip->email_sent_status == 1)
                                 <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
-                                @elseif($payslip->email_sent_status == 'failed' )
+                                @elseif($payslip->email_sent_status == 2 )
                                 <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
                                 @else
                                 <span class="badge badge-lg text-md text-gray bg-warning">{{__('Pending...')}}</span>
                                 @endif
                             </td>
                             <td>
-                                @if($payslip->sms_sent_status == 'successful')
+                                @if($payslip->sms_sent_status == 1)
                                 <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
-                                @elseif($payslip->sms_sent_status == 'failed')
+                                @elseif($payslip->sms_sent_status == 2)
                                 <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
                                 @else
                                 <span class="badge badge-lg text-md text-dark bg-warning">{{__('Pending...')}}</span>
                                 @endif
                             </td>
                             <td>
-                                @if($payslip->email_sent_status == 'failed' || $payslip->email_sent_status == 'pending' )
+                                @if($payslip->email_sent_status == 2 || $payslip->email_sent_status == 0 )
                                 <a href='#' data-id="{{$payslip->id}}" data-bs-url="/admin/payslips/edit/{{$payslip->id}}" data-bs-toggle="modal" data-bs-target="#resendPayslipModal">
                                     <svg class="icon icon-xs text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                     </svg>
                                 </a>
                                 @endif
-                                @if($payslip->sms_sent_status == 'failed' && $payslip->sms_sent_status == 'successful')
+                                @if($payslip->sms_sent_status == 2 && $payslip->sms_sent_status == 0)
                                 <a href='/admin/payslips/{{$payslip->id}}/resend-sms' class="mr-4">
                                     <svg class="icon icon-xs text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>

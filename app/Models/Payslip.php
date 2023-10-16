@@ -10,6 +10,10 @@ class Payslip extends Model
 {
     use HasFactory;
 
+    const STATUS_PENDING = 0;
+    const STATUS_SUCCESSFUL = 1;
+    const STATUS_FAILED = 2;
+
     protected $guarded  = [];
 
     public function scopeSupervisor($query)
@@ -34,11 +38,11 @@ class Payslip extends Model
 
     public function scopeSuccessful($query)
     {
-        return $query->where('email_sent_status','successful')->where('sms_sent_status','successful');
+        return $query->where('email_sent_status',self::STATUS_SUCCESSFUL)->where('sms_sent_status',self::STATUS_SUCCESSFUL);
     }
     public function scopeFailed($query)
     {
-        return $query->where('email_sent_status','failed');
+        return $query->where('email_sent_status',self::STATUS_FAILED);
     }
 
     public function sendProcess()
@@ -48,7 +52,15 @@ class Payslip extends Model
 
     public function employee()
     {
-        return $this->belongsTo(Employee::class,'employee_id');
+        return $this->belongsTo(User::class,'employee_id');
+    }
+    public function company()
+    {
+        return $this->belongsTo(Company::class,'company_id');
+    }
+    public function department()
+    {
+        return $this->belongsTo(Department::class,'department_id');
     }
 
     public static function search($query)
