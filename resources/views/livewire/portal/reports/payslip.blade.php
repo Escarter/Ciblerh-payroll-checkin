@@ -48,13 +48,13 @@
         <div class="col">
             <label for="search">{{__('Search')}}: </label>
             <input wire:model.live="query_string" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
-            <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         @hasanyrole('manager|admin')
         <div class="col">
             <label for="company">{{__('Company')}}: </label>
             <select wire:model.live="selectedCompanyId" class="form-select">
-                <option value="all" selected>{{__('Select Company')}}</option>
+                <option value="" selected>{{__('-- Select Company --')}}</option>
+                <option value="all">{{__('All Companies')}}</option>
                 @foreach ($companies as $company)
                 <option value="{{$company->id}}">{{$company->name}}</option>
                 @endforeach
@@ -64,7 +64,8 @@
         <div class="col">
             <label for="selectedDepartmentId">{{__('Department')}}: </label>
             <select wire:model.live="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror">
-                <option value="" selected>{{__('Select Departments')}}</option>
+                <option value="" selected>{{__('-- Select Department --')}}</option>
+                <option value="all">{{__('All Departments')}}</option>
                 @foreach ($departments as $department)
                 <option value="{{$department->id}}">{{$department->name}}</option>
                 @endforeach
@@ -77,7 +78,8 @@
             <div>
                 <label for="orderBy">{{__('Employee')}}: </label>
                 <select wire:model.live="employee_id" class="form-select">
-                    <option value="all" selected>{{__('All Employees')}}</option>
+                    <option value="" selected>{{__('-- Select Employees --')}}</option>
+                    <option value="all">{{__('All Employees')}}</option>
                     @foreach ($employees as $employee)
                     <option value=" {{$employee->id}}">{{$employee->name}}</option>
                     @endforeach
@@ -90,16 +92,17 @@
         <div class="col">
             <label for="sms_status">{{__('SMS Status')}}: </label>
             <select wire:model.live="sms_status" class="form-select">
-                <option value="all" selected>{{__('Select Status')}}</option>
-                <option value="0">{{__('Pending')}}</option>
-                <option value="1">{{__('Successful')}}</option>
-                <option value="2">{{__('Failed')}}</option>
+                <option value="">{{__('-- Select Status --')}}</option>
+                <option value="all" selected>{{__('Select All')}}</option>
+                <option value="3">{{__('Pending')}}</option>
+                <option value="4">{{__('Successful')}}</option>
+                <option value="5">{{__('Failed')}}</option>
             </select>
         </div>
         <div class="col">
             <label for="email_status">{{__('Email Status')}}: </label>
             <select wire:model.live="email_status" class="form-select">
-                <option value="" >{{__('Select Status')}}</option>
+                <option value="">{{__('-- Select Status --')}}</option>
                 <option value="all" selected>{{__('Select All')}}</option>
                 <option value="0">{{__('Pending')}}</option>
                 <option value="1">{{__('Successful')}}</option>
@@ -157,7 +160,7 @@
                             <span class="fw-normal">{{$payslip->month}} - {{$payslip->year}}</span>
                         </td>
                         <td>
-                            <span class="fw-normal">{{$payslip->created_at->diffForHumans()}}</span>
+                            <span class="fw-normal">{{$payslip->created_at}}</span>
                         </td>
                         <td>
                             @if($payslip->email_sent_status == 1)

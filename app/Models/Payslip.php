@@ -13,6 +13,10 @@ class Payslip extends Model
     const STATUS_PENDING = 0;
     const STATUS_SUCCESSFUL = 1;
     const STATUS_FAILED = 2;
+    //used only for reporting view
+    const SMS_STATUS_PENDING = 3;
+    const SMS_STATUS_SUCCESSFUL = 4;
+    const SMS_STATUS_FAILED = 5;
 
     protected $guarded  = [];
 
@@ -24,6 +28,25 @@ class Payslip extends Model
     public function scopeManager($query)
     {
         return $query->where('author_id', auth()->user()->id);
+    }
+
+    public function getEmailStatusTextAttribute()
+    {
+        return match($this->email_sent_status){
+            self::STATUS_FAILED => __('Failed'),
+            self::STATUS_PENDING => __('Pending'),
+            self::STATUS_SUCCESSFUL => __('Successful'),
+            default => ''
+        };
+    }
+    public function getSmsStatusTextAttribute()
+    {
+        return match($this->sms_sent_status){
+            self::STATUS_FAILED => __('Failed'),
+            self::STATUS_PENDING => __('Pending'),
+            self::STATUS_SUCCESSFUL => __('Successful'),
+            default => ''
+        };
     }
 
     public function getNameAttribute()
