@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payslips', function (Blueprint $table) {
-            $table->tinyInteger('encryption_status')->default(0)->after('file');
-
+            $table->foreignId('department_id')->nullable()->constrained()->after('company_id');
         });
     }
 
@@ -23,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('payslips', function (Blueprint $table) {
-            $table->dropColumn('encryption_status');
+            $table->dropConstrainedForeignId('department_id');
         });
     }
 };

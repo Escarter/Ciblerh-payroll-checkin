@@ -19,7 +19,6 @@ class CreatePayslipsTable extends Migration
             $table->foreignId('send_payslip_process_id')->nullable();
             $table->foreignId('employee_id')->nullable();
             $table->foreignId('company_id')->nullable()->constrained();
-            $table->foreignId('department_id')->nullable()->constrained();
             $table->foreignId('service_id')->nullable()->constrained();
             $table->foreignId('author_id')->index()->nullable()->constrained('users');
             $table->string('first_name')->nullable();
