@@ -30,6 +30,14 @@ class Payslip extends Model
         return $query->where('author_id', auth()->user()->id);
     }
 
+    public function getEncryptionStatusTextAttribute()
+    {
+        return match($this->encryption_status){
+            self::STATUS_FAILED => __('Failed'),
+            self::STATUS_SUCCESSFUL => __('Successful'),
+            default => __('Not recorded')
+        };
+    }
     public function getEmailStatusTextAttribute()
     {
         return match($this->email_sent_status){

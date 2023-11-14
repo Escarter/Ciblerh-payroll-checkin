@@ -94,6 +94,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                 if (empty($employee->matricule)) {
                     $created_record = $this->createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id);
                     $created_record->update([
+                        'encryption_status' => Payslip::STATUS_FAILED,
                         'email_sent_status' => Payslip::STATUS_FAILED,
                         'sms_sent_status' => Payslip::STATUS_FAILED,
                         'failure_reason' => __('User Matricule is empty')
@@ -125,11 +126,13 @@ class RenameEncryptPdfJob implements ShouldQueue
                                     // global utility function
                                     createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id,$destination_file);
                                 } else {
+                                    
                                     if ($record_exists->successful()) {
                                         return;
                                     }
                                     $record_exists->update([
-                                        'file' =>  $destination_file
+                                        'file' =>  $destination_file,
+                                        'encryption_status' => Payslip::STATUS_SUCCESSFUL,
                                     ]);
                                 }
 

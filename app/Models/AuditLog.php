@@ -58,7 +58,8 @@ class AuditLog extends Model
             'rejected' => 'danger',
             'approved' => 'success',
             'sending' => 'warning',
-            'type' => 'warning'
+            'type' => 'warning',
+            'report' => 'success'
         ][$action];
     }
     public static function search($query)

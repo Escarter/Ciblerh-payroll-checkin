@@ -68,6 +68,7 @@
                             <th class="border-bottom">{{__('Contacts')}}</th>
                             <th class="border-bottom">{{__('Period')}}</th>
                             <th class="border-bottom">{{__('When')}}</th>
+                            <th class="border-bottom">{{__('Encryption status')}}</th>
                             <th class="border-bottom">{{__('Email status')}}</th>
                             <th class="border-bottom">{{__('SMS status')}}</th>
                             <th class="border-bottom">{{__('Action')}}</th>
@@ -77,7 +78,7 @@
                         @forelse($payslips as $payslip)
                         <tr>
                             <td>
-                                <a href="#" class="d-flex align-items-center">
+                                <a href="{{ $payslip->employee->getRoleNames()->first() === 'employee' ? route('portal.employee.payslips',['employee_uuid' => $payslip->employee->uuid]) : '#'}}" class="d-flex align-items-center">
                                     <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary text-white me-3"><span>{{$payslip->initials}}</span></div>
                                     <div class="d-block"><span class="fw-bold">{{$payslip->name}}</span>
                                         <div class="small text-gray">{{$payslip->email}}</div>
@@ -102,6 +103,15 @@
                             </td>
                             <td>
                                 <span class="fw-normal">{{$payslip->created_at->diffForHumans()}}</span>
+                            </td>
+                            <td>
+                                @if($payslip->encryption_status == 1)
+                                <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
+                                @elseif($payslip->encryption_status == 2 )
+                                <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                                @else
+                                <span class="badge badge-lg text-md text-white bg-gray-400">{{__('Not Recorded')}}</span>
+                                @endif
                             </td>
                             <td>
                                 @if($payslip->email_sent_status == 1)

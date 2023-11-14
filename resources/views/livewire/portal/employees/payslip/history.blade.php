@@ -70,6 +70,7 @@
                                 <th class="border-bottom">{{__('Period')}}</th>
                                 <th class="border-bottom">{{__('Category')}}</th>
                                 <th class="border-bottom">{{__('When')}}</th>
+                                <th class="border-bottom">{{__('Encryption status')}}</th>
                                 <th class="border-bottom">{{__('Email status')}}</th>
                                 <th class="border-bottom">{{__('SMS status')}}</th>
                                 <th class="border-bottom">{{__('Action')}}</th>
@@ -115,18 +116,27 @@
                                     <span class="fw-normal">{{$payslip->created_at}}</span>
                                 </td>
                                 <td>
-                                    @if($payslip->email_sent_status == 'successful')
+                                    @if($payslip->encryption_status == 1)
                                     <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
-                                    @elseif($payslip->email_sent_status == 'failed' )
+                                    @elseif($payslip->encryption_status == 2 )
+                                    <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                                    @else
+                                    <span class="badge badge-lg text-md text-white bg-gray-400">{{__('Not Recorded')}}</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($payslip->email_sent_status == 1)
+                                    <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
+                                    @elseif($payslip->email_sent_status == 2 )
                                     <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
                                     @else
                                     <span class="badge badge-lg text-md text-gray bg-warning">{{__('Pending...')}}</span>
                                     @endif
                                 </td>
                                 <td>
-                                    @if($payslip->sms_sent_status == 'successful')
+                                    @if($payslip->sms_sent_status == 1)
                                     <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
-                                    @elseif($payslip->sms_sent_status == 'failed')
+                                    @elseif($payslip->sms_sent_status == 2)
                                     <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
                                     @else
                                     <span class="badge badge-lg text-md text-dark bg-warning">{{__('Pending...')}}</span>
