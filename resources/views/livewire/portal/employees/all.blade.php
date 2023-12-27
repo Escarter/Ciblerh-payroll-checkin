@@ -203,6 +203,7 @@
                         <th class="border-bottom">{{__('Employee')}}</th>
                         <th class="border-bottom">{{__('Company')}}</th>
                         <th class="border-bottom">{{__('Matricule')}}</th>
+                        <th class="border-bottom">{{__('PDF Password')}}</th>
                         <th class="border-bottom">{{__('Phone')}}</th>
                         <th class="border-bottom">{{__('Role')}}</th>
                         <th class="border-bottom">{{__('Status')}}</th>
@@ -239,6 +240,9 @@
                         </td>
                         <td>
                             <span class="fs-normal">{{ $employee->matricule }}</span>
+                        </td>
+                        <td>
+                            <span class="fs-normal">{{ $employee->pdf_password }}</span>
                         </td>
                         <td>
                             <span class="fs-normal">{{ $employee->professional_phone_number }}</span><br>
