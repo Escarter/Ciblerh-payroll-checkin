@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\EmployeeCreated;
 use App\Notifications\SendCredentialsNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Queue\InteractsWithQueue;
 
 class SendCredentailsDetailsNotification
@@ -29,9 +30,7 @@ class SendCredentailsDetailsNotification
     public function handle(EmployeeCreated $event)
     {
 
-        dd($event->employee);
-
-        $event->employee->notify(new SendCredentialsNotification($event->password));
+        Notification::sendNow($event->employee, new SendCredentialsNotification($event->password));
 
         return false;
     }

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Setting;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Notifications\Notification;
@@ -12,6 +13,7 @@ class SendCredentialsNotification extends Notification
 {
     use Queueable;
     public $password;
+
     /**
      * Create a new notification instance.
      *
@@ -41,9 +43,13 @@ class SendCredentialsNotification extends Notification
      */
     public function toMail($notifiable)
     {
+        $setting = Setting::first();
+
+        setSavedSmtpCredentials();
+        
         return (new MailMessage)
-            ->from(env("MAIL_FROM_ADDRESS"), __('HR WiMA'))
-            ->subject(Lang::get(env("WELCOME_MAIL_FROM_SUBJECT"), __('HR WiMA - Login Credentials')))
+            ->from($setting->from_email, $setting->from_name)
+            ->subject(Lang::get(env("WELCOME_MAIL_FROM_SUBJECT"), [__('HR WiMA - Login Credentials')]))
             ->markdown('email.credentials',['employee' => $notifiable, 'password' => $this->password]);
     }
 
