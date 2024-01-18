@@ -28,6 +28,9 @@ class SendCredentailsDetailsNotification
      */
     public function handle(EmployeeCreated $event)
     {
+
+        dd($event->employee);
+
         $event->employee->notify(new SendCredentialsNotification($event->password));
 
         return false;

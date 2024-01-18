@@ -9,7 +9,8 @@ return [
     'chunk_size' => env('CHUNK_SIZE', '50'),
     
     'regards' => [
-        'company_name' => 'Cible Rh Emploi',
+        'company_name' => env('COMPANY_SUPPORT_EMAIL', 'WiMa HR'),
+        'company_support_email' => env('COMPANY_SUPPORT_EMAIL','support@wima.com'),
         'additional_text' => 'This is an automatically generated notification. Please do not reply to this e-mail'
     ]
 ];

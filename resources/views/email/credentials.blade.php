@@ -7,8 +7,7 @@
 @lang('Email'): **{{$employee->email}}** <br>
 @lang('Password'): **{{$password}}** <br>
 
-@lang('In case of any difficulties, Contact your support via') ['HELP DESK CIBLE RH'](mailto:helpdesk.crhe@groupe-cible.com)
-@lang('Cible Rh Team')
+@lang('In case of any difficulties, Contact your support via') ['HELP DESK CIBLE RH'](mailto:config('ciblerh.regards.company_support_email'))
 
 
 @lang('Regards'),<br>
