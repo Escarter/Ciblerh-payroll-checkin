@@ -148,7 +148,7 @@
                                         </textarea>
                                     </div>
                                     <div class="form-group mb-2">
-                                        <label for="email_subject_fr">{{ __('Enter Email subject French') }}</label>
+                                        <label for="welcome_email_subject_fr">{{ __('Enter Email subject French') }}</label>
                                         <input wire:model="email_subject_fr" type="text" class="form-control w-100 @error('email_subject_fr') is-invalid @enderror" required autofocus>
                                     </div>
                                     <div class=" form-group mb-2" wire:ignore>
@@ -202,6 +202,43 @@
                                 </x-form-items.form>
                             </div>
                         </div>
+                        <div class="mb-5 card card-raised">
+                            <div class="py-4 px-5 card-body">
+                                <div class="card-title h5 ">{{__('Welcome Email configuration')}} </div>
+                                <x-form-items.form wire:submit="saveSmtpConfig">
+                                    <div class="form-group mb-2">
+                                        <label for="welcome_email_subject_en">{{ __('Enter welcome email subject English') }}</label>
+                                        <input wire:model="welcome_email_subject_en" type="text" class="form-control w-100 @error('welcome_email_subject_en') is-invalid @enderror" required autofocus>
+                                    </div>
+
+                                    <div class="form-group mb-2" wire:ignore>
+                                        <label for="welcome_email_content_en">{{ __('Enter welcome email content English') }}</label>
+                                        <textarea wire:model="welcome_email_content_en" class="welcome_email_content_en form-control w-100 @error('welcome_email_content_en') is-invalid @enderror">
+                                            {!! $welcome_email_content_en !!}
+                                        </textarea>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label for="welcome_email_subject_fr">{{ __('Enter welcome email subject French') }}</label>
+                                        <input wire:model="welcome_email_subject_fr" type="text" class="form-control w-100 @error('welcome_email_subject_fr') is-invalid @enderror" required autofocus>
+                                    </div>
+                                    <div class=" form-group mb-2" wire:ignore>
+                                        <label for="welcome_email_content_fr">{{ __('Enter welcome email content French') }}</label>
+                                        <textarea wire:model="welcome_email_content_fr" class="welcome_email_content_fr form-control w-100 @error('welcome_email_content_fr') is-invalid @enderror">
+                                                 {!! $welcome_email_content_fr !!}
+                                        </textarea>
+                                    </div>
+
+                                    <div class='text-xs text-danger ' style="font-size:small">
+                                        {{__('Don not remove or change the values of')}} <strong class="fw-bolder"> :name: </strong>, <strong class="fw-bolder"> :username: </strong> , <strong class="fw-bolder"> :site_url: </strong> and <strong class="fw-bolder"> :password: </strong>,{{__(' as these are used as placeholders')}}
+                                    </div>
+                                    <div class="mt-4 mb-0 form-group d-flex justify-content-end">
+                                        <button type="submit" wire:click.prevent="saveSmtpConfig" class="btn btn-primary" wire:loading.attr="disabled">
+                                            {{ __('Save Welcome Email Config') }}
+                                        </button>
+                                    </div>
+                                </x-form-items.form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -216,6 +253,14 @@
         var editor2 = new MediumEditor('.email_content_fr');
         editor2.subscribe('blur', function(event, editable) {
             @this.set('email_content_fr', editor2.getContent())
+        });
+        var editor3 = new MediumEditor('.welcome_email_content_fr');
+        editor2.subscribe('blur', function(event, editable) {
+            @this.set('welcome_email_content_fr', editor3.getContent())
+        });
+        var editor4 = new MediumEditor('.welcome_email_content_en');
+        editor2.subscribe('blur', function(event, editable) {
+            @this.set('welcome_email_content_en', editor4.getContent())
         });
     </script>
     @endpush

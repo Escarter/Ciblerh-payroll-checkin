@@ -1,4 +1,8 @@
 @component('mail::message')
+{!! $message !!}
+@endcomponent
+
+@component('mail::message')
 # @lang('Welcome Mr / Mrs') {{$employee->name}}
 
 @lang('Your checking account has been created and you can now login into the employee portal at') [@lang('here')](https://checkin.ciblerh-emploi.com). @lang('your credential')

@@ -42,6 +42,10 @@ class Index extends Component
     public $email_content_fr;
     public $email_subject_en ;
     public $email_subject_fr;
+    public $welcome_email_content_en ;
+    public $welcome_email_content_fr;
+    public $welcome_email_subject_en ;
+    public $welcome_email_subject_fr;
 
     public function mount() {
 
@@ -69,10 +73,14 @@ class Index extends Component
         $this->email_content_en = !empty($this->setting) ? (!empty($this->setting->email_content_en) ? $this->setting->email_content_en : "<h2>Dear :name:,</h2> <p>Please find your pay slip attached,</p> <p>How to open your pay slip:</p> <p>Download the PDF document attached to the email. You will be asked for your password</p><p>Enter the password received by SMS</p> <p>In case of difficulty, please call us or write to us using the contact details below:</p> <p>Call and text: :support_number:</p> <p>Mail: :mail_address:</p>") : '';
         $this->email_content_fr = !empty($this->setting) ? (!empty($this->setting->email_content_fr) ? $this->setting->email_content_fr : "<h2>Cher :name:,</h2> <p>Veuillez trouver votre fiche de paie en pièce jointe,</p> <p>Comment ouvrir votre fiche de paie :</p> <p>Téléchargez le document PDF joint au e-mail. Votre mot de passe vous sera demandé</p> <p>Saisissez le mot de passe reçu par SMS</p> <p>En cas de difficulté, merci de nous appeler ou de nous écrire aux coordonnées ci-dessous :</p> <p>Appel et SMS : support_number :</p> <p>Mail : mail_address :</p>") :'';
 
+        $this->welcome_email_subject_en = !empty($this->setting) ? (!empty($this->setting->welcome_email_subject_en) ? $this->setting->welcome_email_subject_en : "EmploiServ - Login Credentials") :'';
+        $this->welcome_email_subject_fr = !empty($this->setting) ? (!empty($this->setting->welcome_email_subject_fr) ? $this->setting->welcome_email_subject_fr :  "EmploiServ - Identifiants de connexion") :'';
+        $this->welcome_email_content_en = !empty($this->setting) ? (!empty($this->setting->welcome_email_content_en) ? $this->setting->welcome_email_content_en : "<h3>Dear :name:,</h3> <p>Your account has been created and you can now login into the employee portal at, :site_url: your credentials are </p> <strong>Username :username:</strong> <br><strong>Password :password:</strong><p></p>  <p>In case of any difficulties, Contact your support via </p> <p>Call and text: :support_number:</p> <p>Mail: :mail_address:</p>") : '';
+        $this->welcome_email_content_fr = !empty($this->setting) ? (!empty($this->setting->welcome_email_content_fr) ? $this->setting->welcome_email_content_fr : "<h2>Cher :name:,</h2> <p>Votre compte a été créé et vous pouvez désormais vous connecter au portail des employés sur,:site_url: vos identifiants sont </p> <strong>Nom d'utilisateur :username:</strong> <br><strong>Mot de passe :password:</strong><p></p> <p>En cas de difficultés, contactez votre support via </p> <p>Appel et SMS : :support_number:</p> <p>Mail : :mail_address:</p>") :'';
+
 
     
     }
-
 
     public function saveSmsConfig()
     {
@@ -142,6 +150,10 @@ class Index extends Component
                 'email_content_fr' => $this->email_content_fr,
                 'email_subject_fr' => $this->email_subject_fr,
                 'email_subject_en' => $this->email_subject_en,
+                'welcome_email_content_en' => $this->welcome_email_content_en,
+                'welcome_email_content_fr' => $this->welcome_email_content_fr,
+                'welcome_email_subject_fr' => $this->welcome_email_subject_fr,
+                'welcome_email_subject_en' => $this->welcome_email_subject_en,
             ]
         );
 

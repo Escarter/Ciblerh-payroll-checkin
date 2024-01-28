@@ -46,11 +46,17 @@ class SendCredentialsNotification extends Notification
         $setting = Setting::first();
 
         setSavedSmtpCredentials();
+
+        $welcome_email_subject = $this->user->preferred_language === 'en' ? $setting->welcome_email_subject_en : $setting->welcome_email_subject_fr;
+
+        $welcome_mail_content = $this->user->preferred_language === 'en' ?
+            str_replace([':name:', ':site_url:',':username:',':password:'], [$this->user->name, url("/login"), $notifiable->email, $this->password], $setting->welcome_email_content_en) :
+            str_replace([':name:', ':site_url:',':username:',':password:'], [$this->user->name, url("/login"), $notifiable->email, $this->password], $setting->welcome_email_content_fr);
         
         return (new MailMessage)
             ->from($setting->from_email, $setting->from_name)
-            ->subject(Lang::get(env("WELCOME_MAIL_FROM_SUBJECT"), [__('HR WiMA - Login Credentials')]))
-            ->markdown('email.credentials',['employee' => $notifiable, 'password' => $this->password]);
+            ->subject($welcome_email_subject)
+            ->markdown('email.credentials',['message' => $welcome_mail_content]);
     }
 
     /**

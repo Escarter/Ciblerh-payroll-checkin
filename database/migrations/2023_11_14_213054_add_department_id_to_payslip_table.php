@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('payslips', function (Blueprint $table) {
-            $table->foreignId('department_id')->nullable()->constrained()->after('company_id');
-        });
+
+        if (!Schema::hasColumn('payslips', 'department_id')) {
+            Schema::table('payslips', function (Blueprint $table) {
+                $table->foreignId('department_id')->nullable()->constrained()->after('company_id');
+            });
+        }
     }
 
     /**
@@ -21,8 +24,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('payslips', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('department_id');
-        });
+        if (Schema::hasColumn('payslips', 'department_id')) {
+            Schema::table('payslips', function (Blueprint $table) {
+                $table->dropConstrainedForeignId('department_id');
+            });
+        }
     }
 };
