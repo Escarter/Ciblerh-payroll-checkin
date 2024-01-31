@@ -49,6 +49,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     {
 
         $code_exist = User::where('email', $row[2])->first();
+
         if (!$code_exist ) {
 
             $user = User::create([
@@ -77,7 +78,6 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             event(new EmployeeCreated($user, $row[13]));
 
             return $user;
-
         }
     }
 
@@ -89,6 +89,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             return \Carbon\Carbon::createFromFormat($format, $value);
         }
     }
+
     public function rules(): array
     {
         return [
