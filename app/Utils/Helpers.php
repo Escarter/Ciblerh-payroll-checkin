@@ -52,7 +52,7 @@ function createPayslipRecord($employee, $month, $process_id, $user_id, $file = n
                 'matricule' => $employee->matricule,
                 'month' => $month,
                 'year' => now()->year,
-                
+                'encryption_status' => Payslip::STATUS_SUCCESSFUL,
             ]);
     }
 }
