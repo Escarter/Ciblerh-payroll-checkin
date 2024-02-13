@@ -124,8 +124,7 @@ class RenameEncryptPdfJob implements ShouldQueue
 
                                 if (empty($record_exists)) {
                                     // global utility function
-                                    $payslip = createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id,$destination_file);
-                                    
+                                    createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id,$destination_file);
                                 } else {
                                     
                                     if ($record_exists->successful()) {
