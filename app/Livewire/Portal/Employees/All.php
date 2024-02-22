@@ -235,15 +235,33 @@ class All extends Component
         $this->validate([
             'employee_file' => 'sometimes|nullable|mimes:xlsx,csv|max:500',
         ]);
-        Excel::import(new EmployeeImport($this->company), $this->employee_file);
-        auditLog(
-            auth()->user(),
-            'employee_imported',
-            'web',
-            __('Imported excel file for employees for company ') . $this->company->name
-        );
+
+        try {
+
+            Excel::import(new EmployeeImport($this->company), $this->employee_file);
+            auditLog(
+                auth()->user(),
+                'employee_imported',
+                'web',
+                __('Imported excel file for employees for company ') . $this->company->name
+            );
+
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+
+            foreach ($failures as $failure) {
+                $failure->row(); // row that went wrong
+                $failure->attribute(); // either heading key (if using heading row concern) or column index
+                $failure->errors(); // Actual error messages from Laravel validator
+                $failure->values(); // The values of the row that has failed.
+            }
+
+            $this->closeModalAndFlashMessage( $failures , 'importEmployeesModal');
+        }
+
+       
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully imported!'), 'importEmployeesModal');
+        $this->closeModalAndFlashMessage(__('Employee successfully imported, if nothing happened make sure, the email, department, services of employees are rightly mapped.!'), 'importEmployeesModal');
     }
 
     public function export()
