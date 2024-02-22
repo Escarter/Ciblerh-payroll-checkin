@@ -3,10 +3,11 @@
 namespace App\Listeners;
 
 use App\Events\EmployeeCreated;
-use App\Notifications\SendCredentialsNotification;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Notifications\SendCredentialsNotification;
 
 class SendCredentailsDetailsNotification
 {
@@ -30,7 +31,13 @@ class SendCredentailsDetailsNotification
     public function handle(EmployeeCreated $event)
     {
 
-        Notification::sendNow($event->employee, new SendCredentialsNotification($event->password));
+        $validator = Validator::make(['email' => $event->employee->email ], [
+            'email' => 'required|email',
+        ]);
+
+        if($validator->passes()){
+            Notification::sendNow($event->employee, new SendCredentialsNotification($event->password));
+        }
 
         return false;
     }
