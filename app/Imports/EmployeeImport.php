@@ -52,8 +52,8 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     {
 
         $code_exist = User::where('email', $row[2])->first();
-        $department_exist = Department::where('department_id', $row[9])->first();
-        $service_exist = Service::where('service_id', $row[10])->first();
+        $department_exist = Department::where('id', $row[9])->first();
+        $service_exist = Service::where('id', $row[10])->first();
 
         $validator = Validator::make(['email' => $row[2]], [
             'email' => 'required|email',
