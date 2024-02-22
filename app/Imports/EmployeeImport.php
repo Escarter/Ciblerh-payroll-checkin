@@ -63,7 +63,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
         if (!$code_exist) {
             if ($validator->passes()) {
 
-                if (!$department_exist && !$service_exist) {
+                if ($department_exist && $service_exist) {
 
                     $user = User::create([
                         'first_name' => $row[0],
