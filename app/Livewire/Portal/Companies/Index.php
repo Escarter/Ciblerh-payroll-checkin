@@ -11,6 +11,7 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use App\Imports\CompanyImport;
 use App\Livewire\Traits\WithDataTable;
+use App\Models\SendPayslipProcess;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
@@ -108,6 +109,7 @@ class Index extends Component
 
         if (!empty($this->company)) {
 
+            $this->company->payslipProcess()->forceDelete();
             $this->company->payslips()->forceDelete();
             $this->company->employees()->forceDelete();
             $this->company->services()->forceDelete();
