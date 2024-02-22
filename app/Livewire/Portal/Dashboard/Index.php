@@ -124,9 +124,9 @@ class Index extends Component
         $payslips = Payslip::select('id', 'email_sent_status','department_id','created_at')->when(!empty($this->selectedDepartmentId) && $this->selectedDepartmentId != 'all', function ($q) {
             return $q->where('department_id', $this->selectedDepartmentId);
         })->dateFilter('created_at', $this->period)->get();
-        $payslips_last_month_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('email_sent_status', 'failed')->orWhere('email_sent_status', 'successful')->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
+        $payslips_last_month_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('email_sent_status', Payslip::STATUS_FAILED)->orWhere('email_sent_status', Payslip::STATUS_SUCCESSFUL)->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
 
-        $payslips_last_month_success_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('email_sent_status', 'successful')->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
+        $payslips_last_month_success_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
 
 
         if (auth()->user()->hasRole('admin')) {
@@ -160,7 +160,7 @@ class Index extends Component
 
             $payslips = Payslip::select('id', 'email_sent_status', 'created_at')->where('user_id', auth()->user()->id)->get();
             $payslips_last_month_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('user_id', auth()->user()->id)->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
-            $payslips_last_month_success_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('user_id', auth()->user()->id)->where('email_sent_status', 'successful')->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
+            $payslips_last_month_success_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('user_id', auth()->user()->id)->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
 
     
         }
@@ -302,10 +302,10 @@ class Index extends Component
                 })->dateFilter('created_at',$this->period)->count(),
             },
 
-            'payslips_success' => count($payslips->where('email_sent_status', 'successful')),
-            'payslips_success_week' => count($payslips->where('email_sent_status', 'successful')->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])),
-            'payslips_failed' => count($payslips->where('email_sent_status', 'failed')),
-            'payslips_failed_week' => count($payslips->where('email_sent_status', 'failed')->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])),
+            'payslips_success' => count($payslips->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)),
+            'payslips_success_week' => count($payslips->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])),
+            'payslips_failed' => count($payslips->where('email_sent_status', Payslip::STATUS_FAILED)),
+            'payslips_failed_week' => count($payslips->where('email_sent_status', Payslip::STATUS_FAILED)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])),
             'payslips_last_month_total_count' => $payslips_last_month_count,
             'payslips_last_month_success_count' => $payslips_last_month_success_count,
             'chart_data' => $this->prepareWeeklyChart($stats),

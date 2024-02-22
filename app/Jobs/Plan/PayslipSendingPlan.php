@@ -43,8 +43,7 @@ class PayslipSendingPlan
                 $payslip_process->update(['status' => 'successful', 'percentage_completion' => $batch->progress()]);
             })->catch(function () use ($payslip_process) {
                 static::failed($payslip_process);
-            })->allowFailures()
-                ->name('Rename, Encrypt and record payslip')->dispatch();
+            })->allowFailures()->name('Rename, Encrypt and record payslip')->dispatch();
         }
     }
     private static function step3($payslip_process)

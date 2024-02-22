@@ -14,3 +14,4 @@ return [
         'additional_text' => 'This is an automatically generated notification. Please do not reply to this e-mail'
     ]
 ];
+
