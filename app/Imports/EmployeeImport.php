@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use App\Events\EmployeeCreated;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
@@ -39,7 +40,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     {
         $this->company = $company;
     }
-    
+
     /**
      * @param array $row
      *
@@ -50,34 +51,39 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
 
         $code_exist = User::where('email', $row[2])->first();
 
-        if (!$code_exist ) {
+        $validator = Validator::make(['email' => $row[2]], [
+            'email' => 'required|email',
+        ]);
 
-            $user = User::create([
-                'first_name' => $row[0],
-                'last_name' => $row[1],
-                'email' => $row[2],
-                'professional_phone_number' => $row[3],
-                'matricule' => $row[4],
-                'position' => $row[5],
-                'net_salary' => $row[6],
-                'salary_grade' => $row[7],
-                'contract_end' => $this->transformDate($row[8]),
-                'company_id' => $this->company->id,
-                'department_id' => $row[9],
-                'service_id' => $row[10],
-                'status' => $row[12],
-                'password' => bcrypt($row[13]),
-                'remaining_leave_days' => $row[14],
-                'monthly_leave_allocation' => $row[15],
-                'author_id' => auth()->user()->id,
-                'pdf_password' => Str::random(10),
-            ]);
+        if (!$code_exist) {
+            if ($validator->passes()) {
+                $user = User::create([
+                    'first_name' => $row[0],
+                    'last_name' => $row[1],
+                    'email' => $row[2],
+                    'professional_phone_number' => $row[3],
+                    'matricule' => $row[4],
+                    'position' => $row[5],
+                    'net_salary' => $row[6],
+                    'salary_grade' => $row[7],
+                    'contract_end' => $this->transformDate($row[8]),
+                    'company_id' => $this->company->id,
+                    'department_id' => $row[9],
+                    'service_id' => $row[10],
+                    'status' => $row[12],
+                    'password' => bcrypt($row[13]),
+                    'remaining_leave_days' => $row[14],
+                    'monthly_leave_allocation' => $row[15],
+                    'author_id' => auth()->user()->id,
+                    'pdf_password' => Str::random(10),
+                ]);
 
-            $user->assignRole($row[11]);
+                $user->assignRole($row[11]);
 
-            event(new EmployeeCreated($user, $row[13]));
+                event(new EmployeeCreated($user, $row[13]));
 
-            return $user;
+                return $user;
+            }
         }
     }
 
@@ -96,7 +102,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '0' => 'required|string',
             '2' => 'required|unique:users,email',
             '11' => function ($attribute, $value, $onFailure) {
-                $array = ['employee','supervisor','manager'];
+                $array = ['employee', 'supervisor', 'manager'];
                 $contains = Arr::has($array, $value);
                 if ($contains) {
                     $onFailure(__('Role not found'));
