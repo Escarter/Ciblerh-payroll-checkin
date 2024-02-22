@@ -108,7 +108,7 @@ class Index extends Component
 
         if (!empty($this->company)) {
 
-            $this->company->paylsips()->forceDelete();
+            $this->company->payslips()->forceDelete();
             $this->company->employees()->forceDelete();
             $this->company->services()->forceDelete();
             $this->company->departments()->forceDelete();
