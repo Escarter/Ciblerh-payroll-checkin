@@ -46,6 +46,12 @@ class Company extends Model
     {
        return $this->hasMany(User::class);
     }
+    
+    public function payslips()
+    {
+       return $this->hasMany(Payslip::class);
+    }
+
     public static function search($query)
     {
         return empty($query) ? static::query() :
