@@ -31,7 +31,7 @@
                     <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    {{__('Requet Leave')}}
+                    {{__('Request Leave')}}
                 </a>
                 @endcan
             </div>
@@ -47,7 +47,7 @@
                                 </svg>
 
                                 <div class="mb-3 mb-md-0">
-                                    <h6 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('remaining days')}} | {{__('monthly allocation')}} <strong>{{number_format(auth()->user()->monthly_leave_allocation)}}</strong>{{__(' days')}} </h6>
+                                    <h6 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('remaining days')}} | {{__('monthly allocation')}} <strong>{{number_format(auth()->user()->monthly_leave_allocation)}} </strong>{{__('days')}} </h6>
                                     <div class="text-gray-500 ">{{__('Remaining Leave days and monthly leave allocation')}}</div>
                                 </div>
                             </div>
@@ -62,7 +62,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($approved_leave)}}</span> {{__(' leave days taken so far')}} </h5>
+                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($approved_leave) }} </span> {{__('leave days taken so far!')}} </h5>
                                     <div class="text-gray-500 ">{{__('All leave days taken so far!')}}</div>
                                 </div>
                             </div>

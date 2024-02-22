@@ -179,7 +179,7 @@ class Index extends Component
 
         Mail::to($this->test_email_address)->send(new TestEmail($this->test_email_message));
 
-        $this->closeModalAndFlashMessage(__('TestEmail sent successfully!'), '');
+        $this->closeModalAndFlashMessage(__('Test Email sent successfully!'), '');
 
         return $this->redirect(route('portal.settings.index'), navigate: true);
     }
@@ -207,9 +207,9 @@ class Index extends Component
             ]);
 
             if ($response['responsecode'] === 1) {
-                $this->closeModalAndFlashMessage(__('TestSms sent successfully!'), '');
+                $this->closeModalAndFlashMessage(__('Test sms was sent successfully!'), '');
             } else {
-                $this->closeModalAndFlashMessage(__('TestSms sent Failed!'), '');
+                $this->closeModalAndFlashMessage(__('Test Sms Failed!'), '');
             }
         }
 

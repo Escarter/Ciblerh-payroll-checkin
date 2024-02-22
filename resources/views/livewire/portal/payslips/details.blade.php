@@ -9,14 +9,14 @@
                                 </svg></a></li>
                         <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
                         <li class="breadcrumb-item"><a href="{{route('portal.payslips.index')}}" wire:navigate>{{__('Process Details')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__(ucfirst($job->department->name) .' Payslips')}}</li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ucfirst($job->department->name) .__(' Payslips')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4">
                     <svg class="icon me-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path> 
                     </svg>
-                    {{__(ucfirst($job->department->name) .' Payslips Details')}}
+                    {{ucfirst($job->department->name) .__(' Payslips Details')}}
                 </h1>
                 <p class="mb-0">{{__('Status of Payslips sending!!!!')}}</p>
             </div>

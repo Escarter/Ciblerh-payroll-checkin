@@ -37,9 +37,6 @@ class LeaveType extends Model
             static::query()
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', '%' . $query . '%');
-                $q->orWhereHas('company', function ($q) use ($query) {
-                    $q->where('name', 'like', '%' . $query . '%');
-                });
             });
     }
 }

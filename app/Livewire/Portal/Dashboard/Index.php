@@ -124,6 +124,7 @@ class Index extends Component
         $payslips = Payslip::select('id', 'email_sent_status','department_id','created_at')->when(!empty($this->selectedDepartmentId) && $this->selectedDepartmentId != 'all', function ($q) {
             return $q->where('department_id', $this->selectedDepartmentId);
         })->dateFilter('created_at', $this->period)->get();
+
         $payslips_last_month_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('email_sent_status', Payslip::STATUS_FAILED)->orWhere('email_sent_status', Payslip::STATUS_SUCCESSFUL)->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
 
         $payslips_last_month_success_count = Payslip::select('id', 'email_sent_status', 'created_at')->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])->count();
@@ -131,12 +132,20 @@ class Index extends Component
 
         if (auth()->user()->hasRole('admin')) {
          
-            $stats = Payslip::dateFilter('created_at',$this->period)
+            $stats = Payslip::when(!empty($this->selectedDepartmentId) && $this->selectedDepartmentId != 'all', function ($q) {
+                    return $q->where('department_id', $this->selectedDepartmentId);
+                })->when(!empty($this->selectedCompanyId) && $this->selectedCompanyId != 'all', function ($q) {
+                    return $q->where('company_id', $this->selectedCompanyId);
+                })->dateFilter('created_at', $this->period)->dateFilter('created_at',$this->period)
                 ->select('email_sent_status', DB::raw('count(id) as `data`'), DB::raw('month(created_at) month'), DB::raw('week(created_at) week'))
                 ->groupBy('email_sent_status', DB::raw('week(created_at)'), DB::raw('month(created_at)'))
                 ->orderBy(DB::raw('week(created_at)'), 'asc')
                 ->get();
-            $day_stats = Payslip::dateFilter('created_at', $this->period)
+            $day_stats = Payslip::when(!empty($this->selectedDepartmentId) && $this->selectedDepartmentId != 'all', function ($q) {
+                    return $q->where('department_id', $this->selectedDepartmentId);
+                })->when(!empty($this->selectedCompanyId) && $this->selectedCompanyId != 'all', function ($q) {
+                    return $q->where('company_id', $this->selectedCompanyId);
+                })->dateFilter('created_at', $this->period)
                 ->select('email_sent_status', DB::raw('count(id) as `data`'), DB::raw('date(created_at) day'), DB::raw('week(created_at) week'))
                 ->groupBy('email_sent_status', DB::raw('date(created_at)'), DB::raw('week(created_at)'))
                 ->orderBy(DB::raw('date(created_at)'), 'asc')
@@ -146,7 +155,6 @@ class Index extends Component
         
         } else {
          
-
             $stats = Payslip::where('user_id', auth()->user()->id)->whereBetween(DB::raw('month(created_at)'), [now()->startOfMonth()->subMonth(10)->month, now()->endOfMonth()->month])
                 ->select('email_sent_status', DB::raw('count(id) as `data`'), DB::raw('month(created_at) month'), DB::raw('week(created_at) week'))
                 ->groupBy('email_sent_status', DB::raw('week(created_at)'), DB::raw('month(created_at)'))

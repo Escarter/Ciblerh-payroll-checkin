@@ -58,7 +58,7 @@ class Index extends Component
             'author_id' => auth()->user()->id,
         ]);
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Leave_type created successfully!'), 'CreateLeaveTypeModal');
+        $this->closeModalAndFlashMessage(__('LeaveType created successfully!'), 'CreateLeaveTypeModal');
     }
 
     public function update()

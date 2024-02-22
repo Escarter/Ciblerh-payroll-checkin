@@ -4,12 +4,12 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Update an Leave')}}</h1>
-                        <p>{{__('Edit and update leave')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('Update Leave Request')}}</h1>
+                        <p>{{__('Edit and update Leave Request')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit.prevent="update" class="form-modal">
                         <div class="form-group mb-4">
-                            <label for="leave_type_id">{{__('Leave type')}}</label>
+                            <label for="leave_type_id">{{__('Leave Type')}}</label>
                             <select wire:model.defer="leave_type_id" class="form-control  @error('leave_type_id') is-invalid @enderror" required="">
                                 <option value=''>{{__('--Select--')}}</option>
                                 @foreach($types as $type)
@@ -22,14 +22,14 @@
                         </div>
                         <div class='form-group row mb-4'>
                             <div class="col ">
-                                <label for="start_date">{{__('Leave Date')}}</label>
+                                <label for="start_date">{{__('Leave Start Date')}}</label>
                                 <input type="date" wire:model.live="start_date" class="form-control  @error('start_date') is-invalid @enderror" required="">
                                 @error('start_date')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class="col">
-                                <label for="end_date">{{__('Leave Date')}}</label>
+                                <label for="end_date">{{__('Leave End Date')}}</label>
                                 <input type="date" wire:model.live="end_date" class="form-control  @error('end_date') is-invalid @enderror" required="">
                                 @error('end_date')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -37,7 +37,7 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="leave_reason">{{__('leave Reason')}}</label>
+                            <label for="leave_reason">{{__('Leave Reason')}}</label>
                             <textarea wire:model.defer="leave_reason" class="form-control  @error('leave_reason') is-invalid @enderror" id='' cols='5' rows="5"></textarea>
                             @error('leave_reason')
                             <div class="invalid-feedback">{{$message}}</div>

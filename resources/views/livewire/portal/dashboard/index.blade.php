@@ -74,7 +74,7 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="#" class="d-none d-sm-block">
+                                    <a href="{{route('portal.checklogs.index')}}" class="d-none d-sm-block">
                                         <h2 class="h5">{{__('Total Checkins')}}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($checklogs_count)}}</h3>
                                     </a>
@@ -102,7 +102,7 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="#" class="d-none d-sm-block">
+                                    <a href="{{route('portal.checklogs.index')}}" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Approved Checkin', $approved_checklogs_count)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($approved_checklogs_count)}}</h3>
                                     </a>
@@ -130,7 +130,7 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="#" class="d-none d-sm-block">
+                                    <a href="{{route('portal.checklogs.index')}}" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Pending Checkin', $pending_checklogs_count)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($pending_checklogs_count)}}</h3>
                                     </a>
@@ -158,7 +158,7 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="#" class="d-none d-sm-block">
+                                    <a href="{{route('portal.checklogs.index')}}" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Rejected Checkin', $rejected_checklogs_count)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_checklogs_count)}} </h3>
                                     </a>
@@ -191,7 +191,7 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="#" class="d-none d-sm-block">
+                                    <a href="{{route('portal.companies.index')}}" class="d-none d-sm-block">
                                         <h2 class="h5">{{__('Companies')}}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($total_companies)}}</h3>
                                     </a>
@@ -220,7 +220,7 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="#" class="d-none d-sm-block">
+                                    <a href="{{route('portal.companies.index')}}" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Department', $total_departments)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($total_departments)}}</h3>
                                     </a>
@@ -248,7 +248,7 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="#" class="d-none d-sm-block">
+                                    <a href="{{route('portal.companies.index')}}" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural('Service', $total_services)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($total_services)}}</h3>
                                     </a>
@@ -276,7 +276,7 @@
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
-                                    <a href="#" class="d-none d-sm-block">
+                                    <a href="{{route('portal.all-employees')}}" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __(\Str::plural(__('Employee'), $total_employees)) }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($total_employees)}} </h3>
                                     </a>
@@ -291,7 +291,7 @@
             </div>
         </div>
         <div class="row">
-            <div class='col-12 col-md-9'>
+            <div class='col-12 col-md-8'>
                 <div class="card bg-yellow-100 border-0 shadow pb-5">
                     <div class="card-header d-sm-flex flex-row align-items-center flex-0">
                         <div class="d-block mb-3 mb-sm-0">
@@ -313,7 +313,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-3 ">
+            <div class="col-12 col-md-4 ">
                 <div class="card border-0 shadow mb-3">
                     <div class="card-body">
                         <a href="{{route('portal.payslips.index')}}" class="row d-block d-xl-flex align-items-center">
@@ -384,8 +384,8 @@
                         </div>
                         <div class="d-block ms-auto">
                             <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-success me-2"></span> <span class="fw-normal small">{{__('Success')}}</span></div>
-                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-secondary me-2"></span> <span class="fw-normal small">{{('Failed')}}</span></div>
-                            <div class="d-flex align-items-center text-end mb-2"><span class="dot rounded-circle bg-gray-600 me-2"></span> <span class="fw-normal small">{{('Pending')}}</span></div>
+                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-secondary me-2"></span> <span class="fw-normal small">{{__('Failed')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-2"><span class="dot rounded-circle bg-gray-600 me-2"></span> <span class="fw-normal small">{{__('Pending')}}</span></div>
                         </div>
                     </div>
                     <div class="card-body p-2">
@@ -529,10 +529,18 @@
     @push('scripts')
     <script type="text/javascript">
         new Chartist.Bar('.bar-chart', {
-            labels: {!!html_entity_decode($chart_daily[0]) !!},
-            series: [{!!html_entity_decode($chart_daily[3]) !!},
-                {!!html_entity_decode($chart_daily[2]) !!},
-                {!!html_entity_decode($chart_daily[1]) !!},
+            labels: {
+                !!html_entity_decode($chart_daily[0]) !!
+            },
+            series: [{
+                    !!html_entity_decode($chart_daily[3]) !!
+                },
+                {
+                    !!html_entity_decode($chart_daily[2]) !!
+                },
+                {
+                    !!html_entity_decode($chart_daily[1]) !!
+                },
             ]
         }, {
             low: 0,
@@ -552,10 +560,18 @@
             }
         });
         new Chartist.Line('.line-chart', {
-            labels: {!!html_entity_decode($chart_data[0]) !!},
-            series: [{!!html_entity_decode($chart_data[3]) !!},
-                {!!html_entity_decode($chart_data[2]) !!},
-                {!!html_entity_decode($chart_data[1]) !!},
+            labels: {
+                !!html_entity_decode($chart_data[0]) !!
+            },
+            series: [{
+                    !!html_entity_decode($chart_data[3]) !!
+                },
+                {
+                    !!html_entity_decode($chart_data[2]) !!
+                },
+                {
+                    !!html_entity_decode($chart_data[1]) !!
+                },
             ]
         }, {
             low: 0,

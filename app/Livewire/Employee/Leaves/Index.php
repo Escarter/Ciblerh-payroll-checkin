@@ -27,14 +27,14 @@ class Index extends Component
     {
         if(!empty($value))
         {
-            $this->interval = Carbon::parse($this->start_date)->lt(Carbon::parse($this->end_date)) ? __('Selected Leave days are '). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->start_date)) . '</strong>'.__(' days'): __('Start date must be less than end_date');
+            $this->interval = Carbon::parse($this->start_date)->lt(Carbon::parse($this->end_date)) ? __('Selected Leave days are '). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->start_date)) . '</strong>'.__(' days'): __('Start date must be less than End date');
         }
     }
     public function updatedStartDate($value)
     {
         if(!empty($value))
         {
-            $this->interval = Carbon::parse($value)->lt(Carbon::parse($this->end_date)) ? __('Selected Leave days are '). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->end_date)) .'</strong>'.__(' days'): __('Start date must be less than end_date');
+            $this->interval = Carbon::parse($value)->lt(Carbon::parse($this->end_date)) ? __('Selected Leave days are '). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->end_date)) .'</strong>'.__(' days'): __('Start date must be less than End date');
         }
     }
 
