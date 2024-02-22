@@ -139,8 +139,8 @@ class Index extends Component
         }
 
         if (!empty($this->department)) {
-
-            $this->department->delete();
+            $this->department->services()->forceDelete();
+            $this->department->forceDelete();
         }
 
         $this->clearFields();

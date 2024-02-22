@@ -183,7 +183,7 @@ class All extends Component
 
         if (!empty($this->employee)) {
 
-            $this->employee->delete();
+            $this->employee->forceDelete();
         }
 
         $this->clearFields();
