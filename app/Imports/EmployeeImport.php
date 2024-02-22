@@ -69,7 +69,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                         'first_name' => $row[0],
                         'last_name' => $row[1],
                         'email' => $row[2],
-                        'professional_phone_number' => Str::of($row[3])->trim(),
+                        'professional_phone_number' => preg_replace('/\s+/','',$row[3]),
                         'matricule' => $row[4],
                         'position' => $row[5],
                         'net_salary' => $row[6],
