@@ -171,7 +171,7 @@ class Index extends Component
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
-            'pdf_password' => Str::random(10),
+            // 'pdf_password' => Str::random(10),
         ]);
 
         if($this->employee->getRoleNames()->first() != $this->role_name){
