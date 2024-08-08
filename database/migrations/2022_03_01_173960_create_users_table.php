@@ -31,9 +31,9 @@ return new class extends Migration
             $table->enum('preferred_language',['en','fr'])->default('en');
             $table->string('signature_path')->nullable();
             $table->string('salary_grade')->nullable();
-            $table->bigInteger('net_salary')->nullable();
-            $table->bigInteger('remaining_leave_days')->nullable();
-            $table->bigInteger('monthly_leave_allocation')->nullable();
+            $table->double('net_salary',15,3)->nullable();
+            $table->double('remaining_leave_days',10,3)->nullable();
+            $table->double('monthly_leave_allocation',10,3)->nullable();
             $table->date('contract_end')->nullable();
             $table->time('work_start_time',0)->default('08:00:00');
             $table->time('work_end_time',0)->default('17:30:00');
