@@ -48,6 +48,9 @@ class User extends Authenticatable implements HasLocalePreference
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'net_salary' => 'double',
+        'monthly_leave_allocation'=>'double',
+        'remaining_leave_days'=>'double',
         'status'=>'boolean',
     ];
 
