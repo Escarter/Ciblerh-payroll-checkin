@@ -614,10 +614,27 @@
     "Edit and update Leave Request":"Modifier et mettre à jour la demande de congé",
     "Selected Leave days are ":"Les jours de congé sélectionnés sont ",
     " days":" jours",
-    "Start date must be less than End date":"La date de début doit être inférieure à la date de fin"
-
-
-
-
-
+    "Start date must be less than End date":"La date de début doit être inférieure à la date de fin",
+    "Companies, Departments, Services and Employees Permissions" :"Autorisations des entreprises, départements, services et employés",
+    "Create Role":"Créer un rôle",
+    "Create new role and allocate permissions":"Créer un nouveau rôle et attribuer des autorisations",
+    "Role Name":"Nom du Rôle",
+    "Enter Role Name":"Entrez le nom du rôle",
+    "Permissions of Role":"Autorisations du rôle",
+    "Admin Access":"Accès administrateur",
+    "Grant all permissions":"Accorder toutes les autorisations",
+    "Overtime and Payments Permissions":"Autorisations de paiement et d'heures supplémentaires",
+    "All":"Tous",
+    "View":"Voir",
+    "Leave types":"Types de congés",
+    "Payslip":"Bulletin de paie",
+    "Leave Permissions":"Autorisations de congé",
+    "Absences and Advance Salary Permissions":"Absences et autorisations d’avance sur salaire",
+    "Payslips processing permissions":"Autorisations de traitement des bulletins de paie",
+    "Do not remove or change the values of":"Ne supprimez pas et ne modifiez pas les valeurs de",
+    " as this is used as placeholders":" car cela est utilisé comme espace réservé",
+    "Payslips Report":"Rapport des bulletins de paie",
+    "Generate Payslips reports!":"Générez des rapports de fiches de paie !",
+    "SMS Status":"Statut SMS",
+    "Email Status":"Statut Email"
 }

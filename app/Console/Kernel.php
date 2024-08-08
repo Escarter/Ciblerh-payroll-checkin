@@ -26,7 +26,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('wima:clean-processed ')->dailyAt('01:30');
+        $schedule->command('wima:clean-processed')->dailyAt('01:30');
+        $schedule->command('wima:leave-update-process')->lastDayOfMonth('23:50')->timezone('Africa/Douala');
     }
 
     /**
