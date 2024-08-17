@@ -66,6 +66,13 @@
                                 @enderror
                             </div>
                         </div>
+                        <div class='form-group mb-2'>
+                            <label for="date_of_birth">{{__('Date of Birth')}}</label>
+                            <input wire:model="date_of_birth" type="date" class="form-control @error('date_of_birth') is-invalid @enderror" required="" name="date_of_birth">
+                            @error('date_of_birth')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="matricule">{{__('Matricule')}}</label>

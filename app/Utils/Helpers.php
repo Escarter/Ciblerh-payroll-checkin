@@ -1,12 +1,13 @@
 <?php 
 
 use App\Models\User;
+use App\Models\Payslip;
 use App\Models\Setting;
 use App\Services\Nexah;
 use App\Models\AuditLog;
 use App\Services\TwilioSMS;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
-use App\Models\Payslip;
 
 function initials($string)
 {
@@ -97,6 +98,45 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
             }
         } else {
             $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('No valid phone number for user')]);
+        }
+    }
+}
+if (!function_exists('sendSmsBirthday')) {
+    function sendSmsBirthday($emp)
+    {
+        $setting = Setting::first();
+
+        if (!empty($emp->professional_phone_number) || !empty($emp->personal_phone_number)) {
+
+            $phone = !empty($emp->professional_phone_number) ? $emp->professional_phone_number : $emp->personal_phone_number;
+
+
+            $sms_client = match ($setting->sms_provider) {
+                'twilio' => new TwilioSMS($setting),
+                'nexah' =>  new Nexah($setting),
+                default => new Nexah($setting)
+            };
+
+            $message = '';
+
+            if ($emp->preferred_language === 'en') {
+                $message = str_replace([':name:'], [trim($emp->name)], $setting->birthday_sms_message_en);
+            } else {
+                $message = str_replace([':name:'], [trim($emp->name)], $setting->birthday_sms_message_fr);
+            }
+
+            $response = $sms_client->sendSMS([
+                'sms' =>  $message,
+                'mobiles' => $phone,
+            ]);
+
+            if ($response['responsecode'] === 1) {
+                Log::info(__('Birthday message sent successfully to '.$emp->name));
+            } else {
+                Log::info(__('Birthday message failed to sent to ' . $emp->name));
+            }
+        } else {
+            Log::info(__('No valid phone number for user'));
         }
     }
 }

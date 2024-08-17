@@ -46,6 +46,8 @@ class Index extends Component
     public $welcome_email_content_fr;
     public $welcome_email_subject_en ;
     public $welcome_email_subject_fr;
+    public $birthday_sms_message_en;
+    public $birthday_sms_message_fr;
 
     public function mount() {
 
@@ -78,6 +80,9 @@ class Index extends Component
         $this->welcome_email_content_en = !empty($this->setting) ? (!empty($this->setting->welcome_email_content_en) ? $this->setting->welcome_email_content_en : "<h3>Dear :name:,</h3> <p>Your account has been created and you can now login into the employee portal at, :site_url: your credentials are </p> <strong>Username :username:</strong> <br><strong>Password :password:</strong><p></p>  <p>In case of any difficulties, Contact your support via </p> <p>Call and text: :support_number:</p> <p>Mail: :mail_address:</p>") : '';
         $this->welcome_email_content_fr = !empty($this->setting) ? (!empty($this->setting->welcome_email_content_fr) ? $this->setting->welcome_email_content_fr : "<h2>Cher :name:,</h2> <p>Votre compte a été créé et vous pouvez désormais vous connecter au portail des employés sur,:site_url: vos identifiants sont </p> <strong>Nom d'utilisateur :username:</strong> <br><strong>Mot de passe :password:</strong><p></p> <p>En cas de difficultés, contactez votre support via </p> <p>Appel et SMS : :support_number:</p> <p>Mail : :mail_address:</p>") :'';
 
+        $this->birthday_sms_message_en = !empty($this->setting) ? (!empty($this->setting->birthday_sms_message_en) ? $this->setting->birthday_sms_message_en : "Happy Birthday! 🎉 :name:, Wishing you a fantastic day filled with joy and a year ahead full of success. Enjoy your special day!") :'';
+        $this->birthday_sms_message_fr = !empty($this->setting) ? (!empty($this->setting->birthday_sms_message_fr) ? $this->setting->birthday_sms_message_fr : "Joyeux anniversaire! 🎉 :name: Je te souhaite une journée fantastique pleine de joie et une année à venir remplie de succès. Profite bien de ta journée spéciale!") :'';
+
 
     
     }
@@ -94,6 +99,8 @@ class Index extends Component
                 'sms_provider_senderid' => $this->sms_provider_senderid,
                 'sms_content_en' => $this->sms_content_en,
                 'sms_content_fr' => $this->sms_content_fr,
+                'birthday_sms_message_en' => $this->birthday_sms_message_en,
+                'birthday_sms_message_fr' => $this->birthday_sms_message_fr,
               
             ]);
 

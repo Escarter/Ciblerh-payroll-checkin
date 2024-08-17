@@ -28,6 +28,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('wima:clean-processed')->dailyAt('01:30');
         $schedule->command('wima:leave-update-process')->lastDayOfMonth('23:50')->timezone('Africa/Douala');
+        $schedule->command('wima:wish-happy-birthday')->dailyAt('08:00')->timezone('Africa/Douala');
     }
 
     /**

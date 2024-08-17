@@ -48,6 +48,7 @@ class All extends Component
     public $work_start_time;
     public $work_end_time;
     public $company;
+    public $date_of_birth;
     public $employee_file = null;
     public $role = null;
     public $auth_role = null;
@@ -88,6 +89,7 @@ class All extends Component
             'last_name' => 'required',
             'personal_phone_number' => 'required',
             'password' => 'required',
+            'date_of_birth' => 'required|date',
             'email' => 'required|email|unique:users',
         ]);
 
@@ -97,6 +99,7 @@ class All extends Component
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
+            'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => bcrypt($this->password),
             'pdf_password' => Str::random(10),
@@ -161,6 +164,7 @@ class All extends Component
             'department_id' => $this->selectedDepartmentId,
             'service_id' => $this->service_id,
             'work_start_time' => $this->work_start_time,
+            'date_of_birth' => $this->date_of_birth,
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
@@ -226,6 +230,7 @@ class All extends Component
         $this->work_end_time = Carbon::parse($employee->work_end_time)->format('H:i');
         $this->status = $employee->status;
         $this->service_id = $employee->service_id;
+        $this->date_of_birth = $employee->date_of_birth;
         $this->selectedDepartmentId = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
     }
@@ -268,6 +273,7 @@ class All extends Component
         $this->reset([
             'first_name',
             'last_name',
+            'date_of_birth',
             'email',
             'professional_phone_number',
             'personal_phone_number',

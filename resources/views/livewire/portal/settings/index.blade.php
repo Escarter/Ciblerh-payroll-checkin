@@ -32,6 +32,9 @@
                                     <input wire:model="sms_provider_senderid" type="text" class="form-control w-100 @error('sms_provider_senderid') is-invalid @enderror" required autofocus>
                                 </div>
                             </div>
+
+                            <div class="card-title h5 pt-3 ">{{__('Payslip SMS Message config')}} </div>
+                            <hr>
                             <div class="form-group mb-2">
                                 <label for="sms_content_en">{{ __('Enter sms Content English') }}</label>
                                 <textarea wire:model="sms_content_en" type="text" rows="3" class="form-control w-100 @error('sms_content_en') is-invalid @enderror" required autofocus></textarea>
@@ -43,11 +46,27 @@
                             <div class='text-xs text-danger ' style="font-size:small">
                                 {{__('Do not remove or change the values of')}} <strong class="fw-bolder"> :name: , :month: , :year: , :pdf_password: </strong>,{{__(' as these are used as placeholders')}}
                             </div>
+
+                            <div class="card-title h5 pt-3">{{__('Birthday SMS Message config')}} </div>
+                            <hr>
+                            <div class="form-group mb-2">
+                                <label for="birthday_sms_message_en">{{ __('Enter birthday sms English') }}</label>
+                                <textarea wire:model="birthday_sms_message_en" type="text" rows="3" class="form-control w-100 @error('birthday_sms_message_en') is-invalid @enderror" required autofocus></textarea>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label for="birthday_sms_message_fr">{{ __('Enter birthday sms French') }}</label>
+                                <textarea wire:model="birthday_sms_message_fr" type="text" rows="3" class="form-control w-100 @error('birthday_sms_message_fr') is-invalid @enderror" required autofocus></textarea>
+                            </div>
+                            <div class='text-xs text-danger ' style="font-size:small">
+                                {{__('Do not remove or change the values of')}} <strong class="fw-bolder"> :name: </strong>,{{__(' as these are used as placeholders')}}
+                            </div>
+
                             <div class="mt-4 mb-0 form-group d-flex justify-content-end">
                                 <button type="submit" wire:click.prevent="saveSmsConfig" class="btn btn-primary" wire:loading.attr="disabled">
                                     {{ __('Save SMS Config') }}
                                 </button>
                             </div>
+
                         </x-form-items.form>
                     </div>
                 </div>
@@ -186,12 +205,12 @@
                             <div class="py-4 px-5 card-body">
                                 <div class="card-title h5 ">{{__('Payslips Mail Configuration')}} </div>
                                 <x-form-items.form wire:submit="saveSmtpConfig">
-    
+
                                     <div class="form-group mb-2">
                                         <label for="email_subject_en">{{ __('Enter Email subject English') }}</label>
                                         <input wire:model="email_subject_en" type="text" class="form-control w-100 @error('email_subject_en') is-invalid @enderror" required autofocus>
                                     </div>
-    
+
                                     <div class="form-group mb-2" wire:ignore>
                                         <label for="email_content_en">{{ __('Enter Email Content English') }}</label>
                                         <textarea wire:model="email_content_en" class="email_content_en form-control w-100 @error('email_content_en') is-invalid @enderror">
@@ -208,7 +227,7 @@
                                                      {!! $email_content_fr !!}
                                             </textarea>
                                     </div>
-    
+
                                     <div class='text-xs text-danger ' style="font-size:small">
                                         {{__('Don not remove or change the values of')}} <strong class="fw-bolder"> :name: </strong>,{{__(' as this is used as placeholders')}}
                                     </div>
@@ -217,7 +236,7 @@
                                             {{ __('Save Mail Config') }}
                                         </button>
                                     </div>
-    
+
                                 </x-form-items.form>
                             </div>
                         </div>
@@ -231,7 +250,7 @@
                                         <label for="welcome_email_subject_en">{{ __('Enter welcome email subject English') }}</label>
                                         <input wire:model="welcome_email_subject_en" type="text" class="form-control w-100 @error('welcome_email_subject_en') is-invalid @enderror" required autofocus>
                                     </div>
-    
+
                                     <div class="form-group mb-2" wire:ignore>
                                         <label for="welcome_email_content_en">{{ __('Enter welcome email content English') }}</label>
                                         <textarea wire:model="welcome_email_content_en" class="welcome_email_content_en form-control w-100 @error('welcome_email_content_en') is-invalid @enderror">
@@ -248,7 +267,7 @@
                                                      {!! $welcome_email_content_fr !!}
                                             </textarea>
                                     </div>
-    
+
                                     <div class='text-xs text-danger ' style="font-size:small">
                                         {{__('Don not remove or change the values of')}} <strong class="fw-bolder"> :name: </strong>, <strong class="fw-bolder"> :username: </strong> , <strong class="fw-bolder"> :site_url: </strong> and <strong class="fw-bolder"> :password: </strong>,{{__(' as these are used as placeholders')}}
                                     </div>
