@@ -4,13 +4,19 @@
             <div class='d-flex flex-wrap align-items-center gap-3'>
                 <div class='d-none d-md-block d-lg-block'>
                     <div class="avatar-xl d-flex align-items-center justify-content-center fw-bold rounded border-warn  mr-5">
-                        <span class="p-2 display-2 text-secondary">{{auth()->user()->initials}}</span>
+                        <span class="p-2 display-2 text-secondary"> @if(auth()->user()->date_of_birth->isBirthday()) &#129395; @else {{auth()->user()->initials}} @endif </span>
                     </div>
                 </div>
                 <div class=''>
                     <div class='fw-bold display-4 text-gray-600'>{{__('Hi')}}, {{auth()->user()->first_name}}</div>
                     <div class='d-flex align-items-center justify-content-start '>
-                        <div class='leading text-gray-400 '>{{ auth()->user()->company ? auth()->user()->company->name : __('No Company')}} | {{ auth()->user()->department ? auth()->user()->department->name : __('No Department')}}</div>
+                        <div class='leading text-gray-400 '>
+                            @if(auth()->user()->date_of_birth->isBirthday())
+                            {{__('Happy Birthday 🎉, enjoy your day!')}} 🎊 🎂 🥂
+                            @else
+                            {{ auth()->user()->company ? auth()->user()->company->name : __('No Company')}} | {{ auth()->user()->department ? auth()->user()->department->name : __('No Department')}}
+                            @endif
+                        </div>
                     </div>
                     <div class='mt-4 d-flex flex-wrap   align-items-center gap-2'>
                         <a href="{{route('employee.checklogs')}}" wire:navigate class="btn btn-secondary mr-lg-2 ">

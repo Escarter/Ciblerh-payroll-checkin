@@ -52,6 +52,7 @@ class User extends Authenticatable implements HasLocalePreference
         'monthly_leave_allocation'=>'double',
         'remaining_leave_days'=>'double',
         'status'=>'boolean',
+        'date_of_birth' => 'date'
     ];
 
     /**
