@@ -560,18 +560,10 @@
             }
         });
         new Chartist.Line('.line-chart', {
-            labels: {
-                !!html_entity_decode($chart_data[0]) !!
-            },
-            series: [{
-                    !!html_entity_decode($chart_data[3]) !!
-                },
-                {
-                    !!html_entity_decode($chart_data[2]) !!
-                },
-                {
-                    !!html_entity_decode($chart_data[1]) !!
-                },
+            labels: {!!html_entity_decode($chart_data[0]) !!},
+            series: [{!!html_entity_decode($chart_data[3]) !!},
+                {!!html_entity_decode($chart_data[2]) !!},
+                {!!html_entity_decode($chart_data[1]) !!},
             ]
         }, {
             low: 0,
