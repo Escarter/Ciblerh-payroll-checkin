@@ -52,6 +52,7 @@ class Index extends Component
     public $work_end_time;
     public $company;
     public $auth_role;
+    public $date_of_birth;
     public $employee_file = null;
 
     //Update & Store Rules
@@ -68,6 +69,7 @@ class Index extends Component
         'salary_grade' => 'required',
         'department_id' => 'required',
         'service_id' => 'required',
+        'date_of_birth' => 'required',
         'work_start_time' => 'required|date_format:H:i',
         'work_end_time' => 'required|date_format:H:i|after:work_start_time',
     ];
@@ -115,6 +117,7 @@ class Index extends Component
             'service_id' => $this->service_id,
             'work_start_time' => $this->work_start_time,
             'work_end_time' => $this->work_end_time,
+            'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => bcrypt($this->password),
             'pdf_password' => Str::random(10),
@@ -147,6 +150,7 @@ class Index extends Component
             'salary_grade' => 'required',
             'department_id' => 'required',
             'service_id' => 'required',
+            'date_of_birth' => 'required|date',
             'work_start_time' => 'required|date_format:H:i',
             'work_end_time' => 'required|date_format:H:i|after:work_start_time',
         ]);
@@ -168,6 +172,7 @@ class Index extends Component
             'department_id' => $this->department_id,
             'service_id' => $this->service_id,
             'work_start_time' => $this->work_start_time,
+            'date_of_birth' => $this->date_of_birth,
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
@@ -218,6 +223,7 @@ class Index extends Component
         $this->work_end_time = Carbon::parse($employee->work_end_time)->format('H:i');
         $this->status = $employee->status ;
         $this->services = $department->services;
+        $this->date_of_birth = $department->date_of_birth;
         $this->service_id = $employee->service_id;
         $this->department_id = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
@@ -317,6 +323,7 @@ class Index extends Component
             'status',
             'work_start_time',
             'work_end_time',
+            'date_of_birth',
             'password',
         ]);
     }
