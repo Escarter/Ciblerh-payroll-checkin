@@ -70,7 +70,7 @@ class Index extends Component
                     'user_full_name' => auth()->user()->name,
                     'matricule' =>  auth()->user()->matricule,
                     'email' =>  auth()->user()->email,
-                    'phone_number' =>  auth()->user()->phone_number,
+                    'phone_number' =>   !empty(auth()->user()->professional_phone_number) ? auth()->user()->professional_phone_number : auth()->user()->personal_phone_number,
                     'company_id' =>   !empty($this->company) ? $this->company->id : NULL,
                     'company_name' =>   !empty($this->company) ? $this->company->name : NULL,
                     'department_id' =>  !empty($this->department) ? $this->department->id : NULL,
