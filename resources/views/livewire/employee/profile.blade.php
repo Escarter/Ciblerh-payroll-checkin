@@ -91,7 +91,7 @@
                         </div>
                         <div class='form-group mb-2'>
                             <label for="date_of_birth">{{__('Date of Birth')}}</label>
-                            <input wire:model.defer="date_of_birth" type="date" class="form-control  @error('date_of_birth') is-invalid @enderror" >
+                            <input wire:model="date_of_birth" type="date" class="form-control  @error('date_of_birth') is-invalid @enderror" >
                             @error('date_of_birth')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

@@ -39,7 +39,7 @@ class Profile extends Component
         $this->pdf_password = auth()->user()->pdf_password;
         $this->work_time = auth()->user()->work_start_time ." - ". auth()->user()->work_end_time;
         $this->preferred_language = auth()->user()->preferred_language;
-        $this->date_of_birth = auth()->user()->date_of_birth;
+        $this->date_of_birth = !empty(auth()->user()->date_of_birth) ? auth()->user()->date_of_birth->format('Y-m-d') : '';
     }
 
     public function updateProfile()
