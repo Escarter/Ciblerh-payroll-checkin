@@ -529,18 +529,10 @@
     @push('scripts')
     <script type="text/javascript">
         new Chartist.Bar('.bar-chart', {
-            labels: {
-                !!html_entity_decode($chart_daily[0]) !!
-            },
-            series: [{
-                    !!html_entity_decode($chart_daily[3]) !!
-                },
-                {
-                    !!html_entity_decode($chart_daily[2]) !!
-                },
-                {
-                    !!html_entity_decode($chart_daily[1]) !!
-                },
+            labels: {!! html_entity_decode($chart_daily[0]) !!},
+            series: [{!! html_entity_decode($chart_daily[3]) !!},
+                {!! html_entity_decode($chart_daily[2]) !!},
+                {!! html_entity_decode($chart_daily[1]) !!},
             ]
         }, {
             low: 0,
@@ -560,10 +552,10 @@
             }
         });
         new Chartist.Line('.line-chart', {
-            labels: {!!html_entity_decode($chart_data[0]) !!},
-            series: [{!!html_entity_decode($chart_data[3]) !!},
-                {!!html_entity_decode($chart_data[2]) !!},
-                {!!html_entity_decode($chart_data[1]) !!},
+            labels: {!! html_entity_decode($chart_data[0]) !!},
+            series: [{!! html_entity_decode($chart_data[3]) !!},
+                {!! html_entity_decode($chart_data[2]) !!},
+                {!! html_entity_decode($chart_data[1]) !!},
             ]
         }, {
             low: 0,
