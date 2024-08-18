@@ -29,8 +29,8 @@
         </div>
 
         <div class='row'>
-            <div class='col-md-6'>
-                <div class='card p-3 text-gray-700'>
+            <div class='col-md-6 '>
+                <div class='card card-body text-gray-700'>
                     <h5 class="pb-3">{{__('Personal Details')}}</h5>
                     <x-form-items.form wire:submit.prevent="updateProfile" nctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-2 row">
@@ -130,7 +130,7 @@
                 </div>
             </div>
             <div class='col-md-6'>
-                <div class='card p-3 text-gray-700'>
+                <div class='card card-body text-gray-700'>
                     <h5 class="pb-3">{{__('Add Signature')}} <br>
                         <small class="text-muted fw-light fs-6 fst-italic">{{__('Upload transparent/white background signature')}} <a href='https://www.signwell.com/online-signature/draw/' wire:navigate target="_blank">{{__("use this tool")}}</a> </small>
                     </h5>
@@ -154,7 +154,7 @@
                         </div>
                     </x-form-items.form>
                 </div>
-                <div class='card p-3 text-gray-700 mt-3'>
+                <div class='card card-body text-gray-700 mt-3'>
                     <h5 class="pb-3">{{__('Password Reset')}}</h5>
                     <x-form-items.form wire:submit.prevent="passwordReset" nctype="multipart/form-data" class="form-modal">
                         <div class='form-group mb-2'>
