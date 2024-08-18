@@ -21,6 +21,7 @@ class ProfileSetting extends Component
     public $password;
     public $password_confirmation;
     public $signature;
+    public $date_of_birth;
     public $preferred_language;
     
     public function mount()
@@ -31,6 +32,7 @@ class ProfileSetting extends Component
         $this->matricule = auth()->user()->matricule;
         $this->position = auth()->user()->position;
         $this->phone_number = auth()->user()->phone_number;
+        $this->date_of_birth = auth()->user()->date_of_birth;
     }
 
     public function updateProfile()
@@ -45,6 +47,7 @@ class ProfileSetting extends Component
             'phone_number' => $this->phone_number,
             'position' => $this->position,
             'matricule' => $this->matricule,
+            'date_of_birth' => $this->date_of_birth,
             'preferred_language' => $this->preferred_language,
         ]);
 

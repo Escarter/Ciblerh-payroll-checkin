@@ -33,7 +33,7 @@
                 <div class='card p-3 text-gray-700'>
                     <h5 class="pb-3">{{__('Personal Details')}}</h5>
                     <x-form-items.form wire:submit.prevent="updateProfile" nctype="multipart/form-data" class="form-modal">
-                        <div class="form-group mb-4 row">
+                        <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="first_name">{{__('First Name')}}</label>
                                 <input wire:model.defer="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" value="{{auth()->user()->first_name}}" required="" name="first_name">
@@ -49,7 +49,7 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="form-group mb-4 row">
+                        <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="matricule">{{__('Matricule')}}</label>
                                 <input wire:model.defer="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" value="{{auth()->user()->matricule}}" required="" name="matricule">
@@ -66,15 +66,14 @@
 
                             </div>
                         </div>
-                        <div class='form-group mb-4'>
+                        <div class='form-group mb-2'>
                             <label for="pdf_password">{{__('PDF Password')}}</label>
                             <input wire:model.defer="pdf_password" type="text" class="form-control  @error('pdf_password') is-invalid @enderror" disabled>
                             @error('pdf_password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
-
-                        <div class="form-group mb-4 row">
+                        <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="professional_phone_number">{{__('Phone Number')}}</label>
                                 <input wire:model.defer="professional_phone_number" type="text" class="form-control  @error('professional_phone_number') is-invalid @enderror" value="{{auth()->user()->phone}}" name="professional_phone_number">
@@ -90,7 +89,14 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="form-group mb-4 row">
+                        <div class='form-group mb-2'>
+                            <label for="date_of_birth">{{__('Date of Birth')}}</label>
+                            <input wire:model.defer="date_of_birth" type="date" class="form-control  @error('date_of_birth') is-invalid @enderror" >
+                            @error('date_of_birth')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="work_time">{{__('Work Time')}}</label>
                                 <input wire:model="work_time" type="text" class="form-control  @error('work_time') is-invalid @enderror" value="{{auth()->user()->work_time}}" name="work_time" disabled>
@@ -106,7 +112,7 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class='form-group mb-4'>
+                        <div class='form-group mb-2'>
                             <label for="preferred_language">{{__('Select your Preferred language for  Notifications')}}</label>
                             <select wire:model.defer="preferred_language" name="preferred_language" class="form-select  @error('preferred_language') is-invalid @enderror" required="">
                                 <option value="">{{__('Select Language')}}</option>
@@ -130,7 +136,7 @@
                     </h5>
 
                     <x-form-items.form wire:submit.prevent="saveSignature" nctype="multipart/form-data" class="form-modal">
-                        <div class="form-group mb-4">
+                        <div class="form-group mb-2">
                             <input type="file" wire:model.defer="signature" class="form-control  @error('signature') is-invalid @enderror" />
                             @error('signature')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -151,14 +157,14 @@
                 <div class='card p-3 text-gray-700 mt-3'>
                     <h5 class="pb-3">{{__('Password Reset')}}</h5>
                     <x-form-items.form wire:submit.prevent="passwordReset" nctype="multipart/form-data" class="form-modal">
-                        <div class='form-group mb-4'>
+                        <div class='form-group mb-2'>
                             <label for="current_password">{{__('Current Password')}}</label>
                             <input wire:model.defer="current_password" type="text" class="form-control  @error('current_password') is-invalid @enderror">
                             @error('current_password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
-                        <div class='form-group row mb-4'>
+                        <div class='form-group row mb-2'>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="password">{{__('New Password')}}</label>
                                 <input wire:model.defer="password" type="text" class="form-control  @error('password') is-invalid @enderror">
