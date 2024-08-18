@@ -1,5 +1,5 @@
 "use strict";
-const d = document;
+var d = document;
 d.addEventListener("DOMContentLoaded", function (event) {
 
 

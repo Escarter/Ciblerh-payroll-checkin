@@ -83,7 +83,9 @@
                 const modal = document.getElementById(modalId);
 
                 modalEl = bootstrap.Modal.getInstance(modal)
-                modalEl.hide()
+                if (modalEl){
+                    modalEl.hide()
+                }
 
             });
 
