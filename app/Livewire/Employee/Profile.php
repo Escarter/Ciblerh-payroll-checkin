@@ -25,6 +25,7 @@ class Profile extends Component
     public $personal_phone_number;
     public $pdf_password;
     public $work_time;
+    public $date_of_birth;
     
     public function mount()
     {
@@ -38,6 +39,7 @@ class Profile extends Component
         $this->pdf_password = auth()->user()->pdf_password;
         $this->work_time = auth()->user()->work_start_time ." - ". auth()->user()->work_end_time;
         $this->preferred_language = auth()->user()->preferred_language;
+        $this->date_of_birth = auth()->user()->date_of_birth;
     }
 
     public function updateProfile()
@@ -54,6 +56,7 @@ class Profile extends Component
             'position' => $this->position,
             'matricule' => $this->matricule,
             'preferred_language' => $this->preferred_language,
+            'date_of_birth' => $this->date_of_birth,
         ]);
 
         $this->refresh(__('Profile updated successfully!'));
