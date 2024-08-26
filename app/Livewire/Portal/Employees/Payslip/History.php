@@ -68,7 +68,7 @@ class History extends Component
                                 'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send email to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
                             );
 
-                            $this->closeModalAndFlashMessage(__('Email resent'), 'resendEmailModal');
+                            $this->closeModalAndFlashMessage(__('Email resent successfully!'), 'resendEmailModal');
 
                         } catch (\Swift_TransportException $e) {
 
@@ -79,7 +79,7 @@ class History extends Component
                                 'sms_sent_status' => Payslip::STATUS_FAILED,
                                 'failure_reason' => $e->getMessage()
                             ]);
-                        $this->closeModalAndFlashMessage(__('Email resent'), 'resendEmailModal');
+                        $this->closeModalAndFlashMessage(__('Failed to resent Email'), 'resendEmailModal');
                         } catch (\Swift_RfcComplianceException $e) {
                             Log::info('------> err Swift_Rfc:' . $e->getMessage());
                             Log::info('' . PHP_EOL . '');
@@ -89,7 +89,7 @@ class History extends Component
                                 'sms_sent_status' => Payslip::STATUS_FAILED,
                                 'failure_reason' => $e->getMessage()
                             ]);
-                         $this->closeModalAndFlashMessage(__('Email resent'), 'resendEmailModal');
+                        $this->closeModalAndFlashMessage(__('Failed to resent Email'), 'resendEmailModal');
                         } catch (Exception $e) {
                             Log::info('------> err' . $e->getMessage());
                             Log::info('' . PHP_EOL . '');
@@ -99,7 +99,7 @@ class History extends Component
                                 'sms_sent_status' => Payslip::STATUS_FAILED,
                                 'failure_reason' => $e->getMessage()
                             ]);
-                        $this->closeModalAndFlashMessage(__('Email resent'), 'resendEmailModal');
+                        $this->closeModalAndFlashMessage(__('Failed to resent Email'), 'resendEmailModal');
                         }
                     } else {
                         $this->payslip->update([
@@ -107,7 +107,7 @@ class History extends Component
                             'sms_sent_status' => Payslip::STATUS_FAILED,
                             'failure_reason' => __('No valid email address for User')
                         ]);
-                    $this->closeModalAndFlashMessage(__('Email resent'), 'resendEmailModal');
+                    $this->closeModalAndFlashMessage(__('Failed to resent Email'), 'resendEmailModal');
                     }
                 }
             
@@ -145,6 +145,7 @@ class History extends Component
     
             }else{
 
+                
                 $this->closeModalAndFlashMessage(__('Insufficient SMS Balance'), 'resendSMSModal');
             }
          

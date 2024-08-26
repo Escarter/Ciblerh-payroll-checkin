@@ -637,5 +637,13 @@
     "Generate Payslips reports!":"Générez des rapports de fiches de paie !",
     "SMS Status":"Statut SMS",
     "Email Status":"Statut Email",
-    "Happy Birthday 🎉, enjoy your day!":"Joyeux anniversaire 🎉, profite de ta journée!"
+    "Happy Birthday 🎉, enjoy your day!":"Joyeux anniversaire 🎉, profite de ta journée!",
+    "SMS Balance is not enough, Refill SMS to proceed":"Le solde SMS n'est pas suffisant, rechargez SMS pour continuer",
+    "You are about to resend sms with pdf password to employee!":"Vous êtes sur le point de renvoyer un SMS avec un mot de passe PDF à l'employé!",
+    "Payslip Process successfully deleted!":"Le processus de bulletin de paie a été supprimé avec succès !",
+    "Employee Payslip resent":"Bulletin de paie de l'employé renvoyé",
+    "Email resent successfully!":"Email renvoyé avec succès !",
+    "Failed to resent Email":"Impossible de renvoyer l'e-mail",
+    "Insufficient SMS Balance":"Solde SMS insuffisant",
+    "Employee Payslip resent successfully":"Bulletin de paie de l'employé renvoyé avec succès"
 }

@@ -57,7 +57,7 @@ class Details extends Component
 
                         Log::info('mail-sent');
 
-                        $this->closeModalAndFlashMessage(__('Employee Payslip resent'), 'resendPayslipModal');
+                        $this->closeModalAndFlashMessage(__('Employee Payslip resent successfully'), 'resendPayslipModal');
                     } catch (\Swift_TransportException $e) {
 
                         Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
@@ -67,7 +67,7 @@ class Details extends Component
                             'sms_sent_status' => Payslip::STATUS_FAILED,
                             'failure_reason' => $e->getMessage()
                         ]);
-                        
+
                     } catch (\Swift_RfcComplianceException $e) {
                         Log::info('------> err Swift_Rfc:' . $e->getMessage());
                         Log::info('' . PHP_EOL . '');
