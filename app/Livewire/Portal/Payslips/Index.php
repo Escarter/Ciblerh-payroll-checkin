@@ -4,8 +4,10 @@ namespace App\Livewire\Portal\Payslips;
 
 use App\Models\Company;
 use App\Models\Setting;
+use App\Services\Nexah;
 use Livewire\Component;
 use App\Models\Department;
+use App\Services\TwilioSMS;
 use Illuminate\Support\Str;
 use App\Models\SendPayslipProcess;
 use Illuminate\Support\Facades\Gate;
@@ -20,6 +22,27 @@ class Index extends Component
     public $companies = [];
     public $departments = [];
     public $company_id, $department_id, $month, $payslip_file;
+
+    public ?SendPayslipProcess $send_payslip_process;
+
+    public function initData($job_id)
+    {
+        $this->send_payslip_process = SendPayslipProcess::findOrFail($job_id);
+    }
+
+    public function delete()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->send_payslip_process)) {
+            $this->send_payslip_process->delete();
+        }
+        $this->reset(['send_payslip_process']);
+        $this->closeModalAndFlashMessage(__('Payslip Process successfully deleted!'), 'DeleteModal');
+    }
+
 
     public function mount()
     {
@@ -73,10 +96,23 @@ class Index extends Component
                 session()->flash('error', __('Setting for SMS required!'));
                 return;
             }
+
         }else{
             session()->flash('error', __('Setting for SMS and SMTP configurations required!!'));
             return;
         }
+
+        $sms_client = match ($setting->sms_provider) {
+            'twilio' => new TwilioSMS($setting),
+            'nexah' =>  new Nexah($setting),
+            default => new Nexah($setting)
+        };
+
+        if ($sms_client->getBalance()['credit'] === 0) {
+            session()->flash('error', __('SMS Balance is not enough, Refill SMS to proceed'));
+            return;
+        }
+        
 
         $raw_file_path = $this->payslip_file->store(auth()->user()->id, 'raw');
 

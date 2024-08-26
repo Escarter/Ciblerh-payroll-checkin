@@ -1,4 +1,6 @@
 <div>
+    @include('livewire.portal.payslips.partials.resend-payslip')
+    <x-alert />
     <div class='pt-2'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-4 align-items-center">
             <div class="mb-lg-0">
@@ -132,21 +134,12 @@
                                 @endif
                             </td>
                             <td>
-                                @if($payslip->email_sent_status == 2 || $payslip->email_sent_status == 0 )
-                                <a href='#' data-id="{{$payslip->id}}" data-bs-url="/admin/payslips/edit/{{$payslip->id}}" data-bs-toggle="modal" data-bs-target="#resendPayslipModal">
-                                    <svg class="icon icon-xs text-warning" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendPayslipModal">
+                                    <svg class="icon icon-xs text-warning" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                                     </svg>
-                                </a>
-                                @endif
-                                @if($payslip->sms_sent_status == 2 && $payslip->sms_sent_status == 0)
-                                <a href='/admin/payslips/{{$payslip->id}}/resend-sms' class="mr-4">
-                                    <svg class="icon icon-xs text-warning" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                    </svg>
-                                </a>
-                                @endif
 
+                                </a>
                             </td>
                         </tr>
                         @empty

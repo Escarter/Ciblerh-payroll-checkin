@@ -1,4 +1,7 @@
 <div>
+    @include('livewire.portal.employees.payslip.resend-email-modal')
+    @include('livewire.portal.employees.payslip.resend-sms-modal')
+    <x-alert />
     <div>
         <div class='pt-2'>
             <div class="d-flex justify-content-between w-100 flex-wrap mb-4 align-items-center">
@@ -143,21 +146,16 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($payslip->email_sent_status == 'failed' || $payslip->email_sent_status == 'pending' )
-                                    <a href='#' data-id="{{$payslip->id}}" data-bs-url="/portal/payslips/edit/{{$payslip->id}}" data-bs-toggle="modal" data-bs-target="#resendPayslipModal">
-                                        <svg class="icon icon-xs text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                    <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendEmailModal">
+                                        <svg class="icon icon-xs text-info" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                                         </svg>
                                     </a>
-                                    @endif
-                                    @if($payslip->sms_sent_status == 'failed' && $payslip->sms_sent_status == 'successful')
-                                    <a href='/portal/payslips/{{$payslip->id}}/resend-sms' class="mr-4">
-                                        <svg class="icon icon-xs text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                    <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendSMSModal">
+                                        <svg class="icon icon-xs text-tertiary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                                         </svg>
                                     </a>
-                                    @endif
-
                                 </td>
                             </tr>
                             @empty

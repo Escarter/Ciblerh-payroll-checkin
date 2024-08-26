@@ -1,4 +1,6 @@
 <div>
+    @include('livewire.partials.delete-modal')
+    <x-alert />
     <div class='py-2 pb-2'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-4 align-items-center">
             <div class="mb-lg-0">
@@ -34,6 +36,7 @@
                         <th class="border-bottom">{{__('Period')}}</th>
                         <th class="border-bottom">{{__('Date Created')}}</th>
                         <th class="border-bottom text-center">{{__('Status')}}</th>
+                        <th class="border-bottom text-center">{{__('Delete')}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -87,6 +90,13 @@
                             @else
                             <span class="badge badge-lg text-md bg-warning">{{__('Processing...')}}</span>
                             @endif
+                        </td>
+                        <td>
+                            <a href='#' wire:click.prevent="initData({{$job->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                                <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
                         </td>
                     </tr>
                     @endforeach

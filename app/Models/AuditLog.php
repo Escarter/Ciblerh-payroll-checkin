@@ -59,7 +59,9 @@ class AuditLog extends Model
             'approved' => 'success',
             'sending' => 'warning',
             'type' => 'warning',
-            'report' => 'success'
+            'report' => 'success',
+            'sms' => 'info',
+            'email' => 'tertiary',
         ][$action];
     }
     public static function search($query)

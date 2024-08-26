@@ -64,6 +64,8 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
 
         if ( !empty($emp->professional_phone_number) || !empty($emp->personal_phone_number) ) {
 
+
+
             $phone = !empty($emp->professional_phone_number) ? $emp->professional_phone_number : $emp->personal_phone_number;
 
             if (!empty($month)) {
@@ -78,23 +80,27 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 default => new Nexah($setting)
              };
 
-            $message = '';
+            if ($sms_client->getBalance()['credit'] !== 0) {
+                $message = '';
 
-            if($emp->preferred_language === 'en'){
-                $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_en);
+                if($emp->preferred_language === 'en'){
+                    $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_en);
+                }else{
+                    $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_fr);
+                }
+
+                $response = $sms_client->sendSMS([
+                        'sms' =>  $message,
+                        'mobiles' => $phone,
+                    ]);
+
+                if ($response['responsecode'] === 1) {
+                    $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
+                } else {
+                    $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('Failed sending SMS')]);
+                }
             }else{
-                $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_fr);
-            }
-
-            $response = $sms_client->sendSMS([
-                    'sms' =>  $message,
-                    'mobiles' => $phone,
-                ]);
-
-            if ($response['responsecode'] === 1) {
-                $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
-            } else {
-                $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('Failed sending SMS')]);
+                $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('No available SMS Balance')]);
             }
         } else {
             $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('No valid phone number for user')]);
