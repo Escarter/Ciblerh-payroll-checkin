@@ -224,7 +224,7 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
+            <div class='pt-3 px-3 '>
                 {{ $logs->links() }}
             </div>
         </div>
