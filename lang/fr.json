@@ -645,5 +645,7 @@
     "Email resent successfully!":"Email renvoyé avec succès !",
     "Failed to resent Email":"Impossible de renvoyer l'e-mail",
     "Insufficient SMS Balance":"Solde SMS insuffisant",
-    "Employee Payslip resent successfully":"Bulletin de paie de l'employé renvoyé avec succès"
+    "Employee Payslip resent successfully":"Bulletin de paie de l'employé renvoyé avec succès",
+    "You are about to resend employee payslip both email and sms!":"Vous êtes sur le point de renvoyer le bulletin de paie de l'employé par e-mail et par SMS!",
+    "You are about to resend email with employee payslip!":"Vous êtes sur le point de renvoyer un e-mail contenant la fiche de paie de l'employé!"
 }
