@@ -175,10 +175,7 @@
                         @endforeach
                     </tbody>
                 </table>
-                <div class='d-flex justify-content-between align-items-center py-3 px-3'>
-                    <div>
-                        {{__('Showing')}} {{$perPage > $overtimes_count ? $overtimes_count : $perPage  }} {{__('items of')}} {{$overtimes_count}}
-                    </div>
+                <div class=' py-3 px-3'>
                     {{ $overtimes->links() }}
                 </div>
             </div>

@@ -215,10 +215,7 @@
         @endforelse
 
     </div>
-    <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
-        <div>
-            {{__('Showing')}} {{$perPage > $departments_count ? $departments_count : $perPage  }} {{__(' items of ')}} {{$departments_count}}
-        </div>
+    <div class='pt-3 px-3 '>
         {{ $departments->links() }}
     </div>
 </div>

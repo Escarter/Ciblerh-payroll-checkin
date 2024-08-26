@@ -166,7 +166,7 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class='d-flex justify-content-end pt-3 px-3 '>
+            <div class='pt-3 px-3 '>
                 {{ $checklogs->links() }}
             </div>
         </div>

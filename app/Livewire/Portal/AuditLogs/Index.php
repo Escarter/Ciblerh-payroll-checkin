@@ -18,6 +18,22 @@ class Index extends Component
     public int $perPage = 15;
     protected $paginationTheme = "bootstrap";
 
+    public $audit_log;
+
+    //Get & assign selected overtime props
+    public function initData($audit_log_id)
+    {
+        $this->audit_log = AuditLog::findOrFail($audit_log_id);
+    }
+
+    public function delete()
+    {
+        $this->audit_log->delete();
+
+        $this->clearFields();
+        $this->closeModalAndFlashMessage(__('Audit Log successfully deleted!'), 'DeleteModal');
+    }
+
     public function render()
     {
         $role = auth()->user()->getRoleNames()->first();

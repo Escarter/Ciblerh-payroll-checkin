@@ -177,6 +177,9 @@
                         @endforeach
                     </tbody>
                 </table>
+                <div class='pt-3 px-3 '>
+                    {{ $absences->links() }}
+                </div>
             </div>
         </div>
         @else

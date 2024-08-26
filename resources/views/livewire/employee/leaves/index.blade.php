@@ -217,6 +217,9 @@
                         @endforeach
                     </tbody>
                 </table>
+                <div class='pt-3 px-3 '>
+                    {{ $leaves->links() }}
+                </div>
             </div>
         </div>
         @else

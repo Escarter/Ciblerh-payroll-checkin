@@ -107,10 +107,8 @@
                         @endforeach
                     </tbody>
                 </table>
-                <div class='d-flex justify-content-between align-items-center py-3 px-3'>
-                    <div>
-                        {{__('Showing')}} {{$perPage > $payslips_count ? $payslips_count : $perPage  }} {{__('items of')}} {{$payslips_count}}
-                    </div>
+                <div class=' py-3 px-3'>
+                
                     {{ $payslips->links() }}
                 </div>
             </div>

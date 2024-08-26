@@ -191,10 +191,7 @@
         @endforelse
 
     </div>
-    <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
-        <div>
-            {{__('Showing')}} {{$perPage > $companies_count ? $companies_count : $perPage  }} {{__(' items of ')}} {{$companies_count}}
-        </div>
+    <div class='pt-3 px-3 '>
         {{ $companies->links() }}
     </div>
 

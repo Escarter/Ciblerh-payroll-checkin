@@ -160,10 +160,7 @@
         @endforelse
 
     </div>
-    <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
-        <div>
-            {{__('Showing')}} {{$perPage > $roles_count ? $roles_count : $perPage  }} {{__(' items of ')}} {{$roles_count}}
-        </div>
+    <div class='pt-3 px-3 '>
         {{ $roles->links() }}
     </div>
 </div>

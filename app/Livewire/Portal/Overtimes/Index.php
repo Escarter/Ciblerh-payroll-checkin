@@ -36,12 +36,6 @@ class Index extends Component
     public $bulk_approval_status = true;
 
 
-    //Update & Store Rules
-    protected array $rules = [
-        'approval_status' => 'required',
-        'approval_reason' => 'required',
-    ];
-
     public function mount()
     {
         $this->role = auth()->user()->getRoleNames()->first();
@@ -100,6 +94,11 @@ class Index extends Component
     //Bulk update
     public function bulkApproval()
     {
+        $this->validate([
+            'approval_status' => 'required',
+            'approval_reason' => 'required',
+        ]);
+
         Overtime::whereIn('id', $this->selectedOvertimes)->update([
             'approval_status' => $this->approval_status,
             'approval_reason' => $this->approval_reason,
@@ -113,7 +112,11 @@ class Index extends Component
         if (!Gate::allows('overtime-update')) {
             return abort(401);
         }
-        $this->validate();
+
+        $this->validate([
+            'approval_status' => 'required',
+            'approval_reason' => 'required',
+        ]);
 
         $this->overtime->update([
             'approval_status' => $this->approval_status,
@@ -132,7 +135,6 @@ class Index extends Component
         if (!Gate::allows('overtime-delete')) {
             return abort(401);
         }
-        $this->validate();
 
         $this->overtime->delete();
 

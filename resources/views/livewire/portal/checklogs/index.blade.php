@@ -312,10 +312,7 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
-                <div>
-                    {{__('Showing')}} {{$perPage > $checklogs_count ? $checklogs_count : $perPage  }} {{__(' items of ')}} {{$checklogs_count}}
-                </div>
+            <div class=' pt-3 px-3 '>
                 {{ $checklogs->links() }}
             </div>
         </div>

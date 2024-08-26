@@ -254,10 +254,7 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
-                <div>
-                    {{__('Showing')}} {{$perPage > $leave_types_count ? $leave_types_count : $perPage  }} {{__(' items of ')}} {{$leave_types_count}}
-                </div>
+            <div class='pt-3 px-3 '>
                 {{ $leave_types->links() }}
             </div>
 

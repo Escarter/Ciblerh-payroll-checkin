@@ -292,10 +292,7 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class='d-flex justify-content-between align-items-center pt-3 px-3 '>
-                <div>
-                    {{__('Showing')}} {{$perPage > $absences_count ? $absences_count : $perPage  }} {{__(' items of ')}} {{$absences_count}}
-                </div>
+            <div class='pt-3 px-3 '>
                 {{ $absences->links() }}
             </div>
         </div>

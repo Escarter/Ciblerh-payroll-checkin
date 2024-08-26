@@ -184,10 +184,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class='d-flex justify-content-between align-items-center py-3 px-3 '>
-                <div class="text-gray-500">
-                    {{__('Showing')}} {{$perPage > $checklogs_count ? $checklogs_count : $perPage  }} {{__('items of')}} {{$checklogs_count}}
-                </div>
+            <div class='py-3 px-3 '>
                 {{ $checklogs->links() }}
             </div>
         </div>
