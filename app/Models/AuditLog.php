@@ -62,6 +62,7 @@ class AuditLog extends Model
             'report' => 'success',
             'sms' => 'info',
             'email' => 'tertiary',
+            'payslip' => 'danger'
         ][$action];
     }
     public static function search($query)

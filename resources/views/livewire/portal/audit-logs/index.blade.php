@@ -185,7 +185,7 @@
             <table class="table employee-table table-hover align-items-center ">
                 <thead>
                     <tr>
-                        <th class="border-bottom">{{__('Employee')}}</th>
+                        <th class="border-bottom">{{__('Logger')}}</th>
                         <th class="border-bottom">{{__('Action Type')}}</th>
                         <th class="border-bottom">{{__('Action Performed')}}</th>
                         <th class="border-bottom">{{__('Date created')}}</th>

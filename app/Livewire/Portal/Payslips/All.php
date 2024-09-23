@@ -30,9 +30,9 @@ class All extends Component
                 auth()->user(),
                 'delete_payslip_process',
                 'web',
-                __('Delete Payslip process for ') . $this->send_payslip_proces->month . "-" . $this->send_payslip_proces->year . " @ " . now()
+                __('Delete Payslip process for ') . $this->send_payslip_process->month . "-" . $this->send_payslip_process->year . " @ " . now()
             );
-            
+
             $this->send_payslip_process->delete();
         }
         $this->reset(['send_payslip_process']);
