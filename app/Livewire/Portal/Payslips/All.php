@@ -23,8 +23,16 @@ class All extends Component
             return abort(401);
         }
 
+
         if(!empty($this->send_payslip_process))
         {
+            auditLog(
+                auth()->user(),
+                'delete_payslip_process',
+                'web',
+                __('Delete Payslip process for ') . $this->send_payslip_proces->month . "-" . $this->send_payslip_proces->year . " @ " . now()
+            );
+            
             $this->send_payslip_process->delete();
         }
         $this->reset(['send_payslip_process']);
