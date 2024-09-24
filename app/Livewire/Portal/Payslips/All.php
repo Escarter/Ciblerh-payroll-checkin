@@ -33,6 +33,7 @@ class All extends Component
                 __('Delete Payslip process for ') . $this->send_payslip_process->month . "-" . $this->send_payslip_process->year . " @ " . now()
             );
 
+            $this->send_payslip_process->payslips()->delete();
             $this->send_payslip_process->delete();
         }
         $this->reset(['send_payslip_process']);

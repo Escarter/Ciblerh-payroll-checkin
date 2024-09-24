@@ -43,6 +43,7 @@ class Index extends Component
                 'web',
                 __('Delete Payslip process for ') . $this->send_payslip_process->month . "-" . $this->send_payslip_process->year . " @ " . now()
             );
+            $this->send_payslip_process->payslips()->delete();
             $this->send_payslip_process->delete();
         }
         $this->reset(['send_payslip_process']);
@@ -163,7 +164,7 @@ class Index extends Component
             auth()->user(),
             'payslip_sending',
             'web',
-            'User <a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> initiated the sending of payslip to department <strong>' . $choosen_department->name . '</strong> for the month of ' . $this->month . '-' . now()->year . '<a href="/admin/payslips">Go to Playslips details</a>'
+            'User <a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> initiated the sending of payslip to department <strong>' . $choosen_department->name . '</strong> for the month of ' . $this->month . ' - ' . now()->year . '<a href="/portal/payslips/history"> Go to Playslips details</a>'
         );
 
         session()->flash('message', __('Job started to process list and file uploaded check the status on the table!'));
