@@ -1,6 +1,9 @@
 <div>
     <div class='container pt-3 pt-lg-4 pb-7 pb-lg-9 text-white'>
-        <div class='d-flex flex-wrap-reverse align-items-top  justify-content-md-between '>
+        <div class="mb-4 d-flex justify-content-end">
+            <x-navigation.employee-nav />
+        </div>
+        <div class='d-flex flex-wrap-reverse align-items-top justify-content-md-between '>
             <div class='d-flex flex-wrap align-items-center gap-3'>
                 <div class='d-none d-md-block d-lg-block'>
                     <div class="avatar-xl d-flex align-items-center justify-content-center fw-bold rounded border-warn  mr-5">
@@ -22,11 +25,11 @@
                     <div class='d-flex align-items-center justify-content-start '>
                         <div class='leading text-gray-400 '>
                             @if(!empty(auth()->user()->date_of_birth))
-                                @if(auth()->user()->date_of_birth->isBirthday())
-                                {{__('Happy Birthday 🎉, enjoy your day!')}} 🎊 🎂 🥂
-                                @else
-                                {{ auth()->user()->company ? auth()->user()->company->name : __('No Company')}} | {{ auth()->user()->department ? auth()->user()->department->name : __('No Department')}}
-                                @endif
+                            @if(auth()->user()->date_of_birth->isBirthday())
+                            {{__('Happy Birthday 🎉, enjoy your day!')}} 🎊 🎂 🥂
+                            @else
+                            {{ auth()->user()->company ? auth()->user()->company->name : __('No Company')}} | {{ auth()->user()->department ? auth()->user()->department->name : __('No Department')}}
+                            @endif
                             @else
                             {{ auth()->user()->company ? auth()->user()->company->name : __('No Company')}} | {{ auth()->user()->department ? auth()->user()->department->name : __('No Department')}}
                             @endif
@@ -75,9 +78,6 @@
                         </a>
                     </div>
                 </div>
-            </div>
-            <div>
-                <x-navigation.employee-nav />
             </div>
         </div>
 

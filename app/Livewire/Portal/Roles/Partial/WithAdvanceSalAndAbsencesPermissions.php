@@ -12,13 +12,13 @@ trait WithAdvanceSalAndAbsencesPermissions
         'Update' => 'advance_salary-update',
         'Create' => 'advance_salary-create',
         'Delete' => 'advance_salary-delete',
-        'Export' => 'advance_salary.export',
+        'Export' => 'advance_salary-export',
     ];
 
     public $selectedAbsencePermissions = [];
     public $selectAllAbsencePermissions = false;
     public $AbsencePermissions = [
-        'View' => 'absence-view',
+        'View' => 'absence-read',
         'Update' => 'absence-update',
         'Delete' => 'absence-delete',
         'Create' => 'absence-create',
@@ -38,13 +38,7 @@ trait WithAdvanceSalAndAbsencesPermissions
     public function updatedSelectAllAdvanceSalaryPermissions($value)
     {
         if ($value) {
-            $this->selectedAdvanceSalaryPermissions = [
-                'advance_salary-read',
-                'advance_salary-create',
-                'advance_salary-update',
-                'advance_salary-delete',
-                'advance_salary-export',
-            ];
+            $this->selectedAdvanceSalaryPermissions = array_values($this->AdvanceSalaryPermissions);
         } else {
             $this->selectedAdvanceSalaryPermissions = [];
         }
@@ -52,13 +46,7 @@ trait WithAdvanceSalAndAbsencesPermissions
     public function updatedSelectAllAbsencePermissions($value)
     {
         if ($value) {
-            $this->selectedAbsencePermissions = [
-                'absence-view',
-                'absence-create',
-                'absence-update',
-                'absence-delete',
-                'absence-export',
-            ];
+            $this->selectedAbsencePermissions = array_values($this->AbsencePermissions);
         } else {
             $this->selectedAbsencePermissions = [];
         }

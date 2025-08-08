@@ -235,4 +235,21 @@ class User extends Authenticatable implements HasLocalePreference
             }
         }
     }
+
+    /**
+     * Check if user can switch between employee and admin portals
+     * User must have both admin/supervisor/manager AND employee roles
+     */
+    public function canSwitchPortals()
+    {
+        return $this->hasAnyRole(['admin', 'manager', 'supervisor']) && $this->hasRole('employee');
+    }
+
+    /**
+     * Check if user should see admin portal primarily
+     */
+    public function isAdminUser()
+    {
+        return $this->hasAnyRole(['admin', 'manager', 'supervisor']);
+    }
 }

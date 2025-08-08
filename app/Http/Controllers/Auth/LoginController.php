@@ -51,7 +51,11 @@ class LoginController extends Controller
             );
            
 
-            if ($user->hasRole('employee')) {
+            if ($user->isAdminUser()) {
+                // Prioritize admin/manager/supervisor roles over employee role
+                flash(__('Welcome back! :user', ['user' => auth()->user()->name]))->success();
+                return redirect()->route('portal.dashboard');
+            } elseif ($user->hasRole('employee')) {
                 if($user->isContractValid()){
                     auditLog(
                         auth()->user(),
@@ -63,10 +67,9 @@ class LoginController extends Controller
                     flash(__('Sorry your contract has expired kindly contact your supervisor!'))->error()->important();
                     return redirect()->back()->withInput($request->input());
                 }else{
-
+                    flash(__('Welcome back! :user', ['user' => auth()->user()->name]))->success();
                     return redirect()->route('employee.dashboard');
                 }
-                flash(__('Welcome back! :user', ['user' => auth()->user()->name]))->success();
             }else{
                 return redirect()->route('portal.dashboard');
             }

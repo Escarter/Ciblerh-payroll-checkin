@@ -8,12 +8,12 @@ trait WithComDeptServPermissions
     public $selectedCompanyPermissions = [];
     public $selectAllCompanyPermissions = false;
     public $CompanyPermissions = [
-        'View' => 'comapany-read',
-        'Update' => 'comapany-update',
-        'Delete' => 'comapany-delete',
-        'Create' => 'comapany-create',
-        'Import' => 'comapany-import',
-        'Export' => 'comapany-export',
+        'View' => 'company-read',
+        'Update' => 'company-update',
+        'Delete' => 'company-delete',
+        'Create' => 'company-create',
+        'Import' => 'company-import',
+        'Export' => 'company-export',
     ];
 
     public $selectedDepartmentPermissions = [];
@@ -53,14 +53,7 @@ trait WithComDeptServPermissions
     public function updatedSelectAllCompanyPermissions($value)
     {
         if ($value) {
-            $this->selectedCompanyPermissions = [
-                'comapany-create',
-                'comapany-read',
-                'comapany-update',
-                'comapany-delete',
-                'comapany-import',
-                'comapany-export',
-            ];
+            $this->selectedCompanyPermissions = array_values($this->CompanyPermissions);
         } else {
             $this->selectedCompanyPermissions = [];
         }
@@ -68,14 +61,7 @@ trait WithComDeptServPermissions
     public function updatedSelectAllDepartmentPermissions($value)
     {
         if ($value) {
-            $this->selectedDepartmentPermissions = [
-                'department-create',
-                'department-read',
-                'department-update',
-                'department-delete',
-                'department-import',
-                'department-export',
-            ];
+            $this->selectedDepartmentPermissions = array_values($this->DepartmentPermissions);
         } else {
             $this->selectedDepartmentPermissions = [];
         }
@@ -83,14 +69,7 @@ trait WithComDeptServPermissions
     public function updatedSelectAllServicePermissions($value)
     {
         if ($value) {
-            $this->selectedServicePermissions = [
-                'service-create',
-                'service-read',
-                'service-update',
-                'service-delete',
-                'service-import',
-                'service-export',
-            ];
+            $this->selectedServicePermissions = array_values($this->ServicePermissions);
         } else {
             $this->selectedServicePermissions = [];
         }

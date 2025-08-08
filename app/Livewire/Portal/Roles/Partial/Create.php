@@ -14,12 +14,16 @@ use App\Livewire\Portal\Roles\Partial\WithComDeptServPermissions;
 use App\Livewire\Portal\Roles\Partial\WithTickOvertimePermissions;
 use App\Livewire\Portal\Roles\Partial\WithLeaveAndLeaveTypePermissions;
 use App\Livewire\Portal\Roles\Partial\WithAdvanceSalAndAbsencesPermissions;
+use App\Livewire\Portal\Roles\Partial\WithSettingPermissions;
+use App\Livewire\Portal\Roles\Partial\WithPaySlipAndEmployeePermissions;
+use App\Livewire\Portal\Roles\Partial\WithReportPermissions;
 
 class Create extends Component
 {
 
     use  WithComDeptServPermissions, WithRolePermissions, WithAuditLogPermissions, WithTickOvertimePermissions,
-    WithAdvanceSalAndAbsencesPermissions, WithLeaveAndLeaveTypePermissions, WithSettingPermissions, WithPaySlipAndEmployeePermissions;
+    WithAdvanceSalAndAbsencesPermissions, WithLeaveAndLeaveTypePermissions, WithSettingPermissions, WithPaySlipAndEmployeePermissions,
+    WithReportPermissions;
 
     public $name;
     public $role;
@@ -57,11 +61,12 @@ class Create extends Component
                     $this->selectedPayslipPermissions,
                     $this->selectedEmployeePermissions,
                     $this->selectedSettingPermissions,
+                    $this->selectedReportPermissions,
                    
                 ]);
             }
 
-            $this->emit('roleCreated');
+            $this->dispatch('roleCreated');
         } catch (\Throwable $th) {
             $this->refresh(__('Quelque chose n\'a pas fonctionné !'), 'CreateRoleModal');
         }
@@ -77,6 +82,7 @@ class Create extends Component
         $this->advanceSalaryAndAbsencePermissionClearFields();
         $this->settingPermissionClearFields();
         $this->payslipAndEmployeePermissionClearFields();
+        $this->reportPermissionClearFields();
         $this->reset(['name']);
     }
 

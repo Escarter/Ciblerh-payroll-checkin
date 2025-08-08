@@ -12,12 +12,19 @@ class Index extends Component
     use WithDataTable;
 
     public $listeners = [
-        'roleCreated'
+        'roleCreated',
+        'roleUpdated'
     ];
 
     public function roleCreated()
     {
-        $this->refresh(__('Rôle et permissions associées créés avec succès!'), 'CreateRoleModal');
+        $this->closeModalAndFlashMessage(__('Rôle et permissions associées créés avec succès!'), 'CreateRoleModal');
+    }
+
+    public function roleUpdated()
+    {
+        // Display success message using the same pattern as roleCreated
+        session()->flash('message', __('Role and permissions updated successfully!'));
     }
 
     //Get & assign selected advance_salary props
@@ -26,6 +33,11 @@ class Index extends Component
         $role = Role::findOrFail($role_id);
 
         $this->role = $role;
+    }
+
+    public function editRole($role_id)
+    {
+        $this->dispatch('editRole', $role_id);
     }
 
 

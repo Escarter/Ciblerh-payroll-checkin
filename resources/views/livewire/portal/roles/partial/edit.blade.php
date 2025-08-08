@@ -1,5 +1,13 @@
 <div>
-    <x-form-items.form wire:submit="store">
+    @if (session()->has('error'))
+        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            <i class="ki-duotone ki-cross-circle fs-2 text-danger me-3"></i>
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    
+    <x-form-items.form wire:submit="update">
         <div class="d-flex flex-column scroll-y">
             <!--begin::Input group-->
             <div class="fv-row mb-3 fv-plugins-icon-container">
@@ -9,7 +17,7 @@
                 </label>
                 <!--end::Label-->
                 <!--begin::Input-->
-                <input class="form-control form-control-solid" placeholder="{{__('Enter Role Name')}}" wire:model="name" value="Admin">
+                <input class="form-control form-control-solid" placeholder="{{__('Enter Role Name')}}" wire:model="name">
                 <!--end::Input-->
                 <div class="fv-plugins-message-container invalid-feedback"></div>
             </div>
@@ -166,14 +174,13 @@
                                             <input class="form-check-input" type="checkbox" wire:model="selectedOvertimePermissions" value="{{$value}}">
                                             <span class="form-check-label">{{__($key)}}</span>
                                         </label>
-
                                         @endforeach
                                     </div>
                                 </div>
                                 <!--end::Input group-->
                             </div>
                             <div class="text-gray-800 w-100 mt-3 fs-0 fw-bold">{{__('Absences and Advance Salary Permissions')}}</div>
-                            <div class="d-flex border-bottom">
+                            <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
                                 <div class="text-gray-800 w-25">{{__('Advance Salary')}}</div>
                                 <div>
@@ -194,7 +201,7 @@
                                 </div>
                                 <!--end::Input group-->
                             </div>
-                            <div class="d-flex border-top border-bottom border-1">
+                            <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
                                 <div class="text-gray-800 w-25">{{__('Absences')}}</div>
                                 <div>
@@ -258,7 +265,6 @@
                                 </div>
                                 <!--end::Input group-->
                             </div>
-
                             <div class="text-gray-800 w-100 mt-3 fs-0 fw-bold">{{__('Payslips processing permissions')}}</div>
                             <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
@@ -327,6 +333,27 @@
                             </div>
                             <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
+                                <div class="text-gray-800 w-25">{{__('Settings')}}</div>
+                                <div>
+                                    <!--begin::Wrapper-->
+                                    <div class="d-flex">
+                                        <!--begin::Checkbox-->
+                                        <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
+                                            <input class="form-check-input" type="checkbox" value="" wire:model="selectAllSettingPermissions">
+                                            <span class="form-check-label">{{__('All')}}</span>
+                                        </label>
+                                        @foreach($SettingPermissions as $key => $value)
+                                        <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
+                                            <input class="form-check-input" type="checkbox" wire:model="selectedSettingPermissions" value="{{$value}}">
+                                            <span class="form-check-label">{{__($key)}}</span>
+                                        </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <!--end::Input group-->
+                            </div>
+                            <div class="d-flex border-bottom border-1">
+                                <!--begin::Label-->
                                 <div class="text-gray-800 w-25">{{__('Reports')}}</div>
                                 <div>
                                     <!--begin::Wrapper-->
@@ -357,7 +384,7 @@
         </div>
         <div class="d-flex justify-content-end">
             <button type="button" wire:click.prevent="clearFields" class="btn btn-gray-200 text-gray-600  btn-sm ms-auto mx-3" data-bs-dismiss="modal">{{ __('Fermer') }}</button>
-            <button type="submit" wire:click.prevent="store" class="btn btn-primary btn-sm " wire:loading.attr="disabled">{{ __('Enregistrer') }}</button>
+            <button type="submit" wire:click.prevent="update" class="btn btn-primary btn-sm " wire:loading.attr="disabled">{{ __('Enregistrer') }}</button>
         </div>
     </x-form-items.form>
 </div>

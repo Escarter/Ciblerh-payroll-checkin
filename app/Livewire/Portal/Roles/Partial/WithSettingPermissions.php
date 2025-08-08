@@ -25,12 +25,7 @@ trait WithSettingPermissions
     public function updatedSelectAllSettingPermissions($value)
     {
         if ($value) {
-            $this->selectedSettingPermissions = [
-                'setting-read',
-                'setting-save',
-                'setting-sms',
-                'setting-smtp',
-            ];
+            $this->selectedSettingPermissions = array_values($this->SettingPermissions);
         } else {
             $this->selectedSettingPermissions = [];
         }

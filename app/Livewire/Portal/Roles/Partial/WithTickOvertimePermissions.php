@@ -39,13 +39,7 @@ trait WithTickOvertimePermissions
     public function updatedSelectAllTickingPermissions($value)
     {
         if ($value) {
-            $this->selectedTickingPermissions = [
-                'ticking-read',
-                'ticking-create',
-                'ticking-update',
-                'ticking-delete',
-                'ticking-export',
-            ];
+            $this->selectedTickingPermissions = array_values($this->TickingPermissions);
         } else {
             $this->selectedTickingPermissions = [];
         }
@@ -53,13 +47,7 @@ trait WithTickOvertimePermissions
     public function updatedSelectAllOvertimePermissions($value)
     {
         if ($value) {
-            $this->selectedOvertimePermissions = [
-                'overtime-read',
-                'overtime-create',
-                'overtime-update',
-                'overtime-delete',
-                'overtime-export',
-            ];
+            $this->selectedOvertimePermissions = array_values($this->OvertimePermissions);
         } else {
             $this->selectedOvertimePermissions = [];
         }

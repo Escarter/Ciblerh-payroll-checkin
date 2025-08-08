@@ -8,9 +8,9 @@ trait WithAuditLogPermissions
     public $selectedAuditLogPermissions = [];
     public $selectAllAuditLogPermissions = false;
     public $AuditLogPermissions = [
-        'View' => 'audit_log-view_all',
+        'View' => 'audit_log-read_all',
         'Delete' => 'audit_log-delete',
-        'View own logs only' => 'audit_log-view_own_only',
+        'View own logs only' => 'audit_log-read_own_only',
     ];
 
     public function auditLogPermissionClearFields()
@@ -24,11 +24,7 @@ trait WithAuditLogPermissions
     public function updatedSelectAllAuditLogPermissions($value)
     {
         if ($value) {
-            $this->selectedAuditLogPermissions = [
-                'audit_log-view_own_only',
-                'audit_log-view_all',
-                'audit_log-delete',
-            ];
+            $this->selectedAuditLogPermissions = array_values($this->AuditLogPermissions);
         } else {
             $this->selectedAuditLogPermissions = [];
         }

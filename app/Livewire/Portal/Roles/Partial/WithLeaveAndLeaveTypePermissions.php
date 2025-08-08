@@ -41,14 +41,7 @@ trait WithLeaveAndLeaveTypePermissions
     public function updatedSelectAllLeavePermissions($value)
     {
         if ($value) {
-            $this->selectedLeavePermissions = [
-                'leave-create',
-                'leave-view',
-                'leave-update',
-                'leave-delete',
-                'leave-import',
-                'leave-export',
-            ];
+            $this->selectedLeavePermissions = array_values($this->LeavePermissions);
         } else {
             $this->selectedLeavePermissions = [];
         }
@@ -56,14 +49,7 @@ trait WithLeaveAndLeaveTypePermissions
     public function updatedSelectAllLeaveTypePermissions($value)
     {
         if ($value) {
-            $this->selectedLeaveTypePermissions = [
-                'leave_type-create',
-                'leave_type-view',
-                'leave_type-update',
-                'leave_type-delete',
-                'leave_type-import',
-                'leave_type-export',
-            ];
+            $this->selectedLeaveTypePermissions = array_values($this->LeaveTypePermissions);
         } else {
             $this->selectedLeaveTypePermissions = [];
         }

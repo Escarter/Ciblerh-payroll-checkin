@@ -25,12 +25,7 @@ trait WithRolePermissions
     public function updatedSelectAllRolePermissions($value)
     {
         if ($value) {
-            $this->selectedRolePermissions = [
-                'role-create',
-                'role-read',
-                'role-update',
-                'role-delete',
-            ];
+            $this->selectedRolePermissions = array_values($this->RolePermissions);
         } else {
             $this->selectedRolePermissions = [];
         }

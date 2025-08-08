@@ -11,18 +11,18 @@ trait WithPaySlipAndEmployeePermissions
         'View' => 'payslip-read',
         'Create' => 'payslip-create',
         'Delete' => 'payslip-delete',
-        'Send' => 'payslip-send',
+        'Send' => 'payslip-sending',
     ];
 
     public $selectedEmployeePermissions = [];
     public $selectAllEmployeePermissions = false;
     public $EmployeePermissions = [
-        'View' => 'employe-read',
-        'Create' => 'employe-create',
-        'Update' => 'employe-update',
-        'Delete' => 'employe-delete',
-        'Import' => 'employe-import',
-        'Export' => 'employe-export',
+        'View' => 'employee-read',
+        'Create' => 'employee-create',
+        'Update' => 'employee-update',
+        'Delete' => 'employee-delete',
+        'Import' => 'employee-import',
+        'Export' => 'employee-export',
     ];
 
     public function payslipAndEmployeePermissionClearFields()
@@ -38,14 +38,7 @@ trait WithPaySlipAndEmployeePermissions
     public function updatedSelectAllEmployeePermissions($value)
     {
         if ($value) {
-            $this->selectedEmployeePermissions = [
-                'employee-read',
-                'employee-create',
-                'employee-delete',
-                'employee-import',
-                'employee-update',
-                'employee-export',
-            ];
+            $this->selectedEmployeePermissions = array_values($this->EmployeePermissions);
         } else {
             $this->selectedEmployeePermissions = [];
         }
@@ -53,12 +46,7 @@ trait WithPaySlipAndEmployeePermissions
     public function updatedSelectAllPayslipPermissions($value)
     {
         if ($value) {
-            $this->selectedPayslipPermissions = [
-                'payslip-read',
-                'payslip-create',
-                'payslip-delete',
-                'payslip-send',
-            ];
+            $this->selectedPayslipPermissions = array_values($this->PayslipPermissions);
         } else {
             $this->selectedPayslipPermissions = [];
         }
