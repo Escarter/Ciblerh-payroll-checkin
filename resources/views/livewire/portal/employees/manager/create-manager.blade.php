@@ -70,6 +70,15 @@
                                 @enderror
                             </div>
                         </div>
+                        <div class="form-group mb-4 row">
+                            <div class='col-md-12 col-xs-12'>
+                                <label for="date_of_birth">{{__('Date of Birth')}}</label>
+                                <input wire:model="date_of_birth" type="date" class="form-control  @error('date_of_birth') is-invalid @enderror" name="date_of_birth">
+                                @error('date_of_birth')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
 
                         <div class="form-group row mb-4">
                             <div class='col-md-6 col-xs-12'>

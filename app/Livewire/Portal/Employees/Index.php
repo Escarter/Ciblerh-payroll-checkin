@@ -125,6 +125,11 @@ class Index extends Component
         ]);
 
         $user->assignRole($this->role_name);
+        
+        // Always ensure employee role is assigned if not already present
+        if (!$user->hasRole('employee')) {
+            $user->assignRole('employee');
+        }
 
         event(new EmployeeCreated($user, $this->password));
 
@@ -181,6 +186,11 @@ class Index extends Component
 
         if($this->employee->getRoleNames()->first() != $this->role_name){
             $this->employee->syncRoles($this->role_name);
+        }
+        
+        // Always ensure employee role is assigned if not already present
+        if (!$this->employee->hasRole('employee')) {
+            $this->employee->assignRole('employee');
         }
 
         $this->clearFields();

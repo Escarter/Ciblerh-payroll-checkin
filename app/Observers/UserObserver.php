@@ -14,6 +14,11 @@ class UserObserver
      */
     public function created(User $user)
     {
+        // Automatically assign employee role if no roles are assigned
+        if ($user->roles()->count() === 0) {
+            $user->assignRole('employee');
+        }
+        
         auditLog(
             auth()->user(),
             'user_created',

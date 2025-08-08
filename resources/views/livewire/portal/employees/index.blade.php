@@ -4,6 +4,7 @@
     @include('livewire.portal.employees.manager.edit-manager')
     @include('livewire.portal.employees.others.import-employees')
     @include('livewire.partials.delete-modal')
+    @livewire('portal.employees.partial.user-roles')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -248,7 +249,14 @@
 
                         </td>
                         <td>
-                            <span class="fw-normal badge super-badge badge-lg bg-{{$employee->role_style}} rounded">{{$employee->getRoleNames()->first()}}</span>
+                            <div class="d-flex flex-wrap align-items-center">
+                                @foreach($employee->roles as $role)
+                                    <span class="fw-normal badge badge-sm bg-{{$employee->role_style}} rounded me-1 mb-1">{{$role->name}}</span>
+                                @endforeach
+                                @if($employee->roles->count() > 1)
+                                    <small class="text-muted">({{$employee->roles->count()}} roles)</small>
+                                @endif
+                            </div>
                         </td>
                         <td>
                             <span class="fw-normal badge super-badge badge-lg bg-{{$employee->status_style}} rounded">{{$employee->status_text}}</span>
@@ -258,6 +266,15 @@
                         </td>
                         @canany('employee-delete','employee-update')
                         <td>
+                            @can('employee-view')
+                            <button wire:click="$dispatch('showUserRoles', [{{$employee->id}}])" 
+                                    class="btn btn-sm btn-outline-info me-1" 
+                                    title="{{ __('Manage Roles') }}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
+                                </svg>
+                            </button>
+                            @endcan
 
                             @can('employee-update')
                             @if($employee->getRoleNames()->first() === 'manager' || $employee->getRoleNames()->first() === 'admin')

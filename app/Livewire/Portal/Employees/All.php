@@ -87,6 +87,8 @@ class All extends Component
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
+            'matricule' => 'required',
+            'professional_phone_number' => 'required',
             'personal_phone_number' => 'required',
             'password' => 'required',
             'date_of_birth' => 'required|date',
@@ -96,6 +98,7 @@ class All extends Component
         $user = User::create([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
+            'matricule' => $this->matricule,
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
@@ -106,6 +109,11 @@ class All extends Component
         ]);
 
         $user->assignRole($this->role_name);
+        
+        // Always ensure employee role is assigned if not already present
+        if (!$user->hasRole('employee')) {
+            $user->assignRole('employee');
+        }
 
         event(new EmployeeCreated($user, $this->password));
 
@@ -121,22 +129,31 @@ class All extends Component
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
+            'matricule' => 'required',
             'professional_phone_number' => 'required',
             'personal_phone_number' => 'required',
+            'date_of_birth' => 'required|date',
             'email' => 'required|email',
         ]);
 
         $this->employee->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
+            'matricule' => $this->matricule,
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
+            'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ?  1 : 0,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
         ]);
 
         $this->employee->assignRole($this->role_name);
+        
+        // Always ensure employee role is assigned if not already present
+        if (!$this->employee->hasRole('employee')) {
+            $this->employee->assignRole('employee');
+        }
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('Manager updated successfully!'), 'EditManagerModal');
@@ -200,8 +217,11 @@ class All extends Component
         $this->employee = $employee;
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
+        $this->matricule = $employee->matricule;
         $this->email = $employee->email;
-        $this->phone_number = $employee->professional_phone_number;
+        $this->professional_phone_number = $employee->professional_phone_number;
+        $this->personal_phone_number = $employee->personal_phone_number;
+        $this->date_of_birth = $employee->date_of_birth;
         $this->status = $employee->status;
         $this->role_name = $employee->getRoleNames()->first();
     }
