@@ -216,7 +216,7 @@
                     @forelse($employees as $employee)
                     <tr>
                         <td>
-                            <a href="{{ $employee->getRoleNames()->first() === 'employee' ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" class="d-flex align-items-center">
+                            <a href="{{ $employee->hasRole('employee') ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" class="d-flex align-items-center">
                                 <div class="avatar avatar-md d-flex align-items-center justify-content-center fw-bold fs-6 rounded bg-primary me-2"><span class="text-white">{{$employee->initials}}</span></div>
                                 <div class="d-block"><span class="fw-bolder fs-6">{{ucwords($employee->name)}}</span>
                                     <div class="small text-gray">
@@ -277,29 +277,30 @@
                             @endcan
 
                             @can('employee-update')
-                            @if($employee->getRoleNames()->first() === 'manager' || $employee->getRoleNames()->first() === 'admin')
-                            <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditManagerModal">
-                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </a>
-                            @else
-                            <a href='#' wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditEmployeeModal">
-                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </a>
+                            @if(($employee->roles->count() > 1 && ($employee->hasRole('manager') || $employee->hasRole('admin'))))
+                                <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditManagerModal">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                            @elseif($employee->roles->count() === 1 && $employee->hasRole('employee'))
+                                <a href='#' wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditEmployeeModal">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                            @endif
                             @endif
                             @endcan
 
                             @can('employee-delete')
-                            @if($employee->getRoleNames()->first() === 'manager' || $employee->getRoleNames()->first() === 'admin')
+                            @if(($employee->roles->count() > 1 && ($employee->hasRole('manager') || $employee->hasRole('admin'))))
                             <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
                                 <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
                             </a>
-                            @else
+                            @elseif($employee->roles->count() === 1 && $employee->hasRole('employee'))
                             <a href='#' wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
                                 <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>

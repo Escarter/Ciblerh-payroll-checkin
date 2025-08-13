@@ -1,8 +1,26 @@
 <div>
     <x-alert />
+    @if (session()->has('message'))
+        <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+            {{ session('message') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+<script>
+    window.addEventListener('close-assign-manager-modal', function () {
+        var modal = document.getElementById('AssignManagerModal');
+        if (modal) {
+            var bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+        }
+    });
+</script>
     @include('livewire.portal.companies.create-company')
     @include('livewire.portal.companies.edit-company')
     @include('livewire.portal.companies.import-companies')
+    @livewire('portal.companies.assign-manager')
     @include('livewire.partials.delete-modal')
     <div class='pb-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-0 align-items-center">
@@ -35,6 +53,13 @@
                     </svg> {{__('New')}}
                 </a>
                 @endcan
+                @hasrole('admin')
+                <a href="#" data-bs-toggle="modal" data-bs-target="#AssignManagerModal" class="btn btn-sm btn-info py-2 d-inline-flex align-items-center mx-2">
+                    <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 01-8 0m8 0a4 4 0 00-8 0m8 0V5a4 4 0 00-8 0v2m8 0v2a4 4 0 01-8 0V7m8 0V5a4 4 0 00-8 0v2" />
+                    </svg> {{__('Assign Manager')}}
+                </a>
+                @endhasrole
                 @can('company-import')
                 <a href="#" data-bs-toggle="modal" data-bs-target="#importCompaniesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -117,6 +142,26 @@
                         </div>
                     </div>
                 </div>
+                <!-- Assigned Managers Section -->
+                <div class="mb-3">
+                    <div class="d-flex align-items-center mb-1">
+                        <svg class="icon icon-xs me-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="#e3f2fd" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+                        </svg>
+                        <span class="fw-bold text-primary">{{ __('Assigned Managers') }}</span>
+                    </div>
+                    <div class="d-flex flex-wrap">
+                        @forelse($company->managers as $manager)
+                            <div class="d-flex flex-wrap align-items-center small mx-3 mb-2">
+                                <span class="fw-semibold text-dark">{{ $manager->first_name }} {{ $manager->last_name }}</span>
+                                <span class="badge bg-gray-300 ms-2">{{ $manager->email }}</span>
+                            </div>
+                        @empty
+                            <span class="text-muted">{{ __('No manager assigned') }}</span>
+                        @endforelse
+                    </div>
+                </div>
                 <div class="card-body p-0 mx-3 my-1 d-flex flex-wrap justify-content-between align-items-center">
                     <div class=" fw-normal d-flex align-items-center ">
                         <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -144,25 +189,23 @@
                             <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
-                            <div class="d-none d-md-block">{{__('Departments')}}</div>
                         </a>
-                        <a href="{{route('portal.employees.index',['company_uuid'=>$company->id])}}" wire:navigate class="btn btn-sm btn-outline-tertiary py-2 d-inline-flex align-items-center ">
+                        <a href="{{route('portal.employees.index',['company_uuid'=>$company->id])}}" wire:navigate class="btn btn-sm btn-outline-tertiary py-2 d-inline-flex align-items-center mx-1" title="View Employees">
                             <svg class="icon icon-xxs me-md-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                             </svg>
-                            <div class="d-none d-md-block">{{__('Employees')}}</div>
                         </a>
                     </div>
                     <div>
                         @can('company-update')
-                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#EditCompanyModal" draggable="false">
+                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#EditCompanyModal" draggable="false" title="Edit Company">
                             <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                         </a>
                         @endcan
                         @can('company-delete')
-                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" href="#" draggable="false">
+                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" title="Delete Company">
                             <svg class="icon icon-sm text-danger me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                             </svg>

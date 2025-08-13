@@ -24,6 +24,17 @@
                                 @enderror
                             </div>
                         </div>
+                        @hasrole('admin')
+                        <div class="form-group mb-4">
+                            <label for="assign_manager">{{__('Assign Manager')}}</label>
+                            <select wire:model="manager_id" name="manager_id" class="form-select">
+                                <option value="">{{__('Select Manager')}}</option>
+                                @foreach($managers as $manager)
+                                    <option value="{{$manager->id}}">{{$manager->first_name}} {{$manager->last_name}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endhasrole
                         <div class='form-group mb-4'>
                                 <label for="sector">{{__('Sector')}}</label>
                                 <input wire:model="sector" type="text" class="form-control  @error('sector') is-invalid @enderror" required="" name="sector">

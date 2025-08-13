@@ -23,15 +23,15 @@ class Index extends Component
 {
     use WithDataTable;
 
-    //
-    public ?Collection $supervisors;
-    public ?Company $company= null;
-    public ?int $company_id = null;
-    public ?string $role = null;
-    public ?string $code = null;
-    public ?string $name = null;
-    public ?string $sector = null;
-    public ?string $description = null;
+    public $managers = [];
+    public $supervisors;
+    public $company = null;
+    public $company_id = null;
+    public $role = null;
+    public $code = null;
+    public $name = null;
+    public $sector = null;
+    public $description = null;
     public $company_file = null;
 
     //Update & Store Rules
@@ -47,7 +47,9 @@ class Index extends Component
     }
     public function mount()
     {
-        $this->role = auth()->user()->getRoleNames()->first();
+    $this->role = auth()->user()->getRoleNames()->first();
+    // Provide managers for create-company blade
+    $this->managers = \App\Models\User::role('manager')->orderBy('first_name')->get();
         
     }
 
@@ -56,11 +58,13 @@ class Index extends Component
         $company = Company::findOrFail($company_id);
 
         $this->company = $company;
-        $this->name = $company->name;
-        $this->code = $company->code;
-        $this->sector = $company->sector;
-        $this->description = $company->description;
-        $this->company_id = $company->id;
+    $this->name = $company->name;
+    $this->code = $company->code;
+    $this->sector = $company->sector;
+    $this->description = $company->description;
+    $this->company_id = $company->id;
+    // Set manager_id to the first assigned manager (if any)
+    $this->manager_id = $company->managers()->exists() ? $company->managers()->first()->id : null;
     }
 
     public function store()
@@ -72,12 +76,19 @@ class Index extends Component
         $this->validate();
 
         $company = Company::create([
-                'name' => $this->name,
-                'code' => $this->code,
-                'sector' => $this->sector,
-                'description' => $this->description,
-                'author_id' => auth()->user()->id,
-            ]);
+            'name' => $this->name,
+            'code' => $this->code,
+            'sector' => $this->sector,
+            'description' => $this->description,
+            'author_id' => auth()->user()->id,
+        ]);
+
+        // If the creator is a manager, auto-assign them to the company
+        $user = auth()->user();
+        if ($user && $user->hasRole('manager')) {
+            $company->managers()->syncWithoutDetaching([$user->id]);
+        }
+
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('Company created successfully!'), 'CreateCompanyModal');
     }
@@ -98,7 +109,8 @@ class Index extends Component
             ]);
         });
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Company successfully updated!'), 'EditCompanyModal');
+        session()->flash('message', __('Company successfully updated!'));
+        $this->dispatch('closeModal', id: 'EditCompanyModal');
     }
 
     public function delete()

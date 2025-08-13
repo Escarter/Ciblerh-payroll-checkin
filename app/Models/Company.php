@@ -21,7 +21,11 @@ class Company extends Model
 
     public function scopeManager($query)
     {
-        return $query->where('author_id', auth()->user()->id);
+        $manager = auth()->user();
+        if ($manager && $manager->hasRole('manager')) {
+            return $query->whereIn('id', $manager->managerCompanies->pluck('id'));
+        }
+        return $query;
     }
     
     public function getInitialsAttribute()
@@ -34,9 +38,19 @@ class Company extends Model
         }
     }
 
+    public function department()
+    {
+        return $this->hasMany(Department::class);
+    }
+
     public function departments()
     {
-       return $this->hasMany(Department::class);
+        return $this->hasMany(Department::class);
+    }
+
+    public function managers()
+    {
+        return $this->belongsToMany(User::class, 'manager_companies', 'company_id', 'manager_id');
     }
     public function services()
     {

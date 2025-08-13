@@ -28,7 +28,11 @@ class SendPayslipProcess extends Model
 
     public function scopeManager($query)
     {
-        return $query->where('author_id', auth()->user()->id);
+        $manager = auth()->user();
+        if ($manager && $manager->hasRole('manager')) {
+            return $query->whereIn('company_id', $manager->managerCompanies->pluck('id'));
+        }
+        return $query;
     }
 
     public function owner()

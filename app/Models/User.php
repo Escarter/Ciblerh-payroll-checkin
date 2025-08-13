@@ -163,6 +163,11 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->hasMany(Absence::class,'user_id');
     }
 
+    public function managerCompanies()
+    {
+        return $this->belongsToMany(Company::class, 'manager_companies', 'manager_id', 'company_id');
+    }
+
     public function advanceSalaries(): HasMany
     {
         return $this->hasMany(AdvanceSalary::class,'user_id');
