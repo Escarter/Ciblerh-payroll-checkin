@@ -10,7 +10,7 @@
                 </svg>
             </a>
             <div>
-                <x-navigation.employee-nav />
+                <x-layouts.navigation.employee-nav />
             </div>
         </div>
         <div class='d-flex flex-wrap justify-content-between align-items-center pt-3'>

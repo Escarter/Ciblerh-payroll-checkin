@@ -1,7 +1,7 @@
 <div>
     <div class='container pt-3 pt-lg-4 pb-7 pb-lg-9 text-white'>
         <div class="mb-4 d-flex justify-content-end">
-            <x-navigation.employee-nav />
+            <x-layouts.navigation.employee-nav />
         </div>
         <div class='d-flex flex-wrap-reverse align-items-top justify-content-md-between '>
             <div class='d-flex flex-wrap align-items-center gap-3'>

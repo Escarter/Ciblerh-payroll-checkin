@@ -1,11 +1,8 @@
 <x-layouts.app>
-    <x-navigation.topbar />
-    <x-navigation.sidebar />
+    <x-layouts.navigation.topbar />
+    <x-layouts.navigation.sidebar />
     <main class='content pb-4'>
-        <x-navigation.navbar />
+        <x-layouts.navigation.navbar />
         {{$slot}}
-
     </main>
-
-   
 </x-layouts.app>
