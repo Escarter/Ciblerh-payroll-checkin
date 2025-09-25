@@ -40,6 +40,20 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('Audit Log successfully moved to trash!'), 'DeleteModal');
     }
 
+    public function clearFields()
+    {
+        $this->audit_log = null;
+    }
+
+    public function closeModalAndFlashMessage($message, $modalId = null)
+    {
+        session()->flash('message', $message);
+        
+        if ($modalId) {
+            $this->dispatch('closeModal', modalId: $modalId);
+        }
+    }
+
     public function restore($auditLogId)
     {
         $auditLog = AuditLog::withTrashed()->findOrFail($auditLogId);
