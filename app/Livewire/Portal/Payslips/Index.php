@@ -24,30 +24,158 @@ class Index extends Component
     public $company_id, $department_id, $month, $payslip_file;
 
     public ?SendPayslipProcess $send_payslip_process;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedSendPayslipProcesses = [];
+    public $selectAll = false;
 
     public function initData($job_id)
     {
         $this->send_payslip_process = SendPayslipProcess::findOrFail($job_id);
     }
 
-    public function delete()
+    public function delete($processId = null)
     {
         if (!Gate::allows('payslip-delete')) {
             return abort(401);
         }
 
-        if (!empty($this->send_payslip_process)) {
+        $process = $processId ? SendPayslipProcess::findOrFail($processId) : $this->send_payslip_process;
+        
+        if (!empty($process)) {
             auditLog(
                 auth()->user(),
                 'delete_payslip_process',
                 'web',
-                __('Delete Payslip process for ') . $this->send_payslip_process->month . "-" . $this->send_payslip_process->year . " @ " . now()
+                __('Delete Payslip process for ') . $process->month . "-" . $process->year . " @ " . now()
             );
-            $this->send_payslip_process->payslips()->delete();
-            $this->send_payslip_process->delete();
+            $process->payslips()->delete(); // Soft delete related payslips
+            $process->delete(); // Soft delete the process
         }
         $this->reset(['send_payslip_process']);
-        $this->closeModalAndFlashMessage(__('Payslip Process successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('Payslip Process successfully moved to trash!'), 'DeleteModal');
+    }
+
+    public function restore($processId)
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        $process = SendPayslipProcess::withTrashed()->findOrFail($processId);
+        $process->restore();
+
+        $this->closeModalAndFlashMessage(__('Payslip Process successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete($processId)
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        $process = SendPayslipProcess::withTrashed()->findOrFail($processId);
+        $process->payslips()->forceDelete(); // Force delete related payslips
+        $process->forceDelete(); // Force delete the process
+
+        $this->closeModalAndFlashMessage(__('Payslip Process permanently deleted!'), 'ForceDeleteModal');
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedSendPayslipProcesses)) {
+            $processes = SendPayslipProcess::whereIn('id', $this->selectedSendPayslipProcesses);
+            foreach ($processes->get() as $process) {
+                $process->payslips()->delete(); // Soft delete related payslips
+            }
+            $processes->delete(); // Soft delete the processes
+            $this->selectedSendPayslipProcesses = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected payslip processes moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedSendPayslipProcesses)) {
+            SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedSendPayslipProcesses)->restore();
+            $this->selectedSendPayslipProcesses = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected payslip processes restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedSendPayslipProcesses)) {
+            $processes = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedSendPayslipProcesses);
+            foreach ($processes->get() as $process) {
+                $process->payslips()->forceDelete(); // Force delete related payslips
+            }
+            $processes->forceDelete(); // Force delete the processes
+            $this->selectedSendPayslipProcesses = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected payslip processes permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedSendPayslipProcesses = [];
+        $this->selectAll = false;
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            $this->selectedSendPayslipProcesses = $this->getSendPayslipProcesses()->pluck('id')->toArray();
+        } else {
+            $this->selectedSendPayslipProcesses = [];
+        }
+    }
+
+    public function toggleSendPayslipProcessSelection($processId)
+    {
+        if (in_array($processId, $this->selectedSendPayslipProcesses)) {
+            $this->selectedSendPayslipProcesses = array_diff($this->selectedSendPayslipProcesses, [$processId]);
+        } else {
+            $this->selectedSendPayslipProcesses[] = $processId;
+        }
+        
+        $this->selectAll = count($this->selectedSendPayslipProcesses) === $this->getSendPayslipProcesses()->count();
+    }
+
+    private function getSendPayslipProcesses()
+    {
+        $query = match (auth()->user()->getRoleNames()->first()) {
+            'manager' => SendPayslipProcess::manager(),
+            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id')),
+            'admin' => SendPayslipProcess::query(),
+            default => SendPayslipProcess::query(),
+        };
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        return $query->orderBy('created_at', 'desc')->take(20)->get();
     }
 
 
@@ -177,13 +305,27 @@ class Index extends Component
             return abort(401);
         }
 
-       $jobs =  match (auth()->user()->getRoleNames()->first()) {
-            'manager' => SendPayslipProcess::manager()->orderBy('created_at', 'desc')->get()->take(20),
-            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->get()->take(20),
-            'admin' => SendPayslipProcess::orderBy('created_at', 'desc')->get()->take(20),
-            default => [],
+        $jobs = $this->getSendPayslipProcesses();
+
+        // Get counts for active processes (non-deleted)
+        $active_processes = match (auth()->user()->getRoleNames()->first()) {
+            'manager' => SendPayslipProcess::manager()->whereNull('deleted_at')->count(),
+            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->whereNull('deleted_at')->count(),
+            'admin' => SendPayslipProcess::whereNull('deleted_at')->count(),
+            default => 0,
         };
 
-        return view('livewire.portal.payslips.index', compact('jobs'))->layout('components.layouts.dashboard');
+        $deleted_processes = match (auth()->user()->getRoleNames()->first()) {
+            'manager' => SendPayslipProcess::manager()->withTrashed()->whereNotNull('deleted_at')->count(),
+            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->withTrashed()->whereNotNull('deleted_at')->count(),
+            'admin' => SendPayslipProcess::withTrashed()->whereNotNull('deleted_at')->count(),
+            default => 0,
+        };
+
+        return view('livewire.portal.payslips.index', [
+            'jobs' => $jobs,
+            'active_processes' => $active_processes,
+            'deleted_processes' => $deleted_processes,
+        ])->layout('components.layouts.dashboard');
     }
 }

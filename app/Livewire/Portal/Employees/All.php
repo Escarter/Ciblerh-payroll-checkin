@@ -44,6 +44,7 @@ class All extends Component
     public $selectedDepartmentId = null;
     public $service_id;
     public $role_name = 'manager';
+    public $selected_roles = ['employee', 'manager'];
     public $status = 1;
     public $work_start_time;
     public $work_end_time;
@@ -52,6 +53,11 @@ class All extends Component
     public $employee_file = null;
     public $role = null;
     public $auth_role = null;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedEmployees = [];
+    public $selectAll = false;
 
     //Update & Store Rules
     protected array $rules = [
@@ -60,6 +66,7 @@ class All extends Component
         'professional_phone_number' => 'required',
         'personal_phone_number' => 'required',
         'email' => 'required|email',
+        'selected_roles' => 'required|array|max:2',
     ];
 
     public function mount()
@@ -79,6 +86,31 @@ class All extends Component
         }
     }
 
+    public function toggleRole($roleName)
+    {
+        // Ensure employee role is always included
+        if ($roleName === 'employee') {
+            return; // Don't allow toggling employee role
+        }
+
+        if (in_array($roleName, $this->selected_roles)) {
+            // Remove role
+            $this->selected_roles = array_filter($this->selected_roles, function($role) use ($roleName) {
+                return $role !== $roleName;
+            });
+        } else {
+            // Add role if under limit
+            if (count($this->selected_roles) < 2) {
+                $this->selected_roles[] = $roleName;
+            }
+        }
+
+        // Ensure employee role is always included
+        if (!in_array('employee', $this->selected_roles)) {
+            $this->selected_roles[] = 'employee';
+        }
+    }
+
     public function store()
     {
         if (!Gate::allows('employee-create')) {
@@ -93,7 +125,16 @@ class All extends Component
             'password' => 'required',
             'date_of_birth' => 'required|date',
             'email' => 'required|email|unique:users',
+            'selected_roles' => 'required|array|max:2',
         ]);
+
+        // Ensure employee role is always included
+        if (!in_array('employee', $this->selected_roles)) {
+            $this->selected_roles[] = 'employee';
+        }
+
+        // Limit to maximum 2 roles
+        $this->selected_roles = array_slice($this->selected_roles, 0, 2);
 
         $user = User::create([
             'first_name' => $this->first_name,
@@ -103,17 +144,13 @@ class All extends Component
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
             'date_of_birth' => $this->date_of_birth,
-            'status' => $this->status === "true" ?  1 : 0,
+            'status' => $this->status === "true" ? true : false,
             'password' => bcrypt($this->password),
             'pdf_password' => Str::random(10),
         ]);
 
-        $user->assignRole($this->role_name);
-        
-        // Always ensure employee role is assigned if not already present
-        if (!$user->hasRole('employee')) {
-            $user->assignRole('employee');
-        }
+        // Assign multiple roles - use syncRoles instead of assignRole for arrays
+        $user->syncRoles($this->selected_roles);
 
         event(new EmployeeCreated($user, $this->password));
 
@@ -134,7 +171,16 @@ class All extends Component
             'personal_phone_number' => 'required',
             'date_of_birth' => 'required|date',
             'email' => 'required|email',
+            'selected_roles' => 'required|array|max:2',
         ]);
+
+        // Ensure employee role is always included
+        if (!in_array('employee', $this->selected_roles)) {
+            $this->selected_roles[] = 'employee';
+        }
+
+        // Limit to maximum 2 roles
+        $this->selected_roles = array_slice($this->selected_roles, 0, 2);
 
         $this->employee->update([
             'first_name' => $this->first_name,
@@ -144,16 +190,12 @@ class All extends Component
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
             'date_of_birth' => $this->date_of_birth,
-            'status' => $this->status === "true" ?  1 : 0,
+            'status' => $this->status === "true" ? true : false,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
         ]);
 
-        $this->employee->assignRole($this->role_name);
-        
-        // Always ensure employee role is assigned if not already present
-        if (!$this->employee->hasRole('employee')) {
-            $this->employee->assignRole('employee');
-        }
+        // Sync roles (this will remove old roles and assign new ones)
+        $this->employee->syncRoles($this->selected_roles);
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('Manager updated successfully!'), 'EditManagerModal');
@@ -183,7 +225,7 @@ class All extends Component
             'work_start_time' => $this->work_start_time,
             'date_of_birth' => $this->date_of_birth,
             'work_end_time' => $this->work_end_time,
-            'status' => $this->status === "true" ?  1 : 0,
+            'status' => $this->status === "true" ? true : false,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
             // 'pdf_password' => Str::random(10),
         ]);
@@ -203,12 +245,138 @@ class All extends Component
         }
 
         if (!empty($this->employee)) {
-
-            $this->employee->forceDelete();
+            $this->employee->delete(); // Soft delete
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('Employee successfully moved to trash!'), 'DeleteModal');
+    }
+
+    public function restore($employeeId)
+    {
+        if (!Gate::allows('employee-delete')) {
+            return abort(401);
+        }
+
+        $employee = User::withTrashed()->findOrFail($employeeId);
+        $employee->restore();
+
+        $this->closeModalAndFlashMessage(__('Employee successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete($employeeId)
+    {
+        if (!Gate::allows('employee-delete')) {
+            return abort(401);
+        }
+
+        $employee = User::withTrashed()->findOrFail($employeeId);
+        $employee->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('Employee permanently deleted!'), 'ForceDeleteModal');
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('employee-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedEmployees)) {
+            User::whereIn('id', $this->selectedEmployees)->delete(); // Soft delete
+            $this->selectedEmployees = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected employees moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('employee-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedEmployees)) {
+            User::withTrashed()->whereIn('id', $this->selectedEmployees)->restore();
+            $this->selectedEmployees = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected employees restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('employee-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedEmployees)) {
+            User::withTrashed()->whereIn('id', $this->selectedEmployees)->forceDelete();
+            $this->selectedEmployees = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected employees permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedEmployees = [];
+        $this->selectAll = false;
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            $this->selectedEmployees = $this->getEmployees()->pluck('id')->toArray();
+        } else {
+            $this->selectedEmployees = [];
+        }
+    }
+
+    public function toggleEmployeeSelection($employeeId)
+    {
+        if (in_array($employeeId, $this->selectedEmployees)) {
+            $this->selectedEmployees = array_diff($this->selectedEmployees, [$employeeId]);
+        } else {
+            $this->selectedEmployees[] = $employeeId;
+        }
+        
+        $this->selectAll = count($this->selectedEmployees) === $this->getEmployees()->count();
+    }
+
+    private function getEmployees()
+    {
+        $query = User::search($this->query)->with([
+            'company:id,name',
+            'department:id,name',
+            'service:id,name',
+            'roles:id,name'
+        ])->whereHas('roles', function($query) {
+            match ($this->auth_role) {
+                'supervisor' => $query->where('name', 'employee'),
+                'manager' => $query->whereIn('name', ['employee', 'supervisor']),
+                'admin' => $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']),
+                default => $query->where('name', 'employee'),
+            };
+        });
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Add role-based filtering
+        match ($this->auth_role) {
+            'supervisor' => $query->supervisor(),
+            'manager' => $query->manager(),
+            'admin' => null, // No additional filtering for admin
+            default => $query->supervisor(),
+        };
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
     public function initDataManager($employee_id)
     {
@@ -222,8 +390,9 @@ class All extends Component
         $this->professional_phone_number = $employee->professional_phone_number;
         $this->personal_phone_number = $employee->personal_phone_number;
         $this->date_of_birth = $employee->date_of_birth;
-        $this->status = $employee->status;
+        $this->status = $employee->status ? "true" : "false";
         $this->role_name = $employee->getRoleNames()->first();
+        $this->selected_roles = $employee->getRoleNames()->toArray();
     }
 
     public function initData($employee_id)
@@ -248,11 +417,12 @@ class All extends Component
         $this->contract_end = $employee->contract_end;
         $this->work_start_time = Carbon::parse($employee->work_start_time)->format('H:i');
         $this->work_end_time = Carbon::parse($employee->work_end_time)->format('H:i');
-        $this->status = $employee->status;
+        $this->status = $employee->status ? "true" : "false";
         $this->service_id = $employee->service_id;
         $this->date_of_birth = $employee->date_of_birth;
         $this->selectedDepartmentId = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
+        $this->selected_roles = $employee->getRoleNames()->toArray();
     }
 
     public function import()
@@ -307,7 +477,10 @@ class All extends Component
             'work_start_time',
             'work_end_time',
             'password',
+            'selected_roles',
         ]);
+        // Reset to default roles
+        $this->selected_roles = ['employee', 'manager'];
     }
     public function render()
     {
@@ -315,54 +488,56 @@ class All extends Component
             return abort(401);
         }
 
-        $employees  = match ($this->auth_role) {
-            'supervisor' => User::search($this->query)->supervisor()->with([
-                'company:id,name',
-                'department:id,name',
-                'service:id,name',
-                'roles:id,name'
-            ])->role('employee')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
+        $employees = $this->getEmployees();
 
-            'manager' => User::search($this->query)->manager()->with([
-                'company:id,name',
-                'department:id,name',
-                'service:id,name',
-                'roles:id,name'
-            ])->role(['employee', 'supervisor'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-
-            'admin' => User::search($this->query)->with([
-                'company:id,name',
-                'department:id,name',
-                'service:id,name',
-                'roles:id,name'
-            ])->role(['admin', 'employee', 'supervisor', 'manager'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            default => [],
-        };
-
-        $employees_count = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->with('roles')->role(['employee'])->count(),
-            'manager' => User::manager()->with('roles')->role(['employee', 'supervisor'])->count(),
-            'admin' => User::with('roles')->role(['admin', 'employee', 'supervisor', 'manager'])->count(),
-            default => [],
-        };
+        // Get counts for active employees (non-deleted)
         $active_employees = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->with('roles')->where('status', true)->role(['employee'])->count(),
-            'manager' => User::manager()->with('roles')->where('status', true)->role(['employee', 'supervisor'])->count(),
-            'admin' => User::with('roles')->where('status', true)->role(['admin', 'employee', 'supervisor', 'manager'])->count(),
-            default => [],
-        };
-        $banned_employees = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->with('roles')->where('status', false)->role(['employee'])->count(),
-            'manager' => User::manager()->with('roles')->where('status', false)->role(['employee', 'supervisor'])->count(),
-            'admin' => User::with('roles')->where('status', false)->role(['admin', 'employee', 'supervisor', 'manager'])->count(),
-            default => [],
+            'supervisor' => User::supervisor()->with('roles')->whereNull('deleted_at')->whereHas('roles', function($query) {
+                $query->where('name', 'employee');
+            })->count(),
+            'manager' => User::manager()->with('roles')->whereNull('deleted_at')->whereHas('roles', function($query) {
+                $query->whereIn('name', ['employee', 'supervisor']);
+            })->count(),
+            'admin' => User::with('roles')->whereNull('deleted_at')->whereHas('roles', function($query) {
+                $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
+            })->count(),
+            default => 0,
         };
 
+        // Get counts for deleted employees
+        $deleted_employees = match ($this->auth_role) {
+            'supervisor' => User::supervisor()->with('roles')->withTrashed()->whereNotNull('deleted_at')->whereHas('roles', function($query) {
+                $query->where('name', 'employee');
+            })->count(),
+            'manager' => User::manager()->with('roles')->withTrashed()->whereNotNull('deleted_at')->whereHas('roles', function($query) {
+                $query->whereIn('name', ['employee', 'supervisor']);
+            })->count(),
+            'admin' => User::with('roles')->withTrashed()->whereNotNull('deleted_at')->whereHas('roles', function($query) {
+                $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
+            })->count(),
+            default => 0,
+        };
+
+        // Legacy counts for backward compatibility
+        $employees_count = $active_employees;
+        $banned_employees = match ($this->auth_role) {
+            'supervisor' => User::supervisor()->with('roles')->whereNull('deleted_at')->where('status', false)->whereHas('roles', function($query) {
+                $query->where('name', 'employee');
+            })->count(),
+            'manager' => User::manager()->with('roles')->whereNull('deleted_at')->where('status', false)->whereHas('roles', function($query) {
+                $query->whereIn('name', ['employee', 'supervisor']);
+            })->count(),
+            'admin' => User::with('roles')->whereNull('deleted_at')->where('status', false)->whereHas('roles', function($query) {
+                $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
+            })->count(),
+            default => 0,
+        };
 
         return view('livewire.portal.employees.all', [
             'employees' => $employees,
             'employees_count' => $employees_count,
             'active_employees' => $active_employees,
+            'deleted_employees' => $deleted_employees,
             'banned_employees' => $banned_employees,
         ])->layout('components.layouts.dashboard');
     }

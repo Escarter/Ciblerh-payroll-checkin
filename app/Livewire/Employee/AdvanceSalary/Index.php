@@ -25,7 +25,16 @@ class Index extends Component
     public  $advance_salary_id;
     public  $company_id;
     public ?AdvanceSalary $advance_salary = null;
+    public $company;
+    public $department;
+    public $service;
 
+    public function mount()
+    {
+        $this->company = auth()->user()->company;
+        $this->department = auth()->user()->department;
+        $this->service = auth()->user()->service;
+    }
 
     protected $rules = [
         "amount" => "required|integer",
@@ -45,11 +54,21 @@ class Index extends Component
 
         $this->validate();
 
+        // Validate that user has required relationships
+        if (empty($this->company)) {
+            $this->addError('company', __('You are not associated with any company. Please contact your administrator.'));
+            return;
+        }
+
+        if (empty($this->department)) {
+            $this->addError('department', __('You are not associated with any department. Please contact your administrator.'));
+            return;
+        }
 
         auth()->user()->advanceSalaries()->create(
             [
-                'company_id' => auth()->user()->company_id,
-                'department_id' => auth()->user()->department_id,
+                'company_id' => $this->company->id,
+                'department_id' => $this->department->id,
                 'author_id' => auth()->user()->author_id,
                 'amount' => $this->amount,
                 'reason' => $this->reason,
@@ -140,9 +159,11 @@ class Index extends Component
 
         $advance_salaries = auth()->user()->advanceSalaries()->orderBy('created_at', 'desc')->paginate(10);
 
-        $pending_advance_salary = $advance_salaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_PENDING)->count();
-        $approved_advance_salary =  $advance_salaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)->count();
-        $rejected_advance_salary = $advance_salaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_REJECTED)->count();
+        // Get counts from all advance salaries, not just current page
+        $allAdvanceSalaries = auth()->user()->advanceSalaries();
+        $pending_advance_salary = $allAdvanceSalaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_PENDING)->count();
+        $approved_advance_salary = $allAdvanceSalaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)->count();
+        $rejected_advance_salary = $allAdvanceSalaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_REJECTED)->count();
         $advance_salaries_count = $advance_salaries->count();
    
         return view('livewire.employee.advance-salary.index', compact('advance_salaries', 'advance_salaries_count','pending_advance_salary', 'approved_advance_salary', 'rejected_advance_salary'))->layout('components.layouts.employee.master');

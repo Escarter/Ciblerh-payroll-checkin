@@ -2,6 +2,8 @@
     @include('livewire.portal.overtimes.edit-overtime')
     @include('livewire.portal.overtimes.bulk-approval')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => count($selectedOvertimesForDelete) === 1 ? __('overtime record') : __('overtime records')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => count($selectedOvertimesForDelete) === 1 ? __('overtime record') : __('overtime records')])
     <x-alert />
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -165,15 +167,6 @@
             </div>
         </div>
     </div>
-    @can('overtime-update')
-    <div class='pt-1'>
-        <button wire:click.prevent="initDataBulk('reject')" data-bs-toggle="modal" data-bs-target="#EditBulkOvertimeModal" class="btn btn-danger btn-md mb-2" {{ $bulkDisabled ? 'disabled' : null }}>{{__('Bulk Reject')}}
-        </button>
-
-        <button wire:click.prevent="initDataBulk('approve')" data-bs-toggle="modal" data-bs-target="#EditBulkOvertimeModal" class="btn btn-success text-white btn-md mb-2" {{ $bulkDisabled ? 'disabled' : null }}>{{__('Bulk Approve')}}
-        </button>
-    </div>
-    @endcan
     <div class="row py-3">
         <div class="col-md-3">
             <label for="search">{{__('Search')}}: </label>
@@ -209,20 +202,151 @@
             </select>
         </div>
     </div>
+
+    <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <!-- Tab Buttons (Right) -->
+        <div class="d-flex gap-2">
+            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="switchTab('active')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {{__('Active')}}
+                <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_overtimes ?? 0 }}</span>
+            </button>
+
+            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+                wire:click="switchTab('deleted')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Deleted')}}
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_overtimes ?? 0 }}</span>
+            </button>
+        </div>
+
+        <!-- Bulk Actions (Left) -->
+        <div>
+            @if($activeTab === 'active')
+            <!-- Bulk Actions when items are selected -->
+            @if(!$bulkDisabled && count($selectedOvertimes) > 0)
+            <div class="d-flex align-items-center gap-2">
+                <!-- Bulk Approval Actions -->
+                @can('overtime-update')
+                <button wire:click.prevent="initDataBulk('approve')"
+                    data-bs-toggle="modal"
+                    data-bs-target="#EditBulkOvertimeModal"
+                    class="btn btn-sm btn-success d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{__('Bulk Approve')}}
+                    <span class="badge bg-light text-dark ms-1">{{ count($selectedOvertimes) }}</span>
+                </button>
+
+                <button wire:click.prevent="initDataBulk('reject')"
+                    data-bs-toggle="modal"
+                    data-bs-target="#EditBulkOvertimeModal"
+                    class="btn btn-sm btn-danger d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{__('Bulk Reject')}}
+                    <span class="badge bg-light text-dark ms-1">{{ count($selectedOvertimes) }}</span>
+                </button>
+                @endcan
+
+                <!-- Soft Delete Actions -->
+                @can('overtime-delete')
+                <button type="button"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                    title="{{ __('Move Selected Overtime Records to Trash') }}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#BulkDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('Move to Trash')}}
+                    <span class="badge bg-danger text-white ms-1">{{ count($selectedOvertimes) }}</span>
+                </button>
+                @endcan
+
+                <!-- Clear Selection -->
+                <button wire:click="$set('selectedOvertimes', [])"
+                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {{__('Clear')}}
+                </button>
+            </div>
+            @endif
+            @else
+            <!-- Deleted Tab Bulk Actions -->
+            @if(count($selectedOvertimesForDelete) > 0)
+            <div class="d-flex align-items-center gap-2">
+                @can('overtime-delete')
+                <button wire:click="bulkRestore"
+                    class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
+                    title="{{ __('Restore Selected Overtime Records') }}">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    {{__('Restore Selected')}}
+                    <span class="badge bg-success text-white ms-1">{{ count($selectedOvertimesForDelete) }}</span>
+                </button>
+
+                <button type="button"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                    title="{{ __('Permanently Delete Selected Overtime Records') }}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#BulkForceDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('Delete Forever')}}
+                    <span class="badge bg-danger text-white ms-1">{{ count($selectedOvertimesForDelete) }}</span>
+                </button>
+                @endcan
+
+                <button wire:click="$set('selectedOvertimesForDelete', [])"
+                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {{__('Clear')}}
+                </button>
+            </div>
+            @endif
+            @endif
+        </div>
+    </div>
+
     <div class="card pb-3 ">
         <div class="table-responsive text-gray-700">
-            <table class="table table-hover align-items-center dataTable">
+            <table class="table table-hover table-bordered align-items-center dataTable">
                 <thead>
                     <tr>
                         <th class="border-bottom">
                             <div class="form-check d-flex justify-content-center align-items-center">
+                                @if($activeTab === 'active')
+                                <!-- For active tab, use existing bulk approval selection -->
                                 <input class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
+                                @else
+                                <!-- For deleted tab, use soft delete selection -->
+                                <input class="form-check-input p-2"
+                                    wire:model.live="selectAllForDelete"
+                                    type="checkbox"
+                                    wire:click="toggleSelectAllForDelete">
+                                @endif
                             </div>
                         </th>
                         <th class="border-bottom">{{__('Employee')}}</th>
-                        <th class="border-bottom">{{__('Start Time')}}</th>
-                        <th class="border-bottom">{{__('End Time')}}</th>
-                        <th class="border-bottom">{{__('Hours Worked')}}</th>
+                        <th class="border-bottom">{{__('Work Period')}}</th>
                         <th class="border-bottom">{{__('Approval')}}</th>
                         <th class="border-bottom">{{__('Date created')}}</th>
                         @canany('overtime-update','overtime-delete')
@@ -236,7 +360,16 @@
                     <tr>
                         <td>
                             <div class="form-check d-flex justify-content-center align-items-center">
+                                @if($activeTab === 'active')
+                                <!-- For active tab, use existing bulk approval selection -->
                                 <input class="form-check-input" wire:model.live="selectedOvertimes" value="{{$overtime->id}}" type="checkbox">
+                                @else
+                                <!-- For deleted tab, use soft delete selection -->
+                                <input class="form-check-input"
+                                    type="checkbox"
+                                    wire:click="toggleOvertimeSelectionForDelete({{ $overtime->id }})"
+                                    {{ in_array($overtime->id, $selectedOvertimesForDelete) ? 'checked' : '' }}>
+                                @endif
                             </div>
                         </td>
                         <td>
@@ -249,21 +382,31 @@
                                         </svg> {{!empty($overtime->user) ? $overtime->user->email : ''}}
                                     </div>
                                     <div class="small text-gray d-flex align-items-end">
-                                        {{!empty($overtime->user) ? $overtime->user->phone_number : ''}} | {{ !empty($overtime->user) ? $overtime->user->department->name : ''}} | {{!empty($overtime->user) ? $overtime->user->service->name : '' }}
+                                        {{!empty($overtime->user) ? $overtime->user->phone_number : ''}} | {{ (!empty($overtime->user) && !empty($overtime->user->department)) ? $overtime->user->department->name : ''}} | {{(!empty($overtime->user) && !empty($overtime->user->service)) ? $overtime->user->service->name : '' }}
                                     </div>
 
                                 </div>
                             </a>
                         </td>
                         <td>
-                            <span class="fw-normal">{{$overtime->start_time}}</span>
+                            <div class="d-flex flex-column">
+                                <div class="mb-1">
+                                    <div class="small">
+                                        <span class="fw-bold">{{__('Start')}}:</span>
+                                        <span class="fs-normal">{{$overtime->start_time}}</span>
+                                    </div>
+                                </div>
+                                <div class="small mb-1">
+                                    <span class="fw-bold">{{__('End')}}:</span>
+                                    <span class="fs-normal">{{$overtime->end_time}}</span>
+                                </div>
+                                <div class="small">
+                                    <span class="fw-bold">{{__('Time Worked')}}:</span>
+                                    <span class="fw-bolder">{{$overtime->time_worked}} hrs</span>
+                                </div>
+                            </div>
                         </td>
-                        <td>
-                            <span class="fw-normal">{{$overtime->end_time}}</span>
-                        </td>
-                        <td>
-                            <span class="fw-bold">{{$overtime->time_worked}}</span>
-                        </td>
+
                         <td>
                             <span class="fw-normal badge super-badge badge-lg bg-{{$overtime->approvalStatusStyle()}} rounded">{{$overtime->approvalStatusText()}}</span>
                         </td>
@@ -272,6 +415,7 @@
                         </td>
                         @canany('overtime-update','overtime-delete')
                         <td>
+                            @if($activeTab === 'active')
                             @can('overtime-update')
                             <a href="#" wire:click="initData({{ $overtime->id }})" data-bs-toggle="modal" data-bs-target="#EditOvertimeModal">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -286,6 +430,20 @@
                                 </svg>
                             </a>
                             @endcan
+                            @else
+                            @can('overtime-delete')
+                            <a href="#" wire:click="restore({{ $overtime->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </a>
+                            <a href="#" wire:click="forceDelete({{ $overtime->id }})" class="text-danger" title="{{__('Delete Forever')}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                            @endcan
+                            @endif
                         </td>
                         @endcanany
                     </tr>

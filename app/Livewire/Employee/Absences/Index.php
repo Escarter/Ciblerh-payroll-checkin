@@ -19,6 +19,16 @@ class Index extends Component
     public  $absence_reason;
     public  $attachment;
     public ?Absence $absence = null;
+    public $company;
+    public $department;
+    public $service;
+
+    public function mount()
+    {
+        $this->company = auth()->user()->company;
+        $this->department = auth()->user()->department;
+        $this->service = auth()->user()->service;
+    }
 
     public function store()
     {
@@ -32,10 +42,21 @@ class Index extends Component
             'attachment' => 'required|mimes:png,jpg,pdf,docx'
         ]);
 
+        // Validate that user has required relationships
+        if (empty($this->company)) {
+            $this->addError('company', __('You are not associated with any company. Please contact your administrator.'));
+            return;
+        }
+
+        if (empty($this->department)) {
+            $this->addError('department', __('You are not associated with any department. Please contact your administrator.'));
+            return;
+        }
+
        $absence =  auth()->user()->absences()->create(
             [
-                'company_id' => auth()->user()->company_id,
-                'department_id' => auth()->user()->department_id,
+                'company_id' => $this->company->id,
+                'department_id' => $this->department->id,
                 'author_id' => auth()->user()->author_id,
                 'absence_date' => $this->absence_date,
                 'absence_reason' => $this->absence_reason,
@@ -118,11 +139,13 @@ class Index extends Component
             return abort(401);
         }
 
-        $absences = auth()->user()->absences()->orderBy('created_at', 'desc')->get();
-
-        $pending_absence = $absences->where('approval_status', Absence::APPROVAL_STATUS_PENDING)->count();
-        $approved_absence =  $absences->where('approval_status', Absence::APPROVAL_STATUS_APPROVED)->count();
-        $rejected_absence = $absences->where('approval_status', Absence::APPROVAL_STATUS_REJECTED)->count();
+        $absences = auth()->user()->absences()->orderBy('created_at', 'desc')->paginate($this->perPage);
+        
+        // Get counts from all absences, not just current page
+        $allAbsences = auth()->user()->absences();
+        $pending_absence = $allAbsences->where('approval_status', Absence::APPROVAL_STATUS_PENDING)->count();
+        $approved_absence = $allAbsences->where('approval_status', Absence::APPROVAL_STATUS_APPROVED)->count();
+        $rejected_absence = $allAbsences->where('approval_status', Absence::APPROVAL_STATUS_REJECTED)->count();
 
         return view('livewire.employee.absences.index', compact('absences', 'pending_absence', 'approved_absence', 'rejected_absence'))->layout('components.layouts.employee.master');
 

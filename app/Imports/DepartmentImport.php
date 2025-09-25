@@ -45,6 +45,10 @@ class DepartmentImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVal
      */
     public function model(array $row)
     {
+        // Validate that company exists and has an ID
+        if (!$this->company || !$this->company->id) {
+            throw new \Exception('Company is required for department import');
+        }
 
         $code_exist = Department::where('company_id',$this->company->id)->where('name', $row[0])->first();
         if (!$code_exist ) {
@@ -55,7 +59,7 @@ class DepartmentImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVal
                 'author_id' => auth()->user()->id,
             ]);
 
-            if(!empty($value) && !empty(User::where('email', $value)->first())){
+            if(!empty($row[1]) && !empty(User::where('email', $row[1])->first())){
                 $supervisor_id = User::where('email', $row[1])->first()->id ;
     
                 SupervisorDepartment::updateOrCreate(
@@ -77,8 +81,14 @@ class DepartmentImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVal
         return [
             '0' => 'required|string',
             '1' => function ($attribute, $value, $onFailure) {
-                if (empty($value) && empty(User::where('email', $value)->first())) {
-                    $onFailure(__('Supervisor email required to import departments'));
+                if (!empty($value) && empty(User::where('email', $value)->first())) {
+                    $onFailure(__('Supervisor email not found'));
+                }
+            },
+            // Validate company context
+            '*' => function ($attribute, $value, $onFailure) {
+                if (!$this->company || !$this->company->id) {
+                    $onFailure(__('Company context is required for department import'));
                 }
             }
         ];

@@ -9,6 +9,7 @@ use App\Mail\SendPayslip;
 use App\Models\SendPayslipProcess;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Gate;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,6 +19,11 @@ class Details extends Component
 
     public $job;
     public ?Payslip $payslip;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedPayslips = [];
+    public $selectAll = false;
 
     public function mount($id)
     {
@@ -98,14 +104,227 @@ class Details extends Component
         }
     }
 
+    public function delete()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->payslip)) {
+            $this->payslip->delete(); // Soft delete
+            $this->closeModalAndFlashMessage(__('Payslip successfully moved to trash!'), 'DeleteModal');
+        }
+    }
+
+    public function restore($payslipId)
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        $payslip = Payslip::withTrashed()->findOrFail($payslipId);
+        $payslip->restore();
+
+        $this->closeModalAndFlashMessage(__('Payslip successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->payslip)) {
+            $this->payslip->forceDelete();
+            $this->closeModalAndFlashMessage(__('Payslip permanently deleted!'), 'ForceDeleteModal');
+        }
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedPayslips)) {
+            Payslip::whereIn('id', $this->selectedPayslips)->delete(); // Soft delete
+            $this->selectedPayslips = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected payslips moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedPayslips)) {
+            Payslip::withTrashed()->whereIn('id', $this->selectedPayslips)->restore();
+            $this->selectedPayslips = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected payslips restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedPayslips)) {
+            Payslip::withTrashed()->whereIn('id', $this->selectedPayslips)->forceDelete();
+            $this->selectedPayslips = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected payslips permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedPayslips = [];
+        $this->selectAll = false;
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            $this->selectedPayslips = $this->getAllPayslips()->pluck('id')->toArray();
+        } else {
+            $this->selectedPayslips = [];
+        }
+    }
+
+    public function togglePayslipSelection($payslipId)
+    {
+        if (in_array($payslipId, $this->selectedPayslips)) {
+            $this->selectedPayslips = array_diff($this->selectedPayslips, [$payslipId]);
+        } else {
+            $this->selectedPayslips[] = $payslipId;
+        }
+        
+        $this->selectAll = count($this->selectedPayslips) === $this->getAllPayslips()->count();
+    }
+
+    private function getPayslips()
+    {
+        // Start with base query and apply soft delete filtering first
+        $query = Payslip::query()->where('send_payslip_process_id', $this->job->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Apply search filtering after soft delete logic
+        if (!empty($this->query)) {
+            $query->where(function ($q) {
+                $q->where('first_name', 'like', '%' . $this->query . '%');
+                $q->orWhere('last_name', 'like', '%' . $this->query . '%');
+                $q->orWhere('email', 'like', '%' . $this->query . '%');
+                $q->orWhere('matricule', 'like', '%' . $this->query . '%');
+                $q->orWhere('phone', 'like', '%' . $this->query . '%');
+                $q->orWhere('month', 'like', '%' . $this->query . '%');
+                $q->orWhere('email_sent_status', 'like', '%' . $this->query . '%');
+                $q->orWhere('sms_sent_status', 'like', '%' . $this->query . '%');
+            });
+        }
+
+        // Apply role-based filtering
+        if (auth()->user()->getRoleNames()->first() === "supervisor") {
+            $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+    }
+
+    private function getAllPayslips()
+    {
+        // Start with base query and apply soft delete filtering first
+        $query = Payslip::query()->where('send_payslip_process_id', $this->job->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Apply search filtering after soft delete logic
+        if (!empty($this->query)) {
+            $query->where(function ($q) {
+                $q->where('first_name', 'like', '%' . $this->query . '%');
+                $q->orWhere('last_name', 'like', '%' . $this->query . '%');
+                $q->orWhere('email', 'like', '%' . $this->query . '%');
+                $q->orWhere('matricule', 'like', '%' . $this->query . '%');
+                $q->orWhere('phone', 'like', '%' . $this->query . '%');
+                $q->orWhere('month', 'like', '%' . $this->query . '%');
+                $q->orWhere('email_sent_status', 'like', '%' . $this->query . '%');
+                $q->orWhere('sms_sent_status', 'like', '%' . $this->query . '%');
+            });
+        }
+
+        // Apply role-based filtering
+        if (auth()->user()->getRoleNames()->first() === "supervisor") {
+            $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->get();
+    }
+
     public function render()
     {
-        $payslip_details = Payslip::search($this->query)->where('send_payslip_process_id',$this->job->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        $payslips = $this->getPayslips();
+
+        // Get counts using the same logic as getPayslips but without pagination
+        $active_payslips = $this->getPayslipsCount('active');
+        $deleted_payslips = $this->getPayslipsCount('deleted');
 
         return view('livewire.portal.payslips.details', [
-            'payslips' => $payslip_details,
-            'payslips_count' => count($this->job->payslips),
+            'payslips' => $payslips,
+            'payslips_count' => count($this->job->payslips), // Legacy for backward compatibility
+            'active_payslips' => $active_payslips,
+            'deleted_payslips' => $deleted_payslips,
             'job' => $this->job
         ])->layout('components.layouts.dashboard');
+    }
+
+    private function getPayslipsCount($tab)
+    {
+        // Start with base query
+        $query = Payslip::query()->where('send_payslip_process_id', $this->job->id);
+
+        // Add soft delete filtering based on tab
+        if ($tab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Apply search filtering if query exists
+        if (!empty($this->query)) {
+            $query->where(function ($q) {
+                $q->where('first_name', 'like', '%' . $this->query . '%');
+                $q->orWhere('last_name', 'like', '%' . $this->query . '%');
+                $q->orWhere('email', 'like', '%' . $this->query . '%');
+                $q->orWhere('matricule', 'like', '%' . $this->query . '%');
+                $q->orWhere('phone', 'like', '%' . $this->query . '%');
+                $q->orWhere('month', 'like', '%' . $this->query . '%');
+                $q->orWhere('email_sent_status', 'like', '%' . $this->query . '%');
+                $q->orWhere('sms_sent_status', 'like', '%' . $this->query . '%');
+            });
+        }
+
+        // Apply role-based filtering
+        if (auth()->user()->getRoleNames()->first() === "supervisor") {
+            $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
+        }
+
+        return $query->count();
     }
 }

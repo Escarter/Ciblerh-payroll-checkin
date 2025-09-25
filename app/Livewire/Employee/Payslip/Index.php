@@ -14,7 +14,28 @@ class Index extends Component
     public function generatePDF($payslip_id)
     {
         $payslip = Payslip::findOrFail($payslip_id);
-        return response()->download(Storage::disk('modified')->path($payslip->file), $payslip->matricule. "_" . $payslip->year.'_'.$payslip->month, ['Content-Type'=> 'application/pdf']);
+        
+        // Check if the file exists
+        if (!Storage::disk('modified')->exists($payslip->file)) {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('Payslip file not found. Please contact your administrator.')
+            ]);
+            return;
+        }
+        
+        try {
+            return response()->download(
+                Storage::disk('modified')->path($payslip->file), 
+                $payslip->matricule. "_" . $payslip->year.'_'.$payslip->month.'.pdf', 
+                ['Content-Type'=> 'application/pdf']
+            );
+        } catch (\Exception $e) {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('Unable to download payslip. Please contact your administrator.')
+            ]);
+        }
     }
 
     public function render()

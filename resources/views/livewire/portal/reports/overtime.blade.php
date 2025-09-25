@@ -103,7 +103,7 @@
     </div>
     <div class="card pb-3 ">
         <div class="table-responsive text-gray-700">
-            <table class="table table-hover align-items-center dataTable">
+            <table class="table table-hover table-bordered align-items-center dataTable">
                 <thead>
                     <tr>
                         <th class="border-bottom">{{__('Employee')}}</th>
@@ -128,7 +128,7 @@
                                         </svg> {{!empty($overtime->user) ? $overtime->user->email : ''}}
                                     </div>
                                     <div class="small text-gray d-flex align-items-end">
-                                        {{!empty($overtime->user) ? $overtime->user->phone_number : ''}} | {{ !empty($overtime->user) ? $overtime->user->department->name : ''}} | {{!empty($overtime->user) ? $overtime->user->service->name : '' }}
+                                        {{!empty($overtime->user) ? $overtime->user->phone_number : ''}} | {{ (!empty($overtime->user) && !empty($overtime->user->department)) ? $overtime->user->department->name : ''}} | {{(!empty($overtime->user) && !empty($overtime->user->service)) ? $overtime->user->service->name : '' }}
                                     </div>
 
                                 </div>

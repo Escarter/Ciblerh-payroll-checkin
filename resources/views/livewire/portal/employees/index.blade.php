@@ -4,6 +4,8 @@
     @include('livewire.portal.employees.manager.edit-manager')
     @include('livewire.portal.employees.others.import-employees')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employee') : __('employees')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employee') : __('employees')])
     @livewire('portal.employees.partial.user-roles')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -31,42 +33,43 @@
                 <p class="mt-n1 mx-2">{{__('Manage Employees for ')}} {{ucfirst($company->name)}} &#x1F44A; </p>
             </div>
 
-            <div class="d-flex justify-content-between mb-2">
-                @can('employee-create')
-                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateEmployeeModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
-                    <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('New')}}
-                </a>
-                @endcan
-                @can('employee-import')
-                <a href="#" data-bs-toggle="modal" data-bs-target="#importEmployeesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
-                    <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg> {{__('Import')}}
-                </a>
-                @endcan
-                @can('employee-export')
-                <div class="mx-2" wire:loading.remove>
-                    <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center  {{count($employees) > 0 ? '' :'disabled'}}">
-
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <!-- Action Buttons (Left) -->
+                <div class="d-flex gap-2">
+                    @can('employee-create')
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#CreateEmployeeModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                        </svg>
-                        {{__('Export')}}
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg> {{__('New')}}
                     </a>
-                </div>
-                <div class="text-center mx-2" wire:loading wire:target="export">
-                    <div class="text-center">
-                        <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
-                        <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
-                        <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
-                        <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
+                    @endcan
+                    @can('employee-import')
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#importEmployeesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
+                        <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg> {{__('Import')}}
+                    </a>
+                    @endcan
+                    @can('employee-export')
+                    <div wire:loading.remove>
+                        <a wire:click="export()" class="btn btn-sm btn-gray-500 py-2 d-inline-flex align-items-center {{count($employees) > 0 ? '' :'disabled'}}">
+                            <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                            </svg>
+                            {{__('Export')}}
+                        </a>
                     </div>
+                    <div class="text-center" wire:loading wire:target="export">
+                        <div class="text-center">
+                            <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
+                            <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
+                            <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
+                            <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
+                        </div>
+                    </div>
+                    @endcan
                 </div>
-                @endcan
             </div>
-
         </div>
     </div>
 
@@ -194,19 +197,105 @@
             </select>
         </div>
     </div>
+
+
+    <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+
+        <!-- Tab Buttons (Right) -->
+        <div class="d-flex gap-2">
+            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="switchTab('active')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                {{__('Active')}}
+                <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_employees ?? 0 }}</span>
+            </button>
+
+            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+                wire:click="switchTab('deleted')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Deleted')}}
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_employees ?? 0 }}</span>
+            </button>
+        </div>
+
+        <!-- Bulk Actions (Left) -->
+        <div>
+            @if(count($selectedEmployees) > 0)
+            <div class="d-flex align-items-center gap-2">
+
+                @if($activeTab === 'active')
+                @can('employee-delete')
+                <button type="button"
+                    class="btn btn-sm btn-danger d-flex align-items-center"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#BulkDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('Move to Trash')}}
+                    <span class="badge bg-light text-white ms-1">{{ count($selectedEmployees) }}</span>
+                </button>
+                @endcan
+                @else
+                @can('employee-delete')
+                <button wire:click="bulkRestore"
+                    class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
+                    title="{{ __('Restore Selected Employees') }}">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    {{__('Restore Selected')}}
+                    <span class="badge bg-success text-white ms-1">{{ count($selectedEmployees) }}</span>
+                </button>
+
+                <button type="button"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                    title="{{ __('Permanently Delete Selected Employees') }}"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#BulkForceDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('Delete Forever')}}
+                    <span class="badge bg-danger text-white ms-1">{{ count($selectedEmployees) }}</span>
+                </button>
+                @endcan
+                @endif
+
+                <button wire:click="$set('selectedEmployees', [])"
+                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {{__('Clear')}}
+                </button>
+            </div>
+            @endif
+        </div>
+    </div>
     <div class="card pb-3">
         <div class="table-responsive  text-gray-700">
-            <table class="table employee-table table-hover align-items-center " id="">
+            <table class="table employee-table table-bordered table-hover align-items-center " id="">
                 <thead>
                     <tr>
+                        <th class="border-bottom">
+                            <input type="checkbox"
+                                wire:model="selectAll"
+                                wire:change="toggleSelectAll"
+                                class="form-check-input">
+                        </th>
                         <th class="border-bottom">{{__('Employee')}}</th>
                         <th class="border-bottom">{{__('Company')}}</th>
-                        <th class="border-bottom">{{__('Matricule')}}</th>
-                        <th class="border-bottom">{{__('PDF Password')}}</th>
-                        <th class="border-bottom">{{__('Phone')}}</th>
-                        <th class="border-bottom">{{__('Role')}}</th>
-                        <th class="border-bottom">{{__('Status')}}</th>
-                        <th class="border-bottom">{{__('Date created')}}</th>
+                        <th class="border-bottom">{{__('Details')}}</th>
+                        <th class="border-bottom">{{__('Roles & Status')}}</th>
                         @canany('employee-delete','employee-update')
                         <th class="border-bottom">{{__('Action')}}</th>
                         @endcanany
@@ -215,6 +304,12 @@
                 <tbody>
                     @forelse($employees as $employee)
                     <tr>
+                        <td>
+                            <input type="checkbox"
+                                wire:click="toggleEmployeeSelection({{ $employee->id }})"
+                                {{ in_array($employee->id, $selectedEmployees) ? 'checked' : '' }}
+                                class="form-check-input">
+                        </td>
                         <td>
                             <a href="{{ $employee->hasRole('employee') ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" class="d-flex align-items-center">
                                 <div class="avatar avatar-md d-flex align-items-center justify-content-center fw-bold fs-6 rounded bg-primary me-2"><span class="text-white">{{$employee->initials}}</span></div>
@@ -229,6 +324,11 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                         </svg> {{$employee->pdf_password}} | {{$employee->matricule}}
                                     </div>
+                                    <div class="small text-gray d-flex align-items-end">
+                                        <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V7a2 2 0 012-2h2a2 2 0 012 2v0M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2"></path>
+                                        </svg> {{__('Created')}} : {{$employee->created_at->format('Y-m-d')}}
+                                    </div>
                                 </div>
                             </a>
                         </td>
@@ -238,38 +338,41 @@
                             <span class="fs-normal"><span class="fw-bolder">{{__('Service')}}</span> : {{is_null($employee->service) ? __('NA'): ucfirst($employee->service->name) }}</span>
                         </td>
                         <td>
-                            <span class="fs-normal">{{ $employee->matricule }}</span>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('Matricule')}} </span>: {{ $employee->matricule }}</span> <br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('PDF Password')}}</span> : {{ $employee->pdf_password }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('Professional Phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('Personal Phone')}}</span> : {{ $employee->personal_phone_number }}</span>
                         </td>
                         <td>
-                            <span class="fs-normal">{{ $employee->pdf_password }}</span>
-                        </td>
-                        <td>
-                            <span class="fs-normal">{{ $employee->professional_phone_number }}</span><br>
-                            <span class="fs-normal">{{ $employee->personal_phone_number }}</span>
-
-                        </td>
-                        <td>
-                            <div class="d-flex flex-wrap align-items-center">
-                                @foreach($employee->roles as $role)
-                                    <span class="fw-normal badge badge-sm bg-{{$employee->role_style}} rounded me-1 mb-1">{{$role->name}}</span>
-                                @endforeach
-                                @if($employee->roles->count() > 1)
-                                    <small class="text-muted">({{$employee->roles->count()}} roles)</small>
-                                @endif
+                            <div class="mb-2">
+                                <small class="text-muted fw-bold">{{__('Roles')}}:</small>
+                                <div class="d-flex flex-wrap align-items-center mt-1">
+                                    @foreach($employee->roles as $role)
+                                    <span class="fw-normal badge badge-lg bg-{{ match($role->name) {
+                                            'supervisor' => 'info',
+                                            'employee' => 'primary',
+                                            'manager' => 'success',
+                                            'admin' => 'warning',
+                                            default => 'danger'
+                                        } }} rounded me-1 mb-1">{{$role->name}}</span>
+                                    @endforeach
+                                </div>
                             </div>
-                        </td>
-                        <td>
-                            <span class="fw-normal badge super-badge badge-lg bg-{{$employee->status_style}} rounded">{{$employee->status_text}}</span>
-                        </td>
-                        <td>
-                            <span class="fw-normal">{{$employee->created_at->format('Y-m-d')}}</span>
+                            <hr class="my-2">
+                            <div>
+                                <small class="text-muted fw-bold">{{__('Status')}}:</small>
+                                <div class="mt-1">
+                                    <span class="fw-normal badge badge-lg bg-{{$employee->status_style}} rounded">{{$employee->status_text}}</span>
+                                </div>
+                            </div>
                         </td>
                         @canany('employee-delete','employee-update')
                         <td>
+                            @if($activeTab === 'active')
                             @can('employee-view')
-                            <button wire:click="$dispatch('showUserRoles', [{{$employee->id}}])" 
-                                    class="btn btn-sm btn-outline-info me-1" 
-                                    title="{{ __('Manage Roles') }}">
+                            <button wire:click="$dispatch('showUserRoles', [{{$employee->id}}])"
+                                class="btn btn-sm btn-outline-info me-1"
+                                title="{{ __('Manage Roles') }}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
                                 </svg>
@@ -277,36 +380,55 @@
                             @endcan
 
                             @can('employee-update')
-                            @if(($employee->roles->count() > 1 && ($employee->hasRole('manager') || $employee->hasRole('admin'))))
-                                <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditManagerModal">
-                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </a>
+                            @if($employee->hasAnyRole(['manager', 'admin']) || $employee->roles->count() > 1)
+                            <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditManagerModal">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
                             @elseif($employee->roles->count() === 1 && $employee->hasRole('employee'))
-                                <a href='#' wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditEmployeeModal">
-                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </a>
+                            <a href='#' wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditEmployeeModal">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
                             @endif
                             @endcan
 
                             @can('employee-delete')
-                                @if(($employee->roles->count() > 1 && ($employee->hasRole('manager') || $employee->hasRole('admin'))))
-                                <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
-                                    <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </a>
-                                @elseif($employee->roles->count() === 1 && $employee->hasRole('employee'))
-                                <a href='#' wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
-                                    <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </a>
-                                @endif
+                            @if(($employee->roles->count() > 1 && ($employee->hasRole('manager') || $employee->hasRole('admin'))))
+                            <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                                <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                            @elseif($employee->roles->count() === 1 && $employee->hasRole('employee'))
+                            <a href='#' wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                                <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                            @endif
                             @endcan
+                            @else
+                            @can('employee-delete')
+                            <button wire:click="restore({{$employee->id}})"
+                                class="btn btn-sm btn-outline-success me-1"
+                                title="{{ __('Restore Employee') }}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </button>
+                            <button wire:click="forceDelete({{$employee->id}})"
+                                class="btn btn-sm btn-outline-danger"
+                                title="{{ __('Permanently Delete') }}"
+                                onclick="return confirm('{{__('Are you sure you want to permanently delete this employee? This action cannot be undone.')}}')">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                            @endcan
+                            @endif
                         </td>
                         @endcanany
                     </tr>

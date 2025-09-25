@@ -33,6 +33,11 @@ class Index extends Component
     public $sector = null;
     public $description = null;
     public $company_file = null;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedCompanies = [];
+    public $selectAll = false;
 
     //Update & Store Rules
     protected array $rules = [
@@ -120,18 +125,144 @@ class Index extends Component
         }
 
         if (!empty($this->company)) {
-
-            $this->company->payslipProcess()->forceDelete();
-            $this->company->payslips()->forceDelete();
-            $this->company->employees()->forceDelete();
-            $this->company->services()->forceDelete();
-            $this->company->departments()->forceDelete();
-            $this->company->forceDelete();
+            $this->company->delete(); // Soft delete
         }
 
         $this->clearFields();
+        $this->closeModalAndFlashMessage(__('Company successfully moved to trash!'), 'DeleteModal');
+    }
 
-        $this->closeModalAndFlashMessage(__('Company successfully deleted!'), 'DeleteModal');
+    public function restore($companyId)
+    {
+        if (!Gate::allows('company-delete')) {
+            return abort(401);
+        }
+
+        $company = Company::withTrashed()->findOrFail($companyId);
+        $company->restore();
+
+        $this->closeModalAndFlashMessage(__('Company successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete($companyId)
+    {
+        if (!Gate::allows('company-delete')) {
+            return abort(401);
+        }
+
+        $company = Company::withTrashed()->findOrFail($companyId);
+        
+        // Force delete related data first
+        $company->payslipProcess()->forceDelete();
+        $company->payslips()->forceDelete();
+        $company->employees()->forceDelete();
+        $company->services()->forceDelete();
+        $company->departments()->forceDelete();
+        
+        $company->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('Company permanently deleted!'), 'ForceDeleteModal');
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('company-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedCompanies)) {
+            Company::whereIn('id', $this->selectedCompanies)->delete(); // Soft delete
+            $this->selectedCompanies = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected companies moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('company-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedCompanies)) {
+            Company::withTrashed()->whereIn('id', $this->selectedCompanies)->restore();
+            $this->selectedCompanies = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected companies restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('company-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedCompanies)) {
+            $companies = Company::withTrashed()->whereIn('id', $this->selectedCompanies)->get();
+            
+            foreach ($companies as $company) {
+                // Force delete related data first
+                $company->payslipProcess()->forceDelete();
+                $company->payslips()->forceDelete();
+                $company->employees()->forceDelete();
+                $company->services()->forceDelete();
+                $company->departments()->forceDelete();
+                $company->forceDelete();
+            }
+            
+            $this->selectedCompanies = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected companies permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedCompanies = [];
+        $this->selectAll = false;
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            $this->selectedCompanies = $this->getCompanies()->pluck('id')->toArray();
+        } else {
+            $this->selectedCompanies = [];
+        }
+    }
+
+    public function toggleCompanySelection($companyId)
+    {
+        if (in_array($companyId, $this->selectedCompanies)) {
+            $this->selectedCompanies = array_diff($this->selectedCompanies, [$companyId]);
+        } else {
+            $this->selectedCompanies[] = $companyId;
+        }
+        
+        $this->selectAll = count($this->selectedCompanies) === $this->getCompanies()->count();
+    }
+
+    private function getCompanies()
+    {
+        $query = Company::search($this->query)->with(['employees','departments','services']);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Add role-based filtering
+        match($this->role){
+            'admin' => null, // No additional filtering for admin
+            'manager' => $query->manager(),
+            default => [],
+        };
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
     public function import()
@@ -178,20 +309,28 @@ class Index extends Component
         if (!Gate::allows('company-read')) {
             return abort(401);
         }
-        $companies = match($this->role){
-            'admin' => Company::search($this->query)->with(['employees','departments','services'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            'manager' => Company::search($this->query)->manager()->with(['employees','departments','services'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            default=>[],
+
+        $companies = $this->getCompanies();
+
+        // Get counts for active companies (non-deleted)
+        $active_companies = match($this->role){
+            'admin' => Company::search($this->query)->whereNull('deleted_at')->count(),
+            'manager' => Company::search($this->query)->manager()->whereNull('deleted_at')->count(),
+            default => 0,
         };
-        $companies_count = match($this->role){
-            'admin' => Company::search($this->query)->count(),
-            'manager' => Company::search($this->query)->manager()->count(),
-            default=>[],
+
+        // Get counts for deleted companies
+        $deleted_companies = match($this->role){
+            'admin' => Company::search($this->query)->withTrashed()->whereNotNull('deleted_at')->count(),
+            'manager' => Company::search($this->query)->manager()->withTrashed()->whereNotNull('deleted_at')->count(),
+            default => 0,
         };
         
         return view('livewire.portal.companies.index',[
             'companies' => $companies,
-            'companies_count' => $companies_count,
+            'companies_count' => $active_companies, // Legacy for backward compatibility
+            'active_companies' => $active_companies,
+            'deleted_companies' => $deleted_companies,
         ])->layout('components.layouts.dashboard');
     }
 }

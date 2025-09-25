@@ -4,6 +4,8 @@
     @include('livewire.portal.leaves.types.partials.edit-type')
     @include('livewire.portal.leaves.types.partials.import-types')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedLeaveTypes, 'itemType' => count($selectedLeaveTypes) === 1 ? __('leave type') : __('leave types')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedLeaveTypes, 'itemType' => count($selectedLeaveTypes) === 1 ? __('leave type') : __('leave types')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -190,11 +192,116 @@
             </select>
         </div>
     </div>
+
+    <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <!-- Tab Buttons (Right) -->
+        <div class="d-flex gap-2">
+            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="switchTab('active')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                {{__('Active')}}
+                <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ ($active_leave_types + $inactive_leave_types) ?? 0 }}</span>
+            </button>
+
+            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+                wire:click="switchTab('deleted')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Deleted')}}
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_leave_types ?? 0 }}</span>
+            </button>
+        </div>
+
+        <!-- Bulk Actions (Left) -->
+        <div>
+            @if($activeTab === 'active')
+                <!-- Soft Delete Bulk Actions (when items selected for delete) -->
+                @if(count($selectedLeaveTypes) > 0)
+                <div class="d-flex align-items-center gap-2">
+                    @can('leave_type-delete')
+                    <button type="button"
+                        class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                        title="{{ __('Move Selected Leave Types to Trash') }}"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#BulkDeleteModal">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        {{__('Move to Trash')}}
+                        <span class="badge bg-danger text-white ms-1">{{ count($selectedLeaveTypes) }}</span>
+                    </button>
+                    @endcan
+
+                    <button wire:click="$set('selectedLeaveTypes', [])"
+                        class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        {{__('Clear')}}
+                    </button>
+                </div>
+                @endif
+            @else
+                <!-- Deleted Tab Bulk Actions -->
+                @if(count($selectedLeaveTypes) > 0)
+                <div class="d-flex align-items-center gap-2">
+                    @can('leave_type-delete')
+                    <button wire:click="bulkRestore"
+                        class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
+                        title="{{ __('Restore Selected Leave Types') }}">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        {{__('Restore Selected')}}
+                        <span class="badge bg-success text-white ms-1">{{ count($selectedLeaveTypes) }}</span>
+                    </button>
+
+                    <button type="button"
+                        class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                        title="{{ __('Permanently Delete Selected Leave Types') }}"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#BulkForceDeleteModal">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        {{__('Delete Forever')}}
+                        <span class="badge bg-danger text-white ms-1">{{ count($selectedLeaveTypes) }}</span>
+                    </button>
+                    @endcan
+
+                    <button wire:click="$set('selectedLeaveTypes', [])"
+                        class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        {{__('Clear')}}
+                    </button>
+                </div>
+                @endif
+            @endif
+        </div>
+    </div>
+
     <div class="card pb-3">
         <div class="table-responsive text-gray-700">
-            <table class="table employee-table table-hover align-items-center " id="">
+            <table class="table employee-table table-bordered table-hover align-items-center " id="">
                 <thead>
                     <tr>
+                        <th class="border-bottom">
+                            <div class="form-check d-flex justify-content-center align-items-center">
+                                <input class="form-check-input p-2" 
+                                    wire:model.live="selectAll" 
+                                    type="checkbox"
+                                    wire:click="toggleSelectAll">
+                            </div>
+                        </th>
                         <th class="border-bottom">{{__('Leave Type ID')}}</th>
                         <th class="border-bottom">{{__('Leave Type')}}</th>
                         <th class="border-bottom">{{__('Default Number of Days')}}</th>
@@ -208,6 +315,14 @@
                 <tbody>
                     @forelse($leave_types as $leave_type)
                     <tr>
+                        <td>
+                            <div class="form-check d-flex justify-content-center align-items-center">
+                                <input class="form-check-input" 
+                                    type="checkbox"
+                                    wire:click="toggleLeaveTypeSelection({{ $leave_type->id }})"
+                                    {{ in_array($leave_type->id, $selectedLeaveTypes) ? 'checked' : '' }}>
+                            </div>
+                        </td>
                         <td>
                             <span class="fw-bold">{{$leave_type->id }}</span>
                         </td>
@@ -225,20 +340,35 @@
                         </td>
                         @canany('leave_type-update','leave_type-delete')
                         <td>
-                            @can('leave_type-update')
-                            <a href='#' wire:click.prevent="initData({{$leave_type->id}})" data-bs-toggle="modal" data-bs-target="#EditLeaveTypeModal">
-                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </a>
-                            @endcan
-                            @can('leave_type-delete')
-                            <a href='#' wire:click.prevent="initData({{$leave_type->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
-                                <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </a>
-                            @endcan
+                            @if($activeTab === 'active')
+                                @can('leave_type-update')
+                                <a href='#' wire:click.prevent="initData({{$leave_type->id}})" data-bs-toggle="modal" data-bs-target="#EditLeaveTypeModal">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                                @can('leave_type-delete')
+                                <a href='#' wire:click.prevent="initData({{$leave_type->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                                    <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                            @else
+                                @can('leave_type-delete')
+                                <a href="#" wire:click="restore({{ $leave_type->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" wire:click="forceDelete({{ $leave_type->id }})" class="text-danger" title="{{__('Delete Forever')}}">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                            @endif
                         </td>
                         @endcanany
                     </tr>

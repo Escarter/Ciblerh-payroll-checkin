@@ -50,6 +50,10 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
      */
     public function model(array $row)
     {
+        // Validate that company exists and has an ID
+        if (!$this->company || !$this->company->id) {
+            throw new \Exception('Company is required for employee import');
+        }
 
         $code_exist = User::where('email', $row[2])->first();
         $department_exist = Department::where('id', $row[9])->first();
@@ -112,9 +116,14 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '2' => 'required|unique:users,email',
             '11' => function ($attribute, $value, $onFailure) {
                 $array = ['employee', 'supervisor', 'manager'];
-                $contains = Arr::has($array, $value);
-                if ($contains) {
-                    $onFailure(__('Role not found'));
+                if (!in_array($value, $array)) {
+                    $onFailure(__('Role must be one of: employee, supervisor, manager'));
+                }
+            },
+            // Validate company context
+            '*' => function ($attribute, $value, $onFailure) {
+                if (!$this->company || !$this->company->id) {
+                    $onFailure(__('Company context is required for employee import'));
                 }
             }
         ];

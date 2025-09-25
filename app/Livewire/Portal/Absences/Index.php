@@ -33,6 +33,11 @@ class Index extends Component
     public bool $selectAll = false;
 
     public $bulk_approval_status = true;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedAbsencesForDelete = [];
+    public $selectAllForDelete = false;
 
 
     //Update & Store Rules
@@ -127,12 +132,133 @@ class Index extends Component
         }
 
         if (!empty($this->absence)) {
-
-            $this->absence->delete();
+            $this->absence->delete(); // Already using soft delete
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Absence successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('Absence successfully moved to trash!'), 'DeleteModal');
+    }
+
+    public function restore($absenceId)
+    {
+        if (!Gate::allows('absence-delete')) {
+            return abort(401);
+        }
+
+        $absence = Absence::withTrashed()->findOrFail($absenceId);
+        $absence->restore();
+
+        $this->closeModalAndFlashMessage(__('Absence successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete($absenceId)
+    {
+        if (!Gate::allows('absence-delete')) {
+            return abort(401);
+        }
+
+        $absence = Absence::withTrashed()->findOrFail($absenceId);
+        $absence->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('Absence permanently deleted!'), 'ForceDeleteModal');
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('absence-delete')) {
+            return abort(401);
+        }
+
+        // Handle both active tab (selectedAbsences) and deleted tab (selectedAbsencesForDelete)
+        if (!empty($this->selectedAbsences)) {
+            // Active tab - soft delete selected items
+            Absence::whereIn('id', $this->selectedAbsences)->delete(); // Soft delete
+            $this->selectedAbsences = [];
+            $this->selectAll = false;
+        } elseif (!empty($this->selectedAbsencesForDelete)) {
+            // Deleted tab - already handled by existing logic
+            Absence::whereIn('id', $this->selectedAbsencesForDelete)->delete(); // Soft delete
+            $this->selectedAbsencesForDelete = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected absence records moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('absence-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedAbsencesForDelete)) {
+            Absence::withTrashed()->whereIn('id', $this->selectedAbsencesForDelete)->restore();
+            $this->selectedAbsencesForDelete = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected absence records restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('absence-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedAbsencesForDelete)) {
+            Absence::withTrashed()->whereIn('id', $this->selectedAbsencesForDelete)->forceDelete();
+            $this->selectedAbsencesForDelete = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected absence records permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedAbsencesForDelete = [];
+        $this->selectAllForDelete = false;
+    }
+
+    public function toggleSelectAllForDelete()
+    {
+        if ($this->selectAllForDelete) {
+            $this->selectedAbsencesForDelete = $this->getAbsences()->pluck('id')->toArray();
+        } else {
+            $this->selectedAbsencesForDelete = [];
+        }
+    }
+
+    public function toggleAbsenceSelectionForDelete($absenceId)
+    {
+        if (in_array($absenceId, $this->selectedAbsencesForDelete)) {
+            $this->selectedAbsencesForDelete = array_diff($this->selectedAbsencesForDelete, [$absenceId]);
+        } else {
+            $this->selectedAbsencesForDelete[] = $absenceId;
+        }
+        
+        $this->selectAllForDelete = count($this->selectedAbsencesForDelete) === $this->getAbsences()->count();
+    }
+
+    private function getAbsences()
+    {
+        $query = Absence::search($this->query)->with(['user', 'company']);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Add role-based filtering
+        match($this->role){
+            "supervisor" => $query->supervisor(),
+            "manager" => $query->manager(),
+            "admin" => null, // No additional filtering for admin
+            default => [],
+        };
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
   
     public function clearFields()
@@ -162,43 +288,51 @@ class Index extends Component
             return abort(401);
         }
 
-        $absences = match($this->role){
-            'supervisor' => Absence::search($this->query)->supervisor()->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            'manager' => Absence::search($this->query)->manager()->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            'admin' => Absence::search($this->query)->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            default => [],
-        };
-        $absences_count = match($this->role){
-            'supervisor' => Absence::search($this->query)->supervisor()->count(),
-            'manager' => Absence::search($this->query)->manager()->count(),
-            'admin' => Absence::search($this->query)->count(),
-            default => [],
+        $absences = $this->getAbsences();
+
+        // Get counts for active absence records (non-deleted)
+        $active_absences = match($this->role){
+            'supervisor' => Absence::search($this->query)->supervisor()->whereNull('deleted_at')->count(),
+            'manager' => Absence::search($this->query)->manager()->whereNull('deleted_at')->count(),
+            'admin' => Absence::search($this->query)->whereNull('deleted_at')->count(),
+            default => 0,
         };
 
+        // Get counts for deleted absence records
+        $deleted_absences = match($this->role){
+            'supervisor' => Absence::search($this->query)->supervisor()->withTrashed()->whereNotNull('deleted_at')->count(),
+            'manager' => Absence::search($this->query)->manager()->withTrashed()->whereNotNull('deleted_at')->count(),
+            'admin' => Absence::search($this->query)->withTrashed()->whereNotNull('deleted_at')->count(),
+            default => 0,
+        };
+
+        // Get approval status counts for active records only
         $pending_absences_count = match($this->role){
-            'supervisor' => Absence::supervisor()->where('approval_status', Absence::APPROVAL_STATUS_PENDING)->count(),
-            'manager' => Absence::manager()->where('approval_status', Absence::APPROVAL_STATUS_PENDING)->count(),
-            'admin' => Absence::where('approval_status', Absence::APPROVAL_STATUS_PENDING)->count(),
-            default => [],
+            'supervisor' => Absence::supervisor()->whereNull('deleted_at')->where('approval_status', Absence::APPROVAL_STATUS_PENDING)->count(),
+            'manager' => Absence::manager()->whereNull('deleted_at')->where('approval_status', Absence::APPROVAL_STATUS_PENDING)->count(),
+            'admin' => Absence::whereNull('deleted_at')->where('approval_status', Absence::APPROVAL_STATUS_PENDING)->count(),
+            default => 0,
         };
 
         $approved_absences_count = match($this->role){
-            'supervisor' => Absence::supervisor()->where('approval_status', Absence::APPROVAL_STATUS_APPROVED)->count(),
-            'manager' => Absence::manager()->where('approval_status', Absence::APPROVAL_STATUS_APPROVED)->count(),
-            'admin' => Absence::where('approval_status', Absence::APPROVAL_STATUS_APPROVED)->count(),
-            default => [], 
+            'supervisor' => Absence::supervisor()->whereNull('deleted_at')->where('approval_status', Absence::APPROVAL_STATUS_APPROVED)->count(),
+            'manager' => Absence::manager()->whereNull('deleted_at')->where('approval_status', Absence::APPROVAL_STATUS_APPROVED)->count(),
+            'admin' => Absence::whereNull('deleted_at')->where('approval_status', Absence::APPROVAL_STATUS_APPROVED)->count(),
+            default => 0, 
         };
 
         $rejected_absences_count = match($this->role){
-            'supervisor' => Absence::supervisor()->where('approval_status', Absence::APPROVAL_STATUS_REJECTED)->count(),
-            'manager' => Absence::manager()->where('approval_status', Absence::APPROVAL_STATUS_REJECTED)->count(),
-            'admin' => Absence::where('approval_status', Absence::APPROVAL_STATUS_REJECTED)->count(),
-            default => [],
+            'supervisor' => Absence::supervisor()->whereNull('deleted_at')->where('approval_status', Absence::APPROVAL_STATUS_REJECTED)->count(),
+            'manager' => Absence::manager()->whereNull('deleted_at')->where('approval_status', Absence::APPROVAL_STATUS_REJECTED)->count(),
+            'admin' => Absence::whereNull('deleted_at')->where('approval_status', Absence::APPROVAL_STATUS_REJECTED)->count(),
+            default => 0,
         };
        
         return view('livewire.portal.absences.index', [
             'absences' => $absences,
-            'absences_count' => $absences_count,
+            'absences_count' => $active_absences, // Legacy for backward compatibility
+            'active_absences' => $active_absences,
+            'deleted_absences' => $deleted_absences,
             'pending_absences_count' => $pending_absences_count,
             'approved_absences_count' => $approved_absences_count,
             'rejected_absences_count' => $rejected_absences_count,

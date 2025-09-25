@@ -10,14 +10,15 @@
                     </div>
                     <x-form-items.form wire:submit="updateManager" class="form-modal">
                         <div class='form-group mb-4'>
-                            <label for="role_name">{{__('Role')}}</label>
-                            <select wire:model="role_name" name="role_name" class="form-select  @error('role_name') is-invalid @enderror">
-                                <option value="">{{__("Select role")}}</option>
-                                @foreach ($roles->whereIn('name',['admin','manager']) as $role)
-                                <option value="{{$role->name}}">{{$role->name}}</option>
-                                @endforeach
-                            </select>
-                            @error('role_name')
+                            <x-choices-multi-select
+                                id="edit_manager_roles"
+                                wireModel="selected_roles"
+                                :options="$roles->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
+                                :selected="$selected_roles"
+                                label="{{__('Roles')}}"
+                                help="{{__('Maximum 2 roles allowed. Employee role is automatically included.')}}"
+                                class="form-select" />
+                            @error('selected_roles')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
@@ -84,8 +85,8 @@
                                 <label for="status">{{__('Status')}}</label>
                                 <select wire:model="status" name="status" class="form-select  @error('status') is-invalid @enderror">
                                     <option value="">{{__("Select status")}}</option>
-                                    <option value="true">{{__('Active')}}</option>
-                                    <option value="false">{{__('Banned')}}</option>
+                                    <option value="true" @if($status === true || $status === "true") selected @endif>{{__('Active')}}</option>
+                                    <option value="false" @if($status === false || $status === "false") selected @endif>{{__('Banned')}}</option>
                                 </select>
                                 @error('status')
                                 <div class="invalid-feedback">{{$message}}</div>

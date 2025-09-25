@@ -4,6 +4,8 @@
     @include('livewire.portal.services.edit-service')
     @include('livewire.portal.services.import-services')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('service') : __('services')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('service') : __('services')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -157,7 +159,7 @@
             </div>
         </div>
     </div>
-    <div class="row pt-2 pb-3 px-3">
+    <div class="row pt-2 pb-3 ">
         <div class="col-md-3">
             <label for="search">{{__('Search')}}: </label>
             <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
@@ -190,11 +192,100 @@
             </select>
         </div>
     </div>
+
+    <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <!-- Tab Buttons (Right) -->
+        <div class="d-flex gap-2">
+            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="switchTab('active')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                {{__('Active')}}
+                <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_services ?? 0 }}</span>
+            </button>
+
+            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+                wire:click="switchTab('deleted')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Deleted')}}
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_services ?? 0 }}</span>
+            </button>
+        </div>
+
+        <!-- Bulk Actions (Left) -->
+        <div>
+            @if(count($selectedServices) > 0)
+            <div class="d-flex align-items-center gap-2">
+
+                @if($activeTab === 'active')
+                @can('service-delete')
+                <button type="button"
+                    class="btn btn-sm btn-danger d-flex align-items-center"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#BulkDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('Move to Trash')}}
+                    <span class="badge bg-light text-white ms-1">{{ count($selectedServices) }}</span>
+                </button>
+                @endcan
+                @else
+                @can('service-delete')
+                <button wire:click="bulkRestore"
+                    class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
+                    title="{{ __('Restore Selected Services') }}">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    {{__('Restore Selected')}}
+                    <span class="badge bg-success text-white ms-1">{{ count($selectedServices) }}</span>
+                </button>
+
+                <button type="button"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                    title="{{ __('Permanently Delete Selected Services') }}"
+                    data-bs-toggle="modal" 
+                    data-bs-target="#BulkForceDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('Delete Forever')}}
+                    <span class="badge bg-danger text-white ms-1">{{ count($selectedServices) }}</span>
+                </button>
+                @endcan
+                @endif
+
+                <button wire:click="$set('selectedServices', [])"
+                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {{__('Clear')}}
+                </button>
+            </div>
+            @endif
+        </div>
+    </div>
+
     <div class="card pb-3">
         <div class="table-responsive text-gray-700">
             <table class="table employee-table table-hover align-items-center " id="">
                 <thead>
                     <tr>
+                        <th class="border-bottom">
+                            <input type="checkbox" 
+                                wire:click="toggleSelectAll" 
+                                {{ $selectAll ? 'checked' : '' }}
+                                class="form-check-input">
+                        </th>
                         <th class="border-bottom">{{__('Service ID')}}</th>
                         <th class="border-bottom">{{__('Service')}}</th>
                         <th class="border-bottom">{{__('Company')}}</th>
@@ -208,6 +299,12 @@
                 <tbody>
                     @forelse($services as $service)
                     <tr>
+                        <td>
+                            <input type="checkbox"
+                                wire:click="toggleServiceSelection({{ $service->id }})"
+                                {{ in_array($service->id, $selectedServices) ? 'checked' : '' }}
+                                class="form-check-input">
+                        </td>
                         <td>
                             <span class="fw-bold">{{$service->id }}</span>
                         </td>
@@ -240,20 +337,38 @@
                         </td>
                         @canany('service-update','service-delete')
                         <td>
-                            @can('service-update')
-                            <a href='#' wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#EditServiceModal">
-                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </a>
-                            @endcan
-                            @can('service-delete')
-                            <a href='#' wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
-                                <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </a>
-                            @endcan
+                            @if($activeTab === 'active')
+                                @can('service-update')
+                                <a href='#' wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#EditServiceModal">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                                @can('service-delete')
+                                <a href='#' wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                                    <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                            @else
+                                @can('service-delete')
+                                <a href='#' wire:click.prevent="restore({{$service->id}})"
+                                    title="{{ __('Restore Service') }}">
+                                    <svg class="icon icon-xs text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                </a>
+                                <a href='#' wire:click.prevent="forceDelete({{$service->id}})"
+                                    title="{{ __('Permanently Delete') }}"
+                                    onclick="return confirm('{{__('Are you sure you want to permanently delete this service? This action cannot be undone.')}}')">
+                                    <svg class="icon icon-xs text-danger" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                            @endif
                         </td>
                         @endcanany
                     </tr>

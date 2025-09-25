@@ -24,31 +24,28 @@
                                 </select>
                             </div>
                         </div>
+
                         <div class='form-group row mb-2'>
-                            <div class='col-md-6'>
-                                <label for="service_id">{{__('Service')}}</label>
-                                <select wire:model="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
-                                    <option value="">{{__("Select service")}}</option>
-                                    @foreach ($services as $service)
-                                    <option value="{{$service->id}}">{{$service->name}}</option>
-                                    @endforeach
-                                </select>
-                                @error('service_id')
-                                <div class="invalid-feedback">{{$message}}</div>
-                                @enderror
-                            </div>
-                            <div class='col-md-6'>
-                                <label for="role_name">{{__('Role')}}</label>
-                                <select wire:model="role_name" name="role_name" class="form-select  @error('role_name') is-invalid @enderror">
-                                    <option value="">{{__("Select role")}}</option>
-                                    @foreach ($roles as $role)
-                                    <option value="{{$role->name}}">{{$role->name}}</option>
-                                    @endforeach
-                                </select>
-                                @error('role_name')
-                                <div class="invalid-feedback">{{$message}}</div>
-                                @enderror
-                            </div>
+                            <label for="service_id">{{__('Service')}}</label>
+                            <select wire:model="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
+                                <option value="">{{__("Select service")}}</option>
+                                @foreach ($services as $service)
+                                <option value="{{$service->id}}">{{$service->name}}</option>
+                                @endforeach
+                            </select>
+                            @error('service_id')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        <div class='form-group row mb-2'>
+                            <x-choices-multi-select
+                                id="create_selected_roles"
+                                wireModel="selected_roles"
+                                :options="$roles->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
+                                :selected="$selected_roles"
+                                label="{{__('Roles')}}"
+                                help="{{__('Maximum 2 roles allowed. Employee role is automatically included.')}}"
+                                class="form-select" />
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
@@ -148,14 +145,14 @@
                         <div class="form-group row mb-2">
                             <div class='col'>
                                 <label for="work_start_time">{{__('Work start time')}}</label>
-                                <input wire:model="work_start_time" type="time" class="form-control  @error('work_start_time') is-invalid @enderror" value="{{now()->format('Y-m-d\TH:i')}}" min="{{now()->subMonths(1)->format('Y-m-d\TH:i')}}" max="{{now()->format('Y-m-d\TH:i')}}" required="">
+                                <input wire:model="work_start_time" type="time" class="form-control  @error('work_start_time') is-invalid @enderror" value="{{now()->format('H:i')}}" required="">
                                 @error('work_start_time')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col'>
                                 <label for="work_end_time">{{__('Work end time')}}</label>
-                                <input wire:model="work_end_time" type="time" class="form-control  @error('work_end_time') is-invalid @enderror" value="{{now()->format('Y-m-d\TH:i')}}" min="{{now()->subMonths(1)->format('Y-m-d\TH:i')}}" max="{{now()->format('Y-m-d\TH:i')}}" required="">
+                                <input wire:model="work_end_time" type="time" class="form-control  @error('work_end_time') is-invalid @enderror" value="{{now()->format('H:i')}}" required="">
                                 @error('work_end_time')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror

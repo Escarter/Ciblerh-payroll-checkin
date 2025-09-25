@@ -21,6 +21,9 @@ class Index extends Component
     public  $leave_reason;
     public  $interval;
     public ?Leave $leave = null;
+    public $company;
+    public $department;
+    public $service;
 
 
     public function updatedEndDate($value)
@@ -41,6 +44,9 @@ class Index extends Component
     public function mount()
     {
         $this->types = LeaveType::select('name','id')->get();
+        $this->company = auth()->user()->company;
+        $this->department = auth()->user()->department;
+        $this->service = auth()->user()->service;
     }
     
     public function store()
@@ -56,10 +62,21 @@ class Index extends Component
             'leave_reason' => 'required',
         ]);
 
+        // Validate that user has required relationships
+        if (empty($this->company)) {
+            $this->addError('company', __('You are not associated with any company. Please contact your administrator.'));
+            return;
+        }
+
+        if (empty($this->department)) {
+            $this->addError('department', __('You are not associated with any department. Please contact your administrator.'));
+            return;
+        }
+
         $leave =  auth()->user()->leaves()->create(
             [
-                'company_id' => auth()->user()->company_id,
-                'department_id' => auth()->user()->department_id,
+                'company_id' => $this->company->id,
+                'department_id' => $this->department->id,
                 'author_id' => auth()->user()->author_id,
                 'start_date' => $this->start_date,
                 'end_date' => $this->end_date,

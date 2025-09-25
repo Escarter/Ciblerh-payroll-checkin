@@ -69,34 +69,35 @@
                             @enderror
                         </div>
 
-                        <!-- Assign New Role -->
+                        <!-- Assign Roles -->
                         <div class="col-md-5">
                             <h6 class="fw-bold mb-3">
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                 </svg>
-                                {{ __('Assign New Role') }}
+                                {{ __('Manage Roles') }}
                             </h6>
                             
-                            <form wire:submit.prevent="assignRole">
+                            <form wire:submit.prevent="assignRoles">
                                 <div class="mb-3">
-                                    <label class="form-label">{{ __('Select Role') }}</label>
-                                    <select wire:model="selectedRole" class="form-select @error('selectedRole') is-invalid @enderror">
-                                        <option value="">{{ __('Choose a role...') }}</option>
-                                        @foreach($availableRoles as $role)
-                                            <option value="{{ $role['name'] }}">{{ ucfirst($role['name']) }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('selectedRole')
+                                    <x-choices-multi-select
+                                        id="user_roles_selection"
+                                        wireModel="selectedRoles"
+                                        :options="$availableRoles->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
+                                        :selected="$selectedRoles"
+                                        label="{{__('Select Roles (Max 2)')}}"
+                                        help="{{__('Maximum 2 roles allowed. Employee role is automatically included.')}}"
+                                        class="form-select" />
+                                    @error('selectedRoles')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                                 
                                 <button type="submit" class="btn btn-primary btn-sm w-100">
                                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>
-                                    {{ __('Assign Role') }}
+                                    {{ __('Update Roles') }}
                                 </button>
                             </form>
 
@@ -105,7 +106,12 @@
                                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
-                                    <strong>{{ __('Note:') }}</strong> {{ __('The employee role will always be assigned automatically to ensure portal access.') }}
+                                    <strong>{{ __('Note:') }}</strong> 
+                                    <ul class="mb-0 mt-1">
+                                        <li>{{ __('Maximum 2 roles per user allowed') }}</li>
+                                        <li>{{ __('Employee role is automatically included') }}</li>
+                                        <li>{{ __('Use Ctrl/Cmd + Click for multiple selection') }}</li>
+                                    </ul>
                                 </small>
                             </div>
                         </div>

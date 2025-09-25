@@ -10,14 +10,15 @@
                     </div>
                     <x-form-items.form wire:submit="store"  class="form-modal">
                         <div class='form-group mb-4'>
-                            <label for="role_name">{{__('Role')}}</label>
-                            <select wire:model="role_name" name="role_name" class="form-select  @error('role_name') is-invalid @enderror">
-                                <option value="">{{__("Select role")}}</option>
-                                @foreach ($roles->whereIn('name',['admin','manager']) as $role)
-                                <option value="{{$role->name}}">{{$role->name}}</option>
-                                @endforeach
-                            </select>
-                            @error('role_name')
+                            <x-choices-multi-select
+                                id="create_manager_roles"
+                                wireModel="selected_roles"
+                                :options="$roles->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
+                                :selected="$selected_roles"
+                                label="{{__('Roles')}}"
+                                help="{{__('Maximum 2 roles allowed. Employee role is automatically included.')}}"
+                                class="form-select" />
+                            @error('selected_roles')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>

@@ -25,12 +25,103 @@
     <link type="text/css" href="{{ asset('vendor/fullcalendar/main.min.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/dropzone/dist/min/dropzone.min.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/choices.js/public/assets/styles/choices.min.css')}}" rel="stylesheet">
+    <!-- Choices.js CDN CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/styles/choices.min.css">
     <link type="text/css" href="{{ asset('vendor/leaflet/dist/leaflet.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/medium-editor.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/themes/default.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('css/theme.css')}}" rel="stylesheet">
 
     @livewireStyles
+    
+    <!-- Alpine.js Choices Multi-Select Component -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('choicesMultiSelect', (prettyname, wireModel, selected) => {
+                return {
+                    selectInstance: null,
+                    eventHandler: null,
+                    init() {
+                        // Initialize Choices instance only once
+                        this.selectInstance = new window.Choices(this.$refs[prettyname], {
+                            itemSelectText: '',
+                            removeItems: true,
+                            removeItemButton: true,
+                            noResultsText: 'No results found',
+                            noChoicesText: 'No options available',
+                        });
+
+                        // Set initial selected values if any
+                        const initialSelected = Array.isArray(selected) ? selected : (selected ? [selected] : []);
+                        this.selectInstance.setChoiceByValue(initialSelected);
+
+                        // On change, update Livewire property
+                        this.selectInstance.passedElement.element.addEventListener('change', () => {
+                            const rawValues = this.selectInstance.getValue(true);
+                            let normalized = [];
+                            if (Array.isArray(rawValues)) {
+                                normalized = rawValues.map(item => (typeof item === 'object' && item !== null && item.value) ? String(item.value) : String(item));
+                            } else if (rawValues != null) {
+                                normalized = [String(rawValues)];
+                            }
+                            this.$wire.set(wireModel, normalized);
+                        });
+
+                        // Remove any existing event listener to avoid duplicates
+                        if (this.eventHandler) {
+                            window.removeEventListener('refreshChoices', this.eventHandler);
+                        }
+
+                        // Listen for refreshChoices event to update options
+                        this.eventHandler = (event) => {
+                            if (event.detail.id === prettyname) {
+                                // Clear existing choices and selected items completely
+                                this.selectInstance.clearChoices(); // Clears choices but keeps selected items
+                                this.selectInstance.clearStore(); // Clears everything (choices + items) — use carefully
+
+                                // Prepare choices array without duplicates
+                                const uniqueOptionsMap = {};
+                                for (const [value, label] of Object.entries(event.detail.options)) {
+                                    uniqueOptionsMap[value] = label;
+                                }
+                                const uniqueChoices = Object.entries(uniqueOptionsMap).map(([value, label]) => ({ value, label }));
+
+                                // Replace all choices with new unique choices
+                                this.selectInstance.setChoices(uniqueChoices, 'value', 'label', true);
+
+                                // Clear all selected items in UI and in Livewire model
+                                this.selectInstance.removeActiveItems();
+                                this.selectInstance.setValue([]);
+                                this.$wire.set(wireModel, []);
+                            }
+                        };
+
+                        window.addEventListener('refreshChoices', this.eventHandler);
+
+                        // Sync Livewire changes with Choices
+                        this.$wire.$watch(wireModel, (newValues) => {
+                            const currentValues = this.selectInstance.getValue(true);
+                            const normalizedNew = Array.isArray(newValues) ? newValues : (newValues ? [newValues] : []);
+
+                            if (JSON.stringify(currentValues.sort()) !== JSON.stringify(normalizedNew.sort())) {
+                                this.selectInstance.setChoiceByValue(normalizedNew);
+                            }
+                        });
+                    },
+                    destroy() {
+                        // Clean up event listener when component destroyed
+                        if (this.eventHandler) {
+                            window.removeEventListener('refreshChoices', this.eventHandler);
+                        }
+                        if (this.selectInstance) {
+                            this.selectInstance.destroy();
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+    
     <style>
         * {
             font-family: 'Poppins', sans-serif;
@@ -54,6 +145,8 @@
     <script src="{{ asset('vendor/leaflet/dist/leaflet.js')}}"></script>
     <script src="{{ asset('vendor/simplebar/dist/simplebar.min.js')}}"></script>
     <script src="{{ asset('vendor/choices.js/public/assets/scripts/choices.min.js')}}"></script>
+    <!-- Choices.js CDN JS -->
+    <script src="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/scripts/choices.min.js"></script>
     <script src="{{ asset('vendor/medium-editor/js/medium-editor.js')}}"></script>
     <script src="{{ asset('js/theme.js')}}"></script>
 

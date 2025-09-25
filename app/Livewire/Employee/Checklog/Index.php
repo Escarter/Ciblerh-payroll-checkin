@@ -209,8 +209,8 @@ class Index extends Component
                 'end_time' => $end_time,
                 'minutes_worked' => Carbon::parse(Carbon::parse($end_time)->format('Y-m-d') . " " . auth()->user()->work_end_time)->diffInMinutes($end_time),
                 'reason' => __('System generated for checkin done on the :day',['day'=> Carbon::parse($end_time)->format('Y-m-d')]),
-                'company_id' => auth()->user()->company_id,
-                'department_id' => auth()->user()->department_id,
+                'company_id' => !empty($this->company) ? $this->company->id : null,
+                'department_id' => !empty($this->department) ? $this->department->id : null,
             ]);
         }else{
 

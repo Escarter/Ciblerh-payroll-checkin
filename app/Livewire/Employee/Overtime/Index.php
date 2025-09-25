@@ -26,6 +26,16 @@ class Index extends Component
     public $reason ;
     public ?int $overtime_id = null;
     public ?Overtime $overtime = null;
+    public $company;
+    public $department;
+    public $service;
+
+    public function mount()
+    {
+        $this->company = auth()->user()->company;
+        $this->department = auth()->user()->department;
+        $this->service = auth()->user()->service;
+    }
 
     //Get & assign selected overtime props
     public function initData($overtime_id)
@@ -50,13 +60,24 @@ class Index extends Component
             'reason' => 'required'
         ]);
 
+        // Validate that user has required relationships
+        if (empty($this->company)) {
+            $this->addError('company', __('You are not associated with any company. Please contact your administrator.'));
+            return;
+        }
+
+        if (empty($this->department)) {
+            $this->addError('department', __('You are not associated with any department. Please contact your administrator.'));
+            return;
+        }
+
         auth()->user()->overtimes()->create([
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
             'minutes_worked' => Carbon::parse($this->start_time)->diffInMinutes(Carbon::parse($this->end_time)),
             'reason' => $this->reason,
-            'company_id' => auth()->user()->company_id,
-            'department_id' => auth()->user()->department_id,
+            'company_id' => $this->company->id,
+            'department_id' => $this->department->id,
             'author_id' => auth()->user()->author_id,
         ]);
 

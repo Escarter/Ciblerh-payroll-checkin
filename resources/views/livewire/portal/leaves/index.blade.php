@@ -2,6 +2,8 @@
     @include('livewire.portal.leaves.partials.edit-leave')
     @include('livewire.portal.leaves.partials.bulk-approval')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => count($selectedLeavesForDelete) === 1 ? __('leave record') : __('leave records')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => count($selectedLeavesForDelete) === 1 ? __('leave record') : __('leave records')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -165,15 +167,6 @@
         </div>
     </div>
     <x-alert />
-    @can('leave-update')
-    <div class=' pt-1'>
-        <button wire:click.prevent="initDataBulk('reject')" data-bs-toggle="modal" data-bs-target="#EditBulkLeaveModal" class="btn btn-danger btn-md mb-2" {{ $bulkDisabled ? 'disabled' : null }}>{{__('Bulk Reject')}}
-        </button>
-
-        <button wire:click.prevent="initDataBulk('approve')" data-bs-toggle="modal" data-bs-target="#EditBulkLeaveModal" class="btn btn-success text-white btn-md mb-2" {{ $bulkDisabled ? 'disabled' : null }}>{{__('Bulk Approve')}}
-        </button>
-    </div>
-    @endcan
     <div class="row py-3">
         <div class="col-md-3">
             <label for="search">{{__('Search')}}: </label>
@@ -210,14 +203,147 @@
             </select>
         </div>
     </div>
+
+    <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <!-- Tab Buttons (Right) -->
+        <div class="d-flex gap-2">
+            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="switchTab('active')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                {{__('Active')}}
+                <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_leaves ?? 0 }}</span>
+            </button>
+
+            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+                wire:click="switchTab('deleted')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Deleted')}}
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_leaves ?? 0 }}</span>
+            </button>
+        </div>
+
+        <!-- Bulk Actions (Left) -->
+        <div>
+            @if($activeTab === 'active')
+                <!-- Bulk Actions when items are selected -->
+                @if(!$bulkDisabled && count($selectedLeaves) > 0)
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Bulk Approval Actions -->
+                    @can('leave-update')
+                    <button wire:click.prevent="initDataBulk('approve')" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#EditBulkLeaveModal" 
+                        class="btn btn-sm btn-success d-flex align-items-center">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {{__('Bulk Approve')}}
+                        <span class="badge bg-light text-dark ms-1">{{ count($selectedLeaves) }}</span>
+                    </button>
+
+                    <button wire:click.prevent="initDataBulk('reject')" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#EditBulkLeaveModal" 
+                        class="btn btn-sm btn-danger d-flex align-items-center">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {{__('Bulk Reject')}}
+                        <span class="badge bg-light text-dark ms-1">{{ count($selectedLeaves) }}</span>
+                    </button>
+                    @endcan
+
+                    <!-- Soft Delete Actions -->
+                    @can('leave-delete')
+                    <button type="button"
+                        class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                        title="{{ __('Move Selected Leave Records to Trash') }}"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#BulkDeleteModal">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        {{__('Move to Trash')}}
+                        <span class="badge bg-danger text-white ms-1">{{ count($selectedLeaves) }}</span>
+                    </button>
+                    @endcan
+
+                    <!-- Clear Selection -->
+                    <button wire:click="$set('selectedLeaves', [])"
+                        class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        {{__('Clear')}}
+                    </button>
+                </div>
+                @endif
+            @else
+                <!-- Deleted Tab Bulk Actions -->
+                @if(count($selectedLeavesForDelete) > 0)
+                <div class="d-flex align-items-center gap-2">
+                    @can('leave-delete')
+                    <button wire:click="bulkRestore"
+                        class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
+                        title="{{ __('Restore Selected Leave Records') }}">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        {{__('Restore Selected')}}
+                        <span class="badge bg-success text-white ms-1">{{ count($selectedLeavesForDelete) }}</span>
+                    </button>
+
+                    <button type="button"
+                        class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                        title="{{ __('Permanently Delete Selected Leave Records') }}"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#BulkForceDeleteModal">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        {{__('Delete Forever')}}
+                        <span class="badge bg-danger text-white ms-1">{{ count($selectedLeavesForDelete) }}</span>
+                    </button>
+                    @endcan
+
+                    <button wire:click="$set('selectedLeavesForDelete', [])"
+                        class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        {{__('Clear')}}
+                    </button>
+                </div>
+                @endif
+            @endif
+        </div>
+    </div>
+
     <div class="card">
         <div class="table-responsive pb-4 text-gray-700">
-            <table class="table table-hover align-items-center dataTable">
+            <table class="table table-hover table-bordered align-items-center dataTable">
                 <thead>
                     <tr>
                         <th class="border-bottom">
                             <div class="form-check d-flex justify-content-center align-items-center">
-                                <input class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
+                                @if($activeTab === 'active')
+                                    <!-- For active tab, use existing bulk approval selection -->
+                                    <input class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
+                                @else
+                                    <!-- For deleted tab, use soft delete selection -->
+                                    <input class="form-check-input p-2" 
+                                        wire:model.live="selectAllForDelete" 
+                                        type="checkbox"
+                                        wire:click="toggleSelectAllForDelete">
+                                @endif
                             </div>
                         </th>
                         <th class="border-bottom">{{__('Employee')}}</th>
@@ -238,7 +364,16 @@
                     <tr>
                         <td>
                             <div class="form-check d-flex justify-content-center align-items-center">
-                                <input class="form-check-input" wire:model.live="selectedLeaves" value="{{$leave->id}}" type="checkbox">
+                                @if($activeTab === 'active')
+                                    <!-- For active tab, use existing bulk approval selection -->
+                                    <input class="form-check-input" wire:model.live="selectedLeaves" value="{{$leave->id}}" type="checkbox">
+                                @else
+                                    <!-- For deleted tab, use soft delete selection -->
+                                    <input class="form-check-input" 
+                                        type="checkbox"
+                                        wire:click="toggleLeaveSelectionForDelete({{ $leave->id }})"
+                                        {{ in_array($leave->id, $selectedLeavesForDelete) ? 'checked' : '' }}>
+                                @endif
                             </div>
                         </td>
                         <td>
@@ -251,7 +386,7 @@
                                         </svg> {{$leave->email}}
                                     </div>
                                     <div class="text-gray d-flex align-items-end" style="font-size:x-small;">
-                                        {{$leave->company->name}} | {{$leave->department->name}}
+                                        {{!empty($leave->company) ? $leave->company->name : ''}} | {{!empty($leave->department) ? $leave->department->name : ''}}
                                     </div>
 
                                 </div>
@@ -279,20 +414,35 @@
                         </td>
                         @canany('leave-update','leave-delete')
                         <td>
-                            @can('leave-update')
-                            <a href="#" wire:click="initData({{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#EditLeaveModal">
-                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </a>
-                            @endcan
-                            @can('leave-delete')
-                            <a hre="#" wire:click="initData({{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
-                                <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </a>
-                            @endcan
+                            @if($activeTab === 'active')
+                                @can('leave-update')
+                                <a href="#" wire:click="initData({{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#EditLeaveModal">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                                @can('leave-delete')
+                                <a href="#" wire:click="initData({{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                                    <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                            @else
+                                @can('leave-delete')
+                                <a href="#" wire:click="restore({{ $leave->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" wire:click="forceDelete({{ $leave->id }})" class="text-danger" title="{{__('Delete Forever')}}">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                            @endif
                         </td>
                         @endcanany
                     </tr>

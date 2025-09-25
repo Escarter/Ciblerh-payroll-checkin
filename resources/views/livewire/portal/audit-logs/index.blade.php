@@ -144,6 +144,8 @@
             </div>
         </div>
     </div>
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('audit log') : __('audit logs')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('audit log') : __('audit logs')])
     <x-alert />
 
     <div class="row p-3">
@@ -180,20 +182,129 @@
             </select>
         </div>
     </div>
+
+    <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    <div class="d-flex justify-content-between align-items-center mb-3 px-3">
+
+        <!-- Tab Buttons (Right) -->
+        <div class="d-flex gap-2">
+            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="switchTab('active')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                {{__('Active')}}
+                <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_logs ?? 0 }}</span>
+            </button>
+
+            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+                wire:click="switchTab('deleted')"
+                type="button">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Deleted')}}
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_logs ?? 0 }}</span>
+            </button>
+        </div>
+
+        <!-- Bulk Actions (Left) -->
+        <div>
+            @if($activeTab === 'active')
+            <!-- Soft Delete Bulk Actions (when items selected for delete) -->
+            @if(count($selectedAuditLogs) > 0)
+            <div class="d-flex align-items-center gap-2">
+                <button type="button"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                    title="{{ __('Move Selected Audit Logs to Trash') }}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#BulkDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('Move to Trash')}}
+                    <span class="badge bg-danger text-white ms-1">{{ count($selectedAuditLogs) }}</span>
+                </button>
+
+                <button wire:click="$set('selectedAuditLogs', [])"
+                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {{__('Clear')}}
+                </button>
+            </div>
+            @endif
+            @else
+            <!-- Deleted Tab Bulk Actions -->
+            @if(count($selectedAuditLogs) > 0)
+            <div class="d-flex align-items-center gap-2">
+                <button wire:click="bulkRestore"
+                    class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
+                    title="{{ __('Restore Selected Audit Logs') }}">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    {{__('Restore Selected')}}
+                    <span class="badge bg-success text-white ms-1">{{ count($selectedAuditLogs) }}</span>
+                </button>
+
+                <button type="button"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                    title="{{ __('Permanently Delete Selected Audit Logs') }}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#BulkForceDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('Delete Forever')}}
+                    <span class="badge bg-danger text-white ms-1">{{ count($selectedAuditLogs) }}</span>
+                </button>
+
+                <button wire:click="$set('selectedAuditLogs', [])"
+                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {{__('Clear')}}
+                </button>
+            </div>
+            @endif
+            @endif
+        </div>
+    </div>
+
     <div class="card pb-3">
         <div class="table-responsive  text-gray-700">
-            <table class="table employee-table table-hover align-items-center ">
+            <table class="table employee-table table-bordered table-hover align-items-center ">
                 <thead>
                     <tr>
+                        <th class="border-bottom">
+                            <div class="form-check d-flex justify-content-center align-items-center">
+                                <input class="form-check-input p-2"
+                                    wire:model.live="selectAll"
+                                    type="checkbox"
+                                    wire:click="toggleSelectAll">
+                            </div>
+                        </th>
                         <th class="border-bottom">{{__('Logger')}}</th>
-                        <th class="border-bottom">{{__('Action Type')}}</th>
-                        <th class="border-bottom">{{__('Action Performed')}}</th>
-                        <th class="border-bottom">{{__('Date created')}}</th>
+                        <th class="border-bottom">{{__('Task ')}}</th>
+                        <th class="border-bottom">{{__('Task Performed & Date')}}</th>
+                        <th class="border-bottom">{{__('Action')}}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($logs as $log)
                     <tr>
+                        <td>
+                            <div class="form-check d-flex justify-content-center align-items-center">
+                                <input class="form-check-input"
+                                    type="checkbox"
+                                    wire:click="toggleAuditLogSelection({{ $log->id }})"
+                                    {{ in_array($log->id, $selectedAuditLogs) ? 'checked' : '' }}>
+                            </div>
+                        </td>
                         <td>
                             <a href="#" class="d-flex align-items-center">
                                 <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-secondary me-3"><span class="text-white">{{initials($log->user)}}</span></div>
@@ -203,18 +314,57 @@
                             </a>
                         </td>
                         <td>
-                            <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->action_type}}</span>
+                            <div class="d-flex flex-column">
+                                <div class="mb-2">
+                                    <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->action_type}}</span>
+                                </div>
+
+                            </div>
                         </td>
                         <td>
-                            <span class="fs-normal">{!! $log->action_perform !!}</span>
+                            <div class="small text-muted">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                </svg>
+                                <span class="fs-normal">{!! $log->action_perform !!}</span>
+                            </div>
+                            <div class="small text-muted">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                {{$log->created_at->format('M d, Y')}}
+                            </div>
+                            <div class="small text-muted">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {{$log->created_at->format('H:i')}}
+                            </div>
                         </td>
                         <td>
-                            <span class="fw-normal">{{$log->created_at->format('Y-m-d')}}</span>
+                            @if($activeTab === 'active')
+                            <a href="#" wire:click="delete({{ $log->id }})" class="text-danger" title="{{__('Delete')}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                            @else
+                            <a href="#" wire:click="restore({{ $log->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </a>
+                            <a href="#" wire:click="forceDelete({{ $log->id }})" class="text-danger" title="{{__('Delete Forever')}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                            @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center">
+                        <td colspan="5" class="text-center">
                             <div class="text-center text-gray-800 mt-2">
                                 <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
                                 <p>{{__('No Record Found..!')}}</p>

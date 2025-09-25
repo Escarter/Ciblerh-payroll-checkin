@@ -22,6 +22,11 @@ class History extends Component
     public $employee;
 
     public ?Payslip $payslip;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedPayslips = [];
+    public $selectAll = false;
 
     public function mount($employee_uuid)  
     {
@@ -153,6 +158,125 @@ class History extends Component
 
     }
 
+    public function delete($payslipId)
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        $payslip = Payslip::findOrFail($payslipId);
+        $payslip->delete(); // Soft delete
+
+        $this->closeModalAndFlashMessage(__('Payslip successfully moved to trash!'), 'DeleteModal');
+    }
+
+    public function restore($payslipId)
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        $payslip = Payslip::withTrashed()->findOrFail($payslipId);
+        $payslip->restore();
+
+        $this->closeModalAndFlashMessage(__('Payslip successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete($payslipId)
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        $payslip = Payslip::withTrashed()->findOrFail($payslipId);
+        $payslip->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('Payslip permanently deleted!'), 'ForceDeleteModal');
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedPayslips)) {
+            Payslip::whereIn('id', $this->selectedPayslips)->delete(); // Soft delete
+            $this->selectedPayslips = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected payslips moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedPayslips)) {
+            Payslip::withTrashed()->whereIn('id', $this->selectedPayslips)->restore();
+            $this->selectedPayslips = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected payslips restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedPayslips)) {
+            Payslip::withTrashed()->whereIn('id', $this->selectedPayslips)->forceDelete();
+            $this->selectedPayslips = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected payslips permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedPayslips = [];
+        $this->selectAll = false;
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            $this->selectedPayslips = $this->getPayslips()->pluck('id')->toArray();
+        } else {
+            $this->selectedPayslips = [];
+        }
+    }
+
+    public function togglePayslipSelection($payslipId)
+    {
+        if (in_array($payslipId, $this->selectedPayslips)) {
+            $this->selectedPayslips = array_diff($this->selectedPayslips, [$payslipId]);
+        } else {
+            $this->selectedPayslips[] = $payslipId;
+        }
+        
+        $this->selectAll = count($this->selectedPayslips) === $this->getPayslips()->count();
+    }
+
+    private function getPayslips()
+    {
+        $query = Payslip::search($this->query)->where('employee_id', $this->employee->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+    }
+
     public function render()
     {
         if (!Gate::allows('payslip-read')) {
@@ -163,9 +287,17 @@ class History extends Component
         //     return abort(401);
         // }
         
-        $payslips = Payslip::search($this->query)->where('employee_id', $this->employee->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
-        $payslips_count = Payslip::where('employee_id', $this->employee->id)->count();
+        $payslips = $this->getPayslips();
 
-        return view('livewire.portal.employees.payslip.history', compact('payslips', 'payslips_count'))->layout('components.layouts.dashboard');
+        // Get counts for active payslips (non-deleted)
+        $active_payslips = Payslip::search($this->query)->where('employee_id', $this->employee->id)->whereNull('deleted_at')->count();
+        $deleted_payslips = Payslip::search($this->query)->where('employee_id', $this->employee->id)->withTrashed()->whereNotNull('deleted_at')->count();
+
+        return view('livewire.portal.employees.payslip.history', [
+            'payslips' => $payslips,
+            'payslips_count' => $active_payslips, // Legacy for backward compatibility
+            'active_payslips' => $active_payslips,
+            'deleted_payslips' => $deleted_payslips,
+        ])->layout('components.layouts.dashboard');
     }
 }

@@ -13,7 +13,7 @@ class UserRoles extends Component
     public $userId;
     public $userRoles = [];
     public $availableRoles = [];
-    public $selectedRole = '';
+    public $selectedRoles = [];
     public $showModal = false;
 
     protected $listeners = ['showUserRoles'];
@@ -32,6 +32,7 @@ class UserRoles extends Component
         $this->userId = $userId;
         $this->user = User::with('roles')->findOrFail($userId);
         $this->userRoles = $this->user->roles->toArray();
+        $this->selectedRoles = $this->user->roles->pluck('name')->toArray();
         $this->showModal = true;
     }
 
@@ -40,66 +41,37 @@ class UserRoles extends Component
         $this->availableRoles = Role::orderBy('name')->get()->toArray();
     }
 
-    public function assignRole()
+    public function assignRoles()
     {
         if (!Gate::allows('employee-update')) {
             return abort(401);
         }
 
-        if (empty($this->selectedRole)) {
-            $this->addError('selectedRole', 'Please select a role to assign.');
+        // Validate maximum 2 roles
+        if (count($this->selectedRoles) > 2) {
+            $this->addError('selectedRoles', 'A user can have a maximum of 2 roles.');
             return;
         }
 
-        // Check if user already has this role
-        if ($this->user->hasRole($this->selectedRole)) {
-            $this->addError('selectedRole', 'User already has this role.');
-            return;
+        // Ensure employee role is always included
+        if (!in_array('employee', $this->selectedRoles)) {
+            $this->selectedRoles[] = 'employee';
         }
 
-        // Assign the role
-        $this->user->assignRole($this->selectedRole);
-
-        // Ensure employee role is always assigned
-        if (!$this->user->hasRole('employee')) {
-            $this->user->assignRole('employee');
-        }
+        // Sync roles (this will remove old roles and assign new ones)
+        $this->user->syncRoles($this->selectedRoles);
 
         // Refresh user roles
         $this->user->refresh();
         $this->userRoles = $this->user->roles->toArray();
-        $this->selectedRole = '';
 
-        session()->flash('message', 'Role assigned successfully!');
-    }
-
-    public function removeRole($roleId)
-    {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
-
-        $role = Role::findOrFail($roleId);
-        
-        // Prevent removing the employee role if it's the only role
-        if ($role->name === 'employee' && $this->user->roles->count() === 1) {
-            $this->addError('removeRole', 'Cannot remove employee role when it\'s the only role assigned.');
-            return;
-        }
-
-        $this->user->removeRole($role);
-        
-        // Refresh user roles
-        $this->user->refresh();
-        $this->userRoles = $this->user->roles->toArray();
-
-        session()->flash('message', 'Role removed successfully!');
+        session()->flash('message', 'Roles updated successfully!');
     }
 
     public function closeModal()
     {
         $this->showModal = false;
-        $this->reset(['userId', 'user', 'userRoles', 'selectedRole']);
+        $this->reset(['userId', 'user', 'userRoles', 'selectedRoles']);
     }
 
     public function render()

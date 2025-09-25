@@ -1,6 +1,8 @@
 <div>
     @include('livewire.portal.employees.payslip.resend-email-modal')
     @include('livewire.portal.employees.payslip.resend-sms-modal')
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslip') : __('payslips')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslip') : __('payslips')])
     <x-alert />
     <div>
         <div class='pt-2'>
@@ -26,6 +28,97 @@
                 </div>
             </div>
         </div>
+
+        <div class='mb-3 mt-0'>
+            <div class='row'>
+                <div class="col-12 col-sm-6 col-xl-4 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-primary rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{__('Total Payslips')}}</h2>
+                                        <h3 class="mb-1">{{numberFormat($payslips_count ?? 0)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="#" class="d-none d-sm-block">
+                                        <h2 class="h5">{{__('Total Payslips')}}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($payslips_count ?? 0)}}</h3>
+                                    </a>
+                                    <div class="small d-flex mt-1">
+                                        <div>{{ \Str::plural(__('Payslip'), $payslips_count ?? 0) }} {{__('for this employee')}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-success rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ __(\Str::plural('Payslip', $active_payslips ?? 0)) }}</h2>
+                                        <h3 class="mb-1">{{numberFormat($active_payslips ?? 0)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="#" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ __(\Str::plural('Payslip', $active_payslips ?? 0)) }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($active_payslips ?? 0)}}</h3>
+                                    </a>
+                                    <div class="small d-flex mt-1">
+                                        <div>{{ \Str::plural(__('Payslip'), $active_payslips ?? 0) }} {{__('that are active!')}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-danger rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ \Str::plural(__('Payslip'), $deleted_payslips ?? 0) }}</h2>
+                                        <h3 class="mb-1">{{numberFormat($deleted_payslips ?? 0)}} </h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="#" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ \Str::plural(__('Payslip'), $deleted_payslips ?? 0) }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_payslips ?? 0)}} </h3>
+                                    </a>
+                                    <div class="small d-flex mt-1">
+                                        <div>{{ \Str::plural(__('Payslip'), $deleted_payslips ?? 0) }} {{__('that are deleted!')}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <x-alert />
+
         <div>
             <x-alert />
             <div class="row pb-3">
@@ -62,17 +155,120 @@
                     </select>
                 </div>
             </div>
+
+            <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <!-- Tab Buttons (Right) -->
+                <div class="d-flex gap-2">
+                    <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+                        wire:click="switchTab('active')"
+                        type="button">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        {{__('Active')}}
+                        <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_payslips ?? 0 }}</span>
+                    </button>
+
+                    <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+                        wire:click="switchTab('deleted')"
+                        type="button">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        {{__('Deleted')}}
+                        <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_payslips ?? 0 }}</span>
+                    </button>
+                </div>
+
+                <!-- Bulk Actions (Left) -->
+                <div>
+                    @if($activeTab === 'active')
+                        <!-- Soft Delete Bulk Actions (when items selected for delete) -->
+                        @if(count($selectedPayslips) > 0)
+                        <div class="d-flex align-items-center gap-2">
+                            @can('payslip-delete')
+                            <button type="button"
+                                class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                                title="{{ __('Move Selected Payslips to Trash') }}"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#BulkDeleteModal">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                {{__('Move to Trash')}}
+                                <span class="badge bg-danger text-white ms-1">{{ count($selectedPayslips) }}</span>
+                            </button>
+                            @endcan
+
+                            <button wire:click="$set('selectedPayslips', [])"
+                                class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                {{__('Clear')}}
+                            </button>
+                        </div>
+                        @endif
+                    @else
+                        <!-- Deleted Tab Bulk Actions -->
+                        @if(count($selectedPayslips) > 0)
+                        <div class="d-flex align-items-center gap-2">
+                            @can('payslip-delete')
+                            <button wire:click="bulkRestore"
+                                class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
+                                title="{{ __('Restore Selected Payslips') }}">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                {{__('Restore Selected')}}
+                                <span class="badge bg-success text-white ms-1">{{ count($selectedPayslips) }}</span>
+                            </button>
+
+                            <button type="button"
+                                class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                                title="{{ __('Permanently Delete Selected Payslips') }}"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#BulkForceDeleteModal">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                {{__('Delete Forever')}}
+                                <span class="badge bg-danger text-white ms-1">{{ count($selectedPayslips) }}</span>
+                            </button>
+                            @endcan
+
+                            <button wire:click="$set('selectedPayslips', [])"
+                                class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                {{__('Clear')}}
+                            </button>
+                        </div>
+                        @endif
+                    @endif
+                </div>
+            </div>
+
             <div class="card">
-                <div class="table-responsive py-4">
-                    <table class="table employee-table table-hover align-items-center dataTable" id="datatable">
+                <div class="table-responsive pb-4">
+                    <table class="table employee-table table-bordered table-hover align-items-center dataTable" id="datatable">
                         <thead>
                             <tr>
+                                <th class="border-bottom">
+                                    <div class="form-check d-flex justify-content-center align-items-center">
+                                        <input class="form-check-input p-2" 
+                                            wire:model.live="selectAll" 
+                                            type="checkbox"
+                                            wire:click="toggleSelectAll">
+                                    </div>
+                                </th>
                                 <th class="border-bottom">{{__('Name')}}</th>
-                                <th class="border-bottom">{{__('Matricule')}}</th>
-                                <th class="border-bottom">{{__('Contacts')}}</th>
-                                <th class="border-bottom">{{__('Period')}}</th>
+                                <th class="border-bottom">{{__('Employee Info')}}</th>
                                 <th class="border-bottom">{{__('Category')}}</th>
-                                <th class="border-bottom">{{__('When')}}</th>
+                                <th class="border-bottom">{{__('Timeline')}}</th>
                                 <th class="border-bottom">{{__('Encryption status')}}</th>
                                 <th class="border-bottom">{{__('Email status')}}</th>
                                 <th class="border-bottom">{{__('SMS status')}}</th>
@@ -83,6 +279,14 @@
                             @forelse($payslips as $payslip)
                             <tr>
                                 <td>
+                                    <div class="form-check d-flex justify-content-center align-items-center">
+                                        <input class="form-check-input" 
+                                            type="checkbox"
+                                            wire:click="togglePayslipSelection({{ $payslip->id }})"
+                                            {{ in_array($payslip->id, $selectedPayslips) ? 'checked' : '' }}>
+                                    </div>
+                                </td>
+                                <td>
 
                                     <a href="#" class="d-flex align-items-center">
                                         <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded text-white bg-primary me-3"><span>{{$payslip->initials}}</span></div>
@@ -92,20 +296,23 @@
                                     </a>
                                 </td>
                                 <td>
-                                    <span class="fw-normal">{{$payslip->matricule}}</span>
-                                </td>
-                                <td>
-                                    @if(!empty($payslip->phone))
-                                    <a href='tel:{{$payslip->phone}}' class="small text-gray">
-                                        <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                                        </svg>{{$payslip->phone}}
-                                        <br>
-                                    </a>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="fw-normal">{{$payslip->month}} - {{$payslip->year}}</span>
+                                    <div class="d-flex flex-column">
+                                        <div class="mb-1">
+                                            <span class="fw-bold text-primary">{{__('Matricule')}}:</span>
+                                            <span class="ms-1 fw-normal">{{$payslip->matricule}}</span>
+                                        </div>
+                                        @if(!empty($payslip->phone))
+                                        <div>
+                                            <span class="fw-bold text-primary">{{__('Phone')}}:</span>
+                                            <a href='tel:{{$payslip->phone}}' class="ms-1 small text-gray">
+                                                <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                                </svg>
+                                                <span class="fw-normal">{{$payslip->phone}}</span>
+                                            </a>
+                                        </div>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td>
                                     @if(empty($payslip->send_payslip_process_id))
@@ -113,10 +320,18 @@
                                     @else
                                     <span class="fw-normal text-info"> {{__('bulk')}}</span>
                                     @endif
-                                    <br>
                                 </td>
                                 <td>
-                                    <span class="fw-normal">{{$payslip->created_at}}</span>
+                                    <div class="d-flex flex-column">
+                                        <div class="mb-1">
+                                            <span class="fw-bold text-primary">{{__('Period')}}:</span>
+                                            <span class="ms-1 fw-normal">{{$payslip->month}} - {{$payslip->year}}</span>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-primary">{{__('Created')}}:</span>
+                                            <span class="ms-1 fw-normal">{{$payslip->created_at}}</span>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
                                     @if($payslip->encryption_status == 1)
@@ -146,21 +361,43 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendEmailModal">
-                                        <svg class="icon icon-xs text-info" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                        </svg>
-                                    </a>
-                                    <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendSMSModal">
-                                        <svg class="icon icon-xs text-tertiary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                                        </svg>
-                                    </a>
+                                    @if($activeTab === 'active')
+                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendEmailModal">
+                                            <svg class="icon icon-xs text-info" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                            </svg>
+                                        </a>
+                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendSMSModal">
+                                            <svg class="icon icon-xs text-tertiary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+                                            </svg>
+                                        </a>
+                                        @can('payslip-delete')
+                                        <a href="#" wire:click="delete({{ $payslip->id }})" class="text-danger ms-2" title="{{__('Delete')}}">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </a>
+                                        @endcan
+                                    @else
+                                        @can('payslip-delete')
+                                        <a href="#" wire:click="restore({{ $payslip->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                        </a>
+                                        <a href="#" wire:click="forceDelete({{ $payslip->id }})" class="text-danger" title="{{__('Delete Forever')}}">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </a>
+                                        @endcan
+                                    @endif
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="10">
+                                <td colspan="8">
                                     <div class="text-center text-gray-800 mt-2">
                                         <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
                                         <p>{{__('No Record Found..!')}}</p>

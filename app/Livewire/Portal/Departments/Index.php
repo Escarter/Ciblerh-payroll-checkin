@@ -31,6 +31,11 @@ class Index extends Component
     public $supervisors = [];
     public $supervisor_id =  null;
     public $role;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedDepartments = [];
+    public $selectAll = false;
 
     //Update & Store Rules
     protected array $rules = [
@@ -139,12 +144,136 @@ class Index extends Component
         }
 
         if (!empty($this->department)) {
-            $this->department->services()->forceDelete();
-            $this->department->forceDelete();
+            $this->department->delete(); // Soft delete
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Department successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('Department successfully moved to trash!'), 'DeleteModal');
+    }
+
+    public function restore($departmentId)
+    {
+        if (!Gate::allows('department-delete')) {
+            return abort(401);
+        }
+
+        $department = Department::withTrashed()->findOrFail($departmentId);
+        $department->restore();
+
+        $this->closeModalAndFlashMessage(__('Department successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete($departmentId)
+    {
+        if (!Gate::allows('department-delete')) {
+            return abort(401);
+        }
+
+        $department = Department::withTrashed()->findOrFail($departmentId);
+        
+        // Force delete related data first
+        $department->services()->forceDelete();
+        $department->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('Department permanently deleted!'), 'ForceDeleteModal');
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('department-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedDepartments)) {
+            Department::whereIn('id', $this->selectedDepartments)->delete(); // Soft delete
+            $this->selectedDepartments = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected departments moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('department-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedDepartments)) {
+            Department::withTrashed()->whereIn('id', $this->selectedDepartments)->restore();
+            $this->selectedDepartments = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected departments restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('department-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedDepartments)) {
+            $departments = Department::withTrashed()->whereIn('id', $this->selectedDepartments)->get();
+            
+            foreach ($departments as $department) {
+                // Force delete related data first
+                $department->services()->forceDelete();
+                $department->forceDelete();
+            }
+            
+            $this->selectedDepartments = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected departments permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedDepartments = [];
+        $this->selectAll = false;
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            $this->selectedDepartments = $this->getDepartments()->pluck('id')->toArray();
+        } else {
+            $this->selectedDepartments = [];
+        }
+    }
+
+    public function toggleDepartmentSelection($departmentId)
+    {
+        if (in_array($departmentId, $this->selectedDepartments)) {
+            $this->selectedDepartments = array_diff($this->selectedDepartments, [$departmentId]);
+        } else {
+            $this->selectedDepartments[] = $departmentId;
+        }
+        
+        $this->selectAll = count($this->selectedDepartments) === $this->getDepartments()->count();
+    }
+
+    private function getDepartments()
+    {
+        $query = Department::search($this->query)->where('company_id', $this->company->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Add role-based filtering
+        match ($this->role) {
+            "manager" => $query->manager(),
+            "admin" => null, // No additional filtering for admin
+            "supervisor" => [],
+            default => [],
+        };
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
     public function import()
@@ -188,22 +317,30 @@ class Index extends Component
         if (!Gate::allows('department-read')) {
             return abort(401);
         }
-        $departments = match ($this->role) {
-            "manager" => Department::search($this->query)->manager()->where('company_id', $this->company->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            "admin" => Department::search($this->query)->where('company_id', $this->company->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            "supervisor" => [],
-           default => [],
+
+        $departments = $this->getDepartments();
+
+        // Get counts for active departments (non-deleted)
+        $active_departments = match ($this->role) {
+            "manager" => Department::search($this->query)->manager()->where('company_id', $this->company->id)->whereNull('deleted_at')->count(),
+            "admin" => Department::search($this->query)->where('company_id', $this->company->id)->whereNull('deleted_at')->count(),
+            "supervisor" => 0,
+           default => 0,
         };
-        $departments_count = match ($this->role) {
-            "manager" => Department::search($this->query)->manager()->where('company_id', $this->company->id)->count(),
-            "admin" => Department::search($this->query)->where('company_id', $this->company->id)->count(),
-            "supervisor" => [],
-           default => [],
+
+        // Get counts for deleted departments
+        $deleted_departments = match ($this->role) {
+            "manager" => Department::search($this->query)->manager()->where('company_id', $this->company->id)->withTrashed()->whereNotNull('deleted_at')->count(),
+            "admin" => Department::search($this->query)->where('company_id', $this->company->id)->withTrashed()->whereNotNull('deleted_at')->count(),
+            "supervisor" => 0,
+           default => 0,
         };
 
         return view('livewire.portal.departments.index', [
             'departments' => $departments,
-            'departments_count' => $departments_count,
+            'departments_count' => $active_departments, // Legacy for backward compatibility
+            'active_departments' => $active_departments,
+            'deleted_departments' => $deleted_departments,
         ])->layout('components.layouts.dashboard');
     }
 }

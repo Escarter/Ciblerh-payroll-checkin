@@ -32,6 +32,11 @@ class Index extends Component
     public bool $bulkDisabled = true;
     public bool $selectAll = false;
     public $bulk_approval_status = true;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedLeavesForDelete = [];
+    public $selectAllForDelete = false;
 
 
     //Update & Store Rules
@@ -168,12 +173,133 @@ class Index extends Component
         }
 
         if (!empty($this->leave)) {
-
-            $this->leave->delete();
+            $this->leave->delete(); // Already using soft delete
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Leave successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('Leave successfully moved to trash!'), 'DeleteModal');
+    }
+
+    public function restore($leaveId)
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        $leave = Leave::withTrashed()->findOrFail($leaveId);
+        $leave->restore();
+
+        $this->closeModalAndFlashMessage(__('Leave successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete($leaveId)
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        $leave = Leave::withTrashed()->findOrFail($leaveId);
+        $leave->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('Leave permanently deleted!'), 'ForceDeleteModal');
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        // Handle both active tab (selectedLeaves) and deleted tab (selectedLeavesForDelete)
+        if (!empty($this->selectedLeaves)) {
+            // Active tab - soft delete selected items
+            Leave::whereIn('id', $this->selectedLeaves)->delete(); // Soft delete
+            $this->selectedLeaves = [];
+            $this->selectAll = false;
+        } elseif (!empty($this->selectedLeavesForDelete)) {
+            // Deleted tab - already handled by existing logic
+            Leave::whereIn('id', $this->selectedLeavesForDelete)->delete(); // Soft delete
+            $this->selectedLeavesForDelete = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected leave records moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedLeavesForDelete)) {
+            Leave::withTrashed()->whereIn('id', $this->selectedLeavesForDelete)->restore();
+            $this->selectedLeavesForDelete = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected leave records restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedLeavesForDelete)) {
+            Leave::withTrashed()->whereIn('id', $this->selectedLeavesForDelete)->forceDelete();
+            $this->selectedLeavesForDelete = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected leave records permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedLeavesForDelete = [];
+        $this->selectAllForDelete = false;
+    }
+
+    public function toggleSelectAllForDelete()
+    {
+        if ($this->selectAllForDelete) {
+            $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
+        } else {
+            $this->selectedLeavesForDelete = [];
+        }
+    }
+
+    public function toggleLeaveSelectionForDelete($leaveId)
+    {
+        if (in_array($leaveId, $this->selectedLeavesForDelete)) {
+            $this->selectedLeavesForDelete = array_diff($this->selectedLeavesForDelete, [$leaveId]);
+        } else {
+            $this->selectedLeavesForDelete[] = $leaveId;
+        }
+        
+        $this->selectAllForDelete = count($this->selectedLeavesForDelete) === $this->getLeaves()->count();
+    }
+
+    private function getLeaves()
+    {
+        $query = Leave::search($this->query)->with(['user']);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Add role-based filtering
+        match($this->role){
+            "supervisor" => $query->supervisor(),
+            "manager" => $query->manager(),
+            "admin" => null, // No additional filtering for admin
+            default => [],
+        };
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
     public function export()
@@ -204,40 +330,50 @@ class Index extends Component
         if (!Gate::allows('leave-read')) {
             return abort(401);
         }
-        $leaves = match ($this->role) {
-            "supervisor" => Leave::search($this->query)->supervisor()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            "manager" => Leave::search($this->query)->manager()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            "admin" =>  Leave::search($this->query)->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            default => [],
+
+        $leaves = $this->getLeaves();
+
+        // Get counts for active leave records (non-deleted)
+        $active_leaves = match($this->role){
+            "supervisor" => Leave::search($this->query)->supervisor()->whereNull('deleted_at')->count(),
+            "manager" => Leave::search($this->query)->manager()->whereNull('deleted_at')->count(),
+            "admin" => Leave::search($this->query)->whereNull('deleted_at')->count(),
+           default => 0,
         };
-        $leaves_count = match ($this->role) {
-            "supervisor" => Leave::supervisor()->count(),
-            "manager" => Leave::manager()->count(),
-            "admin" =>  Leave::count(),
-            default => [],
+
+        // Get counts for deleted leave records
+        $deleted_leaves = match($this->role){
+            "supervisor" => Leave::search($this->query)->supervisor()->withTrashed()->whereNotNull('deleted_at')->count(),
+            "manager" => Leave::search($this->query)->manager()->withTrashed()->whereNotNull('deleted_at')->count(),
+            "admin" => Leave::search($this->query)->withTrashed()->whereNotNull('deleted_at')->count(),
+           default => 0,
         };
-        $pending_leaves_count = match ($this->role) {
-            "supervisor" => Leave::supervisor()->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_PENDING)->count(),
-            "manager" => Leave::manager()->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_PENDING)->count(),
-            "admin" =>  Leave::where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_PENDING)->count(),
-            default => [],
+
+        // Get approval status counts for active records only
+        $pending_leaves_count = match($this->role){
+            "supervisor" => Leave::supervisor()->whereNull('deleted_at')->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_PENDING)->count(),
+            "manager" => Leave::manager()->whereNull('deleted_at')->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_PENDING)->count(),
+            "admin" => Leave::whereNull('deleted_at')->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_PENDING)->count(),
+           default => 0,
         };
-        $approved_leaves_count = match ($this->role) {
-            "supervisor" => Leave::supervisor()->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_APPROVED)->count(),
-            "manager" => Leave::manager()->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_APPROVED)->count(),
-            "admin" =>  Leave::where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_APPROVED)->count(),
-            default => [],
+        $approved_leaves_count = match($this->role){
+            "supervisor" => Leave::supervisor()->whereNull('deleted_at')->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_APPROVED)->count(),
+            "manager" => Leave::manager()->whereNull('deleted_at')->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_APPROVED)->count(),
+            "admin" => Leave::whereNull('deleted_at')->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_APPROVED)->count(),
+           default => 0,
         };
-        $rejected_leaves_count = match ($this->role) {
-            "supervisor" => Leave::supervisor()->where('supervisor_approval_status', Leave::MANAGER_APPROVAL_REJECTED)->count(),
-            "manager" => Leave::manager()->where('supervisor_approval_status', Leave::MANAGER_APPROVAL_REJECTED)->count(),
-            "admin" =>  Leave::where('supervisor_approval_status', Leave::MANAGER_APPROVAL_REJECTED)->count(),
-            default => [],
+        $rejected_leaves_count = match($this->role){
+            "supervisor" => Leave::supervisor()->whereNull('deleted_at')->where('supervisor_approval_status', Leave::MANAGER_APPROVAL_REJECTED)->count(),
+            "manager" => Leave::manager()->whereNull('deleted_at')->where('supervisor_approval_status', Leave::MANAGER_APPROVAL_REJECTED)->count(),
+            "admin" => Leave::whereNull('deleted_at')->where('supervisor_approval_status', Leave::MANAGER_APPROVAL_REJECTED)->count(),
+           default => 0,
         };
 
         return view('livewire.portal.leaves.index', [
             'leaves' => $leaves,
-            'leaves_count' => $leaves_count,
+            'leaves_count' => $active_leaves, // Legacy for backward compatibility
+            'active_leaves' => $active_leaves,
+            'deleted_leaves' => $deleted_leaves,
             'pending_leaves_count' => $pending_leaves_count,
             'approved_leaves_count' => $approved_leaves_count,
             'rejected_leaves_count' => $rejected_leaves_count,

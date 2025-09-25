@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AuditLog extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $guarded = [];
 
@@ -49,13 +50,14 @@ class AuditLog extends Model
     public function getStyleAttribute()
     {
         $action = explode('_', $this->action_type)[1];
-        return [
+        $styles = [
             'login' => 'secondary',
             'logout' => 'info',
             'update' => 'warning',
             'reset' => 'success',
             'created' => 'success',
             'updated' => 'warning',
+            'delete' => 'danger',
             'deleted' => 'danger',
             'exported' => 'gray-600',
             'imported' => 'gray-400',
@@ -67,7 +69,9 @@ class AuditLog extends Model
             'sms' => 'info',
             'email' => 'tertiary',
             'payslip' => 'danger'
-        ][$action];
+        ];
+        
+        return $styles[$action] ?? 'secondary'; // Default fallback
     }
     public static function search($query)
     {

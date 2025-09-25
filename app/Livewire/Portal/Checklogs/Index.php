@@ -34,6 +34,11 @@ class Index extends Component
     public bool $bulkDisabled = true;
     public bool $selectAll = false;
     public $bulk_approval_status = true;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedChecklogsForDelete = [];
+    public $selectAllForDelete = false;
 
 
     //Update & Store Rules
@@ -166,12 +171,133 @@ class Index extends Component
         }
 
         if (!empty($this->checklog)) {
-
-            $this->checklog->delete();
+            $this->checklog->delete(); // Already using soft delete
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Checkin successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('Checkin successfully moved to trash!'), 'DeleteModal');
+    }
+
+    public function restore($checklogId)
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        $checklog = Ticking::withTrashed()->findOrFail($checklogId);
+        $checklog->restore();
+
+        $this->closeModalAndFlashMessage(__('Checkin successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete($checklogId)
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        $checklog = Ticking::withTrashed()->findOrFail($checklogId);
+        $checklog->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('Checkin permanently deleted!'), 'ForceDeleteModal');
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        // Handle both active tab (selectedChecklogs) and deleted tab (selectedChecklogsForDelete)
+        if (!empty($this->selectedChecklogs)) {
+            // Active tab - soft delete selected items
+            Ticking::whereIn('id', $this->selectedChecklogs)->delete(); // Soft delete
+            $this->selectedChecklogs = [];
+            $this->selectAll = false;
+        } elseif (!empty($this->selectedChecklogsForDelete)) {
+            // Deleted tab - already handled by existing logic
+            Ticking::whereIn('id', $this->selectedChecklogsForDelete)->delete(); // Soft delete
+            $this->selectedChecklogsForDelete = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected checkin records moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedChecklogsForDelete)) {
+            Ticking::withTrashed()->whereIn('id', $this->selectedChecklogsForDelete)->restore();
+            $this->selectedChecklogsForDelete = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected checkin records restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedChecklogsForDelete)) {
+            Ticking::withTrashed()->whereIn('id', $this->selectedChecklogsForDelete)->forceDelete();
+            $this->selectedChecklogsForDelete = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected checkin records permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedChecklogsForDelete = [];
+        $this->selectAllForDelete = false;
+    }
+
+    public function toggleSelectAllForDelete()
+    {
+        if ($this->selectAllForDelete) {
+            $this->selectedChecklogsForDelete = $this->getChecklogs()->pluck('id')->toArray();
+        } else {
+            $this->selectedChecklogsForDelete = [];
+        }
+    }
+
+    public function toggleChecklogSelectionForDelete($checklogId)
+    {
+        if (in_array($checklogId, $this->selectedChecklogsForDelete)) {
+            $this->selectedChecklogsForDelete = array_diff($this->selectedChecklogsForDelete, [$checklogId]);
+        } else {
+            $this->selectedChecklogsForDelete[] = $checklogId;
+        }
+        
+        $this->selectAllForDelete = count($this->selectedChecklogsForDelete) === $this->getChecklogs()->count();
+    }
+
+    private function getChecklogs()
+    {
+        $query = Ticking::search($this->query)->with(['user']);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Add role-based filtering
+        match($this->role){
+            "supervisor" => $query->supervisor(),
+            "manager" => $query->manager(),
+            "admin" => null, // No additional filtering for admin
+            default => [],
+        };
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
     public function export()
@@ -202,40 +328,50 @@ class Index extends Component
         if (!Gate::allows('ticking-read')) {
             return abort(401);
         }
-        $checklogs = match($this->role) {
-            "supervisor" => Ticking::search($this->query)->supervisor()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            "manager" => Ticking::search($this->query)->manager()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-            "admin"=>  Ticking::search($this->query)->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage),
-           default => [],
+
+        $checklogs = $this->getChecklogs();
+
+        // Get counts for active checklog records (non-deleted)
+        $active_checklogs = match($this->role){
+            "supervisor" => Ticking::search($this->query)->supervisor()->whereNull('deleted_at')->count(),
+            "manager" => Ticking::search($this->query)->manager()->whereNull('deleted_at')->count(),
+            "admin" => Ticking::search($this->query)->whereNull('deleted_at')->count(),
+           default => 0,
         };
-        $checklogs_count = match($this->role) {
-            "supervisor" => Ticking::supervisor()->count(),
-            "manager" => Ticking::manager()->count(),
-            "admin"=>  Ticking::count(),
-           default => [],
+
+        // Get counts for deleted checklog records
+        $deleted_checklogs = match($this->role){
+            "supervisor" => Ticking::search($this->query)->supervisor()->withTrashed()->whereNotNull('deleted_at')->count(),
+            "manager" => Ticking::search($this->query)->manager()->withTrashed()->whereNotNull('deleted_at')->count(),
+            "admin" => Ticking::search($this->query)->withTrashed()->whereNotNull('deleted_at')->count(),
+           default => 0,
         };
-        $pending_checklogs_count = match($this->role) {
-            "supervisor" => Ticking::supervisor()->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_PENDING)->count(),
-            "manager" => Ticking::manager()->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_PENDING)->count(),
-            "admin"=>  Ticking::where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_PENDING)->count(),
-           default => [],
+
+        // Get approval status counts for active records only
+        $pending_checklogs_count = match($this->role){
+            "supervisor" => Ticking::supervisor()->whereNull('deleted_at')->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_PENDING)->count(),
+            "manager" => Ticking::manager()->whereNull('deleted_at')->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_PENDING)->count(),
+            "admin" => Ticking::whereNull('deleted_at')->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_PENDING)->count(),
+           default => 0,
         };
-        $approved_checklogs_count = match($this->role) {
-            "supervisor" => Ticking::supervisor()->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_APPROVED)->count(),
-            "manager" => Ticking::manager()->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_APPROVED)->count(),
-            "admin"=>  Ticking::where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_APPROVED)->count(),
-           default => [],
+        $approved_checklogs_count = match($this->role){
+            "supervisor" => Ticking::supervisor()->whereNull('deleted_at')->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_APPROVED)->count(),
+            "manager" => Ticking::manager()->whereNull('deleted_at')->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_APPROVED)->count(),
+            "admin" => Ticking::whereNull('deleted_at')->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_APPROVED)->count(),
+           default => 0,
         };
-        $rejected_checklogs_count = match($this->role) {
-            "supervisor" => Ticking::supervisor()->where('supervisor_approval_status', Ticking::MANAGER_APPROVAL_REJECTED)->count(),
-            "manager" => Ticking::manager()->where('supervisor_approval_status', Ticking::MANAGER_APPROVAL_REJECTED)->count(),
-            "admin"=>  Ticking::where('supervisor_approval_status', Ticking::MANAGER_APPROVAL_REJECTED)->count(),
-           default => [],
+        $rejected_checklogs_count = match($this->role){
+            "supervisor" => Ticking::supervisor()->whereNull('deleted_at')->where('supervisor_approval_status', Ticking::MANAGER_APPROVAL_REJECTED)->count(),
+            "manager" => Ticking::manager()->whereNull('deleted_at')->where('supervisor_approval_status', Ticking::MANAGER_APPROVAL_REJECTED)->count(),
+            "admin" => Ticking::whereNull('deleted_at')->where('supervisor_approval_status', Ticking::MANAGER_APPROVAL_REJECTED)->count(),
+           default => 0,
         };
 
         return view('livewire.portal.checklogs.index', [
             'checklogs' => $checklogs,
-            'checklogs_count' => $checklogs_count,
+            'checklogs_count' => $active_checklogs, // Legacy for backward compatibility
+            'active_checklogs' => $active_checklogs,
+            'deleted_checklogs' => $deleted_checklogs,
             'pending_checklogs_count' => $pending_checklogs_count,
             'approved_checklogs_count' => $approved_checklogs_count,
             'rejected_checklogs_count' => $rejected_checklogs_count,

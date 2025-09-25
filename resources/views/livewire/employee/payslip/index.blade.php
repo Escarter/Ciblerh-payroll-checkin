@@ -63,8 +63,8 @@
         </div>
         @if(count($payslips) > 0)
         <div class="card">
-            <div class="table-responsive text-gray-700">
-                <table class="table table-hover align-items-center dataTable">
+            <div class="table-responsive pb-4 text-gray-700">
+                <table class="table table-bordered table-hover align-items-center dataTable">
                     <thead>
                         <tr>
                             <th class="border-bottom">{{__('Year')}}</th>

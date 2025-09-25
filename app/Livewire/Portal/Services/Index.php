@@ -27,6 +27,11 @@ class Index extends Component
     public ?bool $is_active = null;
     public $service_file = null;
     public $selectedDepartmentId = null;
+    
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedServices = [];
+    public $selectAll = false;
 
     //Update & Store Rules
     protected array $rules = [
@@ -88,12 +93,118 @@ class Index extends Component
         }
 
         if (!empty($this->service)) {
-
-            $this->service->delete();
+            $this->service->delete(); // Already using soft delete
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Service successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('Service successfully moved to trash!'), 'DeleteModal');
+    }
+
+    public function restore($serviceId)
+    {
+        if (!Gate::allows('service-delete')) {
+            return abort(401);
+        }
+
+        $service = Service::withTrashed()->findOrFail($serviceId);
+        $service->restore();
+
+        $this->closeModalAndFlashMessage(__('Service successfully restored!'), 'RestoreModal');
+    }
+
+    public function forceDelete($serviceId)
+    {
+        if (!Gate::allows('service-delete')) {
+            return abort(401);
+        }
+
+        $service = Service::withTrashed()->findOrFail($serviceId);
+        $service->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('Service permanently deleted!'), 'ForceDeleteModal');
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('service-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedServices)) {
+            Service::whereIn('id', $this->selectedServices)->delete(); // Soft delete
+            $this->selectedServices = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected services moved to trash!'), 'BulkDeleteModal');
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('service-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedServices)) {
+            Service::withTrashed()->whereIn('id', $this->selectedServices)->restore();
+            $this->selectedServices = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected services restored!'), 'BulkRestoreModal');
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('service-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedServices)) {
+            Service::withTrashed()->whereIn('id', $this->selectedServices)->forceDelete();
+            $this->selectedServices = [];
+        }
+
+        $this->closeModalAndFlashMessage(__('Selected services permanently deleted!'), 'BulkForceDeleteModal');
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedServices = [];
+        $this->selectAll = false;
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            $this->selectedServices = $this->getServices()->pluck('id')->toArray();
+        } else {
+            $this->selectedServices = [];
+        }
+    }
+
+    public function toggleServiceSelection($serviceId)
+    {
+        if (in_array($serviceId, $this->selectedServices)) {
+            $this->selectedServices = array_diff($this->selectedServices, [$serviceId]);
+        } else {
+            $this->selectedServices[] = $serviceId;
+        }
+        
+        $this->selectAll = count($this->selectedServices) === $this->getServices()->count();
+    }
+
+    private function getServices()
+    {
+        $query = Service::search($this->query)->with(['department','company'])->where('department_id', $this->department->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
     public function import()
@@ -138,12 +249,20 @@ class Index extends Component
         if (!Gate::allows('service-read')) {
             return abort(401);
         }
-        $services = Service::search($this->query)->with(['department','company'])->where('department_id', $this->department->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+
+        $services = $this->getServices();
+
+        // Get counts for active services (non-deleted)
+        $active_services = Service::where('department_id', $this->department->id)->whereNull('deleted_at')->where('is_active', true)->count();
+        $inactive_services = Service::where('department_id', $this->department->id)->whereNull('deleted_at')->where('is_active', false)->count();
+        $deleted_services = Service::where('department_id', $this->department->id)->withTrashed()->whereNotNull('deleted_at')->count();
+
         return view('livewire.portal.services.index', [
             'services' => $services,
-            'services_count' => Service::where('department_id', $this->department->id)->count(),
-            'active_services' => Service::where('department_id', $this->department->id)->where('is_active', true)->count(),
-            'inactive_services' => Service::where('department_id', $this->department->id)->where('is_active', false)->count(),
+            'services_count' => $active_services + $inactive_services, // Legacy for backward compatibility
+            'active_services' => $active_services,
+            'inactive_services' => $inactive_services,
+            'deleted_services' => $deleted_services,
         ])->layout('components.layouts.dashboard');
     }
 

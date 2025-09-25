@@ -104,7 +104,7 @@
     </div>
     <div class="card">
         <div class="table-responsive pb-4 text-gray-700">
-            <table class="table table-hover align-items-center dataTable">
+            <table class="table table-hover table-bordered align-items-center dataTable">
                 <thead>
                     <tr>
                         <th class="border-bottom">{{__('Employee')}}</th>

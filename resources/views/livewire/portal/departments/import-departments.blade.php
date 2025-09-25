@@ -11,11 +11,18 @@
                      <x-form-items.form wire:submit="import" class="form-modal">
                          <p>{{__('Steps you have to follow for importing new :name',['name'=>__('departments')])}}</p>
                          <div class='mb-4'>
-                             <ol>
-                                 <li>{{__('Download sample :name import template',['name'=>__('Department')])}} <a href="{{asset('templates/import_departments.xlsx')}}">{{__('Template')}}</a></li>
-                                 <li>{{__('Fill template with your :name data',['name'=>__('departments')])}}</li>
-                                 <li>{{__('Upload the filled templated using below form and click on import button to import')}}</li>
-                             </ol>
+                            <ol>
+                                <li>{{__('Download sample :name import template',['name'=>__('Department')])}} 
+                                    <a href="{{asset('templates/import_departments.xlsx')}}" class="btn btn-sm btn-outline-success ms-2" download>
+                                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        {{__('Download Template')}}
+                                    </a>
+                                </li>
+                                <li>{{__('Fill template with your :name data',['name'=>__('departments')])}}</li>
+                                <li>{{__('Upload the filled templated using below form and click on import button to import')}}</li>
+                            </ol>
                          </div>
 
                          <div class="mb-4">

@@ -120,8 +120,8 @@
         </div>
     </div>
     <div class="card pb-3 ">
-        <div class="table-responsive py-4">
-            <table class="table employee-table table-hover align-items-center dataTable" id="datatable">
+        <div class="table-responsive">
+            <table class="table employee-table table-bordered table-hover align-items-center dataTable" id="datatable">
                 <thead>
                     <tr>
                         <th class="border-bottom">{{__('Name')}}</th>

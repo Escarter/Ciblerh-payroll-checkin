@@ -2,24 +2,20 @@
 
 namespace App\Imports;
 
-use App\Models\User;
-use App\Models\Company;
-use Illuminate\Support\Str;
+use App\Models\LeaveType;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
-use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class CompanyImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValidation, SkipsOnError, SkipsOnFailure
+class LeaveTypeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValidation, SkipsOnError, SkipsOnFailure
 {
     use Importable, SkipsErrors, SkipsFailures;
-    
 
     /**
      * @return int
@@ -29,11 +25,11 @@ class CompanyImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
         return 2;
     }
 
-
     public function __construct()
     {
         
     }
+
     /**
      * @param array $row
      *
@@ -41,25 +37,24 @@ class CompanyImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
      */
     public function model(array $row)
     {
-
-        $code_exist = Company::where('code', $row[0])->first();
-        if (!$code_exist ) {
-
-            $company =  Company::create([
-                'code' => $row[0] == '' ? Str::upper(Str::random(12)) : $row[0],
-                'name' => $row[1],
-                'description' => $row[2],
-                'sector' => $row[3],
+        $code_exist = LeaveType::where('name', $row[0])->first();
+        if (!$code_exist) {
+            return new LeaveType([
+                'name' => $row[0],
+                'description' => $row[1] ?? '',
+                'max_days' => $row[2] ?? 0,
+                'is_paid' => $row[3] ?? false,
                 'author_id' => auth()->user()->id,
             ]);
-            return $company;
         }
     }
+
     public function rules(): array
     {
         return [
-            '0' => 'nullable|string',
-            '1' => 'required|string',
+            '0' => 'required|string',
+            '2' => 'nullable|integer|min:0',
+            '3' => 'nullable|boolean',
         ];
     }
 }
