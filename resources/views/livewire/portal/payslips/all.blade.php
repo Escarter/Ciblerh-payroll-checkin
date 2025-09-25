@@ -191,6 +191,7 @@
                             <input type="checkbox" class="form-check-input" wire:click="toggleSelectAll" {{ $selectAll ? 'checked' : '' }}>
                         </th>
                         <th class="border-bottom">{{__('Department')}}</th>
+                        <th class="border-bottom">{{__('By')}}</th>
                         <th class="border-bottom">{{__('Details')}}</th>
                         <th class="border-bottom text-center">{{__('Status')}}</th>
                         <th class="border-bottom text-center">{{__('Action')}}</th>
@@ -226,6 +227,16 @@
                             @endif
                         </td>
                         <td>
+                            <div class="small text-gray">
+                                <span class="d-flex align-items-baseline">
+                                    <svg class="icon icon-xxs small me-1" fill="currentColor" stroke="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    {{!is_null($job->owner) ? $job->owner->first_name : ''}}
+                                </span>
+                            </div>
+                        </td>
+                        <td>
                             <div class="d-flex flex-column">
                                 <div class="mb-1">
                                     <span class="fw-bold text-primary">{{__('Target')}}:</span>
@@ -239,10 +250,6 @@
                                     <span class="fw-bold text-primary">{{__('Date Created')}}:</span>
                                     <span class="ms-1">{{$job->created_at->diffForHumans()}}</span>
                                 </div>
-                                <div>
-                                    <span class="fw-bold text-primary">{{__('By')}}:</span>
-                                    <span class="ms-1">{{!is_null($job->owner) ? $job->owner->first_name : ''}}</span>
-                                </div>
                             </div>
                         </td>
                         <td class="text-center">
@@ -254,7 +261,7 @@
                             <span class="badge badge-lg text-md bg-warning">{{__('Processing...')}}</span>
                             @endif
                         </td>
-                        <td class="text-center">
+                        <td>
                             @if($activeTab === 'active')
                             <a href='#' wire:click.prevent="initData({{$job->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
                                 <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
