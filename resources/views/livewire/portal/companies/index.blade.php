@@ -369,19 +369,25 @@
                 <div class="card-body p-0">
                     <div class="mb-4">
                         <div class="row g-2">
-                            <div class="col-4">
+                            <div class="col-3">
+                                <div class="text-center p-2 bg-light rounded-3">
+                                    <div class="fw-bold fs-5 text-primary">{{$company->id}}</div>
+                                    <div class="small text-gray-600">{{__('ID')}}</div>
+                                </div>
+                            </div>
+                            <div class="col-3">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-primary">{{numberFormat(count($company->departments)) }}</div>
                                     <div class="small text-gray-600">{{__('Depts')}}</div>
                                 </div>
                             </div>
-                            <div class="col-4">
+                            <div class="col-3">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-success">{{numberFormat(count($company->employees)) }}</div>
                                     <div class="small text-gray-600">{{__('Staff')}}</div>
                                 </div>
                             </div>
-                            <div class="col-4">
+                            <div class="col-3">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-warning">{{numberFormat(count($company->services)) }}</div>
                                     <div class="small text-gray-600">{{__('Services')}}</div>
