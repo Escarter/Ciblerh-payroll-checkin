@@ -25,7 +25,7 @@
                             </div>
                         </div>
 
-                        <div class='form-group row mb-2'>
+                        <div class='form-group mb-2'>
                             <label for="service_id">{{__('Service')}}</label>
                             <select wire:model="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
                                 <option value="">{{__("Select service")}}</option>
@@ -37,7 +37,7 @@
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
-                        <div class='form-group row mb-2'>
+                        <div class='form-group mb-2'>
                             <x-choices-multi-select
                                 id="create_selected_roles"
                                 wireModel="selected_roles"
@@ -47,7 +47,7 @@
                                 help="{{__('Maximum 2 roles allowed. Employee role is automatically included.')}}"
                                 class="form-select" />
                         </div>
-                        <div class="form-group mb-2 row">
+                        <div class="form-group mb-2">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="first_name">{{__('First Name')}}</label>
                                 <input wire:model="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" placeholder="John" required="" name="first_name">

@@ -34,10 +34,31 @@ class Index extends Component
     public function delete($auditLogId = null)
     {
         $auditLog = $auditLogId ? AuditLog::findOrFail($auditLogId) : $this->audit_log;
+        
+        if (!$auditLog) {
+            $this->closeModalAndFlashMessage(__('Audit log not found!'), 'DeleteAuditLogModal');
+            return;
+        }
+        
         $auditLog->delete(); // Soft delete
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Audit Log successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('Audit Log successfully moved to trash!'), 'DeleteAuditLogModal');
+    }
+
+    public function forceDelete($auditLogId = null)
+    {
+        $auditLog = $auditLogId ? AuditLog::withTrashed()->findOrFail($auditLogId) : $this->audit_log;
+        
+        if (!$auditLog) {
+            $this->closeModalAndFlashMessage(__('Audit log not found!'), 'ForceDeleteAuditLogModal');
+            return;
+        }
+        
+        $auditLog->forceDelete();
+
+        $this->clearFields();
+        $this->closeModalAndFlashMessage(__('Audit Log permanently deleted!'), 'ForceDeleteAuditLogModal');
     }
 
     public function clearFields()
@@ -60,14 +81,6 @@ class Index extends Component
         $auditLog->restore();
 
         $this->closeModalAndFlashMessage(__('Audit Log successfully restored!'), 'RestoreModal');
-    }
-
-    public function forceDelete($auditLogId)
-    {
-        $auditLog = AuditLog::withTrashed()->findOrFail($auditLogId);
-        $auditLog->forceDelete();
-
-        $this->closeModalAndFlashMessage(__('Audit Log permanently deleted!'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()

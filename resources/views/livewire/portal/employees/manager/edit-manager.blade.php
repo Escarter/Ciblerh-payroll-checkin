@@ -101,7 +101,7 @@
                             </div>
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
+                            <button type="button" wire:click.prevent="clearFields" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
                             <button type="submit" wire:click.prevent="updateManager" class="btn btn-primary " wire:loading.attr="disabled">{{__('Update')}}</button>
                         </div>
                     </x-form-items.form>

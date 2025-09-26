@@ -146,6 +146,74 @@
     </div>
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('audit log') : __('audit logs')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('audit log') : __('audit logs')])
+    
+    <!-- Individual Delete Confirmation Modal -->
+    <div wire:ignore.self class="modal fade" id="DeleteAuditLogModal" tabindex="-1" role="dialog" aria-labelledby="deleteAuditLogModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="p-3 p-lg-4">
+                        <div class="mb-4 mt-md-0 text-center">
+                            <svg class="icon icon-xxl text-danger mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h1 class="mb-0 h2 fw-bolder">{{__('Are you sure?')}}</h1>
+                            <p class="pt-2">{{__('You are about to move this audit log to trash. This action can be undone later.')}}</p>
+                        </div>
+                        @if($audit_log)
+                        <div class="alert alert-light mb-3">
+                            <strong>{{__('Audit Log Details:')}}</strong><br>
+                            <small class="text-muted">
+                                {{__('User')}}: {{$audit_log->user}}<br>
+                                {{__('Action')}}: {{$audit_log->action_type}}<br>
+                                {{__('Date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
+                            </small>
+                        </div>
+                        @endif
+                        <div class="d-flex justify-content-center">
+                            <button type="button" wire:click="delete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('Move to Trash')}}</button>
+                            <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{__('Cancel')}}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Individual Force Delete Confirmation Modal -->
+    <div wire:ignore.self class="modal fade" id="ForceDeleteAuditLogModal" tabindex="-1" role="dialog" aria-labelledby="forceDeleteAuditLogModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="p-3 p-lg-4">
+                        <div class="mb-4 mt-md-0 text-center">
+                            <svg class="icon icon-xxl text-danger mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <h1 class="mb-0 h2 fw-bolder">{{__('Permanent Deletion')}}</h1>
+                            <p class="pt-2">{{__('You are about to permanently delete this audit log from the system.')}}</p>
+                            <p class="text-danger fw-bold">{{__('This action cannot be undone!')}}</p>
+                        </div>
+                        @if($audit_log)
+                        <div class="alert alert-danger mb-3">
+                            <strong>{{__('Audit Log Details:')}}</strong><br>
+                            <small>
+                                {{__('User')}}: {{$audit_log->user}}<br>
+                                {{__('Action')}}: {{$audit_log->action_type}}<br>
+                                {{__('Date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
+                            </small>
+                        </div>
+                        @endif
+                        <div class="d-flex justify-content-center">
+                            <button type="button" wire:click="forceDelete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('Delete Forever')}}</button>
+                            <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{__('Cancel')}}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <x-alert />
 
     <div class="row p-3">
@@ -343,7 +411,7 @@
                         </td>
                         <td>
                             @if($activeTab === 'active')
-                            <a href="#" wire:click="delete({{ $log->id }})" class="text-danger" title="{{__('Delete')}}">
+                            <a href="#" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#DeleteAuditLogModal" class="text-danger" title="{{__('Delete')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
@@ -354,7 +422,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>
                             </a>
-                            <a href="#" wire:click="forceDelete({{ $log->id }})" class="text-danger" title="{{__('Delete Forever')}}">
+                            <a href="#" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#ForceDeleteAuditLogModal" class="text-danger" title="{{__('Delete Forever')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>

@@ -24,7 +24,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class='form-group row mb-2'>
+                        <div class='form-group mb-2'>
                             <label for="service_id">{{__('Service')}}</label>
                             <select wire:model.live="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
                                 <option value="">{{__("Select service")}}</option>
@@ -36,7 +36,7 @@
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
-                        <div class='form-group row mb-2'>
+                        <div class='form-group mb-2'>
                             <x-choices-multi-select
                                 id="edit_selected_roles"
                                 wireModel="selected_roles"
@@ -187,7 +187,7 @@
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" wire:click.prevent="close" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
+                            <button type="button" wire:click.prevent="clearFields" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
                             <button type="submit" wire:click.prevent="update" class="btn btn-primary " wire:loading.attr="disabled">{{__('Update')}}</button>
                         </div>
                     </x-form-items.form>

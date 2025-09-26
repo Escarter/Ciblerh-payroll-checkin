@@ -53,7 +53,9 @@
 
                         // Set initial selected values if any
                         const initialSelected = Array.isArray(selected) ? selected : (selected ? [selected] : []);
-                        this.selectInstance.setChoiceByValue(initialSelected);
+                        if (initialSelected.length > 0) {
+                            this.selectInstance.setChoiceByValue(initialSelected);
+                        }
 
                         // On change, update Livewire property
                         this.selectInstance.passedElement.element.addEventListener('change', () => {
@@ -93,6 +95,12 @@
                                 this.selectInstance.removeActiveItems();
                                 this.selectInstance.setValue([]);
                                 this.$wire.set(wireModel, []);
+                                
+                                // Set selected values if provided in the event
+                                if (event.detail.selected && Array.isArray(event.detail.selected)) {
+                                    this.selectInstance.setChoiceByValue(event.detail.selected);
+                                    this.$wire.set(wireModel, event.detail.selected);
+                                }
                             }
                         };
 

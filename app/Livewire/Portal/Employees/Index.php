@@ -99,7 +99,7 @@ class Index extends Component
 
     public function toggleRole($roleName)
     {
-        // Ensure employee role is always included
+        // Ensure employee role is always included and cannot be toggled
         if ($roleName === 'employee') {
             return; // Don't allow toggling employee role
         }
@@ -110,16 +110,29 @@ class Index extends Component
                 return $role !== $roleName;
             });
         } else {
-            // Add role if under limit
+            // Add role if under limit (max 2 roles including employee)
             if (count($this->selected_roles) < 2) {
                 $this->selected_roles[] = $roleName;
+            } else {
+                $this->addError('selected_roles', 'Maximum 2 roles allowed (including employee role).');
+                return;
             }
         }
 
-        // Ensure employee role is always included
+        // Ensure employee role is always included and first
         if (!in_array('employee', $this->selected_roles)) {
             $this->selected_roles[] = 'employee';
         }
+        
+        // Reorder to put employee role first
+        $this->selected_roles = array_unique($this->selected_roles);
+        $employeeKey = array_search('employee', $this->selected_roles);
+        if ($employeeKey !== false) {
+            unset($this->selected_roles[$employeeKey]);
+            // Reindex the array
+            $this->selected_roles = array_values($this->selected_roles);
+        }
+        array_unshift($this->selected_roles, 'employee');
     }
  
     public function store()
@@ -128,13 +141,27 @@ class Index extends Component
             return abort(401);
         }
         
-        // Ensure employee role is always included
+        // Validate that employee role is always included
         if (!in_array('employee', $this->selected_roles)) {
-            $this->selected_roles[] = 'employee';
+            $this->addError('selected_roles', 'Employee role must always be included.');
+            return;
         }
 
-        // Limit to maximum 2 roles
-        $this->selected_roles = array_slice($this->selected_roles, 0, 2);
+        // Validate maximum 2 roles (including employee)
+        if (count($this->selected_roles) > 2) {
+            $this->addError('selected_roles', 'A user can have a maximum of 2 roles (including the employee role).');
+            return;
+        }
+
+        // Ensure employee role is first in the array
+        $this->selected_roles = array_unique($this->selected_roles);
+        $employeeKey = array_search('employee', $this->selected_roles);
+        if ($employeeKey !== false) {
+            unset($this->selected_roles[$employeeKey]);
+            // Reindex the array
+            $this->selected_roles = array_values($this->selected_roles);
+        }
+        array_unshift($this->selected_roles, 'employee');
         
         $this->validate();
 
@@ -193,6 +220,7 @@ class Index extends Component
             'date_of_birth' => 'required|date',
             'work_start_time' => 'required|date_format:H:i',
             'work_end_time' => 'required|date_format:H:i|after:work_start_time',
+            'selected_roles' => 'required|array|max:2',
         ]);
 
         $this->employee->update([
@@ -219,13 +247,27 @@ class Index extends Component
             // 'pdf_password' => Str::random(10),
         ]);
 
-        // Ensure employee role is always included
+        // Validate that employee role is always included
         if (!in_array('employee', $this->selected_roles)) {
-            $this->selected_roles[] = 'employee';
+            $this->addError('selected_roles', 'Employee role must always be included.');
+            return;
         }
 
-        // Limit to maximum 2 roles
-        $this->selected_roles = array_slice($this->selected_roles, 0, 2);
+        // Validate maximum 2 roles (including employee)
+        if (count($this->selected_roles) > 2) {
+            $this->addError('selected_roles', 'A user can have a maximum of 2 roles (including the employee role).');
+            return;
+        }
+
+        // Ensure employee role is first in the array
+        $this->selected_roles = array_unique($this->selected_roles);
+        $employeeKey = array_search('employee', $this->selected_roles);
+        if ($employeeKey !== false) {
+            unset($this->selected_roles[$employeeKey]);
+            // Reindex the array
+            $this->selected_roles = array_values($this->selected_roles);
+        }
+        array_unshift($this->selected_roles, 'employee');
 
         // Sync roles (this will remove old roles and assign new ones)
         $this->employee->syncRoles($this->selected_roles);
@@ -388,11 +430,35 @@ class Index extends Component
         $this->work_end_time = Carbon::parse($employee->work_end_time)->format('H:i');
         $this->status = $employee->status ? "true" : "false";
         $this->services = $department->services;
-        $this->date_of_birth = $department->date_of_birth;
+        $this->date_of_birth = $employee->date_of_birth;
         $this->service_id = $employee->service_id;
         $this->department_id = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
         $this->selected_roles = $employee->getRoleNames()->toArray();
+        
+        // Ensure employee role is always included in the selected roles
+        if (!in_array('employee', $this->selected_roles)) {
+            $this->selected_roles[] = 'employee';
+        }
+        
+        // Ensure employee role is first - fix the logic
+        $this->selected_roles = array_unique($this->selected_roles);
+        $employeeKey = array_search('employee', $this->selected_roles);
+        if ($employeeKey !== false) {
+            unset($this->selected_roles[$employeeKey]);
+            // Reindex the array
+            $this->selected_roles = array_values($this->selected_roles);
+        }
+        array_unshift($this->selected_roles, 'employee');
+
+        // Refresh Choices.js for employee edit modal to avoid stale selections
+        $choicesOptions = $this->roles
+            ->pluck('name', 'name')
+            ->map(function ($name) {
+                return ucfirst($name);
+            })
+            ->toArray();
+        $this->dispatch('refreshChoices', id: 'edit_selected_roles', options: $choicesOptions, selected: $this->selected_roles);
     }
 
     public function initDataManager($employee_id)
@@ -406,6 +472,27 @@ class Index extends Component
         $this->phone_number = $employee->professional_phone_number;
         $this->status = $employee->status ? "true" : "false";
         $this->role_name = $employee->getRoleNames()->first();
+
+        // Ensure selected_roles is set and refresh Choices for manager modal
+        $this->selected_roles = $employee->getRoleNames()->toArray();
+        if (!in_array('employee', $this->selected_roles)) {
+            $this->selected_roles[] = 'employee';
+        }
+        $this->selected_roles = array_unique($this->selected_roles);
+        $employeeKey = array_search('employee', $this->selected_roles);
+        if ($employeeKey !== false) {
+            unset($this->selected_roles[$employeeKey]);
+            $this->selected_roles = array_values($this->selected_roles);
+        }
+        array_unshift($this->selected_roles, 'employee');
+
+        $choicesOptions = $this->roles
+            ->pluck('name', 'name')
+            ->map(function ($name) {
+                return ucfirst($name);
+            })
+            ->toArray();
+        $this->dispatch('refreshChoices', id: 'edit_manager_roles', options: $choicesOptions, selected: $this->selected_roles);
     }
 
     public function updateManager()
