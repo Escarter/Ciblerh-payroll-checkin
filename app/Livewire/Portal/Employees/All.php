@@ -15,7 +15,7 @@ use App\Events\EmployeeCreated;
 use App\Exports\EmployeeExport;
 use App\Imports\EmployeeImport;
 use App\Livewire\Traits\WithDataTable;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\Eloquent\Collection;

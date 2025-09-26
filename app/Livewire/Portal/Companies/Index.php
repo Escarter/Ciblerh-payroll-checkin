@@ -227,9 +227,13 @@ class Index extends Component
     public function toggleSelectAll()
     {
         if ($this->selectAll) {
-            $this->selectedCompanies = $this->getCompanies()->pluck('id')->toArray();
-        } else {
+            // Deselect all
             $this->selectedCompanies = [];
+            $this->selectAll = false;
+        } else {
+            // Select all companies from current page
+            $this->selectedCompanies = $this->getCompanies()->pluck('id')->toArray();
+            $this->selectAll = true;
         }
     }
 

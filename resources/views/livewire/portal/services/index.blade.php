@@ -193,10 +193,9 @@
         </div>
     </div>
 
-    <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    <!-- Table Controls: Tab Buttons + Bulk Actions + Select All -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-
-        <!-- Tab Buttons (Right) -->
+        <!-- Tab Buttons (Left) -->
         <div class="d-flex gap-2">
             <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
@@ -219,174 +218,197 @@
             </button>
         </div>
 
-        <!-- Bulk Actions (Left) -->
-        <div>
+        <!-- Right Side: Select All + Bulk Actions -->
+        <div class="d-flex align-items-center gap-2">
+            <!-- Select All Button -->
+            @if(count($services) > 0)
+            <button wire:click="toggleSelectAll" 
+                    class="btn btn-sm {{ $selectAll ? 'btn-primary' : 'btn-outline-primary' }} d-flex align-items-center">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {{ $selectAll ? __('Deselect All') : __('Select All') }}
+            </button>
+            @endif
+
+            <!-- Bulk Actions -->
             @if(count($selectedServices) > 0)
-            <div class="d-flex align-items-center gap-2">
+            @if($activeTab === 'active')
+            @can('service-delete')
+            <button type="button"
+                class="btn btn-sm btn-danger d-flex align-items-center"
+                data-bs-toggle="modal" 
+                data-bs-target="#BulkDeleteModal">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Move to Trash')}}
+                <span class="badge bg-light text-white ms-1">{{ count($selectedServices) }}</span>
+            </button>
+            @endcan
+            @else
+            @can('service-delete')
+            <button wire:click="bulkRestore"
+                class="btn btn-sm btn-outline-success d-flex align-items-center"
+                title="{{ __('Restore Selected Services') }}">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                {{__('Restore Selected')}}
+                <span class="badge bg-success text-white ms-1">{{ count($selectedServices) }}</span>
+            </button>
 
-                @if($activeTab === 'active')
-                @can('service-delete')
-                <button type="button"
-                    class="btn btn-sm btn-danger d-flex align-items-center"
-                    data-bs-toggle="modal" 
-                    data-bs-target="#BulkDeleteModal">
-                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    {{__('Move to Trash')}}
-                    <span class="badge bg-light text-white ms-1">{{ count($selectedServices) }}</span>
-                </button>
-                @endcan
-                @else
-                @can('service-delete')
-                <button wire:click="bulkRestore"
-                    class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                    title="{{ __('Restore Selected Services') }}">
-                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                    </svg>
-                    {{__('Restore Selected')}}
-                    <span class="badge bg-success text-white ms-1">{{ count($selectedServices) }}</span>
-                </button>
+            <button type="button"
+                class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                title="{{ __('Permanently Delete Selected Services') }}"
+                data-bs-toggle="modal" 
+                data-bs-target="#BulkForceDeleteModal">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Delete Forever')}}
+                <span class="badge bg-danger text-white ms-1">{{ count($selectedServices) }}</span>
+            </button>
+            @endcan
+            @endif
 
-                <button type="button"
-                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Permanently Delete Selected Services') }}"
-                    data-bs-toggle="modal" 
-                    data-bs-target="#BulkForceDeleteModal">
-                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    {{__('Delete Forever')}}
-                    <span class="badge bg-danger text-white ms-1">{{ count($selectedServices) }}</span>
-                </button>
-                @endcan
-                @endif
-
-                <button wire:click="$set('selectedServices', [])"
-                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
-                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    {{__('Clear')}}
-                </button>
-            </div>
+            <button wire:click="$set('selectedServices', [])"
+                class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                {{__('Clear')}}
+            </button>
             @endif
         </div>
     </div>
 
-    <div class="card pb-3">
-        <div class="table-responsive text-gray-700">
-            <table class="table employee-table table-hover align-items-center " id="">
-                <thead>
-                    <tr>
-                        <th class="border-bottom">
-                            <input type="checkbox" 
-                                wire:click="toggleSelectAll" 
-                                {{ $selectAll ? 'checked' : '' }}
-                                class="form-check-input">
-                        </th>
-                        <th class="border-bottom">{{__('Service ID')}}</th>
-                        <th class="border-bottom">{{__('Service')}}</th>
-                        <th class="border-bottom">{{__('Company')}}</th>
-                        <th class="border-bottom">{{__('Status')}}</th>
-                        <th class="border-bottom">{{__('Date created')}}</th>
-                        @canany('service-update','service-delete')
-                        <th class="border-bottom">{{__('Action')}}</th>
-                        @endcanany
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($services as $service)
-                    <tr>
-                        <td>
-                            <input type="checkbox"
-                                wire:click="toggleServiceSelection({{ $service->id }})"
-                                {{ in_array($service->id, $selectedServices) ? 'checked' : '' }}
-                                class="form-check-input">
-                        </td>
-                        <td>
-                            <span class="fw-bold">{{$service->id }}</span>
-                        </td>
-                        <td>
-                            <a href="#" class="d-flex align-items-center">
-                                <div class="avatar  d-flex align-items-center justify-content-center fw-bold  rounded bg-primary me-3"><span class="text-gray-50">{{initials($service->name)}}</span></div>
-                                <div class="d-block"><span class="fw-bolder">{{ucwords($service->name)}}</span>
-                                    <div class="small text-xs text-gray d-flex justify-content-start align-items-start">
-                                        <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                        </svg>
-                                        <div>
-                                            {{!empty($service->department) ? $service->department->name : ""}}
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </a>
-                        </td>
-
-                        <td>
-                            <span class="fs-normal"><span class='fw-bolder'>{{__('Company')}}</span> : {{is_null($service->company) ? '': ucfirst($service->company->name) }}</span> <br>
-                            <span class="fs-normal"><span class='fw-bolder'>{{__('Department')}}</span> : {{is_null($service->department) ? '': ucfirst($service->department->name) }}</span>
-                        </td>
-                        <td>
-                            <span class="fw-normal badge super-badge badge-lg bg-{{$service->approvalStatusStyle('','boolean')}} rounded">{{$service->approvalStatusText('','boolean')}}</span>
-                        </td>
-                        <td>
-                            <span class="fw-normal">{{$service->created_at->format('Y-m-d')}}</span>
-                        </td>
-                        @canany('service-update','service-delete')
-                        <td>
-                            @if($activeTab === 'active')
-                                @can('service-update')
-                                <a href='#' wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#EditServiceModal">
-                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </a>
-                                @endcan
-                                @can('service-delete')
-                                <a href='#' wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
-                                    <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </a>
-                                @endcan
-                            @else
-                                @can('service-delete')
-                                <a href='#' wire:click.prevent="restore({{$service->id}})"
-                                    title="{{ __('Restore Service') }}">
-                                    <svg class="icon icon-xs text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                    </svg>
-                                </a>
-                                <a href='#' wire:click.prevent="forceDelete({{$service->id}})"
-                                    title="{{ __('Permanently Delete') }}"
-                                    onclick="return confirm('{{__('Are you sure you want to permanently delete this service? This action cannot be undone.')}}')">
-                                    <svg class="icon icon-xs text-danger" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                    </svg>
-                                </a>
-                                @endcan
-                            @endif
-                        </td>
-                        @endcanany
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8">
-                            <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                                <p>{{__('No service Found..!')}}</p>
+    <div class='row row-cols-1 @if(count($services) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>
+        @forelse($services as $service)
+        <div class='col-md-6 col-xl-4'>
+            <div class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($service->id, $selectedServices) ? 'border-primary border-3' : 'border-0' }}" 
+                 draggable="false" 
+                 wire:click="toggleServiceSelection({{ $service->id }})"
+                 style="cursor: pointer; transition: all 0.3s ease; min-height: 300px; border-radius: 12px;"
+                 onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
+                
+                <!-- Selection indicator -->
+                @if(in_array($service->id, $selectedServices))
+                <div class="position-absolute top-0 end-0 p-2">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;">
+                        <svg class="icon icon-xs text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                @endif
+                
+                <div class="card-header border-0 p-0 mb-3 d-flex justify-content-start align-items-start">
+                    <div class="d-flex justify-content-start align-items-start w-100">
+                        <div class="avatar avatar-lg d-flex align-items-center justify-content-center fw-bold fs-5 rounded-3 bg-gray-500 me-3 shadow-sm">
+                            <span class="text-white">{{initials($service->name)}}</span>
+                        </div>
+                        <div class="d-block flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h5 class="fw-bold text-gray-800 mb-0">{{ucwords($service->name)}}</h5>
+                                <span class="badge {{$service->is_active ? 'bg-success' : 'bg-danger'}} px-2 py-1 rounded-pill small">
+                                    {{$service->is_active ? __('Active') : __('Inactive')}}
+                                </span>
                             </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            <div class='pt-3 px-3 '>
-                {{ $services->links() }}
+                            @if(!empty($service->department))
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-light text-primary px-2 py-1 rounded-pill small">
+                                    <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                    </svg>
+                                    {{$service->department->name}}
+                                </span>
+                            </div>
+                            @endif
+                            <div class="small text-gray-500 d-flex align-items-center">
+                                <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                {{$service->created_at->format('M d, Y')}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="mb-4">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="text-center p-2 bg-light rounded-3">
+                                    <div class="fw-bold fs-5 text-primary">{{$service->id}}</div>
+                                    <div class="small text-gray-600">{{__('ID')}}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center p-2 bg-light rounded-3">
+                                    <div class="fw-bold fs-5 text-success">{{!empty($service->company) ? $service->company->name : 'N/A'}}</div>
+                                    <div class="small text-gray-600">{{__('Company')}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class='d-flex align-items-center justify-content-end pt-3 border-top'>
+                    <div class="d-flex align-items-center gap-2">
+                        @if($activeTab === 'active')
+                        @can('service-update')
+                        <a href="#" wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#EditServiceModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Service')}}">
+                            <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </a>
+                        @endcan
+                        @can('service-delete')
+                        <a href="#" wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Move to Trash')}}">
+                            <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </a>
+                        @endcan
+                        @else
+                        @can('service-delete')
+                        <a href="#" wire:click="restore({{$service->id}})" title="{{__('Restore Service')}}" onclick="event.stopPropagation();">
+                            <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </a>
+                        <a href="#" wire:click="forceDelete({{$service->id}})" title="{{__('Permanently Delete')}}" onclick="event.stopPropagation(); return confirm('{{__('Are you sure you want to permanently delete this service? This action cannot be undone.')}}')">
+                            <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </a>
+                        @endcan
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
+        @empty
+        <div class='col-md-12 '>
+            <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column mx-2'>
+                <div class="text-center text-gray-800 mt-4">
+                    <img src="{{ asset('/img/illustrations/not_found.svg') }}" class="w-25 ">
+                    <h4 class="fs-4 fw-bold my-1">{{__('Empty set.')}}</h4>
+                </div>
+                @can('service-create')
+                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateServiceModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
+                    <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg> {{__('Add Service ')}}
+                </a>
+                @endcan
+            </div>
+        </div>
+        @endforelse
+    </div>
+    <div class='pt-3 px-3 '>
+        {{ $services->links() }}
     </div>
 </div>

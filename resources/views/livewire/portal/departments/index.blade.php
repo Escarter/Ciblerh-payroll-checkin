@@ -201,10 +201,9 @@
         </div>
     </div>
 
-    <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    <!-- Table Controls: Tab Buttons + Bulk Actions + Select All -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-
-        <!-- Tab Buttons (Right) -->
+        <!-- Tab Buttons (Left) -->
         <div class="d-flex gap-2">
             <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
@@ -221,200 +220,215 @@
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
+                </svg>
                 {{__('Deleted')}}
                 <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_departments ?? 0 }}</span>
             </button>
-                        </div>
+        </div>
 
-        <!-- Bulk Actions (Left) -->
-                        <div>
-            @if(count($selectedDepartments) > 0)
-            <div class="d-flex align-items-center gap-2">
-
-                @if($activeTab === 'active')
-                @can('department-delete')
-                <button type="button"
-                    class="btn btn-sm btn-danger d-flex align-items-center"
-                    data-bs-toggle="modal" 
-                    data-bs-target="#BulkDeleteModal">
-                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    {{__('Move to Trash')}}
-                    <span class="badge bg-light text-white ms-1">{{ count($selectedDepartments) }}</span>
-                </button>
-                @endcan
-                @else
-                @can('department-delete')
-                <button wire:click="bulkRestore"
-                    class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                    title="{{ __('Restore Selected Departments') }}">
-                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                    </svg>
-                    {{__('Restore Selected')}}
-                    <span class="badge bg-success text-white ms-1">{{ count($selectedDepartments) }}</span>
-                </button>
-
-                <button type="button"
-                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Permanently Delete Selected Departments') }}"
-                    data-bs-toggle="modal" 
-                    data-bs-target="#BulkForceDeleteModal">
-                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    {{__('Delete Forever')}}
-                    <span class="badge bg-danger text-white ms-1">{{ count($selectedDepartments) }}</span>
-                </button>
-                @endcan
-                @endif
-
-                <button wire:click="$set('selectedDepartments', [])"
-                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
-                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                    {{__('Clear')}}
-                </button>
-                            </div>
+        <!-- Right Side: Select All + Bulk Actions -->
+        <div class="d-flex align-items-center gap-2">
+            <!-- Select All Button -->
+            @if(count($departments) > 0)
+            <button wire:click="toggleSelectAll" 
+                    class="btn btn-sm {{ $selectAll ? 'btn-primary' : 'btn-outline-primary' }} d-flex align-items-center">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {{ $selectAll ? __('Deselect All') : __('Select All') }}
+            </button>
             @endif
-                        </div>
-                    </div>
 
-    <div class="card pb-3">
-        <div class="table-responsive text-gray-700">
-            <table class="table employee-table table-bordered table-hover align-items-center">
-                <thead>
-                    <tr>
-                        <th class="border-bottom">
-                            <input type="checkbox"
-                                wire:model="selectAll"
-                                wire:change="toggleSelectAll"
-                                class="form-check-input">
-                        </th>
-                        <th class="border-bottom">{{__('Department')}}</th>
-                        <th class="border-bottom">{{__('Company')}}</th>
-                        <th class="border-bottom">{{__('Details')}}</th>
-                        <th class="border-bottom">{{__('Status')}}</th>
-                        <th class="border-bottom">{{__('Navigation')}}</th>
-                        @canany('department-delete','department-update')
-                        <th class="border-bottom">{{__('Action')}}</th>
-                        @endcanany
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($departments as $department)
-                    <tr>
-                        <td>
-                            <input type="checkbox"
-                                wire:click="toggleDepartmentSelection({{ $department->id }})"
-                                {{ in_array($department->id, $selectedDepartments) ? 'checked' : '' }}
-                                class="form-check-input">
-                        </td>
-                        <td>
-                            <a href="{{route('portal.services.index',['department_uuid'=>$department->uuid])}}" class="d-flex align-items-center">
-                                <div class="avatar avatar-md d-flex align-items-center justify-content-center fw-bold fs-6 rounded bg-primary me-2"><span class="text-white">{{initials($department->name)}}</span></div>
-                                <div class="d-block"><span class="fw-bolder fs-6">{{ucwords($department->name)}}</span>
-                                    <div class="small text-gray">
-                                        <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                                        </svg> {{__('ID')}}: {{$department->id}}
-                    </div>
-                                    @if(!empty($department->depSupervisor->supervisor))
-                                    <div class="small text-gray d-flex align-items-end">
-                                        <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                        </svg> {{__('Supervisor')}}: {{$department->depSupervisor->supervisor->first_name}}
-                </div>
-                                    @endif
-                                    <div class="small text-gray d-flex align-items-end">
-                        <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                        </svg> {{__('Created')}}: {{$department->created_at->format('Y-m-d')}}
-                        </div>
-                        </div>
-                    </a>
-                        </td>
-                        <td>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Company')}}</span>: {{is_null($department->company) ? __('NA'): ucfirst($department->company->name) }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Supervisor')}}</span>: {{is_null($department->depSupervisor) ? __('NA'): ucfirst($department->depSupervisor->supervisor->first_name ?? 'NA') }}</span>
-                        </td>
-                        <td>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Employees')}}</span>: {{numberFormat(count($department->employees)) }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Services')}}</span>: {{numberFormat(count($department->services)) }}</span>
-                        </td>
-                        <td>
-                            <div class="mb-2">
-                                <small class="text-muted fw-bold">{{__('Status')}}:</small>
-                                <div class="mt-1">
-                                    <span class="fw-normal badge badge-lg bg-{{$department->approvalStatusStyle('','boolean')}} rounded">{{$department->approvalStatusText('','boolean')}}</span>
-                        </div>
-                    </div>
-                        </td>
-                        <td>
-                            <a href="{{route('portal.services.index',['department_uuid'=>$department->uuid])}}" wire:navigate class="btn btn-xs btn-outline-primary py-1 px-1 d-inline-flex align-items-center" title="{{__('View Services')}}">
-                        <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            <!-- Bulk Actions -->
+            @if(count($selectedDepartments) > 0)
+            @if($activeTab === 'active')
+            @can('department-delete')
+            <button type="button"
+                class="btn btn-sm btn-danger d-flex align-items-center"
+                data-bs-toggle="modal" 
+                data-bs-target="#BulkDeleteModal">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Move to Trash')}}
+                <span class="badge bg-light text-white ms-1">{{ count($selectedDepartments) }}</span>
+            </button>
+            @endcan
+            @else
+            @can('department-delete')
+            <button wire:click="bulkRestore"
+                class="btn btn-sm btn-outline-success d-flex align-items-center"
+                title="{{ __('Restore Selected Departments') }}">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                {{__('Restore Selected')}}
+                <span class="badge bg-success text-white ms-1">{{ count($selectedDepartments) }}</span>
+            </button>
+
+            <button type="button"
+                class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                title="{{ __('Permanently Delete Selected Departments') }}"
+                data-bs-toggle="modal" 
+                data-bs-target="#BulkForceDeleteModal">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                {{__('Delete Forever')}}
+                <span class="badge bg-danger text-white ms-1">{{ count($selectedDepartments) }}</span>
+            </button>
+            @endcan
+            @endif
+
+            <button wire:click="$set('selectedDepartments', [])"
+                class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                {{__('Clear')}}
+            </button>
+            @endif
+        </div>
+    </div>
+
+    <div class='row row-cols-1 @if(count($departments) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>
+        @forelse ($departments as $department)
+        <div class='col-md-6 col-xl-4'>
+            <div class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($department->id, $selectedDepartments) ? 'border-primary border-3' : 'border-0' }}" 
+                 draggable="false" 
+                 wire:click="toggleDepartmentSelection({{ $department->id }})"
+                 style="cursor: pointer; transition: all 0.3s ease; min-height: 200px; border-radius: 12px;"
+                 onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
+                
+                <!-- Selection indicator -->
+                @if(in_array($department->id, $selectedDepartments))
+                <div class="position-absolute top-0 end-0 p-2">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;">
+                        <svg class="icon icon-xs text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                                <span class="d-none d-lg-inline">{{__('Services')}}</span>
-                            </a>
-                        </td>
-                        @canany('department-delete','department-update')
-                        <td>
-                            @if($activeTab === 'active')
+                    </div>
+                </div>
+                @endif
+                
+                <div class="card-header border-0 p-0 mb-3 d-flex justify-content-start align-items-start">
+                    <div class="d-flex justify-content-start align-items-start w-100">
+                        <div class="avatar avatar-lg d-flex align-items-center justify-content-center fw-bold fs-5 rounded-3 bg-gray-500 me-3 shadow-sm">
+                            <span class="text-white">{{initials($department->name)}}</span>
+                        </div>
+                        <div class="d-block flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h5 class="fw-bold text-gray-800 mb-0">{{ucwords($department->name)}}</h5>
+                                <span class="badge {{$department->is_active ? 'bg-success' : 'bg-danger'}} px-2 py-1 rounded-pill small">
+                                    {{$department->is_active ? __('Active') : __('Inactive')}}
+                                </span>
+                            </div>
+                            @if(!empty($department->depSupervisor->supervisor))
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-light text-primary px-2 py-1 rounded-pill small">
+                                    <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    {{$department->depSupervisor->supervisor->first_name}}
+                                </span>
+                            </div>
+                            @endif
+                            <div class="small text-gray-500 d-flex align-items-center">
+                                <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                {{$department->created_at->format('M d, Y')}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="mb-4">
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <div class="text-center p-2 bg-light rounded-3">
+                                    <div class="fw-bold fs-5 text-primary">{{numberFormat(count($department->employees)) }}</div>
+                                    <div class="small text-gray-600">{{__('Staff')}}</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center p-2 bg-light rounded-3">
+                                    <div class="fw-bold fs-5 text-success">{{numberFormat(count($department->services)) }}</div>
+                                    <div class="small text-gray-600">{{__('Services')}}</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center p-2 bg-light rounded-3">
+                                    <div class="fw-bold fs-5 text-warning">{{$department->id}}</div>
+                                    <div class="small text-gray-600">{{__('ID')}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class='d-flex align-items-center justify-content-between pt-3 border-top'>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{{route('portal.services.index',['department_uuid'=>$department->uuid])}}" wire:navigate class="btn btn-sm btn-outline-primary d-flex align-items-center" title="{{__('View Services')}}" onclick="event.stopPropagation();">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            {{__('Services')}}
+                        </a>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        @if($activeTab === 'active')
                         @can('department-update')
-                            <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#EditDepartmentModal" draggable="false" title="{{__('Edit Department')}}">
-                            <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#EditDepartmentModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Department')}}">
+                            <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                         </a>
                         @endcan
                         @can('department-delete')
-                            <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" title="{{__('Delete Department')}}">
-                            <svg class="icon icon-sm text-danger me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Move to Trash')}}">
+                            <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                         </a>
                         @endcan
-                            @else
-                            @can('department-delete')
-                            <a href='#' wire:click.prevent="restore({{$department->id}})" title="{{__('Restore Department')}}">
-                                <svg class="icon icon-sm text-success me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                </svg>
-                            </a>
-                            <a href='#' wire:click.prevent="forceDelete({{$department->id}})" title="{{__('Permanently Delete')}}" data-confirm="{{__('Are you sure you want to permanently delete this department? This action cannot be undone.')}}">
-                                <svg class="icon icon-sm text-danger" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                </svg>
-                            </a>
-                            @endcan
-                            @endif
-                        </td>
-                    @endcanany
-                    </tr>
+                        @else
+                        @can('department-delete')
+                        <a href="#" wire:click="restore({{$department->id}})" title="{{__('Restore Department')}}" onclick="event.stopPropagation();">
+                            <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                        </a>
+                        <a href="#" wire:click="forceDelete({{$department->id}})" title="{{__('Permanently Delete')}}" onclick="event.stopPropagation(); return confirm('{{__('Are you sure you want to permanently delete this department? This action cannot be undone.')}}')">
+                            <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </a>
+                        @endcan
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
         @empty
-                    <tr>
-                        <td colspan="7" class="text-center">
-                            <div class="text-center text-gray-800 mt-2">
+        <div class='col-md-12 '>
+            <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column mx-2'>
+                <div class="text-center text-gray-800 mt-4">
+                    <img src="{{ asset('/img/illustrations/not_found.svg') }}" class="w-25 ">
+                    <h4 class="fs-4 fw-bold my-1">{{__('Empty set.')}}</h4>
+                </div>
                 @can('department-create')
-                                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateDepartmentModal" class="btn btn-sm btn-primary py-2 mt-3 d-inline-flex align-items-center">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateDepartmentModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('Add Department')}}
+                    </svg> {{__('Add Department ')}}
                 </a>
                 @endcan
-                                <h4 class="fs-4 fw-bold mt-3">{{__('Opps nothing here')}} &#128540;</h4>
-                    <p>{{__('No record found here!')}}</p>
-                </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+            </div>
         </div>
+        @endforelse
     </div>
     <div class='pt-3 px-3 '>
         {{ $departments->links() }}

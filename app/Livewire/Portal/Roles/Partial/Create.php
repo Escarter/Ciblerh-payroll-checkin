@@ -4,7 +4,7 @@ namespace App\Livewire\Portal\Roles\Partial;
 
 
 use Livewire\Component;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 use Illuminate\Support\Facades\Gate;
 use App\Livewire\Traits\WithDataTable;
 use Spatie\Permission\Models\Permission;

@@ -5,7 +5,7 @@ namespace App\Livewire\Portal\Employees\Partial;
 use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Facades\Gate;
-use Spatie\Permission\Models\Role;
+use App\Models\Role;
 
 class UserRoles extends Component
 {
