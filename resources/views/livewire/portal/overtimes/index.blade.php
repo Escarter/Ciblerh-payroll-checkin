@@ -375,7 +375,7 @@
                         </td>
                         <td>
                             <a href="#" class="d-flex align-items-center">
-                                <div class="avatar-md d-flex align-items-center justify-content-center fw-bold fs-5 rounded bg-secondary me-3"><span class="text-white">{{!empty($overtime->user) ? $overtime->user->initials : ''}}</span></div>
+                                <div class="avatar-md d-flex align-items-center justify-content-center fw-bold fs-5 rounded bg-primary me-3"><span class="text-white">{{!empty($overtime->user) ? $overtime->user->initials : ''}}</span></div>
                                 <div class="d-block"><span class="fw-bold fs-6">{{ucwords(!empty($overtime->user) ? $overtime->user->name : '')}}</span>
                                     <div class="small text-gray">
                                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

@@ -141,7 +141,7 @@
                         <tr>
                             <td>
                                 <a href="#" class="d-flex align-items-center">
-                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-secondary me-3"><span class="text-white">{{$advance_salary->initials}}</span></div>
+                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{$advance_salary->initials}}</span></div>
                                     <div class="d-block"><span class="fw-bold">{{$advance_salary->beneficiary_name}}</span>
                                         <div class="small text-gray">{{$advance_salary->beneficiary_mobile_money_number}}</div>
                                     </div>

@@ -375,7 +375,7 @@
                         </td>
                         <td>
                             <a href="#" class="d-flex align-items-center">
-                                <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-secondary me-3"><span class="text-white">{{initials($log->user)}}</span></div>
+                                <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($log->user)}}</span></div>
                                 <div class="d-block"><span class="fw-bold">{{$log->user}}</span>
                                     <div class="small text-gray">{{$log->user}}</div>
                                 </div>

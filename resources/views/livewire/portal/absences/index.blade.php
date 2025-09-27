@@ -376,7 +376,7 @@
                         </td>
                         <td>
                             <a href="#" class="d-flex align-items-center">
-                                <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-secondary me-3"><span class="text-white">{{$absence->user->initials}}</span></div>
+                                <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{$absence->user->initials}}</span></div>
                                 <div class="d-block"><span class="fw-bold">{{$absence->user->name}}</span>
                                     <div class="small text-gray">{{$absence->user->email}}</div>
                                 </div>

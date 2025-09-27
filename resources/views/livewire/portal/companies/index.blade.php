@@ -334,7 +334,7 @@
                 
                 <div class="card-header border-0 p-0 mb-3 d-flex justify-content-start align-items-start">
                     <div class="d-flex justify-content-start align-items-start w-100">
-                        <div class="avatar avatar-lg d-flex align-items-center justify-content-center fw-bold fs-5 rounded-3 bg-gray-500 me-3 shadow-sm">
+                        <div class="avatar avatar-lg d-flex align-items-center justify-content-center fw-bold fs-5 rounded-3 bg-primary me-3 shadow-sm">
                             <span class="text-white">{{$company->initials}}</span>
                         </div>
                         <div class="d-block flex-grow-1">
