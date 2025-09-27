@@ -79,15 +79,45 @@ class Index extends Component
         'selected_roles' => 'required|array|max:2',
     ];
 
-    public function mount($company_uuid)
+    public function mount($company_uuid = null, $department_uuid = null)
     {
-        $this->company = Company::findOrFail($company_uuid);
-        $this->departments = $this->company->departments;
+        $this->auth_role = auth()->user()->getRoleNames()->first();
+        
+        if ($this->auth_role === 'supervisor') {
+            // For supervisors, get department context
+            if (!$department_uuid) {
+                abort(403, 'Department access required for supervisors.');
+            }
+            $department = Department::where('uuid', $department_uuid)->firstOrFail();
+            
+            // Security check: Ensure supervisor has access to this department
+            $hasAccess = auth()->user()->supDepartments()
+                ->where('department_id', $department->id)
+                ->exists();
+                
+            if (!$hasAccess) {
+                abort(403, 'You do not have access to this department.');
+            }
+            
+            $this->company = $department->company;
+            $this->departments = collect([$department]); // Only show the specific department
+        } else {
+            // For managers and admins, use company context
+            $this->company = Company::findOrFail($company_uuid);
+            
+            // Security check: Ensure managers can only access companies they manage
+            if (auth()->user()->hasRole('manager')) {
+                if (!auth()->user()->managerCompanies->contains($this->company)) {
+                    abort(403, 'You do not have permission to access this company.');
+                }
+            }
+            
+            $this->departments = $this->company->departments;
+        }
         $this->roles = auth()->user()->getRoleNames()->first() == 'admin' ? Role::orderBy('name', 'desc')->get() : Role::whereIn('name',['employee','supervisor'])->orderBy('name','desc')->get();
         $this->password = Str::random(15);
         $this->work_start_time = Carbon::parse('08:00')->format('H:i');
         $this->work_end_time = Carbon::parse('17:30')->format('H:i');
-        $this->auth_role = auth()->user()->getRoleNames()->first();
     }
 
     public function updatedDepartmentId($department_id)
@@ -429,11 +459,11 @@ class Index extends Component
     private function getEmployees()
     {
         $baseQuery = match ($this->auth_role) {
-            'supervisor' => User::search($this->query)->supervisor()->whereHas('roles', function($query) {
-                $query->where('name', 'employee');
-            })->where('company_id', $this->company->id),
-            'manager' => User::search($this->query)->manager()->whereHas('roles', function($query) {
+            'supervisor' => User::search($this->query)->supervisor(),
+            'manager' => User::search($this->query)->whereHas('roles', function($query) {
                 $query->whereIn('name', ['employee', 'supervisor']);
+            })->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
             })->where('company_id', $this->company->id),
             'admin' => User::search($this->query)->whereHas('roles', function($query) {
                 $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
@@ -633,31 +663,37 @@ class Index extends Component
         $employees = $this->getEmployees()->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
 
         $employees_count = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->with(['roles' => fn($query) => $query->whereIn('name', ['employee'])])->where('company_id', $this->company->id)->where('status',true)->count(),
-            'manager' => User::manager()->with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor',])])->role([])->where('company_id', $this->company->id)->where('status',true)->count(),
+            'supervisor' => User::supervisor()->where('status',true)->count(),
+            'manager' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor'])])->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            })->where('company_id', $this->company->id)->where('status',true)->count(),
             'admin' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor','manager'])])->where('company_id', $this->company->id)->where('status',true)->count(),
             default => [],
         };
         $active_employees = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->with(['roles' => fn($query) => $query->whereIn('name', ['employee'])])->where('status', true)->where('company_id', $this->company->id)->where('status',true)->count(),
-            'manager' => User::manager()->with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor',])])->where('status', true)->where('company_id', $this->company->id)->where('status',true)->count(),
+            'supervisor' => User::supervisor()->where('status', true)->count(),
+            'manager' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor'])])->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            })->where('company_id', $this->company->id)->where('status', true)->count(),
             'admin' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor', 'manager'])])->where('status', true)->where('company_id', $this->company->id)->where('status',true)->count(),
             default => [],
         };
         $banned_employees = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->with(['roles' => fn($query) => $query->whereIn('name', ['employee'])])->where('status', false)->where('company_id', $this->company->id)->where('status',true)->count(),
-            'manager' => User::manager()->with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor'])])->where('status', false)->where('company_id', $this->company->id)->where('status',true)->count(),
+            'supervisor' => User::supervisor()->where('status', false)->count(),
+            'manager' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor'])])->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            })->where('company_id', $this->company->id)->where('status', false)->count(),
             'admin' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor', 'manager'])])->where('status', false)->where('company_id', $this->company->id)->where('status',true)->count(),
             default => [],
         };
 
         // Calculate deleted employees count
         $deleted_employees = match ($this->auth_role) {
-            'supervisor' => User::withTrashed()->whereNotNull('deleted_at')->supervisor()->whereHas('roles', function($query) {
-                $query->where('name', 'employee');
-            })->where('company_id', $this->company->id)->count(),
-            'manager' => User::withTrashed()->whereNotNull('deleted_at')->manager()->whereHas('roles', function($query) {
+            'supervisor' => User::withTrashed()->whereNotNull('deleted_at')->supervisor()->count(),
+            'manager' => User::withTrashed()->whereNotNull('deleted_at')->whereHas('roles', function($query) {
                 $query->whereIn('name', ['employee', 'supervisor']);
+            })->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
             })->where('company_id', $this->company->id)->count(),
             'admin' => User::withTrashed()->whereNotNull('deleted_at')->whereHas('roles', function($query) {
                 $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);

@@ -11,7 +11,11 @@
 
                         <div class="form-group mb-4">
                             <label for="name">{{__('Company')}}</label>
-                            <input type="text" class="form-control  @error('name') is-invalid @enderror" value="{{$company->name}}" disabled>
+                            @if(auth()->user()->hasRole('supervisor'))
+                                <input type="text" class="form-control" value="{{$department->company->name ?? __('Unknown Company')}}" disabled>
+                            @else
+                                <input type="text" class="form-control  @error('name') is-invalid @enderror" value="{{$company->name}}" disabled>
+                            @endif
                         </div>
                         <div class='form-group mb-4'>
                             <label for="supervisor_id">{{__('Supervisor')}}</label>

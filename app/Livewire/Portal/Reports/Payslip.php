@@ -35,7 +35,7 @@ class Payslip extends Component
     public function mount()
     {
         $this->companies  = match (auth()->user()->getRoleNames()->first()) {
-            "manager" => Company::manager()->orderBy('name', 'desc')->get(),
+            "manager" => Company::whereIn('id', auth()->user()->managerCompanies->pluck('id'))->orderBy('name', 'desc')->get(),
             "admin" => Company::orderBy('name', 'desc')->get(),
             "supervisor" => [],
             "deafult" => [],
@@ -54,7 +54,7 @@ class Payslip extends Component
         if (!is_null($company_id)) {
             $this->departments = match ($this->auth_role) {
                 "supervisor" => $this->selectedCompanyId != "all" ? Department::supervisor()->where('company_id', $company_id)->get() : Department::supervisor()->get(),
-                "manager" =>  $this->selectedCompanyId != "all" ?  Department::manager()->where('company_id', $company_id)->get() : Department::manager()->get(),
+                "manager" =>  $this->selectedCompanyId != "all" ?  Department::where('company_id', $company_id)->get() : Department::whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))->get(),
                 "admin" => $this->selectedCompanyId != "all" ? Department::where('company_id', $company_id)->get() : Department::all(),
                 "deafult" => [],
             };
@@ -65,8 +65,8 @@ class Payslip extends Component
     {
         if (!is_null($department_id)) {
             $this->employees  = match ($this->auth_role) {
-                "supervisor" => $this->selectedDepartmentId != "all" ? User::role(['employee'])->select('id', 'first_name', 'last_name', 'department_id')->supervisor()->where('department_id', $department_id)->get() :  (!empty($this->selectedCompanyId) ? User::role(['employee'])->supervisor()->where('company_id', $this->selectedCompanyId)->get() : []),
-                "manager" => $this->selectedDepartmentId != "all" ? User::role(['employee'])->manager()->select('id', 'first_name', 'last_name', 'department_id')->where('department_id', $department_id)->get() : (!empty($this->selectedCompanyId) ? User::role(['employee'])->manager()->where('company_id', $this->selectedCompanyId)->get() : []),
+                "supervisor" => $this->selectedDepartmentId != "all" ? User::role(['employee'])->whereDoesntHave('roles', function($query) { $query->where('name', 'admin'); })->select('id', 'first_name', 'last_name', 'department_id')->supervisor()->where('department_id', $department_id)->get() :  (!empty($this->selectedCompanyId) ? User::role(['employee'])->whereDoesntHave('roles', function($query) { $query->where('name', 'admin'); })->supervisor()->where('company_id', $this->selectedCompanyId)->get() : []),
+                "manager" => $this->selectedDepartmentId != "all" ? User::role(['employee'])->whereDoesntHave('roles', function($query) { $query->where('name', 'admin'); })->select('id', 'first_name', 'last_name', 'department_id')->where('department_id', $department_id)->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))->get() : (!empty($this->selectedCompanyId) ? User::role(['employee'])->whereDoesntHave('roles', function($query) { $query->where('name', 'admin'); })->where('company_id', $this->selectedCompanyId)->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))->get() : User::role(['employee'])->whereDoesntHave('roles', function($query) { $query->where('name', 'admin'); })->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))->get()),
                 "admin" => $this->selectedDepartmentId != "all" ? User::role(['employee'])->select('id', 'first_name', 'last_name', 'department_id')->where('department_id', $department_id)->get() : (!empty($this->selectedCompanyId) ? User::role(['employee'])->where('company_id', $this->selectedCompanyId)->get() : []),
                 "deafult" => [],
             };

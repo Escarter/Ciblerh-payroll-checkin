@@ -12,7 +12,11 @@
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="company">{{__('Company')}}</label>
-                                <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? '' }}" disabled>
+                                @if(auth()->user()->hasRole('supervisor'))
+                                    <input type="text" class="form-control" value="{{$employee->company->name ?? __('Unknown Company')}}" disabled>
+                                @else
+                                    <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? '' }}" disabled>
+                                @endif
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="department">{{__('Department')}}</label>

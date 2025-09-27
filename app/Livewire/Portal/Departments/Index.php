@@ -42,11 +42,19 @@ class Index extends Component
         'name' => 'required',
     ];
 
-    public function mount($company_uuid)
+    public function mount($company_uuid = null)
     {
-        $this->company = Company::findByUuid($company_uuid);
-        $this->supervisors = User::role('supervisor')->orderBy('first_name', 'desc')->where('company_id', $this->company->id)->get();
         $this->role = auth()->user()->getRoleNames()->first();
+        
+        if ($this->role === 'supervisor') {
+            // For supervisors, get their managed departments
+            $this->company = null; // Supervisors don't need company context
+            $this->supervisors = collect(); // Supervisors don't assign other supervisors
+        } else {
+            // For managers and admins, use company context
+            $this->company = Company::findByUuid($company_uuid);
+            $this->supervisors = User::role('supervisor')->orderBy('first_name', 'desc')->where('company_id', $this->company->id)->get();
+        }
     }
     public function initData($department_id)
     {
@@ -67,6 +75,12 @@ class Index extends Component
             'name' => 'required',
         ]);
 
+        if ($this->role === 'supervisor') {
+            // Supervisors can't create departments - they only manage existing ones
+            session()->flash('error', __('Supervisors cannot create new departments.'));
+            return;
+        }
+        
         $new_department = Department::create([
             'name' => $this->name,
             'company_id' => $this->company->id,
@@ -277,7 +291,13 @@ class Index extends Component
 
     private function getDepartments()
     {
-        $query = Department::search($this->query)->where('company_id', $this->company->id);
+        if ($this->role === 'supervisor') {
+            // For supervisors, show only their managed departments
+            $query = Department::search($this->query)->supervisor();
+        } else {
+            // For managers and admins, show departments in the company
+            $query = Department::search($this->query)->where('company_id', $this->company->id);
+        }
 
         // Add soft delete filtering based on active tab
         if ($this->activeTab === 'deleted') {
@@ -286,13 +306,10 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        // Add role-based filtering
-        match ($this->role) {
-            "manager" => $query->manager(),
-            "admin" => null, // No additional filtering for admin
-            "supervisor" => [],
-            default => [],
-        };
+        // Add role-based filtering for managers
+        if ($this->role === 'manager') {
+            $query->manager();
+        }
 
         return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
@@ -345,7 +362,7 @@ class Index extends Component
         $active_departments = match ($this->role) {
             "manager" => Department::search($this->query)->manager()->where('company_id', $this->company->id)->whereNull('deleted_at')->count(),
             "admin" => Department::search($this->query)->where('company_id', $this->company->id)->whereNull('deleted_at')->count(),
-            "supervisor" => 0,
+            "supervisor" => Department::search($this->query)->supervisor()->whereNull('deleted_at')->count(),
            default => 0,
         };
 
@@ -353,7 +370,7 @@ class Index extends Component
         $deleted_departments = match ($this->role) {
             "manager" => Department::search($this->query)->manager()->where('company_id', $this->company->id)->withTrashed()->whereNotNull('deleted_at')->count(),
             "admin" => Department::search($this->query)->where('company_id', $this->company->id)->withTrashed()->whereNotNull('deleted_at')->count(),
-            "supervisor" => 0,
+            "supervisor" => Department::search($this->query)->supervisor()->withTrashed()->whereNotNull('deleted_at')->count(),
            default => 0,
         };
 

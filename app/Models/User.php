@@ -74,7 +74,11 @@ class User extends Authenticatable implements HasLocalePreference
 
     public function scopeManager($query) : Builder
     {
-        return $query->where('author_id', auth()->user()->id);
+        $manager = auth()->user();
+        if ($manager && $manager->hasRole('manager')) {
+            return $query->whereIn('company_id', $manager->managerCompanies->pluck('id'));
+        }
+        return $query;
     }
     
     public function scopeWithAndWhereHas($query, $relation, $constraint)
@@ -95,7 +99,17 @@ class User extends Authenticatable implements HasLocalePreference
 
     public function scopeSupervisor($query)
     {
-        return $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
+        $user = auth()->user();
+        if ($user && $user->hasRole('supervisor')) {
+            return $query->whereIn('department_id', $user->supDepartments->pluck('department_id'))
+                         ->whereHas('roles', function($query) {
+                             $query->where('name', 'employee');
+                         })
+                         ->whereDoesntHave('roles', function($query) {
+                             $query->whereIn('name', ['admin', 'manager', 'supervisor']);
+                         });
+        }
+        return $query->where('id', 0); // Return no results if no supervisor context
     }
 
     public function getStatusStyleAttribute()
@@ -209,12 +223,12 @@ class User extends Authenticatable implements HasLocalePreference
         static::query()->when($userRole === "supervisor", function ($query) use ($authUser) {
             return $query->whereIn('department_id', $authUser->supDepartments->pluck('department_id'));
         })->when($userRole === "manager", function ($query) use ($authUser) {
-            return $query->where('author_id', $authUser->id);
+            return $query->whereIn('company_id', $authUser->managerCompanies->pluck('id'));
         }):
         static::query()->when($userRole === "supervisor", function ($query) use ($authUser) {
             return $query->whereIn('department_id', $authUser->supDepartments->pluck('department_id'));
         })->when($userRole === "manager", function ($query) use ($authUser) {
-            return $query->where('author_id', $authUser->id);
+            return $query->whereIn('company_id', $authUser->managerCompanies->pluck('id'));
         })
             ->where(function ($q) use ($query) {
                 $q->where('first_name', 'like', '%' . $query . '%');

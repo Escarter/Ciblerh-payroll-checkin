@@ -40,7 +40,11 @@ class Department extends Model
 
     public function scopeSupervisor($query)
     {
-        return $query->whereIn('id', auth()->user()->supDepartments->pluck('department_id'));
+        $user = auth()->user();
+        if ($user && $user->hasRole('supervisor')) {
+            return $query->whereIn('id', $user->supDepartments->pluck('department_id'));
+        }
+        return $query->where('id', 0); // Return no results if no supervisor context
     }
 
     public function employees() : HasMany

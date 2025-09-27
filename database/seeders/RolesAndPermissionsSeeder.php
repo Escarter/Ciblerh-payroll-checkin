@@ -185,22 +185,18 @@ class RolesAndPermissionsSeeder extends Seeder
             'setting-read', 'setting-save', 'setting-sms', 'setting-smtp',
         ]);
 
-        $this->command->info('Syncing Permissions for default User Role');
+        $this->command->info('Syncing Permissions for default Supervisor Role');
         $supervisor->syncPermissions([
             'profile-read', 'profile-update', 'profile-delete',
             'employee-read', 'employee-create', 'employee-update', 'employee-delete',
-            'absence-read', 'absence-create', 'absence-update', 'absence-delete',
-            'advance_salary-read', 'advance_salary-create', 'advance_salary-update', 'advance_salary-delete',
-            'company-read', 'company-create', 'company-update', 'company-delete',
             'department-read', 'department-create', 'department-update', 'department-delete',
             'service-read', 'service-create', 'service-update', 'service-delete',
+            'absence-read', 'absence-create', 'absence-update', 'absence-delete',
+            'advance_salary-read', 'advance_salary-create', 'advance_salary-update', 'advance_salary-delete',
             'overtime-read', 'overtime-create', 'overtime-update', 'overtime-delete',
             'ticking-read', 'ticking-create', 'ticking-update', 'ticking-delete',
             'payslip-read', 'payslip-create', 'payslip-update', 'payslip-delete',
-            'leave_type-read', 'leave_type-create', 'leave_type-update', 'leave_type-delete',
             'leave-read', 'leave-create', 'leave-update', 'leave-delete',
-            'role-read', 'role-create', 'role-update', 'role-delete',
-            'setting-read', 'setting-save', 'setting-sms', 'setting-smtp',
         ]);
 
         $this->command->info('Syncing Permissions for default User Role');

@@ -40,10 +40,10 @@
                                     <!-- <img src="{{ asset('img/fav.jpeg') }}" class="rounded d-none" id="smallLogo" alt="SofiCam"> -->
                                 </div>
                             </div>
-                            
+
                             <ul class="nav flex-column pt-3 pt-md-0">
                                 <li class="nav-item mt-3 {{ $request->routeIs('portal.dashboard.*') ? 'active' : '' }}">
-                                    <a href="{{route('portal.dashboard')}}"  class="nav-link d-flex align-items-center justify-content-between">
+                                    <a href="{{route('portal.dashboard')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon  text-gary-50">
                                                 <svg class="icon icon-sm me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -73,15 +73,15 @@
                                 @endcan
 
                                 @hasrole('supervisor')
-                                <li class="nav-item {{ $request->routeIs('portal.all-employees.*') ? 'active' : '' }}">
-                                    <a href="{{route('portal.employees.index',['company_uuid'=>auth()->user()->company_id])}}" wire:navigate class="nav-link d-flex align-items-center justify-content-between">
+                                <li class="nav-item {{ $request->routeIs('portal.departments.supervisor') || $request->routeIs('portal.department.*') ? 'active' : '' }}">
+                                    <a href="{{route('portal.departments.supervisor')}}" wire:navigate class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
                                                 <svg class="icon icon-sm me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                                                 </svg>
                                             </span>
-                                            <span class="sidebar-text">{{__('Employees')}}</span>
+                                            <span class="sidebar-text">{{__('My Departments')}}</span>
                                         </span>
                                     </a>
                                 </li>
@@ -209,6 +209,8 @@
                                         </span>
                                     </a>
                                 </li>
+                                @endcan
+                                @can('leave-type-read')
                                 <li class="nav-item {{ $request->routeIs('portal.leaves.types') ? 'active' : '' }}">
                                     <a href="{{route('portal.leaves.types')}}" wire:navigate class="nav-link d-flex align-items-center justify-content-between">
                                         <span>

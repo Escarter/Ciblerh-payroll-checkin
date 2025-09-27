@@ -5,14 +5,24 @@
                 <div class="p-3 p-lg-5">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('Create a new Employee')}}</h1>
-                        <p>{{__('Create a new employee for')}} - {{$company->name ?? '' }} &#128522;</p>
+                        <p>
+                            @if(auth()->user()->hasRole('supervisor'))
+                                {{__('Create a new employee in your department')}} &#128522;
+                            @else
+                                {{__('Create a new employee for')}} - {{$company->name ?? '' }} &#128522;
+                            @endif
+                        </p>
                     </div>
                     <x-form-items.form wire:submit="store" class="form-modal">
                         <input type='hidden' name='employee_id' value="" id="EmployeeId">
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="company">{{__('Company')}}</label>
-                                <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? ''}}" disabled>
+                                @if(auth()->user()->hasRole('supervisor'))
+                                    <input type="text" class="form-control" value="{{__('Department Company')}}" disabled>
+                                @else
+                                    <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? ''}}" disabled>
+                                @endif
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="department">{{__('Department')}}</label>
@@ -187,7 +197,13 @@
                         </div>
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="store" class="btn btn-primary " wire:loading.attr="disabled">{{__('Add to')}} {{$company->name ?? ''}}</button>
+                            <button type="submit" wire:click.prevent="store" class="btn btn-primary " wire:loading.attr="disabled">
+                                @if(auth()->user()->hasRole('supervisor'))
+                                    {{__('Add Employee')}}
+                                @else
+                                    {{__('Add to')}} {{$company->name ?? ''}}
+                                @endif
+                            </button>
                         </div>
                     </x-form-items.form>
                 </div>

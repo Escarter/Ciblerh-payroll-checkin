@@ -455,13 +455,25 @@ class All extends Component
             'department:id,name',
             'service:id,name',
             'roles:id,name'
-        ])->whereHas('roles', function($query) {
-            match ($this->auth_role) {
-                'supervisor' => $query->where('name', 'employee'),
-                'manager' => $query->whereIn('name', ['employee', 'supervisor']),
-                'admin' => $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']),
-                default => $query->where('name', 'employee'),
-            };
+        ])->when($this->auth_role === 'supervisor', function($query) {
+            $query->supervisor();
+        })->when($this->auth_role === 'manager', function($query) {
+            $query->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))
+                  ->whereHas('roles', function($query) {
+                      $query->whereIn('name', ['employee', 'supervisor']);
+                  })->whereDoesntHave('roles', function($query) {
+                      $query->where('name', 'admin');
+                  });
+        })->when($this->auth_role === 'admin', function($query) {
+            $query->whereHas('roles', function($query) {
+                $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
+            });
+        })->when($this->auth_role === 'employee', function($query) {
+            $query->whereHas('roles', function($query) {
+                $query->where('name', 'employee');
+            })->whereDoesntHave('roles', function($query) {
+                $query->whereIn('name', ['admin', 'manager', 'supervisor']);
+            });
         });
 
         // Add soft delete filtering based on active tab
@@ -474,7 +486,7 @@ class All extends Component
         // Add role-based filtering
         match ($this->auth_role) {
             'supervisor' => $query->supervisor(),
-            'manager' => $query->manager(),
+            'manager' => $query->whereIn('company_id', auth()->user()->managerCompanies->pluck('id')),
             'admin' => null, // No additional filtering for admin
             default => $query->supervisor(),
         };
@@ -620,11 +632,11 @@ class All extends Component
 
         // Get counts for active employees (non-deleted)
         $active_employees = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->with('roles')->whereNull('deleted_at')->whereHas('roles', function($query) {
-                $query->where('name', 'employee');
-            })->count(),
-            'manager' => User::manager()->with('roles')->whereNull('deleted_at')->whereHas('roles', function($query) {
+            'supervisor' => User::supervisor()->whereNull('deleted_at')->count(),
+            'manager' => User::with('roles')->whereNull('deleted_at')->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))->whereHas('roles', function($query) {
                 $query->whereIn('name', ['employee', 'supervisor']);
+            })->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
             })->count(),
             'admin' => User::with('roles')->whereNull('deleted_at')->whereHas('roles', function($query) {
                 $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
@@ -634,11 +646,11 @@ class All extends Component
 
         // Get counts for deleted employees
         $deleted_employees = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->with('roles')->withTrashed()->whereNotNull('deleted_at')->whereHas('roles', function($query) {
-                $query->where('name', 'employee');
-            })->count(),
-            'manager' => User::manager()->with('roles')->withTrashed()->whereNotNull('deleted_at')->whereHas('roles', function($query) {
+            'supervisor' => User::supervisor()->withTrashed()->whereNotNull('deleted_at')->count(),
+            'manager' => User::with('roles')->withTrashed()->whereNotNull('deleted_at')->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))->whereHas('roles', function($query) {
                 $query->whereIn('name', ['employee', 'supervisor']);
+            })->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
             })->count(),
             'admin' => User::with('roles')->withTrashed()->whereNotNull('deleted_at')->whereHas('roles', function($query) {
                 $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
@@ -649,11 +661,11 @@ class All extends Component
         // Legacy counts for backward compatibility
         $employees_count = $active_employees;
         $banned_employees = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->with('roles')->whereNull('deleted_at')->where('status', false)->whereHas('roles', function($query) {
-                $query->where('name', 'employee');
-            })->count(),
-            'manager' => User::manager()->with('roles')->whereNull('deleted_at')->where('status', false)->whereHas('roles', function($query) {
+            'supervisor' => User::supervisor()->whereNull('deleted_at')->where('status', false)->count(),
+            'manager' => User::with('roles')->whereNull('deleted_at')->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))->where('status', false)->whereHas('roles', function($query) {
                 $query->whereIn('name', ['employee', 'supervisor']);
+            })->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
             })->count(),
             'admin' => User::with('roles')->whereNull('deleted_at')->where('status', false)->whereHas('roles', function($query) {
                 $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);

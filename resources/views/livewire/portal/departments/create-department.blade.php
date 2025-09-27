@@ -11,7 +11,12 @@
 
                         <div class="form-group mb-4">
                             <label for="company">{{__('Company')}}</label>
-                            <input type="text" class="form-control  @error('company') is-invalid @enderror" value="{{$company->name}}" disabled>
+                            @if(auth()->user()->hasRole('supervisor'))
+                                <input type="text" class="form-control" value="{{__('Multiple Companies')}}" disabled>
+                                <small class="text-muted">{{__('Departments will be created in your assigned companies')}}</small>
+                            @else
+                                <input type="text" class="form-control  @error('company') is-invalid @enderror" value="{{$company->name}}" disabled>
+                            @endif
                         </div>
                         <div class='form-group mb-4'>
                             <label for="supervisor_id">{{__('Supervisor')}}</label>

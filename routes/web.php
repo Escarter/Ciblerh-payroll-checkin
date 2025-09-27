@@ -83,17 +83,34 @@ Route::group(
         
         Route::get('/profile-setting', App\Livewire\Portal\ProfileSetting::class)->name('portal.profile-setting');
      
-        //Companies
-        Route::prefix('companies')->group(function () {
-            Route::get('/', App\Livewire\Portal\Companies\Index::class)->name('portal.companies.index');
+        //Companies - Only managers and admins can access
+        Route::group(['middleware' => ['role:manager|admin']], function () {
+            Route::prefix('companies')->group(function () {
+                Route::get('/', App\Livewire\Portal\Companies\Index::class)->name('portal.companies.index');
+            });
         });
-        //Department
-        Route::prefix('company')->group(function () {
-            Route::get('/{company_uuid}/departments', App\Livewire\Portal\Departments\Index::class)->name('portal.departments.index');
+        //Department routes - Managers/admins access company-specific, supervisors access their departments
+        Route::group(['middleware' => ['role:manager|admin']], function () {
+            Route::prefix('company')->group(function () {
+                Route::get('/{company_uuid}/departments', App\Livewire\Portal\Departments\Index::class)->name('portal.departments.index');
+            });
         });
-        //Department's employees
-        Route::prefix('company')->group(function () {
-            Route::get('/{company_uuid}/employees', App\Livewire\Portal\Employees\Index::class)->name('portal.employees.index');
+        
+        //Supervisor department access - Use existing components with proper scoping
+        Route::group(['middleware' => ['role:supervisor']], function () {
+            Route::get('/my-departments', App\Livewire\Portal\Departments\Index::class)->name('portal.departments.supervisor');
+        });
+        
+        //Department's employees - Managers/admins access company-specific, supervisors access department-specific
+        Route::group(['middleware' => ['role:manager|admin']], function () {
+            Route::prefix('company')->group(function () {
+                Route::get('/{company_uuid}/employees', App\Livewire\Portal\Employees\Index::class)->name('portal.employees.index');
+            });
+        });
+        
+        //Supervisor employee access - Use existing employee component with department scoping
+        Route::group(['middleware' => ['role:supervisor']], function () {
+            Route::get('/my-department/{department_uuid}/employees', App\Livewire\Portal\Employees\Index::class)->name('portal.department.employees');
         });
        
         //Company's employees

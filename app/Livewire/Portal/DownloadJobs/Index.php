@@ -349,22 +349,50 @@ class Index extends Component
 
     public function getCompanies()
     {
-        return Company::where('is_active', true)->orderBy('name')->get();
+        $query = Company::where('is_active', true);
+
+        // Filter by managed companies if user is a manager
+        if (auth()->user()->hasRole('manager')) {
+            $query->whereIn('id', auth()->user()->managerCompanies->pluck('id'));
+        }
+
+        return $query->orderBy('name')->get();
     }
 
     public function getDepartments()
     {
-        return Department::where('is_active', true)->with('company')->orderBy('name')->get();
+        $query = Department::where('is_active', true)->with('company');
+
+        // Filter by departments from managed companies if user is a manager
+        if (auth()->user()->hasRole('manager')) {
+            $query->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'));
+        }
+
+        return $query->orderBy('name')->get();
     }
 
     public function getEmployees()
     {
-        return User::where('status', true)
+        $query = User::where('status', true)
             ->whereHas('roles', function($query) {
                 $query->where('name', 'employee');
             })
-            ->with(['company', 'department'])
-            ->orderBy('first_name')
+            ->whereDoesntHave('roles', function($query) {
+                $query->where('name', 'admin');
+            })
+            ->with(['company', 'department']);
+
+        // Filter by managed companies if user is a manager
+        if (auth()->user()->hasRole('manager')) {
+            $query->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'));
+        }
+
+        // Filter by managed departments if user is a supervisor
+        if (auth()->user()->hasRole('supervisor')) {
+            $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
+        }
+
+        return $query->orderBy('first_name')
             ->orderBy('last_name')
             ->get();
     }
