@@ -185,7 +185,7 @@
         </div>
         
         <!-- Enhanced Employee Metrics -->
-        <div class='row mb-4'>
+        <!-- <div class='row mb-4'>
             <div class='col-md-3 col-sm-6'>
                 <div class='border-prim bg-primary p-3 rounded'>
                     <div class="d-flex justify-content-between align-items-center">
@@ -239,7 +239,7 @@
                 </div>
             </div>
         </div>
-        
+         -->
         <div class='mt-5'>
             <div class='d-flex justify-content-between align-items-end mx-2'>
                 <h5 class="h5 text-gray-600">{{__("Lastest Audit logs")}}</h5>
