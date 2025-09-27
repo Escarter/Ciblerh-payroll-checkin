@@ -194,7 +194,7 @@
                                 @endcan
 
                                 @endcanany
-                                @canany('leave-read','leave-type-read')
+                                @canany('leave-read','leave_type-read')
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('leave-read')
                                 <li class="nav-item {{ $request->routeIs('portal.leaves.index') ? 'active' : '' }}">
@@ -210,7 +210,7 @@
                                     </a>
                                 </li>
                                 @endcan
-                                @can('leave-type-read')
+                                @can('leave_type-read')
                                 <li class="nav-item {{ $request->routeIs('portal.leaves.types') ? 'active' : '' }}">
                                     <a href="{{route('portal.leaves.types')}}" wire:navigate class="nav-link d-flex align-items-center justify-content-between">
                                         <span>

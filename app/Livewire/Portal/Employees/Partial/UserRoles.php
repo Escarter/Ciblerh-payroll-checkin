@@ -38,13 +38,36 @@ class UserRoles extends Component
 
     public function loadAvailableRoles()
     {
-        $this->availableRoles = Role::orderBy('name')->get()->toArray();
+        // Role assignment permissions based on user role
+        $userRole = auth()->user()->getRoleNames()->first();
+        $this->availableRoles = match ($userRole) {
+            'admin' => Role::orderBy('name')->get()->toArray(),
+            'manager' => Role::whereIn('name', ['employee', 'supervisor'])->orderBy('name')->get()->toArray(),
+            'supervisor' => Role::where('name', 'employee')->orderBy('name')->get()->toArray(), // Supervisors can only assign employee role
+            default => Role::where('name', 'employee')->orderBy('name')->get()->toArray(),
+        };
     }
 
     public function assignRoles()
     {
         if (!Gate::allows('employee-update')) {
             return abort(401);
+        }
+
+        // Validate role assignment permissions based on user role
+        $userRole = auth()->user()->getRoleNames()->first();
+        $allowedRoles = match ($userRole) {
+            'admin' => ['admin', 'manager', 'supervisor', 'employee'],
+            'manager' => ['employee', 'supervisor'],
+            'supervisor' => ['employee'], // Supervisors can only assign employee role
+            default => ['employee'],
+        };
+        
+        // Check if any selected role is not allowed
+        $unauthorizedRoles = array_diff($this->selectedRoles, $allowedRoles);
+        if (!empty($unauthorizedRoles)) {
+            $this->addError('selectedRoles', 'You do not have permission to assign the following roles: ' . implode(', ', $unauthorizedRoles));
+            return;
         }
 
         // Validate maximum 2 roles

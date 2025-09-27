@@ -114,7 +114,14 @@ class Index extends Component
             
             $this->departments = $this->company->departments;
         }
-        $this->roles = auth()->user()->getRoleNames()->first() == 'admin' ? Role::orderBy('name', 'desc')->get() : Role::whereIn('name',['employee','supervisor'])->orderBy('name','desc')->get();
+        // Role assignment permissions based on user role
+        $userRole = auth()->user()->getRoleNames()->first();
+        $this->roles = match ($userRole) {
+            'admin' => Role::orderBy('name', 'desc')->get(),
+            'manager' => Role::whereIn('name', ['employee', 'supervisor'])->orderBy('name', 'desc')->get(),
+            'supervisor' => Role::where('name', 'employee')->orderBy('name', 'desc')->get(), // Supervisors can only assign employee role
+            default => Role::where('name', 'employee')->orderBy('name', 'desc')->get(),
+        };
         $this->password = Str::random(15);
         $this->work_start_time = Carbon::parse('08:00')->format('H:i');
         $this->work_end_time = Carbon::parse('17:30')->format('H:i');
@@ -591,6 +598,20 @@ class Index extends Component
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
         ]);
 
+        // Validate role assignment permissions based on user role
+        $userRole = auth()->user()->getRoleNames()->first();
+        $allowedRoles = match ($userRole) {
+            'admin' => ['admin', 'manager', 'supervisor', 'employee'],
+            'manager' => ['employee', 'supervisor'],
+            'supervisor' => ['employee'], // Supervisors can only assign employee role
+            default => ['employee'],
+        };
+        
+        if (!in_array($this->role_name, $allowedRoles)) {
+            session()->flash('error', __('You do not have permission to assign the ') . $this->role_name . __(' role.'));
+            return;
+        }
+        
         $this->employee->assignRole($this->role_name);
 
         $this->clearFields();
