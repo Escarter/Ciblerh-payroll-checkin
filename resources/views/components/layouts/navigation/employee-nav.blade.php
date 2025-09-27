@@ -20,7 +20,7 @@
      @if(auth()->user()->canSwitchPortals())
      <div class="me-2 me-md-3">
          <div class="btn-group btn-group-sm" role="group" aria-label="Portal Switcher">
-             <a href="{{ route('portal.dashboard') }}" wire:navigate
+             <a href="{{ route('portal.dashboard') }}" 
                 class="btn btn-sm {{ request()->routeIs('portal.*') ? 'btn-secondary' : 'btn-outline-secondary' }} rounded-start px-1 px-md-2"
                 title="Admin Portal">
                  <svg class="icon icon-xs {{ request()->routeIs('portal.*') ? '' : 'me-md-1' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -29,7 +29,7 @@
                  </svg>
                  <span class="d-none d-md-inline">Admin</span>
              </a>
-             <a href="{{ route('employee.dashboard') }}" wire:navigate
+             <a href="{{ route('employee.dashboard') }}" 
                 class="btn btn-sm {{ request()->routeIs('employee.*') ? 'btn-secondary' : 'btn-outline-secondary' }} rounded-end px-1 px-md-2"
                 title="Employee Portal">
                  <svg class="icon icon-xs {{ request()->routeIs('employee.*') ? '' : 'me-md-1' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
