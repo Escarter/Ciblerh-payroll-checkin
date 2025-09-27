@@ -73,6 +73,11 @@ class ServiceObserver
      */
     public function forceDeleted(Service $service)
     {
-        //
+        auditLog(
+            auth()->user(),
+            'service_force_deleted',
+            'web',
+           __('Permanently deleted service with name ') . $service->name
+        );
     }
 }

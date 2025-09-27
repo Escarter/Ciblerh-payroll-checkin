@@ -200,18 +200,21 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->hasMany(Payslip::class, 'employee_id');
     }
 
-    public static function search($query)
+    public static function search($query, $user = null)
     {
+        $authUser = $user ?? auth()->user();
+        $userRole = $authUser ? $authUser->getRoleNames()->first() : 'admin';
+        
         return empty($query) ? 
-        static::query()->when(auth()->user()->getRoleNames()->first() === "supervisor", function ($query) {
-            return $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
-        })->when(auth()->user()->getRoleNames()->first() === "manager", function ($query) {
-            return $query->manager();
+        static::query()->when($userRole === "supervisor", function ($query) use ($authUser) {
+            return $query->whereIn('department_id', $authUser->supDepartments->pluck('department_id'));
+        })->when($userRole === "manager", function ($query) use ($authUser) {
+            return $query->where('author_id', $authUser->id);
         }):
-        static::query()->when(auth()->user()->getRoleNames()->first() === "supervisor", function ($query) {
-            return $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
-        })->when(auth()->user()->getRoleNames()->first() === "manager", function ($query) {
-            return $query->manager();
+        static::query()->when($userRole === "supervisor", function ($query) use ($authUser) {
+            return $query->whereIn('department_id', $authUser->supDepartments->pluck('department_id'));
+        })->when($userRole === "manager", function ($query) use ($authUser) {
+            return $query->where('author_id', $authUser->id);
         })
             ->where(function ($q) use ($query) {
                 $q->where('first_name', 'like', '%' . $query . '%');

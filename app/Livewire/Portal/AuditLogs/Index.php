@@ -25,40 +25,48 @@ class Index extends Component
     public $selectedAuditLogs = [];
     public $selectAll = false;
 
-    //Get & assign selected overtime props
+    //Get & assign selected audit log props
     public function initData($audit_log_id)
     {
-        $this->audit_log = AuditLog::findOrFail($audit_log_id);
+        $this->audit_log = AuditLog::withTrashed()->findOrFail($audit_log_id);
     }
 
     public function delete($auditLogId = null)
     {
-        $auditLog = $auditLogId ? AuditLog::findOrFail($auditLogId) : $this->audit_log;
-        
-        if (!$auditLog) {
-            $this->closeModalAndFlashMessage(__('Audit log not found!'), 'DeleteAuditLogModal');
-            return;
+        try {
+            $auditLog = $auditLogId ? AuditLog::findOrFail($auditLogId) : $this->audit_log;
+            
+            if (!$auditLog) {
+                session()->flash('error', __('Audit log not found.'));
+                return;
+            }
+            
+            $auditLog->delete(); // Soft delete
+            $this->closeModalAndFlashMessage(__('Audit Log successfully moved to trash!'), 'DeleteModal');
+        } catch (\Exception $e) {
+            session()->flash('error', __('Error deleting audit log: ') . $e->getMessage());
         }
         
-        $auditLog->delete(); // Soft delete
-
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Audit Log successfully moved to trash!'), 'DeleteAuditLogModal');
     }
 
     public function forceDelete($auditLogId = null)
     {
-        $auditLog = $auditLogId ? AuditLog::withTrashed()->findOrFail($auditLogId) : $this->audit_log;
-        
-        if (!$auditLog) {
-            $this->closeModalAndFlashMessage(__('Audit log not found!'), 'ForceDeleteAuditLogModal');
-            return;
+        try {
+            $auditLog = $auditLogId ? AuditLog::withTrashed()->findOrFail($auditLogId) : $this->audit_log;
+            
+            if (!$auditLog) {
+                session()->flash('error', __('Audit log not found.'));
+                return;
+            }
+            
+            $auditLog->forceDelete();
+            $this->closeModalAndFlashMessage(__('Audit Log permanently deleted!'), 'ForceDeleteModal');
+        } catch (\Exception $e) {
+            session()->flash('error', __('Error deleting audit log: ') . $e->getMessage());
         }
         
-        $auditLog->forceDelete();
-
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Audit Log permanently deleted!'), 'ForceDeleteAuditLogModal');
     }
 
     public function clearFields()

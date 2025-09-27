@@ -333,6 +333,21 @@ class All extends Component
         }
 
         $employee = User::withTrashed()->findOrFail($employeeId);
+        
+        // Check if employee has related records
+        $hasRelatedRecords = $employee->leaves()->count() > 0 ||
+                           $employee->tickings()->count() > 0 ||
+                           $employee->absences()->count() > 0 ||
+                           $employee->advanceSalaries()->count() > 0 ||
+                           $employee->overtimes()->count() > 0 ||
+                           $employee->payslips()->count() > 0 ||
+                           $employee->supDepartments()->count() > 0;
+        
+        if ($hasRelatedRecords) {
+            session()->flash('error', __('Cannot permanently delete employee. It has related records.'));
+            return;
+        }
+        
         $employee->forceDelete();
 
         $this->closeModalAndFlashMessage(__('Employee permanently deleted!'), 'ForceDeleteModal');
@@ -373,7 +388,33 @@ class All extends Component
         }
 
         if (!empty($this->selectedEmployees)) {
-            User::withTrashed()->whereIn('id', $this->selectedEmployees)->forceDelete();
+            $employees = User::withTrashed()->whereIn('id', $this->selectedEmployees)->get();
+            $employeesWithRelatedRecords = [];
+            
+            foreach ($employees as $employee) {
+                $hasRelatedRecords = $employee->leaves()->count() > 0 ||
+                                   $employee->tickings()->count() > 0 ||
+                                   $employee->absences()->count() > 0 ||
+                                   $employee->advanceSalaries()->count() > 0 ||
+                                   $employee->overtimes()->count() > 0 ||
+                                   $employee->payslips()->count() > 0 ||
+                                   $employee->supDepartments()->count() > 0;
+                
+                if ($hasRelatedRecords) {
+                    $employeesWithRelatedRecords[] = $employee->name;
+                }
+            }
+            
+            if (!empty($employeesWithRelatedRecords)) {
+                $employeeNames = implode(', ', $employeesWithRelatedRecords);
+                session()->flash('error', __('Cannot permanently delete the following employees as they have related records: ') . $employeeNames);
+                return;
+            }
+            
+            foreach ($employees as $employee) {
+                $employee->forceDelete();
+            }
+            
             $this->selectedEmployees = [];
         }
 
@@ -473,7 +514,7 @@ class All extends Component
 
     public function initData($employee_id)
     {
-        $employee = User::findOrFail($employee_id);
+        $employee = User::withTrashed()->findOrFail($employee_id);
 
         $department = Department::findOrFail($employee->department_id);
 

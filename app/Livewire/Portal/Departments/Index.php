@@ -50,7 +50,7 @@ class Index extends Component
     }
     public function initData($department_id)
     {
-        $department = Department::findOrFail($department_id);
+        $department = Department::withTrashed()->findOrFail($department_id);
 
         $this->supervisor_id = !empty($department->depSupervisor) ? (!empty($department->depSupervisor->supervisor) ? $department->depSupervisor->supervisor->id : '') : '';
         $this->department = $department;
@@ -171,8 +171,15 @@ class Index extends Component
 
         $department = Department::withTrashed()->findOrFail($departmentId);
         
-        // Force delete related data first
-        $department->services()->forceDelete();
+        // Check if department has related records
+        $hasRelatedRecords = $department->services()->count() > 0 ||
+                           $department->employees()->count() > 0;
+        
+        if ($hasRelatedRecords) {
+            session()->flash('error', __('Cannot permanently delete department. It has related records.'));
+            return;
+        }
+        
         $department->forceDelete();
 
         $this->closeModalAndFlashMessage(__('Department permanently deleted!'), 'ForceDeleteModal');
@@ -214,10 +221,24 @@ class Index extends Component
 
         if (!empty($this->selectedDepartments)) {
             $departments = Department::withTrashed()->whereIn('id', $this->selectedDepartments)->get();
+            $departmentsWithRelatedRecords = [];
             
             foreach ($departments as $department) {
-                // Force delete related data first
-                $department->services()->forceDelete();
+                $hasRelatedRecords = $department->services()->count() > 0 ||
+                                   $department->employees()->count() > 0;
+                
+                if ($hasRelatedRecords) {
+                    $departmentsWithRelatedRecords[] = $department->name;
+                }
+            }
+            
+            if (!empty($departmentsWithRelatedRecords)) {
+                $departmentNames = implode(', ', $departmentsWithRelatedRecords);
+                session()->flash('error', __('Cannot permanently delete the following departments as they have related records: ') . $departmentNames);
+                return;
+            }
+            
+            foreach ($departments as $department) {
                 $department->forceDelete();
             }
             

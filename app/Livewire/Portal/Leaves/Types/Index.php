@@ -39,7 +39,7 @@ class Index extends Component
 
     public function initData($leave_type_id)
     {
-        $leave_type = LeaveType::findOrFail($leave_type_id);
+        $leave_type = LeaveType::withTrashed()->findOrFail($leave_type_id);
 
         $this->leave_type = $leave_type;
         $this->name = $leave_type->name;

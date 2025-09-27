@@ -18,11 +18,13 @@ class EmployeeExport implements FromQuery, WithMapping, WithHeadings
 
     public $company;
     public $query;
+    public $user;
 
-    public function __construct(?Company $company, $query = '')
+    public function __construct(?Company $company, $query = '', $user = null)
     {
         $this->company = $company;
         $this->query = $query;
+        $this->user = $user;
     }
 
     public function headings(): array
@@ -53,7 +55,7 @@ class EmployeeExport implements FromQuery, WithMapping, WithHeadings
 
     public function query()
     {
-        return User::search($this->query)->when(!empty($this->company) , function($query){
+        return User::search($this->query, $this->user)->when(!empty($this->company) , function($query){
              return $query->where('company_id',$this->company->id);
         });
     }

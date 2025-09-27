@@ -43,7 +43,7 @@
                             
                             <ul class="nav flex-column pt-3 pt-md-0">
                                 <li class="nav-item mt-3 {{ $request->routeIs('portal.dashboard.*') ? 'active' : '' }}">
-                                    <a href="{{route('portal.dashboard')}}" wire:navigate class="nav-link d-flex align-items-center justify-content-between">
+                                    <a href="{{route('portal.dashboard')}}"  class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon  text-gary-50">
                                                 <svg class="icon icon-sm me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -240,7 +240,7 @@
                                             </svg>
                                         </span>
                                     </span>
-                                    <div class="multi-level {{ $request->routeIs('portal.reports.*') ? '' : 'collapse' }}" role="list" id="submenu-user" aria-expanded="false">
+                                    <div class="multi-level {{ $request->routeIs('portal.reports.*') || $request->routeIs('portal.download-jobs.*') ? '' : 'collapse' }}" role="list" id="submenu-user" aria-expanded="false">
                                         <ul class="flex-column nav gap-0">
                                             <li class="nav-item {{ $request->routeIs('portal.reports.checklogs') ? 'active' : '' }}">
                                                 <a href="{{route('portal.reports.checklogs')}}" wire:navigate class="nav-link ">
@@ -255,7 +255,12 @@
                                             </li>
                                             <li class="nav-item {{ $request->routeIs('portal.reports.payslip') ? 'active' : '' }}">
                                                 <a href="{{route('portal.reports.payslip')}}" wire:navigate class="nav-link">
-                                                    <span class="sidebar-text-contracted">O</span><span class="sidebar-text">{{__('Payslips')}}</span>
+                                                    <span class="sidebar-text-contracted">P</span><span class="sidebar-text">{{__('Payslips')}}</span>
+                                                </a>
+                                            </li>
+                                            <li class="nav-item {{ $request->routeIs('portal.download-jobs.*') ? 'active' : '' }}">
+                                                <a href="{{route('portal.download-jobs.index')}}" class="nav-link">
+                                                    <span class="sidebar-text-contracted">G</span><span class="sidebar-text">{{__('Generate')}}</span>
                                                 </a>
                                             </li>
                                         </ul>

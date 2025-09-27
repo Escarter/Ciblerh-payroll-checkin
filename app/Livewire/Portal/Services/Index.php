@@ -45,7 +45,7 @@ class Index extends Component
     }
     public function initData($service_id)
     {
-        $service = Service::findOrFail($service_id);
+        $service = Service::withTrashed()->findOrFail($service_id);
 
         $this->service = $service;
         $this->name = $service->name;
@@ -119,6 +119,13 @@ class Index extends Component
         }
 
         $service = Service::withTrashed()->findOrFail($serviceId);
+        
+        // Check if service has related tickings
+        if ($service->tickings()->count() > 0) {
+            session()->flash('error', __('Cannot permanently delete service. It has related tickings records.'));
+            return;
+        }
+        
         $service->forceDelete();
 
         $this->closeModalAndFlashMessage(__('Service permanently deleted!'), 'ForceDeleteModal');
@@ -159,6 +166,21 @@ class Index extends Component
         }
 
         if (!empty($this->selectedServices)) {
+            $servicesWithTickings = [];
+            
+            foreach ($this->selectedServices as $serviceId) {
+                $service = Service::withTrashed()->find($serviceId);
+                if ($service && $service->tickings()->count() > 0) {
+                    $servicesWithTickings[] = $service->name;
+                }
+            }
+            
+            if (!empty($servicesWithTickings)) {
+                $serviceNames = implode(', ', $servicesWithTickings);
+                session()->flash('error', __('Cannot permanently delete the following services as they have related tickings records: ') . $serviceNames);
+                return;
+            }
+            
             Service::withTrashed()->whereIn('id', $this->selectedServices)->forceDelete();
             $this->selectedServices = [];
         }

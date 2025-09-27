@@ -29,8 +29,9 @@ class PayslipReportExport implements FromQuery, WithMapping, WithHeadings
     public $sms_status;
     public $query_string;
     public $auth_role;
+    public $user;
 
-    public function __construct($selectedCompanyId, $selectedDepartmentId, $employee_id,$start_date,$end_date,$email_status, $sms_status, $query_string = '')
+    public function __construct($selectedCompanyId, $selectedDepartmentId, $employee_id,$start_date,$end_date,$email_status, $sms_status, $query_string = '', $user = null)
     {
         $this->selectedCompanyId = $selectedCompanyId;
         $this->selectedDepartmentId = $selectedDepartmentId;
@@ -40,7 +41,8 @@ class PayslipReportExport implements FromQuery, WithMapping, WithHeadings
         $this->end_date =  $end_date;
         $this->email_status =  $email_status;
         $this->sms_status =  $sms_status;
-        $this->auth_role = auth()->user()->getRoleNames()->first();
+        $this->user = $user ?? auth()->user();
+        $this->auth_role = $this->user ? $this->user->getRoleNames()->first() : 'admin';
     }
 
     public function headings(): array

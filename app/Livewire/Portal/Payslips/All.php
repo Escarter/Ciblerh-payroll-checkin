@@ -4,7 +4,9 @@ namespace App\Livewire\Portal\Payslips;
 
 use Livewire\Component;
 use App\Models\SendPayslipProcess;
+use App\Models\Payslip;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use App\Livewire\Traits\WithDataTable;
 
 class All extends Component
@@ -20,6 +22,27 @@ class All extends Component
 
     public function initData($job_id) {
         $this->send_payslip_process = SendPayslipProcess::findOrFail($job_id);
+    }
+
+    public function downloadPayslip($payslip_id)
+    {
+        $payslip = Payslip::findOrFail($payslip_id);
+        
+        // Check if the file exists
+        if (!Storage::disk('modified')->exists($payslip->file)) {
+            session()->flash('error', __('Payslip file not found. Please contact your administrator.'));
+            return;
+        }
+        
+        try {
+            return response()->download(
+                Storage::disk('modified')->path($payslip->file), 
+                $payslip->matricule. "_" . $payslip->year.'_'.$payslip->month.'.pdf', 
+                ['Content-Type'=> 'application/pdf']
+            );
+        } catch (\Exception $e) {
+            session()->flash('error', __('Unable to download payslip. Please contact your administrator.'));
+        }
     }
 
      public function delete($jobId = null)

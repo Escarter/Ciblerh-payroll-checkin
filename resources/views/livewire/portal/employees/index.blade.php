@@ -6,6 +6,7 @@
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employee') : __('employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employee') : __('employees')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employee')])
     @livewire('portal.employees.partial.user-roles')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -421,10 +422,12 @@
                                 </svg>
                             </a>
                             <a href="#" 
-                               wire:click.prevent="forceDelete({{$employee->id}})" 
+                               wire:click.prevent="$set('selectedEmployees', [{{$employee->id}}])" 
+                               data-bs-toggle="modal" 
+                               data-bs-target="#ForceDeleteModal"
                                class="icon-btn text-danger" 
                                title="{{ __('Permanently Delete') }}"
-                               onclick="return confirm('{{__('Are you sure you want to permanently delete this employee? This action cannot be undone.')}}')">
+                               onclick="event.stopPropagation();">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>

@@ -84,12 +84,15 @@ class Ticking extends Model
     }
     public static function search($query)
     {
-        return empty($query) ? static::query()->when(auth()->user()->getRoleNames()->first() === "supervisor", function ($query) {
-             return $query->whereIn('department_id',auth()->user()->supDepartments->pluck('department_id'));
+        $user = auth()->user();
+        $isSupervisor = $user && $user->getRoleNames()->first() === "supervisor";
+        
+        return empty($query) ? static::query()->when($isSupervisor, function ($query) use ($user) {
+             return $query->whereIn('department_id', $user->supDepartments->pluck('department_id'));
         }) :
         static::query()
-        ->when(auth()->user()->getRoleNames()->first() === "supervisor", function($query){
-             return $query->whereIn('department_id',auth()->user()->supDepartments->pluck('department_id'));
+        ->when($isSupervisor, function($query) use ($user) {
+             return $query->whereIn('department_id', $user->supDepartments->pluck('department_id'));
         })
         ->where(function ($q) use ($query) { 
             $q->where('start_time', 'like', '%' . $query . '%');

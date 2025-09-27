@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use App\Exports\PayslipReportExport;
 use App\Livewire\Traits\WithDataTable;
 use App\Models\Payslip as ModelsPayslip;
+use App\Services\ReportGenerationService;
+use App\Models\DownloadJob;
 
 class Payslip extends Component
 {
@@ -81,7 +83,50 @@ class Payslip extends Component
             'web',
             ucfirst(auth()->user()->name) . __('Report generate for payslips')
         );
-        return (new PayslipReportExport($this->selectedCompanyId,$this->selectedDepartmentId,$this->employee_id, $this->start_date, $this->end_date, $this->email_status, $this->sms_status, $this->query_string))->download('PlayslipReport-' .now()->toDateString(). '-'. Str::random(5) . '.xlsx');
+
+        // Create job using the service
+        $filters = [
+            'selectedCompanyId' => $this->selectedCompanyId,
+            'selectedDepartmentId' => $this->selectedDepartmentId,
+            'employee_id' => $this->employee_id,
+            'start_date' => $this->start_date,
+            'end_date' => $this->end_date,
+            'email_status' => $this->email_status,
+            'sms_status' => $this->sms_status,
+            'query_string' => $this->query_string,
+        ];
+
+        $job = ReportGenerationService::createJob(
+            DownloadJob::TYPE_PAYSLIP_REPORT,
+            $filters,
+            ['format' => 'xlsx']
+        );
+
+        session()->flash('message', __('Report generation started! You can track progress in the Generate page.'));
+    }
+
+    public function downloadBulkPayslips()
+    {
+        if (!$this->employee_id || $this->employee_id === 'all') {
+            session()->flash('error', __('Please select a specific employee for bulk download.'));
+            return;
+        }
+
+        $filters = [
+            'selectedCompanyId' => $this->selectedCompanyId,
+            'selectedDepartmentId' => $this->selectedDepartmentId,
+            'employee_id' => $this->employee_id,
+            'start_date' => $this->start_date,
+            'end_date' => $this->end_date,
+        ];
+
+        $job = ReportGenerationService::createJob(
+            DownloadJob::TYPE_BULK_PAYSLIP_DOWNLOAD,
+            $filters,
+            ['format' => 'zip']
+        );
+
+        session()->flash('message', __('Bulk download started! You can track progress in the Generate page.'));
     }
 
     public function render()

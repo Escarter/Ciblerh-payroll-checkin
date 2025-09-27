@@ -160,6 +160,9 @@ Route::group(
             
         });
 
+        //Download Jobs
+        Route::get('/download-jobs', App\Livewire\Portal\DownloadJobs\Index::class)->name('portal.download-jobs.index');
+
         Route::get('/checkin-report-template',function(){
             $month = '2022-03';
             $start = Carbon::parse($month)->startOfMonth();

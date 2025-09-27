@@ -60,7 +60,7 @@ class Index extends Component
 
     public function initData($company_id)
     {
-        $company = Company::findOrFail($company_id);
+        $company = Company::withTrashed()->findOrFail($company_id);
 
         $this->company = $company;
     $this->name = $company->name;
@@ -152,12 +152,17 @@ class Index extends Component
 
         $company = Company::withTrashed()->findOrFail($companyId);
         
-        // Force delete related data first
-        $company->payslipProcess()->forceDelete();
-        $company->payslips()->forceDelete();
-        $company->employees()->forceDelete();
-        $company->services()->forceDelete();
-        $company->departments()->forceDelete();
+        // Check if company has related records
+        $hasRelatedRecords = $company->departments()->count() > 0 ||
+                           $company->employees()->count() > 0 ||
+                           $company->services()->count() > 0 ||
+                           $company->payslips()->count() > 0 ||
+                           $company->payslipProcess()->count() > 0;
+        
+        if ($hasRelatedRecords) {
+            session()->flash('error', __('Cannot permanently delete company. It has related records.'));
+            return;
+        }
         
         $company->forceDelete();
 
@@ -200,14 +205,27 @@ class Index extends Component
 
         if (!empty($this->selectedCompanies)) {
             $companies = Company::withTrashed()->whereIn('id', $this->selectedCompanies)->get();
+            $companiesWithRelatedRecords = [];
             
             foreach ($companies as $company) {
-                // Force delete related data first
-                $company->payslipProcess()->forceDelete();
-                $company->payslips()->forceDelete();
-                $company->employees()->forceDelete();
-                $company->services()->forceDelete();
-                $company->departments()->forceDelete();
+                $hasRelatedRecords = $company->departments()->count() > 0 ||
+                                   $company->employees()->count() > 0 ||
+                                   $company->services()->count() > 0 ||
+                                   $company->payslips()->count() > 0 ||
+                                   $company->payslipProcess()->count() > 0;
+                
+                if ($hasRelatedRecords) {
+                    $companiesWithRelatedRecords[] = $company->name;
+                }
+            }
+            
+            if (!empty($companiesWithRelatedRecords)) {
+                $companyNames = implode(', ', $companiesWithRelatedRecords);
+                session()->flash('error', __('Cannot permanently delete the following companies as they have related records: ') . $companyNames);
+                return;
+            }
+            
+            foreach ($companies as $company) {
                 $company->forceDelete();
             }
             
