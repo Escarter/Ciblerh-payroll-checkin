@@ -38,7 +38,28 @@ class History extends Component
     {
         if(!empty($payslip_id))
         {
-            $this->payslip = Payslip::findOrFail($payslip_id);
+            $this->payslip = Payslip::withTrashed()->findOrFail($payslip_id);
+        }
+    }
+
+    public function downloadPayslip($payslip_id)
+    {
+        $payslip = Payslip::findOrFail($payslip_id);
+        
+        // Check if the file exists
+        if (!Storage::disk('modified')->exists($payslip->file)) {
+            session()->flash('error', __('Payslip file not found. Please contact your administrator.'));
+            return;
+        }
+        
+        try {
+            return response()->download(
+                Storage::disk('modified')->path($payslip->file), 
+                $payslip->matricule. "_" . $payslip->year.'_'.$payslip->month.'.pdf', 
+                ['Content-Type'=> 'application/pdf']
+            );
+        } catch (\Exception $e) {
+            session()->flash('error', __('Unable to download payslip. Please contact your administrator.'));
         }
     }
     public function resendEmail()
@@ -158,16 +179,26 @@ class History extends Component
 
     }
 
-    public function delete($payslipId)
+    public function delete($payslipId = null)
     {
         if (!Gate::allows('payslip-delete')) {
             return abort(401);
         }
 
-        $payslip = Payslip::findOrFail($payslipId);
-        $payslip->delete(); // Soft delete
-
-        $this->closeModalAndFlashMessage(__('Payslip successfully moved to trash!'), 'DeleteModal');
+        try {
+            $payslip = $payslipId ? Payslip::findOrFail($payslipId) : $this->payslip;
+            
+            if (!empty($payslip)) {
+                $payslip->delete(); // Soft delete
+                $this->closeModalAndFlashMessage(__('Payslip successfully moved to trash!'), 'DeleteModal');
+            } else {
+                session()->flash('error', __('Payslip not found.'));
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', __('Error deleting payslip: ') . $e->getMessage());
+        }
+        
+        $this->reset(['payslip']);
     }
 
     public function restore($payslipId)
@@ -182,16 +213,26 @@ class History extends Component
         $this->closeModalAndFlashMessage(__('Payslip successfully restored!'), 'RestoreModal');
     }
 
-    public function forceDelete($payslipId)
+    public function forceDelete($payslipId = null)
     {
         if (!Gate::allows('payslip-delete')) {
             return abort(401);
         }
 
-        $payslip = Payslip::withTrashed()->findOrFail($payslipId);
-        $payslip->forceDelete();
-
-        $this->closeModalAndFlashMessage(__('Payslip permanently deleted!'), 'ForceDeleteModal');
+        try {
+            $payslip = $payslipId ? Payslip::withTrashed()->findOrFail($payslipId) : $this->payslip;
+            
+            if (!empty($payslip)) {
+                $payslip->forceDelete();
+                $this->closeModalAndFlashMessage(__('Payslip permanently deleted!'), 'ForceDeleteModal');
+            } else {
+                session()->flash('error', __('Payslip not found.'));
+            }
+        } catch (\Exception $e) {
+            session()->flash('error', __('Error deleting payslip: ') . $e->getMessage());
+        }
+        
+        $this->reset(['payslip']);
     }
 
     public function bulkDelete()
