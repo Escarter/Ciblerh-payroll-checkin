@@ -27,6 +27,7 @@ class Index extends Component
     public ?bool $is_active = null;
     public $service_file = null;
     public $selectedDepartmentId = null;
+    public $isEditMode = false;
     
     // Soft delete properties
     public $activeTab = 'active';
@@ -47,10 +48,17 @@ class Index extends Component
     {
         $service = Service::withTrashed()->findOrFail($service_id);
 
+        $this->isEditMode = true;
         $this->service = $service;
         $this->name = $service->name;
         $this->is_active = $service->is_active == "true" ? true : false;
         // $this->selectedDepartmentId = $service->department_id;
+    }
+    
+    public function openCreateModal()
+    {
+        $this->clearFields();
+        $this->isEditMode = false;
     }
     public function store()
     {
@@ -67,7 +75,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Service created successfully!'), 'CreateServiceModal');
+        $this->closeModalAndFlashMessage(__('Service created successfully!'), 'ServiceModal');
     }
 
     public function update()
@@ -83,7 +91,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Service successfully updated!'), 'EditServiceModal');
+        $this->closeModalAndFlashMessage(__('Service successfully updated!'), 'ServiceModal');
     }
 
     public function delete()
@@ -260,6 +268,8 @@ class Index extends Component
 
     public function clearFields()
     {
+        $this->isEditMode = false;
+        $this->service = null;
         $this->reset([
             'name',
             'is_active',

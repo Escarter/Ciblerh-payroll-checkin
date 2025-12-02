@@ -38,7 +38,6 @@
                         <select wire:model.live="company_id" class="form-select @error('company_id') is-invalid @enderror" id="company">
                             <option value=''>{{__('--Select Company--')}}</option>
                             @foreach ($companies as $company)
-
                             <option value='{{$company->id}}' wire:key="company-{{ $company->id }}">{{$company->name ." - with ". count($company->departments) ." departments"}}</option>
                             @endforeach
                         </select>

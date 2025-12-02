@@ -4,6 +4,31 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslip') : __('payslips')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslip') : __('payslips')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => __('payslip')])
+    
+    <!-- Bulk Resend Failed Modal -->
+    <div class="modal fade" id="BulkResendFailedModal" tabindex="-1" aria-labelledby="BulkResendFailedModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="BulkResendFailedModalLabel">{{__('Resend All Failed Payslips')}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{{__('Are you sure you want to resend all failed payslips?')}}</p>
+                    <p class="text-muted small">{{__('This will attempt to resend :count failed payslips.', ['count' => $this->getFailedPayslipsCount()])}}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{__('Cancel')}}</button>
+                    <button type="button" class="btn btn-warning" wire:click="bulkResendFailed" data-bs-dismiss="modal">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        {{__('Resend All Failed')}}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <x-alert />
     <div class='pt-2'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-4 align-items-center">
@@ -89,11 +114,43 @@
                     {{__('Deleted')}}
                     <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_payslips ?? 0 }}</span>
                 </button>
+
+                @if($unmatchedCount > 0)
+                <button class="btn {{ $showUnmatched ? 'btn-warning' : 'btn-outline-warning' }}"
+                    wire:click="toggleUnmatched"
+                    type="button"
+                    title="{{__('View Unmatched Employees')}}">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    {{__('Unmatched Employees')}}
+                    <span class="badge {{ $showUnmatched ? 'bg-light text-dark' : 'bg-warning text-dark' }} ms-1">{{ $unmatchedCount }}</span>
+                </button>
+                @endif
             </div>
 
             <!-- Bulk Actions (Left) -->
             <div>
                 @if($activeTab === 'active')
+                    <!-- Bulk Resend Failed Button -->
+                    @if($this->getFailedPayslipsCount() > 0)
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        @can('payslip-send')
+                        <button type="button"
+                            class="btn btn-sm btn-warning d-flex align-items-center"
+                            title="{{ __('Resend All Failed Payslips') }}"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#BulkResendFailedModal">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            {{__('Resend All Failed')}}
+                            <span class="badge bg-danger text-white ms-1">{{ $this->getFailedPayslipsCount() }}</span>
+                        </button>
+                        @endcan
+                    </div>
+                    @endif
+                    
                     <!-- Soft Delete Bulk Actions (when items selected for delete) -->
                     @if(count($selectedPayslips) > 0)
                     <div class="d-flex align-items-center gap-2">
@@ -161,6 +218,73 @@
             </div>
         </div>
 
+        @if($showUnmatched && $unmatchedEmployees)
+        <!-- Unmatched Employees Section -->
+        <div class="alert alert-warning mb-3" role="alert">
+            <div class="d-flex align-items-center">
+                <svg class="icon icon-sm me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                    <strong>{{__('Unmatched Employees')}}</strong>
+                    <p class="mb-0">{{__('Employees whose payslips could not be found in the PDF files')}}</p>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="table-responsive pb-4">
+                <table class="table employee-table table-bordered table-hover align-items-center">
+                    <thead>
+                        <tr>
+                            <th class="border-bottom">{{__('Name')}}</th>
+                            <th class="border-bottom">{{__('Matricule')}}</th>
+                            <th class="border-bottom">{{__('Email')}}</th>
+                            <th class="border-bottom">{{__('Phone')}}</th>
+                            <th class="border-bottom">{{__('Failure Reason')}}</th>
+                            <th class="border-bottom">{{__('Created At')}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($unmatchedEmployees as $payslip)
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-2">
+                                        <span class="avatar-title bg-warning text-white rounded-circle">
+                                            {{ strtoupper(substr($payslip->first_name, 0, 1)) }}{{ strtoupper(substr($payslip->last_name, 0, 1)) }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold">{{ $payslip->first_name }} {{ $payslip->last_name }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ $payslip->matricule ?? __('N/A') }}</span>
+                            </td>
+                            <td>{{ $payslip->email ?? __('N/A') }}</td>
+                            <td>{{ $payslip->phone ?? __('N/A') }}</td>
+                            <td>
+                                <span class="badge bg-danger">{{ $payslip->failure_reason ?? __('Unknown error') }}</span>
+                            </td>
+                            <td>{{ $payslip->created_at->format('Y-m-d H:i') }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <p class="text-muted mb-0">{{__('No unmatched employees found')}}</p>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $unmatchedEmployees->links() }}
+                </div>
+            </div>
+        </div>
+        @else
+        <!-- Regular Payslips Table -->
         <div class="card">
             <div class="table-responsive pb-4">
                 <table class="table employee-table table-bordered table-hover align-items-center dataTable" id="datatable">
@@ -180,6 +304,7 @@
                             <th class="border-bottom">{{__('Encryption status')}}</th>
                             <th class="border-bottom">{{__('Email status')}}</th>
                             <th class="border-bottom">{{__('SMS status')}}</th>
+                            <th class="border-bottom">{{__('Failure Reason')}}</th>
                             <th class="border-bottom">{{__('Action')}}</th>
                         </tr>
                     </thead>
@@ -256,8 +381,24 @@
                                 <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
                                 @elseif($payslip->sms_sent_status == 2)
                                 <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                                @elseif($payslip->sms_sent_status == 3)
+                                <span class="badge badge-lg text-md bg-info">{{__('Disabled')}}</span>
                                 @else
                                 <span class="badge badge-lg text-md text-dark bg-warning">{{__('Pending...')}}</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if(!empty($payslip->failure_reason))
+                                    <div class="d-flex align-items-center" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $payslip->failure_reason }}">
+                                        <span class="badge bg-danger text-white me-1">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                            </svg>
+                                        </span>
+                                        <span class="text-danger small text-truncate" style="max-width: 200px;">{{ strlen($payslip->failure_reason) > 50 ? substr($payslip->failure_reason, 0, 50) . '...' : $payslip->failure_reason }}</span>
+                                    </div>
+                                @else
+                                    <span class="text-muted small">{{__('No errors')}}</span>
                                 @endif
                             </td>
                             <td>
@@ -317,6 +458,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
     @section('scripts')

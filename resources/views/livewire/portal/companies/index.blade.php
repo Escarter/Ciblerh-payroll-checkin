@@ -17,8 +17,7 @@
         }
     });
 </script>
-    @include('livewire.portal.companies.create-company')
-    @include('livewire.portal.companies.edit-company')
+    @include('livewire.portal.companies.company-form')
     @include('livewire.portal.companies.import-companies')
     @livewire('portal.companies.assign-manager')
     @include('livewire.partials.delete-modal')
@@ -50,7 +49,7 @@
             </div>
             <div class="d-flex justify-content-between mb-2">
                 @can('company-create')
-                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateCompanyModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
+                <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#CompanyModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg> {{__('New')}}
@@ -442,7 +441,7 @@
                     <div class="d-flex align-items-center gap-2">
                         @if($activeTab === 'active')
                         @can('company-update')
-                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#EditCompanyModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Company')}}">
+                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#CompanyModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Company')}}">
                             <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
@@ -481,7 +480,7 @@
                     <h4 class="fs-4 fw-bold my-1">{{__('Empty set.')}}</h4>
                     <p class="fw-light">{{__('No record found here!')}}</p>
                     @can('company-create')
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#CreateCompanyModal" class="btn btn-sm btn-primary py-2 mt-3 d-inline-flex align-items-center">
+                    <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#CompanyModal" class="btn btn-sm btn-primary py-2 mt-3 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg> {{__('Add Company')}}

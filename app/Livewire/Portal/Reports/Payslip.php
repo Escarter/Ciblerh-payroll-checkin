@@ -165,7 +165,8 @@ class Payslip extends Component
             })->when(!empty($this->sms_status) && $this->sms_status === 'all', function ($query) {
                 return $query->where('sms_sent_status', ModelsPayslip::STATUS_SUCCESSFUL)
                     ->orWhere('sms_sent_status', ModelsPayslip::STATUS_PENDING)
-                    ->orWhere('sms_sent_status', ModelsPayslip::STATUS_FAILED);
+                    ->orWhere('sms_sent_status', ModelsPayslip::STATUS_FAILED)
+                    ->orWhere('sms_sent_status', ModelsPayslip::STATUS_DISABLED);
             })->when(!empty($this->email_status) && $this->email_status == ModelsPayslip::STATUS_SUCCESSFUL, function ($query) {
                 return $query->where('email_sent_status', ModelsPayslip::STATUS_SUCCESSFUL);
             })->when(!empty($this->email_status) && $this->email_status == ModelsPayslip::STATUS_PENDING, function ($query) {
@@ -178,6 +179,8 @@ class Payslip extends Component
                 return $query->where('sms_sent_status', ModelsPayslip::STATUS_PENDING);
             })->when(!empty($this->sms_status) && $this->sms_status == ModelsPayslip::SMS_STATUS_FAILED, function ($query) {
                 return $query->where('sms_sent_status',  ModelsPayslip::STATUS_FAILED);
+            })->when(!empty($this->sms_status) && $this->sms_status == 6, function ($query) {
+                return $query->where('sms_sent_status', ModelsPayslip::STATUS_DISABLED);
             })->when(!empty($this->start_date) || !empty($this->end_date), function ($query) {
                 return $query->whereBetween(DB::raw('date(created_at)'), [Carbon::parse($this->start_date)->toDateString(), Carbon::parse($this->end_date)->toDateString()]);
             });

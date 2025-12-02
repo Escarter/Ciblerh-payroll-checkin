@@ -52,7 +52,12 @@ class User extends Authenticatable implements HasLocalePreference
         'monthly_leave_allocation'=>'double',
         'remaining_leave_days'=>'double',
         'status'=>'boolean',
-        'date_of_birth' => 'date'
+        'date_of_birth' => 'date',
+        'receive_sms_notifications' => 'boolean',
+        'receive_email_notifications' => 'boolean',
+        'email_bounced' => 'boolean',
+        'email_bounced_at' => 'datetime',
+        'email_bounce_type' => 'string'
     ];
 
     /**

@@ -9,6 +9,7 @@ use mikehaertl\pdftk\Pdf;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Escarter\PopplerPhp\PdfToText;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
@@ -71,15 +72,25 @@ class SinglePayslipProcessingJob implements ShouldQueue
                     if (strpos($pdf_text, 'Matricule ' . $this->employee->matricule) !== FALSE) {
                         $destination_file = $this->destination . '/' . $this->employee->matricule . '_' . $pay_month . '.pdf';
                         if (Storage::disk('splitted')->exists($file)) {
-                            //  Storage::disk('modified')->put($employee['matricule'].'.pdf', Storage::disk('splitted')->get($file));
-                            $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
-                            // $pdf->tempDir = config('ciblerh.temp_dir');
-                            $result = $pdf->setUserPassword($this->employee->pdf_password)
-                                ->passwordEncryption(128)
-                                ->saveAs(Storage::disk('modified')->path($destination_file));
+                            // Check if employee already has a payslip record (might have multiple pages)
+                            $record_exists = Payslip::where('employee_id', $this->employee->id)
+                                ->where('month', $pay_month)
+                                ->where('year', now()->year)
+                                ->first();
 
-                            if (Storage::disk('modified')->exists($destination_file)) {
-                                $this->sendSlip($this->employee, $pay_month, $destination_file);
+                            if (empty($record_exists) || empty($record_exists->file)) {
+                                // First file for this employee - encrypt directly
+                                $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
+                                $result = $pdf->setUserPassword($this->employee->pdf_password)
+                                    ->passwordEncryption(128)
+                                    ->saveAs(Storage::disk('modified')->path($destination_file));
+
+                                if (Storage::disk('modified')->exists($destination_file)) {
+                                    $this->sendSlip($this->employee, $pay_month, $destination_file);
+                                }
+                            } else {
+                                // Employee already has a file - combine with existing one
+                                $this->combinePdfFiles($this->employee, $file, $record_exists->file, $destination_file, $pay_month);
                             }
                         }
                     }
@@ -141,5 +152,74 @@ class SinglePayslipProcessingJob implements ShouldQueue
                 'year' => now()->year,
                 'file' => $this->destination,
             ]);
+    }
+
+    /**
+     * Combine multiple PDF files for an employee (multi-page payslip)
+     */
+    private function combinePdfFiles($employee, $newFile, $existingFile, $destinationFile, $pay_month)
+    {
+        try {
+            $existingFilePath = Storage::disk('modified')->path($existingFile);
+            $newFilePath = Storage::disk('splitted')->path($newFile);
+            
+            // Check if existing file exists
+            if (!Storage::disk('modified')->exists($existingFile)) {
+                // Existing file doesn't exist, just encrypt the new one
+                $pdf = new Pdf($newFilePath, ['command' => config('ciblerh.pdftk_path')]);
+                $result = $pdf->setUserPassword($employee->pdf_password)
+                    ->passwordEncryption(128)
+                    ->saveAs(Storage::disk('modified')->path($destinationFile));
+                
+                if (Storage::disk('modified')->exists($destinationFile)) {
+                    $this->sendSlip($employee, $pay_month, $destinationFile);
+                }
+                return;
+            }
+
+            // Create temporary combined file path
+            $tempCombinedPath = $this->destination . '/temp_' . $employee->matricule . '_' . $pay_month . '_' . time() . '.pdf';
+            $tempCombinedFile = Storage::disk('modified')->path($tempCombinedPath);
+            
+            // Use pdftk to combine PDFs
+            $pdf = new Pdf([$existingFilePath, $newFilePath], ['command' => config('ciblerh.pdftk_path')]);
+            
+            // Combine the PDFs
+            $combinedResult = $pdf->saveAs($tempCombinedFile);
+            
+            if ($combinedResult && file_exists($tempCombinedFile)) {
+                // Now encrypt the combined file
+                $combinedPdf = new Pdf($tempCombinedFile, ['command' => config('ciblerh.pdftk_path')]);
+                $encryptedResult = $combinedPdf->setUserPassword($employee->pdf_password)
+                    ->passwordEncryption(128)
+                    ->saveAs(Storage::disk('modified')->path($destinationFile));
+                
+                // Clean up temp file
+                if (file_exists($tempCombinedFile)) {
+                    @unlink($tempCombinedFile);
+                }
+                
+                // Delete old file if different
+                if ($existingFile !== $destinationFile && Storage::disk('modified')->exists($existingFile)) {
+                    Storage::disk('modified')->delete($existingFile);
+                }
+                
+                if ($encryptedResult && Storage::disk('modified')->exists($destinationFile)) {
+                    $this->sendSlip($employee, $pay_month, $destinationFile);
+                    
+                    Log::info('Combined multi-page PDF for single employee', [
+                        'employee_id' => $employee->id,
+                        'matricule' => $employee->matricule,
+                        'files_combined' => 2
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error combining PDF files for single employee', [
+                'employee_id' => $employee->id,
+                'matricule' => $employee->matricule,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }

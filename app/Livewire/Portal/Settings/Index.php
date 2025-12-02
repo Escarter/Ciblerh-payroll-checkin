@@ -7,6 +7,7 @@ use App\Models\Setting;
 use App\Services\Nexah;
 use Livewire\Component;
 use App\Services\TwilioSMS;
+use App\Services\AwsSnsSMS;
 use Illuminate\Support\Facades\Mail;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Config;
@@ -111,12 +112,14 @@ class Index extends Component
                 $sms_client = match ($setting->sms_provider) {
                     'twilio' => new TwilioSMS($setting),
                     'nexah' =>  new Nexah($setting),
+                    'aws_sns' => new AwsSnsSMS($setting),
                     default => new Nexah($setting)
                 };
 
                 $response = match ($setting->sms_provider) {
                     'twilio' => ['responsecode' => 0],
                     'nexah' =>  $sms_client->getBalance(),
+                    'aws_sns' => $sms_client->getBalance(),
                     default => ['responsecode' => 0]
                 };
 
@@ -205,6 +208,7 @@ class Index extends Component
             $sms_client = match ($setting->sms_provider) {
                 'twilio' => new TwilioSMS($setting),
                 'nexah' =>  new Nexah($setting),
+                'aws_sns' => new AwsSnsSMS($setting),
                 default => new Nexah($setting)
             };
 

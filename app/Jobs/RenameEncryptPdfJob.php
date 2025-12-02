@@ -92,7 +92,21 @@ class RenameEncryptPdfJob implements ShouldQueue
             collect($this->department->employees)->each(function ($employee) use ($pdf_text, $file, $pay_month) {
 
                 if (empty($employee->matricule)) {
-                    $created_record = $this->createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id);
+                    $created_record = Payslip::create([
+                        'user_id' => $this->user_id,
+                        'send_payslip_process_id' => $this->process_id,
+                        'employee_id' => $employee->id,
+                        'company_id' => $employee->company_id,
+                        'department_id' => $employee->department_id,
+                        'service_id' => $employee->service_id,
+                        'first_name' => $employee->first_name,
+                        'last_name' => $employee->last_name,
+                        'email' => $employee->email,
+                        'phone' => !is_null($employee->professional_phone_number) ? $employee->professional_phone_number : $employee->personal_phone_number,
+                        'matricule' => $employee->matricule,
+                        'month' => $pay_month,
+                        'year' => now()->year,
+                    ]);
                     $created_record->update([
                         'encryption_status' => Payslip::STATUS_FAILED,
                         'email_sent_status' => Payslip::STATUS_FAILED,
@@ -105,42 +119,129 @@ class RenameEncryptPdfJob implements ShouldQueue
 
                     if (!empty($matches) && $matches[0] === $employee->matricule) {
 
-                        $destination_file = $this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf';
-
                         if (Storage::disk('splitted')->exists($file)) {
-                            //  Storage::disk('modified')->put($employee['matricule'].'.pdf', Storage::disk('splitted')->get($file));
-                            $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
-                            $pdf->tempDir = config('ciblerh.temp_dir');
-                            $result = $pdf->setUserPassword($employee->pdf_password)
-                                ->passwordEncryption(128)
-                                ->saveAs(Storage::disk('modified')->path($destination_file));
+                            // Check if employee already has a payslip record (might have multiple pages)
+                            $record_exists = Payslip::where('employee_id', $employee->id)
+                                ->where('month', $pay_month)
+                                ->where('year', now()->year)
+                                ->first();
 
-                            if (Storage::disk('modified')->exists($destination_file)) {
+                            $destination_file = $this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf';
 
-                                $record_exists = Payslip::where('employee_id', $employee->id)
-                                    ->where('month', $pay_month)
-                                    ->where('year', now()->year)
-                                    ->first();
+                            if (empty($record_exists) || empty($record_exists->file)) {
+                                // First file for this employee - encrypt directly
+                                $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
+                                $pdf->tempDir = config('ciblerh.temp_dir');
+                                $result = $pdf->setUserPassword($employee->pdf_password)
+                                    ->passwordEncryption(128)
+                                    ->saveAs(Storage::disk('modified')->path($destination_file));
 
-                                if (empty($record_exists)) {
-                                    // global utility function
-                                    createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id,$destination_file);
-                                } else {
-                                    
-                                    if ($record_exists->successful()) {
-                                        return;
+                                if (Storage::disk('modified')->exists($destination_file)) {
+                                    if (empty($record_exists)) {
+                                        createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $destination_file);
+                                    } else {
+                                        $record_exists->update([
+                                            'file' => $destination_file,
+                                            'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                                        ]);
                                     }
-                                    $record_exists->update([
-                                        'file' =>  $destination_file,
-                                        'encryption_status' => Payslip::STATUS_SUCCESSFUL,
-                                    ]);
                                 }
-
+                            } else {
+                                // Employee already has a file - combine with existing one
+                                $this->combinePdfFiles($employee, $file, $record_exists->file, $destination_file, $pay_month);
                             }
                         }
                     }
                 }
             });
+        }
+    }
+
+    /**
+     * Combine multiple PDF files for an employee (multi-page payslip)
+     * Note: This handles the case where an employee's payslip spans multiple pages
+     */
+    private function combinePdfFiles($employee, $newFile, $existingFile, $destinationFile, $pay_month)
+    {
+        try {
+            $existingFilePath = Storage::disk('modified')->path($existingFile);
+            $newFilePath = Storage::disk('splitted')->path($newFile);
+            
+            // Check if existing file exists
+            if (!Storage::disk('modified')->exists($existingFile)) {
+                // Existing file doesn't exist, just encrypt the new one
+                $pdf = new Pdf($newFilePath, ['command' => config('ciblerh.pdftk_path')]);
+                $pdf->tempDir = config('ciblerh.temp_dir');
+                $result = $pdf->setUserPassword($employee->pdf_password)
+                    ->passwordEncryption(128)
+                    ->saveAs(Storage::disk('modified')->path($destinationFile));
+                
+                if (Storage::disk('modified')->exists($destinationFile)) {
+                    Payslip::where('employee_id', $employee->id)
+                        ->where('month', $pay_month)
+                        ->where('year', now()->year)
+                        ->update([
+                            'file' => $destinationFile,
+                            'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                        ]);
+                }
+                return;
+            }
+
+            // Create temporary combined file path
+            $tempCombinedPath = $this->destination . '/temp_' . $employee->matricule . '_' . $pay_month . '_' . time() . '.pdf';
+            $tempCombinedFile = Storage::disk('modified')->path($tempCombinedPath);
+            
+            // Use pdftk to combine PDFs
+            // Note: If existing file is encrypted, pdftk will need the password
+            // For now, we'll combine unencrypted files, then encrypt the result
+            $pdf = new Pdf([$existingFilePath, $newFilePath], ['command' => config('ciblerh.pdftk_path')]);
+            $pdf->tempDir = config('ciblerh.temp_dir');
+            
+            // Combine the PDFs (this works if files are unencrypted or we provide passwords)
+            $combinedResult = $pdf->saveAs($tempCombinedFile);
+            
+            if ($combinedResult && file_exists($tempCombinedFile)) {
+                // Now encrypt the combined file
+                $combinedPdf = new Pdf($tempCombinedFile, ['command' => config('ciblerh.pdftk_path')]);
+                $combinedPdf->tempDir = config('ciblerh.temp_dir');
+                $encryptedResult = $combinedPdf->setUserPassword($employee->pdf_password)
+                    ->passwordEncryption(128)
+                    ->saveAs(Storage::disk('modified')->path($destinationFile));
+                
+                // Clean up temp file
+                if (file_exists($tempCombinedFile)) {
+                    @unlink($tempCombinedFile);
+                }
+                
+                // Delete old file if different
+                if ($existingFile !== $destinationFile && Storage::disk('modified')->exists($existingFile)) {
+                    Storage::disk('modified')->delete($existingFile);
+                }
+                
+                if ($encryptedResult && Storage::disk('modified')->exists($destinationFile)) {
+                    Payslip::where('employee_id', $employee->id)
+                        ->where('month', $pay_month)
+                        ->where('year', now()->year)
+                        ->update([
+                            'file' => $destinationFile,
+                            'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                        ]);
+                    
+                    Log::info('Combined multi-page PDF for employee', [
+                        'employee_id' => $employee->id,
+                        'matricule' => $employee->matricule,
+                        'files_combined' => 2
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error combining PDF files', [
+                'employee_id' => $employee->id,
+                'matricule' => $employee->matricule,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 

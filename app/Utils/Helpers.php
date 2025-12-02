@@ -6,6 +6,7 @@ use App\Models\Setting;
 use App\Services\Nexah;
 use App\Models\AuditLog;
 use App\Services\TwilioSMS;
+use App\Services\AwsSnsSMS;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 
@@ -60,6 +61,17 @@ function createPayslipRecord($employee, $month, $process_id, $user_id, $file = n
 if (!function_exists('sendSmsAndUpdateRecord')) {
     function sendSmsAndUpdateRecord($emp, $month, $record)
     {
+        // Check if employee has SMS notifications enabled
+        if (isset($emp->receive_sms_notifications) && !$emp->receive_sms_notifications) {
+            // Preserve existing failure reason if any
+            $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+            $record->update([
+                'sms_sent_status' => Payslip::STATUS_DISABLED, 
+                'failure_reason' => $existingReason . __('SMS notifications disabled for this employee')
+            ]);
+            return;
+        }
+
         $setting = Setting::first();
 
         if ( !empty($emp->professional_phone_number) || !empty($emp->personal_phone_number) ) {
@@ -77,6 +89,7 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
              $sms_client = match ($setting->sms_provider) {
                 'twilio' => new TwilioSMS($setting),
                 'nexah' =>  new Nexah($setting),
+                'aws_sns' => new AwsSnsSMS($setting),
                 default => new Nexah($setting)
              };
 
@@ -97,13 +110,28 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 if ($response['responsecode'] === 1) {
                     $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
                 } else {
-                    $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('Failed sending SMS')]);
+                    // Preserve existing failure reason if any
+                    $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                    $record->update([
+                        'sms_sent_status' => Payslip::STATUS_FAILED, 
+                        'failure_reason' => $existingReason . __('Failed sending SMS')
+                    ]);
                 }
             }else{
-                $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('No available SMS Balance')]);
+                // Preserve existing failure reason if any
+                $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                $record->update([
+                    'sms_sent_status' => Payslip::STATUS_FAILED, 
+                    'failure_reason' => $existingReason . __('No available SMS Balance')
+                ]);
             }
         } else {
-            $record->update(['sms_sent_status' => Payslip::STATUS_FAILED, 'failure_reason' => __('No valid phone number for user')]);
+            // Preserve existing failure reason if any
+            $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+            $record->update([
+                'sms_sent_status' => Payslip::STATUS_FAILED, 
+                'failure_reason' => $existingReason . __('No valid phone number for user')
+            ]);
         }
     }
 }
@@ -120,6 +148,7 @@ if (!function_exists('sendSmsBirthday')) {
             $sms_client = match ($setting->sms_provider) {
                 'twilio' => new TwilioSMS($setting),
                 'nexah' =>  new Nexah($setting),
+                'aws_sns' => new AwsSnsSMS($setting),
                 default => new Nexah($setting)
             };
 
@@ -218,5 +247,270 @@ if (!function_exists('numberFormat')) {
         }
 
         return $number;
+    }
+}
+
+if (!function_exists('validatePhoneNumber')) {
+    /**
+     * Validate and format phone number to E.164 format
+     * 
+     * @param string $phoneNumber Phone number to validate
+     * @param string|null $countryCode Optional country code to use if phone doesn't have one
+     * @return array ['valid' => bool, 'formatted' => string|null, 'error' => string|null]
+     */
+    function validatePhoneNumber(string $phoneNumber, ?string $countryCode = null): array
+    {
+        if (empty(trim($phoneNumber))) {
+            return [
+                'valid' => false,
+                'formatted' => null,
+                'error' => __('Phone number cannot be empty')
+            ];
+        }
+
+        // Remove all whitespace and common formatting characters
+        $phoneNumber = preg_replace('/[\s\-\(\)\.]/', '', $phoneNumber);
+        
+        // Remove all non-numeric characters except +
+        $phoneNumber = preg_replace('/[^0-9+]/', '', $phoneNumber);
+
+        // If phone already starts with +, validate it
+        if (str_starts_with($phoneNumber, '+')) {
+            $digits = substr($phoneNumber, 1);
+            
+            // Check if country code starts with 0 (invalid in E.164)
+            if (str_starts_with($digits, '0')) {
+                return [
+                    'valid' => false,
+                    'formatted' => null,
+                    'error' => __('Country code cannot start with 0 in E.164 format')
+                ];
+            }
+            
+            // Remove leading zeros (trunk prefixes)
+            $originalDigits = $digits;
+            $digits = ltrim($digits, '0');
+            
+            if (empty($digits)) {
+                return [
+                    'valid' => false,
+                    'formatted' => null,
+                    'error' => __('Phone number must contain at least one non-zero digit')
+                ];
+            }
+            
+            $formatted = '+' . $digits;
+            
+            // Validate E.164 format
+            if (!isValidE164Format($formatted)) {
+                return [
+                    'valid' => false,
+                    'formatted' => null,
+                    'error' => __('Invalid phone number format. Phone number must be in E.164 format (e.g., +1234567890)')
+                ];
+            }
+            
+            return [
+                'valid' => true,
+                'formatted' => $formatted,
+                'error' => null
+            ];
+        }
+
+        // Handle phone numbers without + prefix
+        $phoneNumber = ltrim($phoneNumber, '0');
+        if (empty($phoneNumber)) {
+            return [
+                'valid' => false,
+                'formatted' => null,
+                'error' => __('Phone number cannot be all zeros')
+            ];
+        }
+
+        // Use provided country code or try to detect
+        if ($countryCode !== null && is_numeric($countryCode) && strlen($countryCode) <= 3) {
+            $formatted = '+' . $countryCode . $phoneNumber;
+        } else {
+            // Try to detect country code
+            $detectedCode = detectCountryCodeFromPhone($phoneNumber);
+            if ($detectedCode !== null) {
+                $formatted = '+' . $detectedCode . $phoneNumber;
+            } else {
+                // Just add + prefix (may fail if country code is required)
+                $formatted = '+' . $phoneNumber;
+            }
+        }
+
+        // Validate final format
+        if (!isValidE164Format($formatted)) {
+            return [
+                'valid' => false,
+                'formatted' => null,
+                'error' => __('Invalid phone number format. Phone number must be in E.164 format (e.g., +1234567890)')
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'formatted' => $formatted,
+            'error' => null
+        ];
+    }
+}
+
+if (!function_exists('isValidE164Format')) {
+    /**
+     * Validate phone number is in E.164 format
+     * 
+     * @param string $phoneNumber Phone number to validate
+     * @return bool True if valid E.164 format
+     */
+    function isValidE164Format(string $phoneNumber): bool
+    {
+        // Must start with +
+        if (!str_starts_with($phoneNumber, '+')) {
+            return false;
+        }
+
+        // Get digits after +
+        $digits = substr($phoneNumber, 1);
+
+        // Must contain only digits
+        if (empty($digits) || !ctype_digit($digits)) {
+            return false;
+        }
+
+        // E.164 allows 1-15 digits after the +
+        $digitCount = strlen($digits);
+        if ($digitCount < 1 || $digitCount > 15) {
+            return false;
+        }
+
+        return true;
+    }
+}
+
+if (!function_exists('detectCountryCodeFromPhone')) {
+    /**
+     * Detect country code from phone number
+     * 
+     * @param string $phoneNumber Phone number without + prefix
+     * @return string|null Detected country code or null
+     */
+    function detectCountryCodeFromPhone(string $phoneNumber): ?string
+    {
+        $commonCountryCodes = [
+            '1' => ['US', 'CA'],
+            '33' => ['FR'],
+            '44' => ['GB'],
+            '237' => ['CM'],
+            '225' => ['CI'],
+            '226' => ['BF'],
+            '229' => ['BJ'],
+            '242' => ['CG'],
+            '243' => ['CD'],
+            '236' => ['CF'],
+        ];
+
+        foreach ($commonCountryCodes as $code => $countries) {
+            if (str_starts_with($phoneNumber, $code)) {
+                $remainingDigits = substr($phoneNumber, strlen($code));
+                if (strlen($remainingDigits) >= 7 && strlen($remainingDigits) <= 12) {
+                    return $code;
+                }
+            }
+        }
+
+        return null;
+    }
+}
+
+if (!function_exists('validateEmail')) {
+    /**
+     * Validate email address with comprehensive checks
+     * 
+     * @param string $email Email address to validate
+     * @return array ['valid' => bool, 'error' => string|null]
+     */
+    function validateEmail(string $email): array
+    {
+        if (empty(trim($email))) {
+            return [
+                'valid' => false,
+                'error' => __('Email address cannot be empty')
+            ];
+        }
+
+        // Basic format validation
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return [
+                'valid' => false,
+                'error' => __('Invalid email address format')
+            ];
+        }
+
+        // Check email length (RFC 5321: 320 characters max)
+        if (strlen($email) > 320) {
+            return [
+                'valid' => false,
+                'error' => __('Email address is too long (maximum 320 characters)')
+            ];
+        }
+
+        // Split email into local and domain parts
+        $parts = explode('@', $email);
+        if (count($parts) !== 2) {
+            return [
+                'valid' => false,
+                'error' => __('Invalid email address format')
+            ];
+        }
+
+        [$localPart, $domain] = $parts;
+
+        // Validate local part (before @)
+        if (empty($localPart) || strlen($localPart) > 64) {
+            return [
+                'valid' => false,
+                'error' => __('Email local part is invalid or too long')
+            ];
+        }
+
+        // Validate domain part
+        if (empty($domain) || strlen($domain) > 255) {
+            return [
+                'valid' => false,
+                'error' => __('Email domain is invalid or too long')
+            ];
+        }
+
+        // Check for consecutive dots
+        if (strpos($localPart, '..') !== false || strpos($domain, '..') !== false) {
+            return [
+                'valid' => false,
+                'error' => __('Email address cannot contain consecutive dots')
+            ];
+        }
+
+        // Check domain has at least one dot (has TLD)
+        if (strpos($domain, '.') === false) {
+            return [
+                'valid' => false,
+                'error' => __('Email domain must contain a top-level domain')
+            ];
+        }
+
+        // Additional domain validation
+        if (!preg_match('/^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/', $domain)) {
+            return [
+                'valid' => false,
+                'error' => __('Email domain format is invalid')
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'error' => null
+        ];
     }
 }

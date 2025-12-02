@@ -58,6 +58,10 @@ class Index extends Component
     public $auth_role;
     public $date_of_birth;
     public $employee_file = null;
+    public $receive_sms_notifications = true;
+    public $receive_email_notifications = true;
+    public $alternative_email = null;
+    public $isEditMode = false;
 
     //Update & Store Rules
     protected array $rules = [
@@ -222,6 +226,9 @@ class Index extends Component
             'work_end_time' => $this->work_end_time,
             'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ? true : false,
+            'receive_sms_notifications' => $this->receive_sms_notifications === true || $this->receive_sms_notifications === "true" || $this->receive_sms_notifications === 1,
+            'receive_email_notifications' => $this->receive_email_notifications === true || $this->receive_email_notifications === "true" || $this->receive_email_notifications === 1,
+            'alternative_email' => $this->alternative_email,
             'password' => bcrypt($this->password),
             'pdf_password' => Str::random(10),
             'author_id' => auth()->user()->id,
@@ -233,7 +240,7 @@ class Index extends Component
         event(new EmployeeCreated($user, $this->password));
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee created successfully!'), 'CreateEmployeeModal');
+        $this->closeModalAndFlashMessage(__('Employee created successfully!'), 'EmployeeModal');
     }
 
     public function update()
@@ -280,6 +287,7 @@ class Index extends Component
             'date_of_birth' => $this->date_of_birth,
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ? true : false,
+            'receive_sms_notifications' => $this->receive_sms_notifications === true || $this->receive_sms_notifications === "true" || $this->receive_sms_notifications === 1,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
             // 'pdf_password' => Str::random(10),
         ]);
@@ -310,7 +318,7 @@ class Index extends Component
         $this->employee->syncRoles($this->selected_roles);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully updated!'), 'EditEmployeeModal');
+        $this->closeModalAndFlashMessage(__('Employee successfully updated!'), 'EmployeeModal');
     }
 
     public function delete()
@@ -492,6 +500,8 @@ class Index extends Component
         $employee = User::withTrashed()->findOrFail($employee_id);
         $department = Department::findOrFail($employee->department_id);
 
+        $this->isEditMode = true;
+        $this->employee_id = $employee_id;
         $this->employee = $employee;
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
@@ -514,6 +524,9 @@ class Index extends Component
         $this->department_id = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
         $this->selected_roles = $employee->getRoleNames()->toArray();
+        $this->receive_sms_notifications = $employee->receive_sms_notifications ?? true;
+        $this->receive_email_notifications = $employee->receive_email_notifications ?? true;
+        $this->alternative_email = $employee->alternative_email;
         
         // Ensure employee role is always included in the selected roles
         if (!in_array('employee', $this->selected_roles)) {
@@ -652,6 +665,9 @@ class Index extends Component
 
     public function clearFields()
     {
+        $this->isEditMode = false;
+        $this->employee_id = null;
+        $this->employee = null;
         $this->reset([
             'first_name',
             'last_name',
@@ -672,9 +688,21 @@ class Index extends Component
             'date_of_birth',
             'password',
             'selected_roles',
+            'receive_sms_notifications',
+            'receive_email_notifications',
+            'alternative_email',
         ]);
         // Reset to default roles
         $this->selected_roles = ['employee'];
+        $this->receive_sms_notifications = true;
+        $this->receive_email_notifications = true;
+        $this->alternative_email = null;
+    }
+    
+    public function openCreateModal()
+    {
+        $this->clearFields();
+        $this->isEditMode = false;
     }
     public function render()
     {

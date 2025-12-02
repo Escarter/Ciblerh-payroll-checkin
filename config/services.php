@@ -33,5 +33,11 @@ return [
 
     'nexah' => [
         'api_url' => env('NEXAH_BASE_URL', 'https://smsvas.com/bulk/public/index.php/api/v1/'),
-    ]
+    ],
+
+    'sns' => [
+        'key' => env('AWS_ACCESS_KEY_ID'),
+        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        'region' => env('AWS_SNS_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+    ],
 ];

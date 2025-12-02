@@ -1,27 +1,31 @@
-<div wire:ignore.self class="modal side-layout-modal fade" id="CreateEmployeeModal" tabindex="-1" aria-labelledby="modal-form" style="display: none;" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered " role="document">
+<div wire:ignore.self class="modal side-layout-modal fade" id="EmployeeModal" tabindex="-1" aria-labelledby="modal-form" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog {{ $isEditMode ? 'modal-sm' : '' }} modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-5">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Create a new Employee')}}</h1>
+                        <h1 class="mb-0 h4">{{ $isEditMode ? __('Update Employee') : __('Create a new Employee') }}</h1>
                         <p>
-                            @if(auth()->user()->hasRole('supervisor'))
-                                {{__('Create a new employee in your department')}} &#128522;
+                            @if($isEditMode)
+                                {{__('Update employee details')}} &#128522;
                             @else
-                                {{__('Create a new employee for')}} - {{$company->name ?? '' }} &#128522;
+                                @if(auth()->user()->hasRole('supervisor'))
+                                    {{__('Create a new employee in your department')}} &#128522;
+                                @else
+                                    {{__('Create a new employee for')}} - {{$company->name ?? '' }} &#128522;
+                                @endif
                             @endif
                         </p>
                     </div>
-                    <x-form-items.form wire:submit="store" class="form-modal">
-                        <input type='hidden' name='employee_id' value="" id="EmployeeId">
+                    <x-form-items.form wire:submit="{{ $isEditMode ? 'update' : 'store' }}" class="form-modal">
+                        <input type='hidden' name='employee_id' value="{{ $employee_id ?? '' }}" id="EmployeeId">
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="company">{{__('Company')}}</label>
                                 @if(auth()->user()->hasRole('supervisor'))
-                                    <input type="text" class="form-control" value="{{__('Department Company')}}" disabled>
+                                    <input type="text" class="form-control" value="{{ $isEditMode ? ($employee->company->name ?? __('Unknown Company')) : __('Department Company') }}" disabled>
                                 @else
-                                    <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? ''}}" disabled>
+                                    <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? '' }}" disabled>
                                 @endif
                             </div>
                             <div class='col-md-6 col-xs-12'>
@@ -29,7 +33,7 @@
                                 <select wire:model.live="department_id" class="form-select  @error('department_id') is-invalid @enderror">
                                     <option value="">{{__("Select department")}}</option>
                                     @foreach ($departments as $department)
-                                    <option value="{{$department->id}}">{{$department->name}}</option>
+                                    <option value="{{$department->id}}" {{ $isEditMode && $department_id === $department->id ? 'selected' : '' }}>{{$department->name}}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -37,10 +41,10 @@
 
                         <div class='form-group mb-2'>
                             <label for="service_id">{{__('Service')}}</label>
-                            <select wire:model="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
+                            <select wire:model.live="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
                                 <option value="">{{__("Select service")}}</option>
                                 @foreach ($services as $service)
-                                <option value="{{$service->id}}">{{$service->name}}</option>
+                                <option value="{{$service->id}}" {{ $isEditMode && $service_id === $service->id ? 'selected' : '' }}>{{$service->name}}</option>
                                 @endforeach
                             </select>
                             @error('service_id')
@@ -49,7 +53,7 @@
                         </div>
                         <div class='form-group mb-2'>
                             <x-choices-multi-select
-                                id="create_selected_roles"
+                                id="{{ $isEditMode ? 'edit_selected_roles' : 'create_selected_roles' }}"
                                 wireModel="selected_roles"
                                 :options="$roles->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
                                 :selected="$selected_roles"
@@ -57,7 +61,7 @@
                                 help="{{__('Maximum 2 roles allowed. Employee role is automatically included.')}}"
                                 class="form-select" />
                         </div>
-                        <div class="form-group mb-2">
+                        <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="first_name">{{__('First Name')}}</label>
                                 <input wire:model="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" placeholder="John" required="" name="first_name">
@@ -115,12 +119,29 @@
                         </div>
                         <div class="form-group mb-2">
                             <div class="form-check form-switch">
-                                <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_create" checked>
-                                <label class="form-check-label" for="receive_sms_notifications_create">
+                                <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}" @if($receive_sms_notifications) checked @endif>
+                                <label class="form-check-label" for="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
                                     {{__('Receive SMS notifications for payslips')}}
                                 </label>
                             </div>
                             <small class="text-muted">{{__('Enable or disable SMS notifications when payslips are sent to this employee')}}</small>
+                        </div>
+                        <div class="form-group mb-2">
+                            <div class="form-check form-switch">
+                                <input wire:model="receive_email_notifications" class="form-check-input" type="checkbox" id="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}" @if($receive_email_notifications) checked @endif>
+                                <label class="form-check-label" for="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
+                                    {{__('Receive Email notifications for payslips')}}
+                                </label>
+                            </div>
+                            <small class="text-muted">{{__('Enable or disable Email notifications when payslips are sent to this employee')}}</small>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="alternative_email">{{__('Alternative Email')}}</label>
+                            <input wire:model="alternative_email" type="email" class="form-control @error('alternative_email') is-invalid @enderror" placeholder="{{__('Optional backup email address')}}" name="alternative_email">
+                            @error('alternative_email')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                            <small class="text-muted">{{__('Optional: Backup email address to use if primary email fails')}}</small>
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
@@ -180,10 +201,10 @@
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="status">{{__('Status')}}</label>
-                                <select wire:model="status" name="status" class="form-select  @error('status') is-invalid @enderror">
+                                <select wire:model="status" name="status" class="form-select  @error('status') is-invalid @enderror" {{ $isEditMode ? 'required' : '' }}>
                                     <option value="">{{__("Select status")}}</option>
-                                    <option value="true">{{__('Active')}}</option>
-                                    <option value="false">{{__('Banned')}}</option>
+                                    <option value="true" @if($isEditMode && ($status===true || $status==="true")) selected @endif>{{__('Active')}}</option>
+                                    <option value="false" @if($isEditMode && ($status===false || $status==="false")) selected @endif>{{__('Banned')}}</option>
                                 </select>
                                 @error('status')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -197,20 +218,27 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="form-group mb-4">
-                            <label for="password">{{__('Create Employee\'s Password')}}</label>
-                            <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password">
+                        <div class="form-group mb-{{ $isEditMode ? '3' : '4' }}">
+                            <label for="password">{{ $isEditMode ? __('Reset Employee\'s Password') : __('Create Employee\'s Password') }}</label>
+                            <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password" {{ $isEditMode ? '' : 'required' }}>
                             @error('password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
+                            @if($isEditMode)
+                            <small class="text-muted">{{__('Leave empty to keep current password')}}</small>
+                            @endif
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="store" class="btn btn-primary " wire:loading.attr="disabled">
-                                @if(auth()->user()->hasRole('supervisor'))
-                                    {{__('Add Employee')}}
+                            <button type="button" wire:click.prevent="{{ $isEditMode ? 'clearFields' : '' }}" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
+                            <button type="submit" wire:click.prevent="{{ $isEditMode ? 'update' : 'store' }}" class="btn btn-primary " wire:loading.attr="disabled">
+                                @if($isEditMode)
+                                    {{__('Update')}}
                                 @else
-                                    {{__('Add to')}} {{$company->name ?? ''}}
+                                    @if(auth()->user()->hasRole('supervisor'))
+                                        {{__('Add Employee')}}
+                                    @else
+                                        {{__('Add to')}} {{$company->name ?? ''}}
+                                    @endif
                                 @endif
                             </button>
                         </div>
@@ -220,3 +248,4 @@
         </div>
     </div>
 </div>
+

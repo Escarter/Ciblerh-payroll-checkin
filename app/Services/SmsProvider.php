@@ -23,4 +23,20 @@ abstract class SmsProvider {
     }
     
     abstract protected function sendSMS(array $data): array;
+
+    /**
+     * Get SMS balance/credit from provider
+     * Default implementation returns service available status
+     * Override in providers that support balance checking
+     *
+     * @return array Response with 'responsecode' and 'credit'
+     */
+    public function getBalance(): array
+    {
+        // Default: assume service is available if credentials are set
+        return [
+            'responsecode' => !empty($this->username) && !empty($this->password) ? 1 : 0,
+            'credit' => !empty($this->username) && !empty($this->password) ? 1 : 0,
+        ];
+    }
 }

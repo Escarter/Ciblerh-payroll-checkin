@@ -33,6 +33,7 @@ class Index extends Component
     public $sector = null;
     public $description = null;
     public $company_file = null;
+    public $isEditMode = false;
     
     // Soft delete properties
     public $activeTab = 'active';
@@ -62,14 +63,21 @@ class Index extends Component
     {
         $company = Company::withTrashed()->findOrFail($company_id);
 
+        $this->isEditMode = true;
         $this->company = $company;
-    $this->name = $company->name;
-    $this->code = $company->code;
-    $this->sector = $company->sector;
-    $this->description = $company->description;
-    $this->company_id = $company->id;
-    // Set manager_id to the first assigned manager (if any)
-    $this->manager_id = $company->managers()->exists() ? $company->managers()->first()->id : null;
+        $this->name = $company->name;
+        $this->code = $company->code;
+        $this->sector = $company->sector;
+        $this->description = $company->description;
+        $this->company_id = $company->id;
+        // Set manager_id to the first assigned manager (if any)
+        $this->manager_id = $company->managers()->exists() ? $company->managers()->first()->id : null;
+    }
+    
+    public function openCreateModal()
+    {
+        $this->clearFields();
+        $this->isEditMode = false;
     }
 
     public function store()
@@ -95,7 +103,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Company created successfully!'), 'CreateCompanyModal');
+        $this->closeModalAndFlashMessage(__('Company created successfully!'), 'CompanyModal');
     }
 
     public function update()
@@ -114,8 +122,7 @@ class Index extends Component
             ]);
         });
         $this->clearFields();
-        session()->flash('message', __('Company successfully updated!'));
-        $this->dispatch('closeModal', id: 'EditCompanyModal');
+        $this->closeModalAndFlashMessage(__('Company successfully updated!'), 'CompanyModal');
     }
 
     public function delete()
@@ -317,6 +324,8 @@ class Index extends Component
 
     public function clearFields()
     {
+        $this->isEditMode = false;
+        $this->company = null;
         $this->reset([
             'name',
             'code',

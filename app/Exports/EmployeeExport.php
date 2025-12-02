@@ -49,6 +49,7 @@ class EmployeeExport implements FromQuery, WithMapping, WithHeadings
             'Work start_time',
             'Work end_time',
             'status',
+            'Receive SMS Notifications',
             'Created Date',
         ];
     }
@@ -85,6 +86,7 @@ class EmployeeExport implements FromQuery, WithMapping, WithHeadings
             $user->work_start_time,
             $user->work_end_time,
             $user->status_text,
+            $user->receive_sms_notifications ? 'Yes' : 'No',
             Date::dateTimeToExcel($user->created_at),
         ];
     }

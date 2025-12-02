@@ -31,6 +31,7 @@ class Index extends Component
     public $supervisors = [];
     public $supervisor_id =  null;
     public $role;
+    public $isEditMode = false;
     
     // Soft delete properties
     public $activeTab = 'active';
@@ -60,11 +61,18 @@ class Index extends Component
     {
         $department = Department::withTrashed()->findOrFail($department_id);
 
+        $this->isEditMode = true;
         $this->supervisor_id = !empty($department->depSupervisor) ? (!empty($department->depSupervisor->supervisor) ? $department->depSupervisor->supervisor->id : '') : '';
         $this->department = $department;
         $this->department_id = $department->id;
         $this->name = $department->name;
         $this->is_active = $department->is_active;
+    }
+    
+    public function openCreateModal()
+    {
+        $this->clearFields();
+        $this->isEditMode = false;
     }
     public function store()
     {
@@ -95,7 +103,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Department created successfully!'), 'CreateDepartmentModal');
+        $this->closeModalAndFlashMessage(__('Department created successfully!'), 'DepartmentModal');
     }
 
     public function update()
@@ -124,7 +132,7 @@ class Index extends Component
             );
         }
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Department successfully updated!'), 'EditDepartmentModal');
+        $this->closeModalAndFlashMessage(__('Department successfully updated!'), 'DepartmentModal');
     }
 
     public function assignSupervisor()
@@ -343,6 +351,8 @@ class Index extends Component
 
     public function clearFields()
     {
+        $this->isEditMode = false;
+        $this->department = null;
         $this->reset([
             'name',
             'is_active',

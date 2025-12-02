@@ -9,6 +9,7 @@ use App\Services\Nexah;
 use Livewire\Component;
 use App\Mail\SendPayslip;
 use App\Services\TwilioSMS;
+use App\Services\AwsSnsSMS;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
@@ -80,21 +81,55 @@ class History extends Component
 
                             Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination_file, $this->payslip->month));
 
-                            $this->payslip->update([
-                                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                            ]);
+                            // Validate if email was actually sent before updating status
+                            if (Mail::failures()) {
+                                // Reset retry count for manual resend, then schedule automatic retry if enabled
+                                $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                                $this->payslip->update([
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'email_retry_count' => 0, // Reset retry count for manual resend
+                                    'last_email_retry_at' => null,
+                                    'failure_reason' => __('Failed to send email. Recipient: :email', ['email' => $employee->email])
+                                ]);
+                                
+                                // Schedule automatic retry if retries are enabled
+                                if ($maxRetries > 0) {
+                                    $retryDelay = config('ciblerh.email_retry_delay', 60);
+                                    RetryPayslipEmailJob::dispatch($this->payslip->id)
+                                        ->delay(now()->addSeconds($retryDelay));
+                                    
+                                    $this->payslip->update([
+                                        'email_retry_count' => 1,
+                                        'last_email_retry_at' => now(),
+                                        'failure_reason' => __('Failed to send email. Recipient: :email. Automatic retry scheduled', ['email' => $employee->email])
+                                    ]);
+                                }
+                                
+                                Log::info('mail-failed: ' . json_encode(Mail::failures()));
+                                $message = $maxRetries > 0 
+                                    ? __('Failed to send email. Automatic retry scheduled.') 
+                                    : __('Failed to send email');
+                                $this->closeModalAndFlashMessage($message, 'resendEmailModal');
+                            } else {
+                                $this->payslip->update([
+                                    'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                                    'email_retry_count' => 0, // Reset retry count on success
+                                    'last_email_retry_at' => null,
+                                    'failure_reason' => null, // Clear failure reason
+                                ]);
 
-                            // sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
+                                // sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
 
-                            Log::info('mail-sent');
-                            auditLog(
-                                auth()->user(),
-                                'send_sms',
-                                'web',
-                                'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send email to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
-                            );
+                                Log::info('mail-sent');
+                                auditLog(
+                                    auth()->user(),
+                                    'send_sms',
+                                    'web',
+                                    'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send email to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                                );
 
-                            $this->closeModalAndFlashMessage(__('Email resent successfully!'), 'resendEmailModal');
+                                $this->closeModalAndFlashMessage(__('Email resent successfully!'), 'resendEmailModal');
+                            }
 
                         } catch (\Swift_TransportException $e) {
 
@@ -149,6 +184,7 @@ class History extends Component
             $sms_client = match ($setting->sms_provider) {
                 'twilio' => new TwilioSMS($setting),
                 'nexah' =>  new Nexah($setting),
+                'aws_sns' => new AwsSnsSMS($setting),
                 default => new Nexah($setting)
             };
 

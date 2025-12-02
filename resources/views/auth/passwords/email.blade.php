@@ -12,7 +12,7 @@
                 <div class="col-12 d-flex align-items-center justify-content-center">
                     <div class="signin-inner my-1 my-lg-0 bg-white shadow border-0 rounded p-5 p-lg-5 w-100 fmxw-500">
                         <div class="mb-1 mt-md-0">
-                            <img src='/img/logo.jpeg' class="w-50 h-auto" alt=''>
+                            <img src='/img/logo.jpg' class="w-50 h-auto" alt=''>
 
                             <h1 class="h4">{{__('Forgot your password')}}?</h1>
                         </div>
@@ -23,7 +23,7 @@
                                 {{ session('status') }}
                             </div>
                             @endif
-                            <div class="mb-4"><label for="email">Your Email</label>
+                            <div class="mb-4"><label for="email">{{__('Your Email')}}</label>
                                 <div class="form-group">
                                     <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" placeholder="example@domain.com" value="{{ old('email') }}" required autocomplete="email" autofocus>
 
@@ -34,7 +34,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="d-grid"><button type="submit" class="btn btn-secondary btn-loading">{{ __('Send Password Reset Link') }}</button></div>
+                            <div class="d-grid"><button type="submit" class="btn btn-primary btn-loading">{{ __('Send Password Reset Link') }}</button></div>
                         </x-form-items.form>
                     </div>
                 </div>

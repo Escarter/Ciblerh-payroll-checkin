@@ -1,7 +1,6 @@
 <div>
     <x-alert />
-    @include('livewire.portal.departments.create-department')
-    @include('livewire.portal.departments.edit-department')
+    @include('livewire.portal.departments.department-form')
     @include('livewire.portal.departments.import-departments')
     @include('livewire.portal.departments.assign-supervisor')
     @include('livewire.partials.delete-modal')
@@ -43,7 +42,7 @@
             </div>
             <div class="d-flex justify-content-between mb-2">
                 @can('department-create')
-                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateDepartmentModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center ">
+                <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#DepartmentModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center ">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg> {{__('New')}}
@@ -409,7 +408,7 @@
                     <div class="d-flex align-items-center gap-2">
                         @if($activeTab === 'active')
                         @can('department-update')
-                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#EditDepartmentModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Department')}}">
+                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DepartmentModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Department')}}">
                             <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
@@ -448,7 +447,7 @@
                     <h4 class="fs-4 fw-bold my-1">{{__('Empty set.')}}</h4>
                 </div>
                 @can('department-create')
-                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateDepartmentModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
+                <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#DepartmentModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg> {{__('Add Department ')}}

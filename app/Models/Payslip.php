@@ -14,6 +14,7 @@ class Payslip extends Model
     const STATUS_PENDING = 0;
     const STATUS_SUCCESSFUL = 1;
     const STATUS_FAILED = 2;
+    const STATUS_DISABLED = 3; // SMS notifications disabled for employee
     //used only for reporting view
     const SMS_STATUS_PENDING = 3;
     const SMS_STATUS_SUCCESSFUL = 4;
@@ -58,6 +59,7 @@ class Payslip extends Model
             self::STATUS_FAILED => __('Failed'),
             self::STATUS_PENDING => __('Pending'),
             self::STATUS_SUCCESSFUL => __('Successful'),
+            self::STATUS_DISABLED => __('Disabled'),
             default => ''
         };
     }

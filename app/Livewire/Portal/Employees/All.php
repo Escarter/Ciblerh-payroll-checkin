@@ -16,6 +16,8 @@ use App\Exports\EmployeeExport;
 use App\Imports\EmployeeImport;
 use App\Livewire\Traits\WithDataTable;
 use App\Models\Role;
+use App\Rules\PhoneNumber;
+use App\Rules\ValidEmail;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\Eloquent\Collection;
@@ -53,13 +55,17 @@ class All extends Component
     public $employee_file = null;
     public $role = null;
     public $auth_role = null;
+    public $receive_sms_notifications = true;
+    public $receive_email_notifications = true;
+    public $alternative_email = null;
+    public $isEditMode = false;
     
     // Soft delete properties
     public $activeTab = 'active';
     public $selectedEmployees = [];
     public $selectAll = false;
 
-    //Update & Store Rules
+    //Update & Store Rules - using string-based validation to avoid new expressions in property
     protected array $rules = [
         'first_name' => 'required',
         'last_name' => 'required',
@@ -133,11 +139,11 @@ class All extends Component
             'first_name' => 'required',
             'last_name' => 'required',
             'matricule' => 'required',
-            'professional_phone_number' => 'required',
-            'personal_phone_number' => 'required',
+            'professional_phone_number' => ['required', new PhoneNumber()],
+            'personal_phone_number' => ['required', new PhoneNumber()],
             'password' => 'required',
             'date_of_birth' => 'required|date',
-            'email' => 'required|email|unique:users',
+            'email' => ['required', new ValidEmail(), 'unique:users'],
             'selected_roles' => 'required|array|max:2',
         ]);
 
@@ -163,13 +169,27 @@ class All extends Component
         }
         array_unshift($this->selected_roles, 'employee');
 
+        // Format phone numbers before saving
+        $professionalPhone = validatePhoneNumber($this->professional_phone_number);
+        $personalPhone = validatePhoneNumber($this->personal_phone_number);
+        
+        if (!$professionalPhone['valid']) {
+            $this->addError('professional_phone_number', $professionalPhone['error']);
+            return;
+        }
+        
+        if (!$personalPhone['valid']) {
+            $this->addError('personal_phone_number', $personalPhone['error']);
+            return;
+        }
+
         $user = User::create([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'matricule' => $this->matricule,
             'email' => $this->email,
-            'professional_phone_number' => $this->professional_phone_number,
-            'personal_phone_number' => $this->personal_phone_number,
+            'professional_phone_number' => $professionalPhone['formatted'],
+            'personal_phone_number' => $personalPhone['formatted'],
             'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ? true : false,
             'password' => bcrypt($this->password),
@@ -194,10 +214,10 @@ class All extends Component
             'first_name' => 'required',
             'last_name' => 'required',
             'matricule' => 'required',
-            'professional_phone_number' => 'required',
-            'personal_phone_number' => 'required',
+            'professional_phone_number' => ['required', new PhoneNumber()],
+            'personal_phone_number' => ['required', new PhoneNumber()],
             'date_of_birth' => 'required|date',
-            'email' => 'required|email',
+            'email' => ['required', new ValidEmail()],
             'selected_roles' => 'required|array|max:2',
         ]);
 
@@ -223,13 +243,27 @@ class All extends Component
         }
         array_unshift($this->selected_roles, 'employee');
 
+        // Format phone numbers before updating
+        $professionalPhone = validatePhoneNumber($this->professional_phone_number);
+        $personalPhone = validatePhoneNumber($this->personal_phone_number);
+        
+        if (!$professionalPhone['valid']) {
+            $this->addError('professional_phone_number', $professionalPhone['error']);
+            return;
+        }
+        
+        if (!$personalPhone['valid']) {
+            $this->addError('personal_phone_number', $personalPhone['error']);
+            return;
+        }
+
         $this->employee->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'matricule' => $this->matricule,
             'email' => $this->email,
-            'professional_phone_number' => $this->professional_phone_number,
-            'personal_phone_number' => $this->personal_phone_number,
+            'professional_phone_number' => $professionalPhone['formatted'],
+            'personal_phone_number' => $personalPhone['formatted'],
             'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ? true : false,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
@@ -249,12 +283,26 @@ class All extends Component
         }
         $this->validate();
 
+        // Format phone numbers before updating
+        $professionalPhone = validatePhoneNumber($this->professional_phone_number);
+        $personalPhone = validatePhoneNumber($this->personal_phone_number);
+        
+        if (!$professionalPhone['valid']) {
+            $this->addError('professional_phone_number', $professionalPhone['error']);
+            return;
+        }
+        
+        if (!$personalPhone['valid']) {
+            $this->addError('personal_phone_number', $personalPhone['error']);
+            return;
+        }
+
         $this->employee->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'professional_phone_number' => $this->professional_phone_number,
-            'personal_phone_number' => $this->personal_phone_number,
+            'professional_phone_number' => $professionalPhone['formatted'],
+            'personal_phone_number' => $personalPhone['formatted'],
             'matricule' => $this->matricule,
             'position' => $this->position,
             'net_salary' => $this->net_salary,
@@ -267,6 +315,9 @@ class All extends Component
             'date_of_birth' => $this->date_of_birth,
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ? true : false,
+            'receive_sms_notifications' => $this->receive_sms_notifications === true || $this->receive_sms_notifications === "true" || $this->receive_sms_notifications === 1,
+            'receive_email_notifications' => $this->receive_email_notifications === true || $this->receive_email_notifications === "true" || $this->receive_email_notifications === 1,
+            'alternative_email' => $this->alternative_email,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
             // 'pdf_password' => Str::random(10),
         ]);
@@ -297,7 +348,7 @@ class All extends Component
         $this->employee->syncRoles($this->selected_roles);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully updated!'), 'EditEmployeeModal');
+        $this->closeModalAndFlashMessage(__('Employee successfully updated!'), 'EmployeeModal');
     }
 
     public function delete()
@@ -530,6 +581,8 @@ class All extends Component
 
         $department = Department::findOrFail($employee->department_id);
 
+        $this->isEditMode = true;
+        $this->employee_id = $employee_id;
         $this->company = $employee->company;
         $this->departments = $this->role === 'supervisor' ? Department::where('company_id', $this->company->id)->supervisor()->get() : $this->company->departments;
         $this->services = $department->services;
@@ -551,6 +604,7 @@ class All extends Component
         $this->date_of_birth = $employee->date_of_birth;
         $this->selectedDepartmentId = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
+        $this->receive_sms_notifications = $employee->receive_sms_notifications ?? true;
         
         // Get the employee's actual roles and reset selected_roles
         $this->selected_roles = $employee->getRoleNames()->toArray();
@@ -563,6 +617,12 @@ class All extends Component
             })
             ->toArray();
         $this->dispatch('refreshChoices', id: 'edit_selected_roles', options: $choicesOptions, selected: $this->selected_roles);
+   }
+   
+   public function openCreateModal()
+   {
+       $this->clearFields();
+       $this->isEditMode = false;
    }
 
     public function import()
@@ -600,6 +660,9 @@ class All extends Component
 
     public function clearFields()
     {
+        $this->isEditMode = false;
+        $this->employee_id = null;
+        $this->employee = null;
         $this->reset([
             'first_name',
             'last_name',
@@ -618,9 +681,17 @@ class All extends Component
             'work_end_time',
             'password',
             'selected_roles',
+            'receive_sms_notifications',
+            'receive_email_notifications',
+            'alternative_email',
         ]);
         // Reset to default roles (only employee role)
         $this->selected_roles = ['employee'];
+        $this->receive_sms_notifications = true;
+        $this->receive_email_notifications = true;
+        $this->alternative_email = null;
+        $this->receive_email_notifications = true;
+        $this->alternative_email = null;
     }
     public function render()
     {

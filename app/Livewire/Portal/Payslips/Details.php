@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Payslip;
 use Livewire\Component;
 use App\Mail\SendPayslip;
+use App\Jobs\RetryPayslipEmailJob;
 use App\Models\SendPayslipProcess;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -24,6 +25,9 @@ class Details extends Component
     public $activeTab = 'active';
     public $selectedPayslips = [];
     public $selectAll = false;
+    
+    // Unmatched employees tab
+    public $showUnmatched = false;
 
     public function mount($id)
     {
@@ -76,15 +80,49 @@ class Details extends Component
 
                         Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination_file, $this->payslip->month));
 
-                        $this->payslip->update([
-                            'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                        ]);
+                        // Validate if email was actually sent before updating status
+                        if (Mail::failures()) {
+                            // Reset retry count for manual resend, then schedule automatic retry if enabled
+                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                            $this->payslip->update([
+                                'email_sent_status' => Payslip::STATUS_FAILED,
+                                'email_retry_count' => 0, // Reset retry count for manual resend
+                                'last_email_retry_at' => null,
+                                'failure_reason' => __('Failed to send email. Recipient: :email', ['email' => $employee->email])
+                            ]);
+                            
+                            // Schedule automatic retry if retries are enabled
+                            if ($maxRetries > 0) {
+                                $retryDelay = config('ciblerh.email_retry_delay', 60);
+                                RetryPayslipEmailJob::dispatch($this->payslip->id)
+                                    ->delay(now()->addSeconds($retryDelay));
+                                
+                                $this->payslip->update([
+                                    'email_retry_count' => 1,
+                                    'last_email_retry_at' => now(),
+                                    'failure_reason' => __('Failed to send email. Recipient: :email. Automatic retry scheduled', ['email' => $employee->email])
+                                ]);
+                            }
+                            
+                            Log::info('mail-failed: ' . json_encode(Mail::failures()));
+                            $message = $maxRetries > 0 
+                                ? __('Failed to send email. Automatic retry scheduled.') 
+                                : __('Failed to send email');
+                            $this->closeModalAndFlashMessage($message, 'resendPayslipModal');
+                        } else {
+                            $this->payslip->update([
+                                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                                'email_retry_count' => 0, // Reset retry count on success
+                                'last_email_retry_at' => null,
+                                'failure_reason' => null, // Clear failure reason
+                            ]);
 
-                        sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
+                            sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
 
-                        Log::info('mail-sent');
+                            Log::info('mail-sent');
 
-                        $this->closeModalAndFlashMessage(__('Employee Payslip resent successfully'), 'resendPayslipModal');
+                            $this->closeModalAndFlashMessage(__('Employee Payslip resent successfully'), 'resendPayslipModal');
+                        }
                     } catch (\Swift_TransportException $e) {
 
                         Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
@@ -203,11 +241,130 @@ class Details extends Component
         $this->closeModalAndFlashMessage(__('Selected payslips permanently deleted!'), 'BulkForceDeleteModal');
     }
 
+    public function bulkResendFailed()
+    {
+        if (!Gate::allows('payslip-send')) {
+            return abort(401);
+        }
+
+        // Get all failed payslips for this process
+        $failedPayslips = Payslip::where('send_payslip_process_id', $this->job->id)
+            ->where('email_sent_status', Payslip::STATUS_FAILED)
+            ->whereNotNull('file')
+            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL) // Only resend if encryption succeeded
+            ->get();
+
+        if ($failedPayslips->isEmpty()) {
+            $this->closeModalAndFlashMessage(__('No failed payslips found to resend.'), 'BulkResendFailedModal');
+            return;
+        }
+
+        $resendCount = 0;
+        $skippedCount = 0;
+
+        foreach ($failedPayslips as $payslip) {
+            $employee = User::find($payslip->employee_id);
+            
+            if (empty($employee) || empty($employee->email)) {
+                $skippedCount++;
+                continue;
+            }
+
+            if (!Storage::disk('modified')->exists($payslip->file)) {
+                $skippedCount++;
+                continue;
+            }
+
+            try {
+                setSavedSmtpCredentials();
+
+                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $payslip->file, $payslip->month));
+
+                if (Mail::failures()) {
+                    // Schedule retry if enabled
+                    $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                    if ($maxRetries > 0) {
+                        $payslip->update([
+                            'email_retry_count' => 0,
+                            'last_email_retry_at' => null,
+                        ]);
+                        
+                        $retryDelay = config('ciblerh.email_retry_delay', 60);
+                        RetryPayslipEmailJob::dispatch($payslip->id)
+                            ->delay(now()->addSeconds($retryDelay));
+                    }
+                } else {
+                    $payslip->update([
+                        'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                        'email_retry_count' => 0,
+                        'last_email_retry_at' => null,
+                        'failure_reason' => null,
+                    ]);
+                    sendSmsAndUpdateRecord($employee, $payslip->month, $payslip);
+                    $resendCount++;
+                }
+            } catch (\Exception $e) {
+                Log::error('Bulk resend failed for payslip', [
+                    'payslip_id' => $payslip->id,
+                    'error' => $e->getMessage()
+                ]);
+                $skippedCount++;
+            }
+        }
+
+        $message = __('Bulk resend completed: :resend successful, :skipped skipped', [
+            'resend' => $resendCount,
+            'skipped' => $skippedCount
+        ]);
+
+        $this->closeModalAndFlashMessage($message, 'BulkResendFailedModal');
+    }
+
+    public function getFailedPayslipsCount()
+    {
+        return Payslip::where('send_payslip_process_id', $this->job->id)
+            ->where('email_sent_status', Payslip::STATUS_FAILED)
+            ->whereNotNull('file')
+            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->count();
+    }
+
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
         $this->selectedPayslips = [];
         $this->selectAll = false;
+        $this->showUnmatched = false;
+    }
+    
+    public function toggleUnmatched()
+    {
+        $this->showUnmatched = !$this->showUnmatched;
+        if ($this->showUnmatched) {
+            $this->activeTab = 'active'; // Reset to active tab when showing unmatched
+        }
+    }
+    
+    public function getUnmatchedEmployees()
+    {
+        // Get all payslips for this process that have encryption_status = FAILED
+        // and failure_reason contains "not found"
+        return Payslip::where('send_payslip_process_id', $this->job->id)
+            ->where('encryption_status', Payslip::STATUS_FAILED)
+            ->where(function($query) {
+                $query->where('failure_reason', 'like', '%not found%')
+                      ->orWhere('failure_reason', 'like', '%Matricule%not found%');
+            })
+            ->when(!empty($this->query), function ($q) {
+                $q->where(function ($query) {
+                    $query->where('first_name', 'like', '%' . $this->query . '%')
+                          ->orWhere('last_name', 'like', '%' . $this->query . '%')
+                          ->orWhere('email', 'like', '%' . $this->query . '%')
+                          ->orWhere('matricule', 'like', '%' . $this->query . '%');
+                });
+            })
+            ->orderBy($this->orderBy, $this->orderAsc)
+            ->paginate($this->perPage);
     }
 
     public function toggleSelectAll()
@@ -306,12 +463,23 @@ class Details extends Component
         $active_payslips = $this->getPayslipsCount('active');
         $deleted_payslips = $this->getPayslipsCount('deleted');
 
+        $unmatchedEmployees = $this->showUnmatched ? $this->getUnmatchedEmployees() : null;
+        $unmatchedCount = Payslip::where('send_payslip_process_id', $this->job->id)
+            ->where('encryption_status', Payslip::STATUS_FAILED)
+            ->where(function($query) {
+                $query->where('failure_reason', 'like', '%not found%')
+                      ->orWhere('failure_reason', 'like', '%Matricule%not found%');
+            })
+            ->count();
+
         return view('livewire.portal.payslips.details', [
             'payslips' => $payslips,
             'payslips_count' => count($this->job->payslips), // Legacy for backward compatibility
             'active_payslips' => $active_payslips,
             'deleted_payslips' => $deleted_payslips,
-            'job' => $this->job
+            'job' => $this->job,
+            'unmatchedEmployees' => $unmatchedEmployees,
+            'unmatchedCount' => $unmatchedCount
         ])->layout('components.layouts.dashboard');
     }
 

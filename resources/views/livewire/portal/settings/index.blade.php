@@ -14,6 +14,7 @@
                                     <select wire:model.live='sms_provider' class="form-control w-100 @error('sms_provider') is-invalid @enderror">
                                         <option value='nexah' selected>{{__('NEXAH')}}</option>
                                         <option value='twilio'>{{__('Twilio')}}</option>
+                                        <option value='aws_sns'>{{__('AWS SNS')}}</option>
                                     </select>
                                 </div>
                                 <!-- Form Group (default email)-->

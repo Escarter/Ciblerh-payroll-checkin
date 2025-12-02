@@ -127,6 +127,114 @@
                     }
                 }
             });
+
+            // Custom searchable select with Choices.js styling
+            Alpine.data('searchableSelect', (selectId, wireModel, placeholder) => {
+                return {
+                    open: false,
+                    search: '',
+                    selectedValue: '',
+                    selectedLabel: '',
+                    options: [],
+                    filteredOptions: [],
+                    init() {
+                        this.loadOptions();
+                        
+                        // Set initial value
+                        const initialValue = this.$wire.get(wireModel);
+                        if (initialValue) {
+                            this.selectedValue = initialValue;
+                            this.updateSelectedLabel();
+                        }
+                        
+                        // Watch for Livewire updates
+                        this.$wire.$watch(wireModel, (value) => {
+                            if (value !== this.selectedValue) {
+                                this.selectedValue = value || '';
+                                this.updateSelectedLabel();
+                            }
+                        });
+                        
+                        // Listen for departments-updated if this is department field
+                        if (selectId === 'departmentSelect') {
+                            window.addEventListener('departments-updated', () => {
+                                setTimeout(() => {
+                                    this.loadOptions();
+                                    this.selectedValue = '';
+                                    this.selectedLabel = placeholder || '--Select--';
+                                    this.$wire.set(wireModel, '');
+                                }, 150);
+                            });
+                        }
+                        
+                        // Watch for option changes in the select (for Livewire updates)
+                        const observer = new MutationObserver(() => {
+                            this.loadOptions();
+                        });
+                        
+                        const select = this.$refs[selectId];
+                        if (select) {
+                            observer.observe(select, { childList: true, subtree: true });
+                        }
+                        
+                        // Close on outside click
+                        this.$watch('open', (value) => {
+                            if (value) {
+                                this.$nextTick(() => {
+                                    this.$refs.searchInput?.focus();
+                                });
+                            }
+                        });
+                    },
+                    loadOptions() {
+                        const select = this.$refs[selectId];
+                        if (!select) return;
+                        
+                        this.options = Array.from(select.options).map(opt => ({
+                            value: opt.value,
+                            label: opt.text,
+                            searchText: opt.text.toLowerCase()
+                        }));
+                        this.filteredOptions = this.options;
+                        this.updateSelectedLabel();
+                    },
+                    updateSelectedLabel() {
+                        const option = this.options.find(opt => opt.value == this.selectedValue);
+                        this.selectedLabel = option ? option.label : (placeholder || '--Select--');
+                    },
+                    filterOptions() {
+                        if (!this.search.trim()) {
+                            this.filteredOptions = this.options;
+                            return;
+                        }
+                        
+                        const searchLower = this.search.toLowerCase();
+                        this.filteredOptions = this.options.filter(opt => 
+                            opt.searchText.includes(searchLower)
+                        );
+                    },
+                    selectOption(option) {
+                        this.selectedValue = option.value;
+                        this.selectedLabel = option.label;
+                        this.$wire.set(wireModel, option.value || '');
+                        this.open = false;
+                        this.search = '';
+                        this.filterOptions();
+                    },
+                    toggle() {
+                        this.open = !this.open;
+                        if (!this.open) {
+                            this.search = '';
+                            this.filterOptions();
+                        }
+                    },
+                    close() {
+                        this.open = false;
+                        this.search = '';
+                        this.filterOptions();
+                    }
+                };
+            });
         });
     </script>
     

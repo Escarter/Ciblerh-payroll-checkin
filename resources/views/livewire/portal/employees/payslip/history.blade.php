@@ -358,6 +358,8 @@
                                     <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
                                     @elseif($payslip->sms_sent_status == 2)
                                     <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                                    @elseif($payslip->sms_sent_status == 3)
+                                    <span class="badge badge-lg text-md bg-info">{{__('Disabled')}}</span>
                                     @else
                                     <span class="badge badge-lg text-md text-dark bg-warning">{{__('Pending...')}}</span>
                                     @endif

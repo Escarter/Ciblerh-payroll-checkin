@@ -107,6 +107,15 @@
                                 @enderror
                             </div>
                         </div>
+                        <div class="form-group mb-2">
+                            <div class="form-check form-switch">
+                                <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_edit" @if($receive_sms_notifications) checked @endif>
+                                <label class="form-check-label" for="receive_sms_notifications_edit">
+                                    {{__('Receive SMS notifications for payslips')}}
+                                </label>
+                            </div>
+                            <small class="text-muted">{{__('Enable or disable SMS notifications when payslips are sent to this employee')}}</small>
+                        </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="remaining_leave_days">{{__('Total Leave Days')}}</label>

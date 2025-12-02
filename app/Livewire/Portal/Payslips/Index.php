@@ -8,6 +8,7 @@ use App\Services\Nexah;
 use Livewire\Component;
 use App\Models\Department;
 use App\Services\TwilioSMS;
+use App\Services\AwsSnsSMS;
 use Illuminate\Support\Str;
 use App\Models\SendPayslipProcess;
 use Illuminate\Support\Facades\Gate;
@@ -202,6 +203,12 @@ class Index extends Component
     {
         if (!is_null($company_id)) {
             $this->departments = Department::where('company_id', $company_id)->get();
+            $this->department_id = null; // Reset department selection
+            $this->dispatch('departments-updated');
+        } else {
+            $this->departments = [];
+            $this->department_id = null;
+            $this->dispatch('departments-updated');
         }
     }
 
@@ -240,6 +247,7 @@ class Index extends Component
         $sms_client = match ($setting->sms_provider) {
             'twilio' => new TwilioSMS($setting),
             'nexah' =>  new Nexah($setting),
+            'aws_sns' => new AwsSnsSMS($setting),
             default => new Nexah($setting)
         };
 
