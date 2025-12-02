@@ -1,7 +1,7 @@
 {
-    "name": "laravel/laravel",
+    "name": "ciblerh/payroll-checkin",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Ciblerh Payroll and Check-in Management System",
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {

@@ -1,7 +1,7 @@
 # User Role Management Enhancement
 
 ## Overview
-Enhanced the HR-WIMA system to provide comprehensive user role management capabilities, including viewing all assigned roles and ensuring the employee role is always assigned during user creation/updates.
+Enhanced the Ciblerh Payroll and Check-in system to provide comprehensive user role management capabilities, including viewing all assigned roles and ensuring the employee role is always assigned during user creation/updates.
 
 ## Features Implemented
 

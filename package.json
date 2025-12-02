@@ -1,4 +1,5 @@
 {
+    "name": "ciblerh-payroll-checkin",
     "private": true,
     "type": "module",
     "scripts": {
