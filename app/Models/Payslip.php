@@ -22,6 +22,12 @@ class Payslip extends Model
 
     protected $guarded  = [];
 
+    protected $casts = [
+        'email_bounced' => 'boolean',
+        'email_bounced_at' => 'datetime',
+        'email_retry_count' => 'integer',
+    ];
+
     public function scopeSupervisor($query)
     {
         return $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));

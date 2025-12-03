@@ -63,11 +63,9 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
     {
         // Check if employee has SMS notifications enabled
         if (isset($emp->receive_sms_notifications) && !$emp->receive_sms_notifications) {
-            // Preserve existing failure reason if any
-            $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+            // Do not touch failure_reason when SMS is intentionally disabled
             $record->update([
-                'sms_sent_status' => Payslip::STATUS_DISABLED, 
-                'failure_reason' => $existingReason . __('SMS notifications disabled for this employee')
+                'sms_sent_status' => Payslip::STATUS_DISABLED,
             ]);
             return;
         }
@@ -441,15 +439,7 @@ if (!function_exists('validateEmail')) {
             ];
         }
 
-        // Basic format validation
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return [
-                'valid' => false,
-                'error' => __('Invalid email address format')
-            ];
-        }
-
-        // Check email length (RFC 5321: 320 characters max)
+        // Check email length (RFC 5321: 320 characters max) BEFORE format check so we can return a specific error
         if (strlen($email) > 320) {
             return [
                 'valid' => false,
@@ -505,6 +495,14 @@ if (!function_exists('validateEmail')) {
             return [
                 'valid' => false,
                 'error' => __('Email domain format is invalid')
+            ];
+        }
+
+        // Basic format validation (place after specific checks to yield test-expected messages)
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return [
+                'valid' => false,
+                'error' => __('Invalid email address format')
             ];
         }
 

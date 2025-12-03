@@ -93,7 +93,7 @@ class PayslipSendingPlan
                 })
                 ->catch(function ($batch, $exception) use ($payslip_process) {
                     $payslip_process->update(['batch_id' => $batch->id]);
-                    static::failed($payslip_process);
+                static::failed($payslip_process);
                 })
                 ->name('Send Payslips')
                 ->allowFailures()

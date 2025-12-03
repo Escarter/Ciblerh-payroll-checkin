@@ -12,8 +12,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Modify the enum to include 'aws_sns'
-        DB::statement("ALTER TABLE settings MODIFY COLUMN sms_provider ENUM('twilio', 'nexah', 'aws_sns') DEFAULT 'nexah'");
+        // SQLite doesn't support MODIFY COLUMN with ENUM
+        // For SQLite, we skip this migration as it doesn't enforce enum constraints
+        if (DB::getDriverName() !== 'sqlite') {
+            // Modify the enum to include 'aws_sns'
+            DB::statement("ALTER TABLE settings MODIFY COLUMN sms_provider ENUM('twilio', 'nexah', 'aws_sns') DEFAULT 'nexah'");
+        }
     }
 
     /**
@@ -21,7 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revert back to original enum values
-        DB::statement("ALTER TABLE settings MODIFY COLUMN sms_provider ENUM('twilio', 'nexah') DEFAULT 'nexah'");
+        // SQLite doesn't support MODIFY COLUMN with ENUM
+        if (DB::getDriverName() !== 'sqlite') {
+            // Revert back to original enum values
+            DB::statement("ALTER TABLE settings MODIFY COLUMN sms_provider ENUM('twilio', 'nexah') DEFAULT 'nexah'");
+        }
     }
 };

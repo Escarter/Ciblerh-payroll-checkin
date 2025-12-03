@@ -3,7 +3,7 @@
 namespace App\Jobs\Single;
 
 use App\Models\Payslip;
-use App\Models\Employee;
+use App\Models\User;
 use App\Mail\SendPayslip;
 use mikehaertl\pdftk\Pdf;
 use Illuminate\Bus\Batchable;
@@ -35,7 +35,7 @@ class SinglePayslipProcessingJob implements ShouldQueue
      */
     public function __construct(array $chunk, $employee_id, $month, $destination, $user_id)
     {
-        $this->employee = Employee::findOrFail($employee_id);
+        $this->employee = User::findOrFail($employee_id);
         $this->destination = $destination;
         $this->month = $month;
         $this->chunk = $chunk;
@@ -80,13 +80,13 @@ class SinglePayslipProcessingJob implements ShouldQueue
 
                             if (empty($record_exists) || empty($record_exists->file)) {
                                 // First file for this employee - encrypt directly
-                                $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
-                                $result = $pdf->setUserPassword($this->employee->pdf_password)
-                                    ->passwordEncryption(128)
-                                    ->saveAs(Storage::disk('modified')->path($destination_file));
+                            $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
+                            $result = $pdf->setUserPassword($this->employee->pdf_password)
+                                ->passwordEncryption(128)
+                                ->saveAs(Storage::disk('modified')->path($destination_file));
 
-                                if (Storage::disk('modified')->exists($destination_file)) {
-                                    $this->sendSlip($this->employee, $pay_month, $destination_file);
+                            if (Storage::disk('modified')->exists($destination_file)) {
+                                $this->sendSlip($this->employee, $pay_month, $destination_file);
                                 }
                             } else {
                                 // Employee already has a file - combine with existing one

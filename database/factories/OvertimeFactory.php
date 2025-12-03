@@ -16,8 +16,19 @@ class OvertimeFactory extends Factory
      */
     public function definition()
     {
+        $startTime = now()->subHours(2);
+        $endTime = now();
+        
         return [
-            //
+            'user_id' => \App\Models\User::factory(),
+            'company_id' => \App\Models\Company::factory(),
+            'department_id' => \App\Models\Department::factory(),
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'minutes_worked' => $startTime->diffInMinutes($endTime),
+            'reason' => $this->faker->sentence(),
+            'approval_status' => \App\Models\Overtime::APPROVAL_STATUS_PENDING,
+            'approval_reason' => null,
         ];
     }
 }

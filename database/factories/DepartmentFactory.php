@@ -21,6 +21,7 @@ class DepartmentFactory extends Factory
         return [
             'uuid' => Str::uuid(),
             'name' => $this->faker->name(),
+            'company_id' => Company::factory(),
         ];
     }
 }

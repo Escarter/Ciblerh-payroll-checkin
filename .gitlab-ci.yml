@@ -1,0 +1,78 @@
+stages:
+  - test
+
+variables:
+  MYSQL_ROOT_PASSWORD: password
+  MYSQL_DATABASE: testing
+  MYSQL_USER: root
+  MYSQL_PASSWORD: password
+
+dusk-tests:
+  stage: test
+  image: php:8.1-fpm
+  
+  services:
+    - mysql:8.0
+      variables:
+        MYSQL_ROOT_PASSWORD: password
+        MYSQL_DATABASE: testing
+  
+  before_script:
+    # Install system dependencies
+    - apt-get update -qq
+    - apt-get install -y -qq git curl libpng-dev libonig-dev libxml2-dev zip unzip
+    - apt-get install -y -qq chromium chromium-driver
+    
+    # Install PHP extensions
+    - docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+    
+    # Install Composer
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    
+    # Install dependencies
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+    - composer require --dev laravel/dusk --no-interaction
+    
+    # Install ChromeDriver via Dusk
+    - php artisan dusk:chrome-driver || true
+    
+    # Setup environment
+    - cp .env.example .env
+    - php artisan key:generate
+    
+    # Build assets
+    - npm ci || npm install
+    - npm run build
+    
+    # Setup database
+    - php artisan migrate --force
+    - php artisan db:seed --class=DatabaseSeeder || true
+    
+    # Start ChromeDriver
+    - chromedriver --port=9515 > /dev/null 2>&1 &
+    
+    # Start Laravel server
+    - php artisan serve --host=0.0.0.0 --port=8000 > /dev/null 2>&1 &
+    
+    # Wait for server
+    - sleep 5
+    - until curl -f http://localhost:8000; do sleep 1; done
+  
+  script:
+    - php artisan dusk
+    - APP_URL=http://localhost:8000
+    - DUSK_DRIVER_URL=http://localhost:9515
+  
+  artifacts:
+    when: on_failure
+    paths:
+      - tests/Browser/screenshots/
+      - tests/Browser/console/
+      - tests/Browser/source/
+    expire_in: 1 week
+  
+  only:
+    - main
+    - develop
+    - merge_requests
+

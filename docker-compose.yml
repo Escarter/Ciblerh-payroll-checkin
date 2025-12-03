@@ -1,0 +1,247 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: ciblerh_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-ciblerh}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password}
+      TZ: ${TZ:-UTC}
+    # MySQL port not exposed to host (only accessible from containers)
+    # Uncomment below if you need external access:
+    # ports:
+    #   - "${DB_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
+    networks:
+      - ciblerh_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASSWORD:-password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: ciblerh_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - TZ=${TZ:-UTC}
+    networks:
+      - ciblerh_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # PHP Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ciblerh_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - TZ=${TZ:-Africa/Douala}
+      - FORCE_SEED=${FORCE_SEED:-false}
+      - SKIP_SEED=${SKIP_SEED:-false}
+      - FORCE_CACHE_CLEAR=${FORCE_CACHE_CLEAR:-false}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-ciblerh}
+      - DB_USERNAME=${DB_USERNAME:-ciblerh}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_CLIENT=predis
+      - REDIS_USERNAME=${REDIS_USERNAME:-}
+      - QUEUE_CONNECTION=redis
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - PDFTOTEXT_PATH=/usr/bin/pdftotext
+      - PDFSEPARATE_PATH=/usr/bin/pdfseparate
+      - PDFTK_PATH=/usr/bin/pdftk
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ciblerh_network
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: ciblerh_nginx
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+      - "${APP_HTTPS_PORT:-8443}:443"
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./storage:/var/www/html/storage:ro
+    depends_on:
+      - app
+    networks:
+      - ciblerh_network
+
+  # Laravel Horizon (Queue Worker)
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ciblerh_horizon
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan horizon
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - TZ=${TZ:-Africa/Douala}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-ciblerh}
+      - DB_USERNAME=${DB_USERNAME:-ciblerh}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_CLIENT=predis
+      - REDIS_USERNAME=${REDIS_USERNAME:-}
+      - QUEUE_CONNECTION=redis
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - PDFTOTEXT_PATH=/usr/bin/pdftotext
+      - PDFSEPARATE_PATH=/usr/bin/pdfseparate
+      - PDFTK_PATH=/usr/bin/pdftk
+    depends_on:
+      - app
+      - mysql
+      - redis
+    networks:
+      - ciblerh_network
+
+  # Laravel Scheduler (for scheduled tasks)
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ciblerh_scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan schedule:work
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - TZ=${TZ:-Africa/Douala}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-ciblerh}
+      - DB_USERNAME=${DB_USERNAME:-ciblerh}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_CLIENT=predis
+      - REDIS_USERNAME=${REDIS_USERNAME:-}
+      - QUEUE_CONNECTION=redis
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - PDFTOTEXT_PATH=/usr/bin/pdftotext
+      - PDFSEPARATE_PATH=/usr/bin/pdfseparate
+      - PDFTK_PATH=/usr/bin/pdftk
+    depends_on:
+      - app
+      - mysql
+      - redis
+    networks:
+      - ciblerh_network
+
+  # Queue Worker (Alternative to Horizon)
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ciblerh_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_NAME=${APP_NAME:-Ciblerh}
+      - APP_KEY=${APP_KEY:-base64:Zq19gOj4vEiJ0pWYU1C1zVvDKZ2uHt9e7E6c3m2A=}
+      - APP_DEBUG=${APP_DEBUG:-true}
+      - TZ=${TZ:-Africa/Douala}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-ciblerh}
+      - DB_USERNAME=${DB_USERNAME:-ciblerh}
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_CLIENT=predis
+      - REDIS_USERNAME=${REDIS_USERNAME:-}
+      - QUEUE_CONNECTION=redis
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - PDFTOTEXT_PATH=/usr/bin/pdftotext
+      - PDFSEPARATE_PATH=/usr/bin/pdfseparate
+      - PDFTK_PATH=/usr/bin/pdftk
+    depends_on:
+      - app
+      - mysql
+      - redis
+    networks:
+      - ciblerh_network
+    profiles:
+      - queue-worker
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ciblerh_network:
+    driver: bridge
+

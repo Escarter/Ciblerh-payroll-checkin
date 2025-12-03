@@ -1,5 +1,10 @@
 <?php
 
+uses(
+    Tests\DuskTestCase::class,
+    Illuminate\Foundation\Testing\RefreshDatabase::class,
+)->in('Browser');
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -13,8 +18,8 @@
 
 uses(
     Tests\TestCase::class,
-    // Illuminate\Foundation\Testing\RefreshDatabase::class,
-)->in('Feature');
+    Illuminate\Foundation\Testing\RefreshDatabase::class,
+)->in('Feature', 'Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -42,7 +47,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function actingAs($user = null)
 {
-    // ..
+    return test()->actingAs($user ?? \App\Models\User::factory()->create());
 }

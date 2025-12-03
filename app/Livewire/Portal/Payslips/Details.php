@@ -44,22 +44,17 @@ class Details extends Component
     public function downloadPayslip($payslip_id)
     {
         $payslip = Payslip::findOrFail($payslip_id);
-        
-        // Check if the file exists
-        if (!Storage::disk('modified')->exists($payslip->file)) {
-            session()->flash('error', __('Payslip file not found. Please contact your administrator.'));
+
+        if (!Storage::disk("modified")->exists($payslip->file)) {
+            $this->dispatch("flash-message-error", message: __("Payslip file not found. Please contact your administrator."));
             return;
         }
-        
-        try {
-            return response()->download(
-                Storage::disk('modified')->path($payslip->file), 
-                $payslip->matricule. "_" . $payslip->year.'_'.$payslip->month.'.pdf', 
-                ['Content-Type'=> 'application/pdf']
-            );
-        } catch (\Exception $e) {
-            session()->flash('error', __('Unable to download payslip. Please contact your administrator.'));
-        }
+
+        return Storage::disk("modified")->download(
+            $payslip->file,
+            $payslip->matricule . "_" . $payslip->year . "_" . $payslip->month . ".pdf",
+            ["Content-Type" => "application/pdf"]
+        );
     }
 
     public function resendPayslip()
@@ -110,18 +105,18 @@ class Details extends Component
                                 : __('Failed to send email');
                             $this->closeModalAndFlashMessage($message, 'resendPayslipModal');
                         } else {
-                            $this->payslip->update([
-                                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                        $this->payslip->update([
+                            'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
                                 'email_retry_count' => 0, // Reset retry count on success
                                 'last_email_retry_at' => null,
                                 'failure_reason' => null, // Clear failure reason
-                            ]);
+                        ]);
 
-                            sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
+                        sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
 
-                            Log::info('mail-sent');
+                        Log::info('mail-sent');
 
-                            $this->closeModalAndFlashMessage(__('Employee Payslip resent successfully'), 'resendPayslipModal');
+                        $this->closeModalAndFlashMessage(__('Employee Payslip resent successfully'), 'resendPayslipModal');
                         }
                     } catch (\Swift_TransportException $e) {
 

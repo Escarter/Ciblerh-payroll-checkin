@@ -111,24 +111,24 @@ class History extends Component
                                     : __('Failed to send email');
                                 $this->closeModalAndFlashMessage($message, 'resendEmailModal');
                             } else {
-                                $this->payslip->update([
-                                    'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                            $this->payslip->update([
+                                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
                                     'email_retry_count' => 0, // Reset retry count on success
                                     'last_email_retry_at' => null,
                                     'failure_reason' => null, // Clear failure reason
-                                ]);
+                            ]);
 
-                                // sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
+                            // sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
 
-                                Log::info('mail-sent');
-                                auditLog(
-                                    auth()->user(),
-                                    'send_sms',
-                                    'web',
-                                    'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send email to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
-                                );
+                            Log::info('mail-sent');
+                            auditLog(
+                                auth()->user(),
+                                'send_sms',
+                                'web',
+                                'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send email to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                            );
 
-                                $this->closeModalAndFlashMessage(__('Email resent successfully!'), 'resendEmailModal');
+                            $this->closeModalAndFlashMessage(__('Email resent successfully!'), 'resendEmailModal');
                             }
 
                         } catch (\Swift_TransportException $e) {

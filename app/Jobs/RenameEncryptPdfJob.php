@@ -130,21 +130,21 @@ class RenameEncryptPdfJob implements ShouldQueue
 
                             if (empty($record_exists) || empty($record_exists->file)) {
                                 // First file for this employee - encrypt directly
-                                $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
-                                $pdf->tempDir = config('ciblerh.temp_dir');
-                                $result = $pdf->setUserPassword($employee->pdf_password)
-                                    ->passwordEncryption(128)
-                                    ->saveAs(Storage::disk('modified')->path($destination_file));
+                            $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
+                            $pdf->tempDir = config('ciblerh.temp_dir');
+                            $result = $pdf->setUserPassword($employee->pdf_password)
+                                ->passwordEncryption(128)
+                                ->saveAs(Storage::disk('modified')->path($destination_file));
 
-                                if (Storage::disk('modified')->exists($destination_file)) {
-                                    if (empty($record_exists)) {
+                            if (Storage::disk('modified')->exists($destination_file)) {
+                                if (empty($record_exists)) {
                                         createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $destination_file);
-                                    } else {
-                                        $record_exists->update([
+                                } else {
+                                    $record_exists->update([
                                             'file' => $destination_file,
-                                            'encryption_status' => Payslip::STATUS_SUCCESSFUL,
-                                        ]);
-                                    }
+                                        'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                                    ]);
+                                }
                                 }
                             } else {
                                 // Employee already has a file - combine with existing one

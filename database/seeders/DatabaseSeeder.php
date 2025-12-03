@@ -20,12 +20,58 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+        $environment = app()->environment();
+        $isProduction = $environment === 'production';
+        
+        $this->command->info("Running database seeder for {$environment} environment");
+        
         User::flushEventListeners();
         Department::flushEventListeners();
         Company::flushEventListeners();
         Service::flushEventListeners();
 
-        \App\Models\Company::factory()
+        // Always seed roles and permissions
+        $this->call(RolesAndPermissionsSeeder::class);
+        
+        // Create admin user
+        $adminUser = $this->createAdminUser();
+        
+        // Only create test data in non-production environments
+        if (!$isProduction) {
+            $this->command->info('Creating test data for development environment...');
+            $this->createTestData();
+            $this->assignRoles();
+        } else {
+            $this->command->info('Skipping test data creation in production environment');
+        }
+    }
+    
+    private function createAdminUser()
+    {
+        $adminUser = User::firstOrCreate(
+            ['email' => 'admin@app.com'],
+            [
+                'uuid' => Str::uuid(),
+                'first_name' => 'System',
+                'last_name' => 'Administrator',
+                'matricule' => 'ADMIN001',
+                'personal_phone_number' => '+237000000000',
+                'professional_phone_number' => '+237000000000',
+                'pdf_password' => Str::random(10),
+                'email_verified_at' => now(),
+                'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+                'remember_token' => Str::random(10),
+            ]
+        );
+        
+        $adminUser->assignRole('admin');
+        
+        return $adminUser;
+    }
+    
+    private function createTestData()
+    {
+        Company::factory()
             ->count(5)
             ->has(
                 Department::factory()
@@ -43,32 +89,14 @@ class DatabaseSeeder extends Seeder
                         )
                     )
             )->create();
- 
-        $this->call(RolesAndPermissionsSeeder::class);
-        
-        \App\Models\User::create([
-            'uuid' => Str::uuid(),
-            'first_name' => ucwords(str_replace('_', ' ', fake()->name())),
-            'last_name' => ucwords(str_replace('_', ' ', fake()->name())),
-            'email' => 'admin@app.com',
-            'matricule' => Str::random(10),
-            'personal_phone_number' => fake()->phoneNumber,
-            'professional_phone_number' => fake()->phoneNumber,
-            'pdf_password' => Str::random(10),
-            'email_verified_at' => now(),
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'remember_token' => Str::random(10),
-        ]);
-
-        $user = User::where('email', 'admin@app.com')->first();
-
-        $user->assignRole('admin');
-
-
+    }
+    
+    private function assignRoles()
+    {
         $employee_role = Role::where('name', 'employee')->first();
 
         User::all()->each(function ($user) use ($employee_role) {
-            if(explode("@",$user->email)[1] !== "app.com"){
+            if(explode("@", $user->email)[1] !== "app.com"){
                 return $user->assignRole($employee_role);
             }
         });  

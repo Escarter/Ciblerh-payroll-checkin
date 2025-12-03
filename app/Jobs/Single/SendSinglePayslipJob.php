@@ -3,7 +3,7 @@
 namespace App\Jobs\Single;
 
 use App\Models\Payslip;
-use App\Models\Employee;
+use App\Models\User;
 use App\Mail\SendPayslip;
 use mikehaertl\pdftk\Pdf;
 use Illuminate\Support\Str;
@@ -30,7 +30,7 @@ class SendSinglePayslipJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($raw_file_path,Employee $employee,Payslip $record, $destination)
+    public function __construct($raw_file_path,User $employee,Payslip $record, $destination)
     {
         $this->employee = $employee;
         $this->raw_file_path = $raw_file_path;

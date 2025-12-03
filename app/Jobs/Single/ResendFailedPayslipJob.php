@@ -2,7 +2,7 @@
 
 namespace App\Jobs\Single;
 
-use App\Models\Employee;
+use App\Models\User;
 use App\Mail\SendPayslip;
 use mikehaertl\pdftk\Pdf;
 use Illuminate\Bus\Batchable;
@@ -34,7 +34,7 @@ class ResendFailedPayslipJob implements ShouldQueue
      */
     public function __construct(array $chunk, $employee_id, $record, $month, $destination, $user_id)
     {
-        $this->employee = Employee::findOrFail($employee_id);
+        $this->employee = User::findOrFail($employee_id);
         $this->destination = $destination;
         $this->month = $month;
         $this->chunk = $chunk;

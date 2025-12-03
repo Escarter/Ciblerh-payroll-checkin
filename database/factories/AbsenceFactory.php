@@ -17,7 +17,13 @@ class AbsenceFactory extends Factory
     public function definition()
     {
         return [
-            //
+            'user_id' => \App\Models\User::factory(),
+            'company_id' => \App\Models\Company::factory(),
+            'department_id' => \App\Models\Department::factory(),
+            'absence_date' => $this->faker->date(),
+            'absence_reason' => $this->faker->sentence(),
+            'approval_status' => 0, // PENDING
+            'approval_reason' => null,
         ];
     }
 }

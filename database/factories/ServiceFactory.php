@@ -21,6 +21,8 @@ class ServiceFactory extends Factory
         return [
             'uuid' => Str::uuid(),
             'name' => $this->faker->name(),
+            'company_id' => Company::factory(),
+            'department_id' => \App\Models\Department::factory(),
         ];
     }
 }
