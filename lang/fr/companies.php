@@ -74,4 +74,38 @@ return [
     'sector' => 'Secteur',
     'assign' => 'Assigner',
     'assign_manager_to_manage_company' => 'Assigner un manager pour gérer l\'entreprise',
+
+    // Import/Export messages
+    'companies_successfully_imported' => 'Sociétés importées avec succès!',
+    'imported_excel_file_for_companies' => 'Fichier Excel importé pour les sociétés',
+    'exported_excel_file_for_companies' => 'Fichier Excel exporté pour les sociétés',
+
+    // Manager assignment messages
+    'manager_successfully_assigned' => 'Manager assigné avec succès!',
+    'manager_removed_from_company' => 'Manager retiré de la société!',
+
+    // UI strings
+    'select_all' => 'Tout sélectionner',
+    'deselect_all' => 'Tout désélectionner',
+    'view_departments' => 'Voir les départements',
+    'view_employees' => 'Voir les employés',
+    'edit_company' => 'Modifier la société',
+    'restore_company' => 'Restaurer la société',
+    'permanently_delete' => 'Supprimer définitivement',
+    'add_company' => 'Ajouter une société',
+    'no_record_found_here' => 'Aucun enregistrement trouvé ici!',
+
+    // Export headings
+    'export_name' => 'Nom',
+    'export_code' => 'Code',
+    'export_description' => 'Description',
+    'export_sector' => 'Secteur',
+    'export_total_departments' => 'Total des départements',
+    'export_total_services' => 'Total des services',
+    'export_total_employees' => 'Total des employés',
+    'export_status' => 'Statut',
+    'export_date' => 'Date',
+
+    // Services
+    'services' => 'Services',
 ];

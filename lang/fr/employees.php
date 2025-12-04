@@ -8,6 +8,7 @@ return [
     */
 
     'employees' => 'Employés',
+    'employees_short' => 'Personnel',
     'employees_management' => 'Gestion des Employés',
     'employee' => 'Employé',
     'create_manager' => 'Créer un manager',

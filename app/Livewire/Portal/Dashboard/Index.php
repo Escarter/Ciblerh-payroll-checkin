@@ -100,20 +100,6 @@ class Index extends Component
         return $this->cachedData[$key];
     }
 
-    // Helper method for filtering
-    protected function applyFilters($query)
-    {
-        return $query
-            ->when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
-            )
-            ->when(
-                $this->selectedCompanyId && $this->selectedCompanyId != 'all',
-                fn($q) => $q->where('company_id', $this->selectedCompanyId)
-            );
-    }
-
     // Modal management methods
     public function openDepartmentModal()
     {
@@ -210,10 +196,10 @@ class Index extends Component
         }
 
         return [
-            json_encode($periods),
-            json_encode($success),
-            json_encode($failed),
-            json_encode($pending)
+            'periods' => $periods,
+            'success' => $success,
+            'failed' => $failed,
+            'pending' => $pending
         ];
     }
 
@@ -734,11 +720,11 @@ class Index extends Component
         $day_stats = $this->getPayslipStats('day');
 
         // Calculate pie chart data
-        $pie_chart = json_encode([
-            array_sum(json_decode($this->prepareDailyChart($day_stats)[3])),
-            array_sum(json_decode($this->prepareDailyChart($day_stats)[2])),
-            array_sum(json_decode($this->prepareDailyChart($day_stats)[1]))
-        ]);
+        $pie_chart_data = [
+            array_sum($this->prepareDailyChart($day_stats)['pending']),
+            array_sum($this->prepareDailyChart($day_stats)['failed']),
+            array_sum($this->prepareDailyChart($day_stats)['success'])
+        ];
 
         return view('livewire.portal.dashboard.index', [
             'checklogs' => $checklogs,
@@ -966,7 +952,7 @@ class Index extends Component
             'payslips_last_month_success_count' => $payslips_last_month_success_count,
             'chart_data' => $this->prepareWeeklyChart($stats),
             'chart_daily' => $this->prepareDailyChart($day_stats),
-            'chart_pie_daily' => $pie_chart,
+            'pie_chart_data' => $pie_chart_data,
 
             // New enhanced metrics
             'attendance_rate' => $this->calculateAttendanceRate('this_month'),
@@ -987,4 +973,3 @@ class Index extends Component
         ])->layout('components.layouts.dashboard');
     }
 }
-                    

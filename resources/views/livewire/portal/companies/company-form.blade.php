@@ -27,7 +27,7 @@
                         @if(!$isEditMode)
                         @hasrole('admin')
                         <div class="form-group mb-4">
-                            <label for="assign_manager">{{__('Assign Manager')}}</label>
+                            <label for="assign_manager">{{__('companies.assign_manager')}}</label>
                             <select wire:model="manager_id" name="manager_id" class="form-select">
                                 <option value="">{{__('employees.select_manager')}}</option>
                                 @foreach($managers as $manager)
@@ -52,7 +52,7 @@
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" wire:click.prevent="{{ $isEditMode ? 'clearFields' : '' }}" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
+                            <button type="button" wire:click.prevent="clearFields" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
                             <button type="submit" wire:click.prevent="{{ $isEditMode ? 'update' : 'store' }}" class="btn btn-primary" wire:loading.attr="disabled">{{ $isEditMode ? __('common.update') : __('common.create') }}</button>
                         </div>
                     </x-form-items.form>

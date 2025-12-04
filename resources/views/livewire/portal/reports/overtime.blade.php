@@ -65,7 +65,7 @@
         <div class="col">
             <label for="selectedDepartmentId">{{__('departments.department')}}: </label>
             <select wire:model.live="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror">
-                <option value="" selected>{{__('Select Departments')}}</option>
+                <option value="" selected>{{__('common.select')}} {{__('departments.departments')}}</option>
                 @foreach ($departments as $department)
                 <option value="{{$department->id}}">{{$department->name}}</option>
                 @endforeach

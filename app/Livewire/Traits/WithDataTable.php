@@ -17,16 +17,17 @@ trait WithDataTable {
 
     protected $paginationTheme = "bootstrap";
 
-    public function closeModalAndFlashMessage($message, $modal)  
+    public function closeModalAndFlashMessage($message, $modal)
     {
-        session()->flash(
-            str_replace("\\App\\Livewire\\", "", get_class($this)) . "." . $modal,
-            $message
-        );
-        // Generic event expected by tests
-        $this->dispatch("flash-message", message: $message, modalId: $modal);
-        // Specific event variant for consumers that use modal-specific channels
-        $this->dispatch("flash-message-{$modal}", message: $message, modalId: $modal);
+        // Dispatch toast notification
+        $this->dispatch("showToast", message: $message, type: "success");
+        // Close the modal
+        $this->dispatch("close-modal", id: $modal);
+    }
+
+    public function showToast($message, $type = 'success')
+    {
+        $this->dispatch("showToast", message: $message, type: $type);
     }
 
     public function updatingQuery()

@@ -270,7 +270,7 @@
             <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column mx-2'>
 
                 <div class="text-center text-gray-800 mt-4">
-                    <img src="{{ asset('/img/illustrations/not_found.svg') }}" class="w-25 ">
+                    <img src="{{ asset('/img/illustrations/404.svg') }}" class="w-25 ">
                     <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
                 </div>
                 @can('role-create')

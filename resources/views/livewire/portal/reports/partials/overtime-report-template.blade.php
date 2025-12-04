@@ -280,7 +280,7 @@
                 @endif
                 @else
                 <p style="padding-top:5px">
-                    {{ __("No assigned supervisor")}}
+                    {{ __('departments.no_assigned_supervisor')}}
                 </p>
                 @endif
             </div>

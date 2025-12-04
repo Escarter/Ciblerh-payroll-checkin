@@ -126,13 +126,13 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural('Department', $active_departments ?? 0)) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural(__('departments.department'), $active_departments ?? 0)) }}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_departments ?? 0)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural('Department', $active_departments ?? 0)) }}</h2>
+                                    <h2 class="h5">{{ __(\Str::plural(__('departments.department'), $active_departments ?? 0)) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_departments ?? 0)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
@@ -164,7 +164,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_departments ?? 0)}} </h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('departments.department'), $deleted_departments ?? 0) }} {{__('that are deleted!')}}</div>
+                                    <div>{{ \Str::plural(__('departments.department'), $deleted_departments ?? 0) }} {{__('departments.that_are_deleted')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -190,7 +190,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('Order')}}: </label>
+            <label for="direction">{{__('departments.order')}}: </label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>
@@ -266,7 +266,7 @@
             @can('department-delete')
             <button wire:click="bulkRestore"
                 class="btn btn-sm btn-outline-success d-flex align-items-center"
-                title="{{ __('Restore Selected Departments') }}">
+                title="{{ __('departments.restore_selected_departments') }}">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -276,7 +276,7 @@
 
             <button type="button"
                 class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                title="{{ __('Permanently Delete Selected Departments') }}"
+                title="{{ __('departments.permanently_delete_selected_departments') }}"
                 data-bs-toggle="modal" 
                 data-bs-target="#BulkForceDeleteModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,7 +329,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <h5 class="fw-bold text-gray-800 mb-0">{{ucwords($department->name)}}</h5>
                                 <span class="badge {{$department->is_active ? 'bg-success' : 'bg-danger'}} px-2 py-1 rounded-pill small">
-                                    {{$department->is_active ? __('common.active') : __('Inactive')}}
+                                    {{$department->is_active ? __('common.active') : __('departments.inactive')}}
                                 </span>
                             </div>
                             @if(auth()->user()->hasRole('supervisor'))
@@ -368,19 +368,19 @@
                             <div class="col-4">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-primary">{{$department->id}}</div>
-                                    <div class="small text-gray-600">{{__('ID')}}</div>
+                                    <div class="small text-gray-600">{{__('departments.id')}}</div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-primary">{{numberFormat(count($department->employees)) }}</div>
-                                    <div class="small text-gray-600">{{__('Staff')}}</div>
+                                    <div class="small text-gray-600">{{__('departments.staff')}}</div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-success">{{numberFormat(count($department->services)) }}</div>
-                                    <div class="small text-gray-600">{{__('Services')}}</div>
+                                    <div class="small text-gray-600">{{__('departments.services')}}</div>
                                 </div>
                             </div>
                            
@@ -390,25 +390,25 @@
                 
                 <div class='d-flex align-items-center justify-content-between pt-3 border-top'>
                     <div class="d-flex align-items-center gap-2">
-                        <a href="{{route('portal.services.index',['department_uuid'=>$department->uuid])}}" wire:navigate class="btn btn-sm btn-outline-primary d-flex align-items-center" title="{{__('View Services')}}" onclick="event.stopPropagation();">
+                        <a href="{{route('portal.services.index',['department_uuid'=>$department->uuid])}}" wire:navigate class="btn btn-sm btn-outline-primary d-flex align-items-center" title="{{__('departments.view_services')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                             </svg>
-                            {{__('Services')}}
+                            {{__('departments.services')}}
                         </a>
                         @if(auth()->user()->hasRole('supervisor'))
-                        <a href="{{route('portal.department.employees', $department->uuid)}}" wire:navigate class="btn btn-sm btn-outline-success d-flex align-items-center" title="{{__('Manage Employees')}}" onclick="event.stopPropagation();">
+                        <a href="{{route('portal.department.employees', $department->uuid)}}" wire:navigate class="btn btn-sm btn-outline-success d-flex align-items-center" title="{{__('departments.manage_employees')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                             </svg>
-                            {{__('Employees')}}
+                            {{__('departments.employees')}}
                         </a>
                         @endif
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         @if($activeTab === 'active')
                         @can('department-update')
-                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DepartmentModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Department')}}">
+                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DepartmentModal" draggable="false" onclick="event.stopPropagation();" title="{{__('departments.edit_department')}}">
                             <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
@@ -423,12 +423,12 @@
                         @endcan
                         @else
                         @can('department-delete')
-                        <a href="#" wire:click="restore({{$department->id}})" title="{{__('Restore Department')}}" onclick="event.stopPropagation();">
+                        <a href="#" wire:click="restore({{$department->id}})" title="{{__('departments.restore_department')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                         </a>
-                        <a href="#" wire:click.prevent="$set('selectedDepartments', [{{$department->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Permanently Delete')}}">
+                        <a href="#" wire:click.prevent="$set('selectedDepartments', [{{$department->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('departments.permanently_delete')}}">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -443,14 +443,14 @@
         <div class='col-md-12 '>
             <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column mx-2'>
                 <div class="text-center text-gray-800 mt-4">
-                    <img src="{{ asset('/img/illustrations/not_found.svg') }}" class="w-25 ">
+                    <img src="{{ asset('/img/illustrations/404.svg') }}" class="w-25 ">
                     <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
                 </div>
                 @can('department-create')
                 <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#DepartmentModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('Add Department ')}}
+                        </svg> {{__('departments.add_department')}}
                 </a>
                 @endcan
             </div>

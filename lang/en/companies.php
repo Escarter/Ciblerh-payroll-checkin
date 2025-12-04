@@ -74,4 +74,38 @@ return [
     'sector' => 'Sector',
     'assign' => 'Assign',
     'assign_manager_to_manage_company' => 'Assign manager to manage company',
+
+    // Import/Export messages
+    'companies_successfully_imported' => 'Companies successfully imported!',
+    'imported_excel_file_for_companies' => 'Imported excel file for companies',
+    'exported_excel_file_for_companies' => 'Exported excel file for companies',
+
+    // Manager assignment messages
+    'manager_successfully_assigned' => 'Manager successfully assigned!',
+    'manager_removed_from_company' => 'Manager removed from company!',
+
+    // UI strings
+    'select_all' => 'Select All',
+    'deselect_all' => 'Deselect All',
+    'view_departments' => 'View Departments',
+    'view_employees' => 'View Employees',
+    'edit_company' => 'Edit Company',
+    'restore_company' => 'Restore Company',
+    'permanently_delete' => 'Permanently Delete',
+    'add_company' => 'Add Company',
+    'no_record_found_here' => 'No record found here!',
+
+    // Export headings
+    'export_name' => 'Name',
+    'export_code' => 'Code',
+    'export_description' => 'Description',
+    'export_sector' => 'Sector',
+    'export_total_departments' => 'Total Departments',
+    'export_total_services' => 'Total Services',
+    'export_total_employees' => 'Total Employees',
+    'export_status' => 'Status',
+    'export_date' => 'Date',
+
+    // Services
+    'services' => 'Services',
 ];

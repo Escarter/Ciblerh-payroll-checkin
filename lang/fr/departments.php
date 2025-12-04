@@ -9,6 +9,7 @@ return [
 
     'departments' => 'Départements',
     'department' => 'Département',
+    'departments_short' => 'Dépts',
     'total_departments' => 'Total des départements',
     'create_department' => 'Créer un département',
     'edit_department' => 'Modifier le département',
@@ -59,6 +60,9 @@ return [
     'departments_management' => 'Gestion des départements',
     'manage_departments_details' => 'Gérer les départements et leurs détails connexes',
     'assign_supervisor' => 'Assigner un superviseur',
+    'assign_supervisor_to_department' => 'Assigner un superviseur pour gérer les employés du département',
+    'assign' => 'Assigner',
+    'no_assigned_supervisor' => 'Aucun superviseur assigné',
     'for_these_companies' => 'pour ces entreprises',
     'in_this_company' => 'dans cette entreprise',
     'that_are_active' => 'qui sont actifs!',
@@ -69,4 +73,54 @@ return [
     'multiple_companies' => 'Plusieurs entreprises',
     'departments_will_be_created_in_assigned_companies' => 'Les départements seront créés dans vos entreprises assignées',
     'select_supervisor' => 'Sélectionner un superviseur',
+    'select_department' => 'Sélectionner',
+
+    // Success Messages
+    'department_created_successfully' => 'Département créé avec succès!',
+    'department_successfully_updated' => 'Département mis à jour avec succès!',
+    'department_successfully_moved_to_trash' => 'Département déplacé vers la corbeille avec succès!',
+    'department_successfully_restored' => 'Département restauré avec succès!',
+    'department_permanently_deleted' => 'Département supprimé définitivement!',
+    'supervisor_successfully_assigned' => 'Superviseur assigné avec succès!',
+    'selected_departments_moved_to_trash' => 'Départements sélectionnés déplacés vers la corbeille!',
+    'selected_departments_restored' => 'Départements sélectionnés restaurés!',
+    'selected_departments_permanently_deleted' => 'Départements sélectionnés supprimés définitivement!',
+    'departments_successfully_uploaded' => 'Départements téléversés avec succès!',
+
+    // Error Messages
+    'supervisors_cannot_create' => 'Les superviseurs ne peuvent pas créer de nouveaux départements.',
+    'cannot_permanently_delete_department' => 'Impossible de supprimer définitivement le département. Il a des enregistrements liés.',
+    'cannot_permanently_delete_departments' => 'Impossible de supprimer définitivement les départements suivants car ils ont des enregistrements liés: ',
+
+    // Import/Export Messages
+    'imported_excel_file_for_departments' => 'Fichier Excel importé pour les départements de la société ',
+    'exported_excel_file_for_departments' => 'Fichier Excel exporté pour les départements de la société ',
+
+    // UI Labels
+    'edit_department_details' => 'Modifier et mettre à jour les détails du département',
+    'create_department_to_manage' => 'Créer un nouveau département à gérer',
+    'is_active' => 'Est actif',
+    'inactive' => 'Inactif',
+    'that_are_deleted' => 'qui sont supprimés!',
+
+    // Table Headers
+    'id' => 'ID',
+    'staff' => 'Personnel',
+    'services' => 'Services',
+    'employees' => 'Employés',
+
+    // Button Titles
+    'view_services' => 'Voir les services',
+    'manage_employees' => 'Gérer les employés',
+    'edit_department' => 'Modifier le département',
+    'restore_department' => 'Restaurer le département',
+    'permanently_delete' => 'Supprimer définitivement',
+    'add_department' => 'Ajouter un département',
+
+    // Form Labels
+    'order' => 'Ordre',
+
+    // Bulk Operations
+    'restore_selected_departments' => 'Restaurer les départements sélectionnés',
+    'permanently_delete_selected_departments' => 'Supprimer définitivement les départements sélectionnés',
 ];

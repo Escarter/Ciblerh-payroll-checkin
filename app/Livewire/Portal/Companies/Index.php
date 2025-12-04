@@ -27,6 +27,7 @@ class Index extends Component
     public $supervisors;
     public $company = null;
     public $company_id = null;
+    public $manager_id = null;
     public $role = null;
     public $code = null;
     public $name = null;
@@ -96,9 +97,14 @@ class Index extends Component
             'author_id' => auth()->user()->id,
         ]);
 
-        // If the creator is a manager, auto-assign them to the company
+        // Assign the selected manager to the company
+        if ($this->manager_id) {
+            $company->managers()->sync([$this->manager_id]);
+        }
+
+        // If the creator is a manager and not already assigned, auto-assign them to the company
         $user = auth()->user();
-        if ($user && $user->hasRole('manager')) {
+        if ($user && $user->hasRole('manager') && $this->manager_id != $user->id) {
             $company->managers()->syncWithoutDetaching([$user->id]);
         }
 
@@ -120,6 +126,13 @@ class Index extends Component
                 'sector' => $this->sector,
                 'description' => $this->description,
             ]);
+
+            // Update the manager assignment
+            if ($this->manager_id) {
+                $this->company->managers()->sync([$this->manager_id]);
+            } else {
+                $this->company->managers()->detach();
+            }
         });
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('companies.company_updated_successfully'), 'CompanyModal');
@@ -167,7 +180,7 @@ class Index extends Component
                            $company->payslipProcess()->count() > 0;
         
         if ($hasRelatedRecords) {
-            session()->flash('error', __('companies.cannot_permanently_delete_company'));
+            $this->showToast(__('companies.cannot_permanently_delete_company'), 'error');
             return;
         }
         
@@ -239,7 +252,7 @@ class Index extends Component
             $this->selectedCompanies = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected companies permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('companies.selected_companies_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)
@@ -304,11 +317,11 @@ class Index extends Component
             auth()->user(),
             'company_imported',
             'web',
-            __('Imported excel file for companies') 
+            __('companies.imported_excel_file_for_companies')
         );
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Companies successfully imported!'), 'importCompaniesModal');
+        $this->closeModalAndFlashMessage(__('companies.companies_successfully_imported'), 'importCompaniesModal');
     }
     public function export()
     {
@@ -316,7 +329,7 @@ class Index extends Component
             auth()->user(),
             'company_exported',
             'web',
-            __('Exported excel file for companies') 
+            __('companies.exported_excel_file_for_companies')
         );
         return (new CompanyExport($this->query))->download('Companies-' . Str::random(5) . '.xlsx');
     }
@@ -332,6 +345,7 @@ class Index extends Component
             'sector',
             'description',
             'company_id',
+            'manager_id',
         ]);
     }
 

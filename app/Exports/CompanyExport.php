@@ -24,15 +24,15 @@ class CompanyExport implements FromQuery, WithMapping, WithHeadings
     public function headings(): array
     {
         return [
-            'Name',
-            'Code',
-            'Description',
-            'Sector',
-            'Total Departments',
-            'Total Services',
-            'Total Employees',
-            'status',
-            'Date',
+            __('companies.export_name'),
+            __('companies.export_code'),
+            __('companies.export_description'),
+            __('companies.export_sector'),
+            __('companies.export_total_departments'),
+            __('companies.export_total_services'),
+            __('companies.export_total_employees'),
+            __('companies.export_status'),
+            __('companies.export_date'),
         ];
     }
 

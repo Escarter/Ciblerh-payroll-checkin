@@ -85,7 +85,7 @@ class Index extends Component
 
         if ($this->role === 'supervisor') {
             // Supervisors can't create departments - they only manage existing ones
-            session()->flash('error', __('Supervisors cannot create new departments.'));
+            session()->flash('error', __('departments.supervisors_cannot_create'));
             return;
         }
         
@@ -103,7 +103,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Department created successfully!'), 'DepartmentModal');
+        $this->closeModalAndFlashMessage(__('departments.department_created_successfully'), 'DepartmentModal');
     }
 
     public function update()
@@ -132,7 +132,7 @@ class Index extends Component
             );
         }
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Department successfully updated!'), 'DepartmentModal');
+        $this->closeModalAndFlashMessage(__('departments.department_successfully_updated'), 'DepartmentModal');
     }
 
     public function assignSupervisor()
@@ -156,7 +156,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Supervisor successfully assigned!'), 'AssignSupModal');
+        $this->closeModalAndFlashMessage(__('departments.supervisor_successfully_assigned'), 'AssignSupModal');
     }
 
     public function delete()
@@ -170,7 +170,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Department successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('departments.department_successfully_moved_to_trash'), 'DeleteModal');
     }
 
     public function restore($departmentId)
@@ -182,7 +182,7 @@ class Index extends Component
         $department = Department::withTrashed()->findOrFail($departmentId);
         $department->restore();
 
-        $this->closeModalAndFlashMessage(__('Department successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('departments.department_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete($departmentId)
@@ -198,13 +198,13 @@ class Index extends Component
                            $department->employees()->count() > 0;
         
         if ($hasRelatedRecords) {
-            session()->flash('error', __('Cannot permanently delete department. It has related records.'));
+            session()->flash('error', __('departments.cannot_permanently_delete_department'));
             return;
         }
         
         $department->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Department permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('departments.department_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -218,7 +218,7 @@ class Index extends Component
             $this->selectedDepartments = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected departments moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('departments.selected_departments_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -232,7 +232,7 @@ class Index extends Component
             $this->selectedDepartments = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected departments restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('departments.selected_departments_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -256,7 +256,7 @@ class Index extends Component
             
             if (!empty($departmentsWithRelatedRecords)) {
                 $departmentNames = implode(', ', $departmentsWithRelatedRecords);
-                session()->flash('error', __('Cannot permanently delete the following departments as they have related records: ') . $departmentNames);
+                session()->flash('error', __('departments.cannot_permanently_delete_departments') . $departmentNames);
                 return;
             }
             
@@ -267,7 +267,7 @@ class Index extends Component
             $this->selectedDepartments = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected departments permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('departments.selected_departments_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)
@@ -332,10 +332,10 @@ class Index extends Component
             auth()->user(),
             'department_imported',
             'web',
-            __('Imported excel file for departments for company ') . $this->company->name
+            __('departments.imported_excel_file_for_departments') . $this->company->name
         );
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Departments successfully uploaded!'), 'importDepartmentsModal');
+        $this->closeModalAndFlashMessage(__('departments.departments_successfully_uploaded'), 'importDepartmentsModal');
     }
 
     public function export()
@@ -344,7 +344,7 @@ class Index extends Component
             auth()->user(),
             'department_exported',
             'web',
-            __('Exported excel file for departments for company ') . $this->company->name
+            __('departments.exported_excel_file_for_departments') . $this->company->name
         );
         return (new DepartmentExport($this->company, $this->query))->download(ucfirst($this->company->name) . '-Department-' . Str::random(5) . '.xlsx');
     }

@@ -9,18 +9,7 @@
             </div>
             <div class="d-flex justify-content-between align-items-start">
                 <!-- Live Clock -->
-                <div class="d-flex align-items-start" wire:poll.1s="updateCurrentTime">
-                    <svg class="icon icon-sm me-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <div>
-                        <div class="fw-bold text-primary fs-5" id="live-clock">{{ $currentTime }}</div>
-                        <small class="text-muted">{{ now()->format(__('dashboard.date_format_readable')) }}</small>
-                    </div>
-                </div>
+                <livewire:live-clock />
             </div>
         </div>
         <div style="">
@@ -1010,21 +999,20 @@
                                 </div>
                             </div>
                         </div>
-                            <div class="row g-3 py-2">
-                                <div class="col-6"> 
-                                    <div class="card bg-danger bg-opacity-10 border-danger">
-                                        <div class="card-body p-3 text-center">
-                                            <div class="fw-bold text-white fs-4">{{count($department_performance->where('attendance_rate', '<', 70))}}</div>
-                                            <small class="text-white">{{__('dashboard.needs_improvement')}}<br>(<70%) </small>
-                                        </div>
+                        <div class="row g-3 py-2">
+                            <div class="col-6">
+                                <div class="card bg-danger bg-opacity-10 border-danger">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="fw-bold text-white fs-4">{{count($department_performance->where('attendance_rate', '<', 70))}}</div>
+                                        <small class="text-white">{{__('dashboard.needs_improvement')}}<br>(<70%) </small>
                                     </div>
                                 </div>
-                                <div class="col-6">
-                                    <div class="card bg-info bg-opacity-10 border-info">
-                                        <div class="card-body p-3 text-center">
-                                            <div class="fw-bold text-white fs-4">{{round($department_performance->avg('attendance_rate'), 1)}}%</div>
-                                            <small class="text-white">{{__('dashboard.average_rate')}}</small>
-                                        </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card bg-info bg-opacity-10 border-info">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="fw-bold text-white fs-4">{{round($department_performance->avg('attendance_rate'), 1)}}%</div>
+                                        <small class="text-white">{{__('dashboard.average_rate')}}</small>
                                     </div>
                                 </div>
                             </div>
@@ -1034,6 +1022,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 @push('styles')
 <style>
@@ -1223,16 +1212,10 @@
             chartInstances.approvalPie = new Chart(approvalPieCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: {
-                        !!json_encode($approval_pie_chart['labels']) !!
-                    },
+                    labels: @json($approval_pie_chart['labels']),
                     datasets: [{
-                        data: {
-                            !!json_encode($approval_pie_chart['data']) !!
-                        },
-                        backgroundColor: {
-                            !!json_encode($approval_pie_chart['colors']) !!
-                        },
+                        data: @json($approval_pie_chart['data']),
+                        backgroundColor: @json($approval_pie_chart['colors']),
                         borderWidth: 0,
                         cutout: '60%'
                     }]
@@ -1273,15 +1256,9 @@
         const deptComparisonElement = document.querySelector('.department-comparison-chart');
         if (deptComparisonElement) {
             const deptComparisonCtx = deptComparisonElement.getContext('2d');
-            const labels = {
-                !!json_encode($department_comparison['labels']) !!
-            };
-            const attendanceData = {
-                !!json_encode($department_comparison['attendance']) !!
-            };
-            const overtimeData = {
-                !!json_encode($department_comparison['overtime']) !!
-            };
+            const labels = @json($department_comparison['labels']);
+            const attendanceData = @json($department_comparison['attendance']);
+            const overtimeData = @json($department_comparison['overtime']);
 
             if (!labels || labels.length === 0) {
                 deptComparisonCtx.font = '16px Arial';
@@ -1352,18 +1329,10 @@
         const monthlyTrendsElement = document.querySelector('.monthly-trends-chart');
         if (monthlyTrendsElement) {
             const monthlyTrendsCtx = monthlyTrendsElement.getContext('2d');
-            const trendLabels = {
-                !!json_encode($monthly_trends['labels']) !!
-            };
-            const attendanceTrends = {
-                !!json_encode($monthly_trends['attendance']) !!
-            };
-            const overtimeTrends = {
-                !!json_encode($monthly_trends['overtime']) !!
-            };
-            const leaveTrends = {
-                !!json_encode($monthly_trends['leaves']) !!
-            };
+            const trendLabels = @json($monthly_trends['labels']);
+            const attendanceTrends = @json($monthly_trends['attendance']);
+            const overtimeTrends = @json($monthly_trends['overtime']);
+            const leaveTrends = @json($monthly_trends['leaves']);
 
             if (!trendLabels || trendLabels.length === 0) {
                 monthlyTrendsCtx.font = '16px Arial';
@@ -1435,7 +1404,7 @@
             }
         }
 
-        // Create Chartist charts with static data
+        // Create Chartist charts with proper JSON data
         console.log('Creating Chartist charts...');
         console.log('Chartist available:', typeof Chartist !== 'undefined');
 
@@ -1443,79 +1412,75 @@
         const lineChartElement = document.querySelector('.line-chart');
         console.log('Line chart element found:', lineChartElement);
         if (lineChartElement && typeof Chartist !== 'undefined') {
-            const chartData = {
-                labels: {
-                    !!html_entity_decode($chart_data[0]) !!
-                },
-                series: [{
-                        !!html_entity_decode($chart_data[3]) !!
-                    },
-                    {
-                        !!html_entity_decode($chart_data[2]) !!
-                    },
-                    {
-                        !!html_entity_decode($chart_data[1]) !!
-                    }
-                ]
-            };
-            console.log('Static line chart data:', chartData);
+            try {
+                // Use the chart data directly from Livewire
+                const chartData = @json($chart_data);
+                console.log('Line chart data:', chartData);
 
-            chartInstances.payslipLine = new Chartist.Line('.line-chart', chartData, {
-                low: 0,
-                scaleMinSpace: 10,
-                showArea: true,
-                fullWidth: true,
-                plugins: [
-                    Chartist.plugins.tooltip()
-                ],
-                axisX: {
-                    position: 'end'
-                },
-                axisY: {
-                    showGrid: true,
-                    showLabel: true,
-                }
-            });
-            console.log('Line chart created:', chartInstances.payslipLine);
+                chartInstances.payslipLine = new Chartist.Line('.line-chart', {
+                    labels: chartData.periods || [],
+                    series: [
+                        chartData.pending || [],
+                        chartData.failed || [],
+                        chartData.success || []
+                    ]
+                }, {
+                    low: 0,
+                    scaleMinSpace: 10,
+                    showArea: true,
+                    fullWidth: true,
+                    plugins: [
+                        Chartist.plugins.tooltip()
+                    ],
+                    axisX: {
+                        position: 'end'
+                    },
+                    axisY: {
+                        showGrid: true,
+                        showLabel: true,
+                    }
+                });
+                console.log('Line chart created:', chartInstances.payslipLine);
+            } catch (error) {
+                console.error('Error creating line chart:', error);
+            }
         }
 
         // Weekly Payslips Bar Chart
         const barChartElement = document.querySelector('.bar-chart');
         console.log('Bar chart element found:', barChartElement);
         if (barChartElement && typeof Chartist !== 'undefined') {
-            const barChartData = {
-                labels: {
-                    !!html_entity_decode($chart_daily[0]) !!
-                },
-                series: [{
-                        !!html_entity_decode($chart_daily[3]) !!
-                    },
-                    {
-                        !!html_entity_decode($chart_daily[2]) !!
-                    },
-                    {
-                        !!html_entity_decode($chart_daily[1]) !!
-                    }
-                ]
-            };
-            console.log('Static bar chart data:', barChartData);
+            try {
+                // Use the chart data directly from Livewire
+                const barChartData = @json($chart_daily);
+                console.log('Bar chart data:', barChartData);
 
-            chartInstances.payslipBar = new Chartist.Bar('.bar-chart', barChartData, {
-                low: 0,
-                showArea: true,
-                plugins: [
-                    Chartist.plugins.tooltip()
-                ],
-                axisX: {
-                    position: 'end'
-                },
-                axisY: {
-                    showGrid: false,
-                    showLabel: false,
-                    offset: 0
-                }
-            });
-            console.log('Bar chart created:', chartInstances.payslipBar);
+                chartInstances.payslipBar = new Chartist.Bar('.bar-chart', {
+                    labels: barChartData.periods || [],
+                    series: [
+                        barChartData.pending || [],
+                        barChartData.failed || [],
+                        barChartData.success || []
+                    ]
+                }, {
+                    low: 0,
+                    showArea: true,
+                    plugins: [
+                        Chartist.plugins.tooltip()
+                    ],
+                    axisX: {
+                        position: 'end'
+                    },
+                    axisY: {
+                        showGrid: false,
+                        showLabel: false,
+                        offset: 0
+                    }
+                });
+                console.log('Bar chart created:', chartInstances.payslipBar);
+            } catch (error) {
+                console.error('Error creating bar chart:', error);
+            }
         }
     }
 
@@ -1734,77 +1699,71 @@
             const lineChartElement = document.querySelector('.line-chart');
             console.log('Dynamic line chart element found:', lineChartElement);
             if (lineChartElement && typeof Chartist !== 'undefined') {
-                console.log('Dynamic line chart data:', chartData.chart_data);
+                try {
+                    console.log('Dynamic line chart data:', chartData.chart_data);
 
-                // Parse the JSON strings to actual arrays
-                const labels = JSON.parse(chartData.chart_data[0]);
-                const series = [
-                    JSON.parse(chartData.chart_data[3]),
-                    JSON.parse(chartData.chart_data[2]),
-                    JSON.parse(chartData.chart_data[1])
-                ];
-
-                console.log('Parsed labels:', labels);
-                console.log('Parsed series:', series);
-
-                chartInstances.payslipLine = new Chartist.Line('.line-chart', {
-                    labels: labels,
-                    series: series
-                }, {
-                    low: 0,
-                    scaleMinSpace: 10,
-                    showArea: true,
-                    fullWidth: true,
-                    plugins: [
-                        Chartist.plugins.tooltip()
-                    ],
-                    axisX: {
-                        position: 'end'
-                    },
-                    axisY: {
-                        showGrid: true,
-                        showLabel: true,
-                    }
-                });
-                console.log('Dynamic line chart created:', chartInstances.payslipLine);
+                    chartInstances.payslipLine = new Chartist.Line('.line-chart', {
+                        labels: chartData.chart_data.periods || [],
+                        series: [
+                            chartData.chart_data.pending || [],
+                            chartData.chart_data.failed || [],
+                            chartData.chart_data.success || []
+                        ]
+                    }, {
+                        low: 0,
+                        scaleMinSpace: 10,
+                        showArea: true,
+                        fullWidth: true,
+                        plugins: [
+                            Chartist.plugins.tooltip()
+                        ],
+                        axisX: {
+                            position: 'end'
+                        },
+                        axisY: {
+                            showGrid: true,
+                            showLabel: true,
+                        }
+                    });
+                    console.log('Dynamic line chart created:', chartInstances.payslipLine);
+                } catch (error) {
+                    console.error('Error creating dynamic line chart:', error);
+                }
             }
 
             // Weekly Payslips Bar Chart
             const barChartElement = document.querySelector('.bar-chart');
             console.log('Dynamic bar chart element found:', barChartElement);
             if (barChartElement && typeof Chartist !== 'undefined') {
-                console.log('Dynamic bar chart data:', chartData.chart_daily);
+                try {
+                    console.log('Dynamic bar chart data:', chartData.chart_daily);
 
-                // Parse the JSON strings to actual arrays
-                const barLabels = JSON.parse(chartData.chart_daily[0]);
-                const barSeries = [
-                    JSON.parse(chartData.chart_daily[3]),
-                    JSON.parse(chartData.chart_daily[2]),
-                    JSON.parse(chartData.chart_daily[1])
-                ];
-
-                console.log('Parsed bar labels:', barLabels);
-                console.log('Parsed bar series:', barSeries);
-
-                chartInstances.payslipBar = new Chartist.Bar('.bar-chart', {
-                    labels: barLabels,
-                    series: barSeries
-                }, {
-                    low: 0,
-                    showArea: true,
-                    plugins: [
-                        Chartist.plugins.tooltip()
-                    ],
-                    axisX: {
-                        position: 'end'
-                    },
-                    axisY: {
-                        showGrid: false,
-                        showLabel: false,
-                        offset: 0
-                    }
-                });
-                console.log('Dynamic bar chart created:', chartInstances.payslipBar);
+                    chartInstances.payslipBar = new Chartist.Bar('.bar-chart', {
+                        labels: chartData.chart_daily.periods || [],
+                        series: [
+                            chartData.chart_daily.pending || [],
+                            chartData.chart_daily.failed || [],
+                            chartData.chart_daily.success || []
+                        ]
+                    }, {
+                        low: 0,
+                        showArea: true,
+                        plugins: [
+                            Chartist.plugins.tooltip()
+                        ],
+                        axisX: {
+                            position: 'end'
+                        },
+                        axisY: {
+                            showGrid: false,
+                            showLabel: false,
+                            offset: 0
+                        }
+                    });
+                    console.log('Dynamic bar chart created:', chartInstances.payslipBar);
+                } catch (error) {
+                    console.error('Error creating dynamic bar chart:', error);
+                }
             }
         }
     }

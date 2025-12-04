@@ -192,8 +192,8 @@
             <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
                 <option value="name">{{__('common.name')}}</option>
-                <option value="code">{{__('Code')}}</option>
-                <option value="sector">{{__('Sector')}}</option>
+                <option value="code">{{__('companies.code')}}</option>
+                <option value="sector">{{__('companies.sector')}}</option>
                 <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
@@ -254,7 +254,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    {{ $selectAll ? __('Deselect All') : __('Select All') }}
+                    {{ $selectAll ? __('companies.deselect_all') : __('companies.select_all') }}
                 </button>
                 
                 @if(count($selectedCompanies) > 0)
@@ -372,19 +372,19 @@
                             <div class="col-3">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-primary">{{$company->id}}</div>
-                                    <div class="small text-gray-600">{{__('ID')}}</div>
+                                    <div class="small text-gray-600">{{__('common.id')}}</div>
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-primary">{{numberFormat(count($company->departments)) }}</div>
-                                    <div class="small text-gray-600">{{__('Depts')}}</div>
+                                    <div class="small text-gray-600">{{__('departments.departments_short')}}</div>
                                 </div>
                             </div>
                             <div class="col-3">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-success">{{numberFormat(count($company->employees)) }}</div>
-                                    <div class="small text-gray-600">{{__('Staff')}}</div>
+                                    <div class="small text-gray-600">{{__('employees.employees_short')}}</div>
                                 </div>
                             </div>
                             <div class="col-3">
@@ -402,7 +402,7 @@
                             <svg class="icon icon-xs text-gray-500 me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                             </svg>
-                            <span class="small fw-semibold text-gray-600">{{__('Managers')}}</span>
+                            <span class="small fw-semibold text-gray-600">{{__('employees.manager')}}</span>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
                             @foreach($company->managers->take(3) as $manager)
@@ -425,17 +425,17 @@
                 
                 <div class='d-flex align-items-center justify-content-between pt-3 border-top'>
                     <div class="d-flex align-items-center gap-2">
-                        <a href="{{route('portal.departments.index',['company_uuid'=>$company->uuid])}}" wire:navigate class="btn btn-sm btn-outline-primary d-flex align-items-center" title="{{__('View Departments')}}" onclick="event.stopPropagation();">
+                        <a href="{{route('portal.departments.index',['company_uuid'=>$company->uuid])}}" wire:navigate class="btn btn-sm btn-outline-primary d-flex align-items-center" title="{{__('companies.view_departments')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
-                            {{__('Depts')}}
+                            {{__('departments.departments_short')}}
                         </a>
-                        <a href="{{route('portal.employees.index',['company_uuid'=>$company->id])}}" wire:navigate class="btn btn-sm btn-outline-secondary d-flex align-items-center" title="{{__('View Employees')}}" onclick="event.stopPropagation();">
+                        <a href="{{route('portal.employees.index',['company_uuid'=>$company->id])}}" wire:navigate class="btn btn-sm btn-outline-secondary d-flex align-items-center" title="{{__('companies.view_employees')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                             </svg>
-                            {{__('Staff')}}
+                            {{__('employees.employees_short')}}
                         </a>
                     </div>
                     <div class="d-flex align-items-center gap-2">
@@ -456,12 +456,12 @@
                         @endcan
                         @else
                         @can('company-delete')
-                        <a href="#" wire:click="restore({{$company->id}})" title="{{__('Restore Company')}}" onclick="event.stopPropagation();">
+                        <a href="#" wire:click="restore({{$company->id}})" title="{{__('companies.restore_company')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                         </a>
-                        <a href="#" wire:click.prevent="$set('selectedCompanies', [{{$company->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Permanently Delete')}}">
+                        <a href="#" wire:click.prevent="$set('selectedCompanies', [{{$company->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('companies.permanently_delete')}}">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -476,14 +476,14 @@
         <div class='col-md-12 '>
             <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column mx-2'>
                 <div class="text-center text-gray-800 mt-4">
-                    <img src="{{ asset('/img/illustrations/not_found.svg') }}" class="w-25 ">
+                    <img src="{{ asset('/img/illustrations/404.svg') }}" class="w-25 ">
                     <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
-                    <p class="fw-light">{{__('No record found here!')}}</p>
+                    <p class="fw-light">{{__('companies.no_record_found_here')}}</p>
                     @can('company-create')
                     <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#CompanyModal" class="btn btn-sm btn-primary py-2 mt-3 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg> {{__('Add Company')}}
+                        </svg> {{__('companies.add_company')}}
                     </a>
                     @endcan
                 </div>

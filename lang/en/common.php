@@ -9,6 +9,7 @@ return [
 
     // Basic actions
     'create' => 'Create',
+    'new' => 'New',
     'update' => 'Update',
     'edit' => 'Edit',
     'delete' => 'Delete',
@@ -145,10 +146,18 @@ return [
 
     // User roles and permissions
     'roles' => 'Roles',
+    'permissions' => 'Permissions',
     'maximum_2_roles_allowed' => 'Maximum 2 roles allowed. Employee role is automatically included.',
 
     // Import instructions
     'upload_filled_template' => 'Upload the filled templated using below form and click on import button to import',
+    'import_name' => 'Import :name',
+    'import_new_name_from_excel' => 'Import new :name from excel file',
+    'import_steps' => 'Steps you have to follow for importing new :name',
+    'download_sample_import_template' => 'Download sample :name import template',
+    'fill_template_with_data' => 'Fill template with your :name data',
+    'select_file' => 'Select file',
+    'all_name' => 'All :name',
 
     // Employee fields
     'prof_phone_number' => 'Prof Phone Number',
@@ -175,6 +184,7 @@ return [
     // Warnings
     'permanent_deletion' => 'Permanent Deletion',
     'this_action_cannot_be_undone' => 'This action cannot be undone!',
+    'you_wont_be_able_to_revert_this' => 'You won\'t be able to revert this!',
 
     // Approval workflow
     'sup_approval' => 'Sup Approval',

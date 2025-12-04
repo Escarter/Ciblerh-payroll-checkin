@@ -5,14 +5,14 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('departments.edit_department')}}</h1>
-                        <p>{{__('Edit and update department details')}} &#128522;</p>
+                        <p>{{__('departments.edit_department_details')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="update">
 
                         <div class="form-group mb-4">
                             <label for="name">{{__('companies.company')}}</label>
                             @if(auth()->user()->hasRole('supervisor'))
-                                <input type="text" class="form-control" value="{{$department->company->name ?? __('Unknown Company')}}" disabled>
+                                <input type="text" class="form-control" value="{{$department->company->name ?? __('departments.unknown_company')}}" disabled>
                             @else
                                 <input type="text" class="form-control  @error('name') is-invalid @enderror" value="{{$company->name}}" disabled>
                             @endif
@@ -20,7 +20,7 @@
                         <div class='form-group mb-4'>
                             <label for="supervisor_id">{{__('common.supervisor')}}</label>
                             <select wire:model="supervisor_id" name="supervisor_id" class="form-select  @error('supervisor_id') is-invalid @enderror">
-                                <option value="">{{__("Select supervisor")}}</option>
+                                <option value="">{{__("departments.select_supervisor")}}</option>
                                 @foreach ($supervisors as $supervisor)
                                 <option value="{{$supervisor->id}}">{{$supervisor->name}}</option>
                                 @endforeach
@@ -38,11 +38,11 @@
                         </div>
 
                         <div class='form-group mb-4'>
-                            <label for="is_active">{{__('Is Active')}}?</label>
+                            <label for="is_active">{{__('departments.is_active')}}?</label>
                             <select wire:model="is_active" name="is_active" class="form-select  @error('is_active') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.active')}}</option>
-                                <option value="0">{{__('Inactive')}}</option>
+                                <option value="0">{{__('departments.inactive')}}</option>
                             </select>
                             @error('is_active')
                             <div class="invalid-feedback">{{$message}}</div>

@@ -9,6 +9,7 @@ return [
 
     'departments' => 'Departments',
     'department' => 'Department',
+    'departments_short' => 'Depts',
     'total_departments' => 'Total Departments',
     'create_department' => 'Create Department',
     'edit_department' => 'Edit Department',
@@ -59,6 +60,9 @@ return [
     'departments_management' => 'Departments Management',
     'manage_departments_details' => 'Manage departments and their related details',
     'assign_supervisor' => 'Assign Supervisor',
+    'assign_supervisor_to_department' => 'Assign supervisor to manage department employees',
+    'assign' => 'Assign',
+    'no_assigned_supervisor' => 'No assigned supervisor',
     'for_these_companies' => 'for these companies',
     'in_this_company' => 'in this company',
     'that_are_active' => 'that are active!',
@@ -69,4 +73,54 @@ return [
     'multiple_companies' => 'Multiple Companies',
     'departments_will_be_created_in_assigned_companies' => 'Departments will be created in your assigned companies',
     'select_supervisor' => 'Select supervisor',
+    'select_department' => 'Select',
+
+    // Success Messages
+    'department_created_successfully' => 'Department created successfully!',
+    'department_successfully_updated' => 'Department successfully updated!',
+    'department_successfully_moved_to_trash' => 'Department successfully moved to trash!',
+    'department_successfully_restored' => 'Department successfully restored!',
+    'department_permanently_deleted' => 'Department permanently deleted!',
+    'supervisor_successfully_assigned' => 'Supervisor successfully assigned!',
+    'selected_departments_moved_to_trash' => 'Selected departments moved to trash!',
+    'selected_departments_restored' => 'Selected departments restored!',
+    'selected_departments_permanently_deleted' => 'Selected departments permanently deleted!',
+    'departments_successfully_uploaded' => 'Departments successfully uploaded!',
+
+    // Error Messages
+    'supervisors_cannot_create' => 'Supervisors cannot create new departments.',
+    'cannot_permanently_delete_department' => 'Cannot permanently delete department. It has related records.',
+    'cannot_permanently_delete_departments' => 'Cannot permanently delete the following departments as they have related records: ',
+
+    // Import/Export Messages
+    'imported_excel_file_for_departments' => 'Imported excel file for departments for company ',
+    'exported_excel_file_for_departments' => 'Exported excel file for departments for company ',
+
+    // UI Labels
+    'edit_department_details' => 'Edit and update department details',
+    'create_department_to_manage' => 'Create a new department to manage',
+    'is_active' => 'Is Active',
+    'inactive' => 'Inactive',
+    'that_are_deleted' => 'that are deleted!',
+
+    // Table Headers
+    'id' => 'ID',
+    'staff' => 'Staff',
+    'services' => 'Services',
+    'employees' => 'Employees',
+
+    // Button Titles
+    'view_services' => 'View Services',
+    'manage_employees' => 'Manage Employees',
+    'edit_department' => 'Edit Department',
+    'restore_department' => 'Restore Department',
+    'permanently_delete' => 'Permanently Delete',
+    'add_department' => 'Add Department',
+
+    // Form Labels
+    'order' => 'Order',
+
+    // Bulk Operations
+    'restore_selected_departments' => 'Restore Selected Departments',
+    'permanently_delete_selected_departments' => 'Permanently Delete Selected Departments',
 ];

@@ -298,6 +298,58 @@
 
             });
 
+            // Handle toast notifications
+            window.Livewire.on('showToast', (params) => {
+                let toastContainer = document.getElementById('toast-container');
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.id = 'toast-container';
+                    toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                    toastContainer.style.zIndex = '1100';
+                    document.body.appendChild(toastContainer);
+                }
+
+                const toastEl = document.createElement('div');
+                toastEl.className = `toast align-items-center text-white bg-${params.type || 'success'} border-0`;
+                toastEl.setAttribute('role', 'alert');
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
+
+                toastEl.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${params.message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                `;
+
+                toastContainer.appendChild(toastEl);
+
+                const toast = new bootstrap.Toast(toastEl, {
+                    autohide: true,
+                    delay: 5000
+                });
+                toast.show();
+
+                toastEl.addEventListener('hidden.bs.toast', () => {
+                    toastEl.remove();
+                });
+            });
+
+            // Handle modal closing
+            window.Livewire.on('close-modal', (data) => {
+                if (data.id) {
+                    const modal = document.getElementById(data.id);
+                    if (modal) {
+                        const bsModal = bootstrap.Modal.getInstance(modal);
+                        if (bsModal) {
+                            bsModal.hide();
+                        }
+                    }
+                }
+            });
+
         })
     </script>
     @stack('scripts')

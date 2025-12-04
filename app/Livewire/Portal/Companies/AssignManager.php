@@ -31,7 +31,7 @@ class AssignManager extends Component
         $company->managers()->syncWithoutDetaching([$manager->id]);
 
         // UI feedback
-    session()->flash('message', __('Manager successfully assigned!'));
+    session()->flash('message', __('companies.manager_successfully_assigned'));
     $this->reset(['company_id', 'manager_id']);
     $this->dispatch('close-assign-manager-modal');
     }
@@ -41,7 +41,7 @@ class AssignManager extends Component
     {
         $company = Company::findOrFail($companyId);
         $company->managers()->detach($managerId);
-        session()->flash('message', __('Manager removed from company!'));
+        session()->flash('message', __('companies.manager_removed_from_company'));
     }
 
     public function render()

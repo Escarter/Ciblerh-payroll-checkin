@@ -39,7 +39,7 @@
                             </div>
 
 
-                            <div class="text-gray-800 w-100 mt-3 fs-0 fw-bold">{{__('Companies, Departments, Services and Employees Permissions')}}</div>
+                            <div class="text-gray-800 w-100 mt-3 fs-0 fw-bold">{{__('companies.companies')}}, {{__('departments.departments')}}, {{__('services.services')}} and {{__('employees.employees')}} {{__('common.permissions')}}</div>
                             <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
                                 <div class="text-gray-800 w-25">{{__('Companies')}}</div>
@@ -63,7 +63,7 @@
                             </div>
                             <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
-                                <div class="text-gray-800 w-25">{{__('Departments')}}</div>
+                                <div class="text-gray-800 w-25">{{__('departments.departments')}}</div>
                                 <div>
                                     <!--begin::Wrapper-->
                                     <div class="d-flex">

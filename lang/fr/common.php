@@ -10,6 +10,7 @@ return [
     // Basic actions
     'create' => 'Créer',
     'update' => 'Mettre à jour',
+    'new' => 'Nouveau',
     'edit' => 'Modifier',
     'delete' => 'Supprimer',
     'deleted' => 'Supprimé',
@@ -145,10 +146,18 @@ return [
 
     // User roles and permissions
     'roles' => 'Rôles',
+    'permissions' => 'Permissions',
     'maximum_2_roles_allowed' => 'Maximum 2 rôles autorisés. Le rôle employé est automatiquement inclus.',
 
     // Import instructions
     'upload_filled_template' => 'Téléversez le modèle rempli en utilisant le formulaire ci-dessous et cliquez sur le bouton d\'importation pour importer',
+    'import_name' => 'Importer :name',
+    'import_new_name_from_excel' => 'Importer de nouveaux :name depuis un fichier Excel',
+    'import_steps' => 'Étapes à suivre pour importer de nouveaux :name',
+    'download_sample_import_template' => 'Télécharger un exemple de modèle d\'importation :name',
+    'fill_template_with_data' => 'Remplir le modèle avec vos données :name',
+    'select_file' => 'Sélectionner un fichier',
+    'all_name' => 'Tous les :name',
 
     // Employee fields
     'prof_phone_number' => 'Numéro de téléphone prof',
@@ -175,6 +184,7 @@ return [
     // Warnings
     'permanent_deletion' => 'Suppression définitive',
     'this_action_cannot_be_undone' => 'Cette action ne peut pas être annulée!',
+    'you_wont_be_able_to_revert_this' => 'Vous ne pourrez pas revenir en arrière!',
 
     // Approval workflow
     'sup_approval' => 'Approbation Sup',
