@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('name');
             $table->longText('description');
             $table->integer('default_number_of_days')->nullable();
-            $table->foreignId('author_id')->index()->nullable()->constrained('users');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();

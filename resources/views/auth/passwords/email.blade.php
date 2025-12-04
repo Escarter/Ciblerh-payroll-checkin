@@ -6,7 +6,7 @@
                     <a href="{{route('login')}}" class="d-flex align-items-center justify-content-center">
                         <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" d="M7.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
-                        </svg> {{__('Back to log in')}}
+                        </svg> {{__('auth.back_to_log_in')}}
                     </a>
                 </p>
                 <div class="col-12 d-flex align-items-center justify-content-center">
@@ -14,16 +14,16 @@
                         <div class="mb-1 mt-md-0">
                             <img src='/img/logo.jpg' class="w-50 h-auto" alt=''>
 
-                            <h1 class="h4">{{__('Forgot your password')}}?</h1>
+                            <h1 class="h4">{{__('auth.forgot_password')}}?</h1>
                         </div>
-                        <p class="mb-4">{{__('Don\'t fret! Just type in your email and we will send you a code to reset your password')}}!</p>
+                        <p class="mb-4">{{__('auth.forgot_password_description')}}!</p>
                         <x-form-items.form method="POST" action="{{ route('password.email') }}" class="form-modal">
                             @if (session('status'))
                             <div class="alert alert-success" role="alert">
                                 {{ session('status') }}
                             </div>
                             @endif
-                            <div class="mb-4"><label for="email">{{__('Your Email')}}</label>
+                            <div class="mb-4"><label for="email">{{__('auth.your_email')}}</label>
                                 <div class="form-group">
                                     <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" placeholder="example@domain.com" value="{{ old('email') }}" required autocomplete="email" autofocus>
 
@@ -34,7 +34,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="d-grid"><button type="submit" class="btn btn-primary btn-loading">{{ __('Send Password Reset Link') }}</button></div>
+                            <div class="d-grid"><button type="submit" class="btn btn-primary btn-loading">{{ __('auth.send_password_reset_link') }}</button></div>
                         </x-form-items.form>
                     </div>
                 </div>

@@ -49,32 +49,32 @@ class AppServiceProvider extends ServiceProvider
             if ($model instanceof Ticking || $model instanceof  Leave) {
                 $match = match ($status_owner) {
                     'supervisor' => match ($model->supervisor_approval_status) {
-                        $model::SUPERVISOR_APPROVAL_PENDING => __('Pending'),
-                        $model::SUPERVISOR_APPROVAL_APPROVED => __('Approved'),
-                        $model::SUPERVISOR_APPROVAL_REJECTED => __('Rejected'),
-                        default => __('Pending'),
+                        $model::SUPERVISOR_APPROVAL_PENDING => __('common.pending'),
+                        $model::SUPERVISOR_APPROVAL_APPROVED => __('common.approved'),
+                        $model::SUPERVISOR_APPROVAL_REJECTED => __('common.rejected'),
+                        default => __('common.pending'),
                     },
                     'manager' => match ($model->manager_approval_status) {
-                        $model::MANAGER_APPROVAL_PENDING => __('Pending'),
-                        $model::MANAGER_APPROVAL_APPROVED => __('Approved'),
-                        $model::MANAGER_APPROVAL_REJECTED => __('Rejected'),
-                        default => __('Pending'),
+                        $model::MANAGER_APPROVAL_PENDING => __('common.pending'),
+                        $model::MANAGER_APPROVAL_APPROVED => __('common.approved'),
+                        $model::MANAGER_APPROVAL_REJECTED => __('common.rejected'),
+                        default => __('common.pending'),
                     },
                 };
             } else {
 
                 if ($type === 'boolean') {
                     $match = match ($model->is_active) {
-                        true => __('Active'),
+                        true => __('common.active'),
                         false => __('Inactive'),
                         default => __('Inactive'),
                     };
                 } else {
                     $match = match ($model->approval_status) {
-                        $model::APPROVAL_STATUS_PENDING => __('Pending'),
-                        $model::APPROVAL_STATUS_APPROVED => __('Approved'),
-                        $model::APPROVAL_STATUS_REJECTED => __('Rejected'),
-                        default => __('Pending'),
+                        $model::APPROVAL_STATUS_PENDING => __('common.pending'),
+                        $model::APPROVAL_STATUS_APPROVED => __('common.approved'),
+                        $model::APPROVAL_STATUS_REJECTED => __('common.rejected'),
+                        default => __('common.pending'),
                     };
                 }
             }

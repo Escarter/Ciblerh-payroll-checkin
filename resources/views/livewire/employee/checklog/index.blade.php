@@ -21,23 +21,23 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                     </svg>
                     <span>
-                        {{__('Checkin Recorded')}}
+                        {{__('employees.checkin_recorded')}}
                     </span>
                 </h1>
-                <p class="text-gray-800">{{__('View all your checkin recorded so far')}} &#128523;</p>
+                <p class="text-gray-800">{{__('employees.view_all_checkins_recorded')}} &#128523;</p>
             </div>
             <div class=''>
                 <a href="#" class="btn btn-secondary mx-2 my-3 " data-bs-toggle="modal" data-bs-target="#CheckInModal">
                     <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                     </svg>
-                    {{__('Single CheckIn')}}
+                    {{__('employees.single_checkin')}}
                 </a>
                 <a href="#" class="btn btn-primary  my-3 " data-bs-toggle="modal" data-bs-target="#BulkCheckInModal">
                     <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                     </svg>
-                    {{__('Bulk CheckIn')}}
+                    {{__('employees.bulk_checkin')}}
                 </a>
             </div>
         </div>
@@ -52,7 +52,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($approved_checklogs_count)}} {{ __(\Str::plural('CheckIn', $approved_checklogs_count))}} </h5>
-                                    <div class=" text-gray-500 ">{{__('Approved')}} &#128516;</div>
+                                    <div class=" text-gray-500 ">{{__('common.approved')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -67,7 +67,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($pending_checklogs_count)}} {{ __(\Str::plural('CheckIn', $pending_checklogs_count))}} </h5>
-                                    <div class="text-gray-500 ">{{__('pending approval!')}} &#128530;</div>
+                                    <div class="text-gray-500 ">{{__('common.pending_approval')}} &#128530;</div>
                                 </div>
                             </div>
                         </a>
@@ -82,7 +82,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($rejected_checklogs_count)}} {{ __(\Str::plural('CheckIn', $rejected_checklogs_count))}} </h5>
-                                    <div class="text-gray-500 ">{{__('Rejected')}} &#128560;</div>
+                                    <div class="text-gray-500 ">{{__('common.rejected')}} &#128560;</div>
                                 </div>
                             </div>
                         </a>
@@ -93,31 +93,31 @@
         <x-alert />
         <div class="row py-2 text-gray-500 mt-3">
             <div class="col-md-3 mb-2">
-                <label for="search">{{__('Search')}}: </label>
-                <input wire:model="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+                <label for="search">{{__('common.search')}}: </label>
+                <input wire:model="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="orderBy">{{__('Order By')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}: </label>
                 <select wire:model="orderBy" id="orderBy" class="form-select">
-                    <option value="start_time">{{__('Checkin Time')}}</option>
-                    <option value="end_time">{{__('Checkout Time')}}</option>
-                    <option value="supervisor_approval_status">{{__('Sup Approval status')}}</option>
-                    <option value="manager_approval_status">{{__('Mgr Approval status')}}</option>
-                    <option value="created_at">{{__('Created Date')}}</option>
+                    <option value="start_time">{{__('employees.checkin_time')}}</option>
+                    <option value="end_time">{{__('employees.checkout_time')}}</option>
+                    <option value="supervisor_approval_status">{{__('employees.sup_approval_status')}}</option>
+                    <option value="manager_approval_status">{{__('employees.mgr_approval_status')}}</option>
+                    <option value="created_at">{{__('common.created_date')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="direction">{{__('Order direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}: </label>
                 <select wire:model="orderAsc" id="direction" class="form-select">
-                    <option value="asc">{{__('Ascending')}}</option>
-                    <option value="desc">{{__('Descending')}}</option>
+                    <option value="asc">{{__('common.ascending')}}</option>
+                    <option value="desc">{{__('common.descending')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="perPage">{{__('Items Per Page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}: </label>
                 <select wire:model="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -133,14 +133,14 @@
                 <table class="table employee-table table-hover align-items-center " id="">
                     <thead>
                         <tr>
-                            <th class="border-bottom">{{__('Hours Worked')}}</th>
-                            <th class="border-bottom">{{__('Checkin Time')}}</th>
-                            <th class="border-bottom">{{__('Expected Checkout Time')}}</th>
-                            <th class="border-bottom">{{__('Checkout Time')}}</th>
-                            <th class="border-bottom">{{__('Sup Approval')}}</th>
-                            <th class="border-bottom">{{__('Mgr Approval')}}</th>
-                            <th class="border-bottom">{{__('Date created')}}</th>
-                            <th class="border-bottom">{{__('Action')}}</th>
+                            <th class="border-bottom">{{__('overtime.hours_worked')}}</th>
+                            <th class="border-bottom">{{__('employees.checkin_time')}}</th>
+                            <th class="border-bottom">{{__('employees.expected_checkout_time')}}</th>
+                            <th class="border-bottom">{{__('employees.checkout_time')}}</th>
+                            <th class="border-bottom">{{__('common.sup_approval')}}</th>
+                            <th class="border-bottom">{{__('common.mgr_approval')}}</th>
+                            <th class="border-bottom">{{__('common.created_date')}}</th>
+                            <th class="border-bottom">{{__('common.action')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -192,8 +192,8 @@
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("Empty")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                <p>{{__('Record a checkin to see it here!')}}</p>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <p>{{__('employees.record_checkin_message')}}</p>
             </div>
         </div>
         @endif

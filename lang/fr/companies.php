@@ -1,0 +1,62 @@
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Companies Management Language Lines
+    |--------------------------------------------------------------------------
+    */
+
+    'companies' => 'Sociétés',
+    'company' => 'Société',
+    'total_companies' => 'Total des sociétés',
+    'create_company' => 'Créer une société',
+    'edit_company' => 'Modifier la société',
+    'company_created_successfully' => 'Société créée avec succès!',
+    'company_updated_successfully' => 'Société mise à jour avec succès!',
+    'company_deleted_successfully' => 'Société supprimée avec succès!',
+    'company_restored_successfully' => 'Société restaurée avec succès!',
+    'company_permanently_deleted' => 'Société supprimée définitivement!',
+    'selected_companies_moved_to_trash' => 'Sociétés sélectionnées déplacées vers la corbeille!',
+    'selected_companies_restored' => 'Sociétés sélectionnées restaurées!',
+    'selected_companies_permanently_deleted' => 'Sociétés sélectionnées supprimées définitivement!',
+
+    // Company fields
+    'company_name' => 'Nom de la société',
+    'company_code' => 'Code société',
+    'address' => 'Adresse',
+    'phone' => 'Téléphone',
+    'email' => 'Email',
+    'website' => 'Site web',
+    'tax_id' => 'Numéro d\'identification fiscale',
+    'registration_number' => 'Numéro d\'enregistrement',
+    'industry' => 'Secteur d\'activité',
+    'size' => 'Taille de l\'entreprise',
+    'founded_date' => 'Date de création',
+    'logo' => 'Logo',
+    'description' => 'Description',
+    'is_active' => 'Est actif?',
+
+    // Status
+    'active' => 'Actif',
+    'inactive' => 'Inactif',
+
+    // Messages
+    'manage_companies_details' => 'Gérer les sociétés et leurs détails associés',
+    'all_companies' => 'Toutes les sociétés',
+    'select_company' => 'Sélectionner une société',
+    'no_company_selected' => 'Aucune société sélectionnée',
+    'company_required' => 'La société est requise',
+    'company_context_required' => 'Le contexte de la société est requis',
+
+    // Permissions
+    'cannot_permanently_delete_company' => 'Impossible de supprimer définitivement la société. Elle a des enregistrements liés.',
+    'cannot_permanently_delete_companies' => 'Impossible de supprimer définitivement les sociétés suivantes car elles ont des enregistrements liés: ',
+    'related_records_protection' => 'Si cet élément a des enregistrements liés, la suppression sera empêchée pour maintenir l\'intégrité des données.',
+    'companies_management' => 'Gestion des sociétés',
+    'new' => 'Nouveau',
+    'assign_manager' => 'Assigner un manager',
+    'dashboard' => 'Tableau de bord',
+    'total_companies' => 'Total des entreprises',
+    'in_the_system' => 'dans le système',
+];

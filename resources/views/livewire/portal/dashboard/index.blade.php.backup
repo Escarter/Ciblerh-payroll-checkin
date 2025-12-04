@@ -1,0 +1,1568 @@
+<div>
+    <!-- Dashboard temporarily simplified to prevent timeout issues -->
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong>Dashboard Optimized:</strong> Some advanced metrics and charts are temporarily disabled to improve loading performance.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class='pb-3'>
+        <div class="d-flex justify-content-between w-100 flex-wrap mb-0 align-items-center">
+            <div class="mb-lg-0">
+
+                <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
+                    {{__('Welcome')}}, {{auth()->user()->name}}
+                </h1>
+                <p class="mt-n2">{{__('companies.manage_companies_details')}} &#128524;</p>
+            </div>
+            <div class="d-flex justify-content-between">
+
+            </div>
+        </div>
+        <div style="">
+            <div class='pb-4 d-flex justify-content-end'>
+                <div class="row gap-1">
+                    @hasanyrole('manager|admin')
+                    <div class="col">
+                        <label for="company">{{__('company')}}: </label>
+                        <select wire:model.live="selectedCompanyId" class="form-select">
+                            <option value="all" selected>{{__('companies.all_companies')}}</option>
+                            @foreach ($companies as $company)
+                            <option value="{{$company->id}}">{{$company->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endhasanyrole
+                    <div class="col">
+                        <label for="selectedDepartmentId">{{__('department')}}: </label>
+                        <select wire:model.live="selectedDepartmentId" class="form-select">
+                            <option value="all" selected>{{__('all_departments')}}</option>
+                            @foreach ($departments as $department)
+                            <option value="{{$department->id}}">{{$department->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="period">{{__('Period')}}: </label>
+                        <select wire:model.live="period" class="form-select  @error('period') is-invalid @enderror">
+                            <option value="all_time" selected>{{__('all_time')}}</option>
+                            <option value="last_15_days">{{__('last_15_days')}}</option>
+                            <option value="last_month">{{__('last_month')}}</option>
+                            <option value="last_3_months">{{__('last_3_months')}}</option>
+                            <option value="last_6_months">{{__('last_6_months')}}</option>
+                            <option value="last_9_months">{{__('last_9_months')}}</option>
+                            <option value="last_year">{{__('last_year')}}</option>
+
+                        </select>
+                        @error('period')
+                        <div class="invalid-feedback">{{$message}}</div>
+                        @enderror
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+        <div class='mb-3 mt-0'>
+            <div class='row'>
+                <div class="col-12 col-sm-6 col-xl-3 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-tertiary rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{__('commons.total_checkins')}}</h2>
+                                        <h3 class="mb-1">{{numberFormat($checklogs_count)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="{{route('portal.checklogs.index')}}" class="d-none d-sm-block">
+                                        <h2 class="h5">{{__('commons.total_checkins')}}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($checklogs_count)}}</h3>
+                                    </a>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div>{{ \Str::plural(__('Total Checkin'), $checklogs_count) }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-success rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h3 class="fw-extrabold h5">{{ \Str::plural('Approved Checkin', $approved_checklogs_count) }}</h3>
+                                        <h3 class="mb-1">{{numberFormat($approved_checklogs_count)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="{{route('portal.checklogs.index')}}" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ \Str::plural('Approved Checkin', $approved_checklogs_count) }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($approved_checklogs_count)}}</h3>
+                                    </a>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div>{{ \Str::plural(__('Checkin'), $approved_checklogs_count) }} {{__('you approved!')}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-warning rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ \Str::plural('Pending Checkin', $pending_checklogs_count) }}</h2>
+                                        <h3 class="mb-1">{{numberFormat($pending_checklogs_count)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="{{route('portal.checklogs.index')}}" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ \Str::plural('Pending Checkin', $pending_checklogs_count) }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($pending_checklogs_count)}}</h3>
+                                    </a>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div>{{ \Str::plural('Checkin', $pending_checklogs_count) }} {{__('pending your validation')}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-danger rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ \Str::plural('Rejected Checkin', $rejected_checklogs_count) }}</h2>
+                                        <h3 class="mb-1">{{numberFormat($rejected_checklogs_count)}} </h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="{{route('portal.checklogs.index')}}" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ \Str::plural('Rejected Checkin', $rejected_checklogs_count) }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_checklogs_count)}} </h3>
+                                    </a>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div>{{ \Str::plural('Checkin', $rejected_checklogs_count) }} {{__('you rejected!')}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class='mb-3 mt-0'>
+            <div class='row'>
+                @hasanyrole('manager|admin')
+                <div class="col mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape text-secondary rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{__('companies.companies')}}</h2>
+                                        <h3 class="mb-1">{{numberFormat($total_companies)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="{{route('portal.companies.index')}}" class="d-none d-sm-block">
+                                        <h2 class="h5">{{__('companies.companies')}}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($total_companies)}}</h3>
+                                    </a>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div>{{ \Str::plural(__('company'), $total_companies) }} you manage</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endhasanyrole
+                <div class="col mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center ">
+                                    <div class="icon-shape text-info rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ \Str::plural('Department', $total_departments) }}</h2>
+                                        <h3 class="mb-1">{{numberFormat($total_departments)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="{{route('portal.companies.index')}}" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ \Str::plural('Department', $total_departments) }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($total_departments)}}</h3>
+                                    </a>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div>{{ \Str::plural(__('department'), $total_departments) }} for these companies!</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape text-purple rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ \Str::plural('Service', $total_services) }}</h2>
+                                        <h3 class="mb-1">{{numberFormat($total_services)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="{{route('portal.companies.index')}}" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ \Str::plural('Service', $total_services) }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($total_services)}}</h3>
+                                    </a>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div>{{ \Str::plural('Service', $total_services) }} {{__('for these departments')}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-gray rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ \Str::plural(__('employee'), $total_employees) }}</h2>
+                                        <h3 class="mb-1">{{numberFormat($total_employees)}} </h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="{{route('portal.all-employees')}}" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ \Str::plural(__('employee'), $total_employees) }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($total_employees)}} </h3>
+                                    </a>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div>{{ \Str::plural(__('employee'), $total_employees) }} you manage!</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enhanced Metrics Row -->
+        <div class='mb-3 mt-0'>
+            <div class='row'>
+                <div class="col-12 col-sm-6 col-xl-3 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-primary rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        </svg>
+                            </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ __('Attendance Rate') }}</h2>
+                                        <h3 class="mb-1">{{$attendance_rate}}%</h3>
+                        </div>
+                        </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <div class="d-none d-sm-block">
+                                        <h2 class="h5">{{__('Attendance Rate')}}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{$attendance_rate}}%</h3>
+                    </div>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div class="text-{{$attendance_rate >= 90 ? 'success' : ($attendance_rate >= 70 ? 'warning' : 'danger')}}">
+                                            @if($attendance_rate > $attendance_rate_last_month)
+                                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+                                                </svg>
+                                            @elseif($attendance_rate < $attendance_rate_last_month)
+                                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path>
+                                                </svg>
+                                            @endif
+                                            {{abs($attendance_rate - $attendance_rate_last_month)}}% vs last month
+                    </div>
+                </div>
+            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12 col-sm-6 col-xl-3 mb-2">
+                    <div class="card border-0 shadow">
+                    <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-info rounded me-2 me-sm-0">
+                                    <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ __('Leave Utilization') }}</h2>
+                                        <h3 class="mb-1">{{$leave_utilization_rate}}%</h3>
+                                </div>
+                            </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                <div class="d-none d-sm-block">
+                                        <h2 class="h5">{{__('Leave Utilization')}}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{$leave_utilization_rate}}%</h3>
+                                </div>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div class="text-{{$leave_utilization_rate >= 80 ? 'warning' : 'success'}}">
+                                            {{$leave_utilization_rate >= 80 ? 'High utilization' : 'Healthy utilization'}}
+                            </div>
+                    </div>
+                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12 col-sm-6 col-xl-3 mb-2">
+                    <div class="card border-0 shadow">
+                    <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-warning rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                    </svg>
+                                </div>
+                                <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ __('Pending Approvals') }}</h2>
+                                        <h3 class="mb-1">{{$pending_approvals['total']}}</h3>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-8 px-xl-0">
+                                <div class="d-none d-sm-block">
+                                        <h2 class="h5">{{__('Pending Approvals')}}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{$pending_approvals['total']}}</h3>
+                                </div>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div class="text-{{$pending_approvals['total'] > 10 ? 'danger' : 'success'}}">
+                                            {{$pending_approvals['checkins']}} checkins, {{$pending_approvals['leaves']}} leaves, {{$pending_approvals['overtimes']}} overtime
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12 col-sm-6 col-xl-3 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-success rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ __('Top Performers') }}</h2>
+                                        <h3 class="mb-1">{{count($top_performers)}}</h3>
+                            </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <div class="d-none d-sm-block">
+                                        <h2 class="h5">{{__('Top Performers')}}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{count($top_performers)}}</h3>
+                                    </div>
+                                    <div class="d-flex mt-1" style="font-size:x-small;">
+                                        <div class="text-success">
+                                            Best attendance this month
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    </div>
+                </div>
+
+        <!-- Key Insights Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg bg-gradient-info">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h4 class="mb-2">{{__('Key Insights')}}</h4>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="dot rounded-circle bg-success me-2"></div>
+                                            <span class="small">{{__('Overall Attendance')}}: <strong>{{$attendance_rate}}%</strong></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="dot rounded-circle bg-warning me-2"></div>
+                                            <span class="small">{{__('Pending Approvals')}}: <strong>{{$pending_approvals['total']}}</strong></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="dot rounded-circle bg-light me-2"></div>
+                                            <span class="small">{{__('Leave Utilization')}}: <strong>{{$leave_utilization_rate}}%</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="h2 mb-0">{{count($top_performers)}}</div>
+                                <div class="small">{{__('Top Performers')}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Charts Section -->
+        <div class="row">
+            <!-- Payslips Overview Chart -->
+            <div class='col-12 col-lg-8'>
+                <div class="card bg-gradient-primary border-0 shadow-lg">
+                    <div class="card-header d-sm-flex flex-row align-items-center flex-0 border-0">
+                        <div class="d-block mb-3 mb-sm-0">
+                            <div class="fs-5 fw-normal mb-2 ">{{__('Payslips Performance Overview')}}</div>
+                            <h2 class="fs-3 fw-extrabold ">{{number_format($payslips_failed + $payslips_success)}}</h2>
+                            <div class="small mt-2 -50">
+                                <span class="fw-normal me-2">{{now()->subMonth()->format('F') ." - ". now()->year}} {{__('success rate')}} - </span>
+                                <span class="fas fa-angle-up text-success"></span> 
+                                <span class="text-success fw-bold">{{ ceil(($payslips_last_month_success_count/($payslips_last_month_total_count == 0 ? 1 : $payslips_last_month_total_count)*100)}}%</span>
+                            </div>
+                        </div>
+                        <div class="d-block ms-auto">
+                            <div class="d-flex align-items-center text-end "><span class="dot rounded-circle bg-success me-2"></span> <span class="fw-normal small">{{__('Success')}}</span></div>
+                            <div class="d-flex align-items-center text-end "><span class="dot rounded-circle bg-danger me-2"></span> <span class="fw-normal small">{{__('common.failed')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-2 "><span class="dot rounded-circle bg-warning me-2"></span> <span class="fw-normal small">{{__('common.pending')}}</span></div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class='line-chart ct-double-octave flex-grow' style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Approval Status Pie Chart -->
+            <div class="col-12 col-lg-4">
+                <div class="card border-0 shadow-lg h-100">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('Approval Status Distribution')}}</div>
+                            <div class="small text-gray">{{__('Check-in approvals breakdown')}}</div>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <div style="position: relative; height: 250px; width: 100%;">
+                            <canvas class="approval-pie-chart" style="max-height: 250px; max-width: 100%;"></canvas>
+                        </div>
+                        <div class="mt-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="dot rounded-circle bg-warning me-2" style="width: 12px; height: 12px;"></div>
+                                    <span class="small">{{__('common.pending')}}</span>
+                                </div>
+                                <span class="fw-bold">{{$approval_pie_chart['data'][0]}}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <div class="dot rounded-circle bg-success me-2" style="width: 12px; height: 12px;"></div>
+                                    <span class="small">{{__('common.approved')}}</span>
+                                </div>
+                                <span class="fw-bold">{{$approval_pie_chart['data'][1]}}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="dot rounded-circle bg-danger me-2" style="width: 12px; height: 12px;"></div>
+                                    <span class="small">{{__('common.rejected')}}</span>
+                                </div>
+                                <span class="fw-bold">{{$approval_pie_chart['data'][2]}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Department Comparison Charts -->
+        <div class="row mt-4">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('Department Performance Comparison')}}</div>
+                            <div class="small text-gray">{{__('Attendance rates by department')}}</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas class="department-comparison-chart" style="max-height: 300px; max-width: 100%;"></canvas>
+                        </div>
+                        @if(config('app.debug')
+                        <div class="mt-2 small text-muted">
+                            Debug: {{count($department_comparison['labels'])}} departments, 
+                            Attendance: {{implode(', ', $department_comparison['attendance'])}},
+                            Overtime: {{implode(', ', $department_comparison['overtime'])}}
+                        </div>
+                        @endif
+                    </div>
+                                </div>
+                            </div>
+            
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('Monthly Trends')}}</div>
+                            <div class="small text-gray">{{__('6-month trend analysis')}}</div>
+                                </div>
+                            </div>
+                    <div class="card-body">
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas class="monthly-trends-chart" style="max-height: 300px; max-width: 100%;"></canvas>
+                        </div>
+                        @if(config('app.debug')
+                        <div class="mt-2 small text-muted">
+                            Debug: {{count($monthly_trends['labels'])}} months, 
+                            Check-ins: {{implode(', ', $monthly_trends['attendance'])}},
+                            Overtime: {{implode(', ', $monthly_trends['overtime'])}},
+                            Leaves: {{implode(', ', $monthly_trends['leaves'])}}
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                    </div>
+                </div>
+
+        <!-- Weekly Payslips Chart -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('Weekly Payslips Distribution')}}</div>
+                            <h2 class="h3 fw-extrabold">{{$payslips_failed_week + $payslips_success_week}}</h2>
+                            <div class="small mt-2">
+                                <span class="fas fa-angle-up text-success"></span> 
+                                <span class="text-success fw-bold">{{ ceil(($payslips_success_week/(($payslips_success_week+$payslips_failed_week) == 0 ? 1 : ($payslips_success_week+$payslips_failed_week) )*100)}}%</span>
+                                {{__('success rate this week')}}
+                            </div>
+                        </div>
+                        <div class="d-block ms-auto">
+                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-success me-2"></span> <span class="fw-normal small">{{__('Success')}}</span></div>
+                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-warning me-2"></span> <span class="fw-normal small">{{__('common.failed')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-2"><span class="dot rounded-circle bg-light me-2"></span> <span class="fw-normal small">{{__('common.pending')}}</span></div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="bar-chart" style="height: 250px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Department Performance Comparison -->
+        <div class="row mt-4">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('Department Performance')}}</div>
+                            <div class="small text-gray">{{__('Attendance rates by department')}}</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="department-performance-chart">
+                            @foreach($department_performance as $dept)
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3">
+                                        <span class="text-white">{{substr($dept->name, 0, 2)}}</span>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{$dept->name}}</h6>
+                                        <small class="text-gray">{{$dept->employees_count}} {{__('employees')}}</small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold text-{{$dept->attendance_rate >= 90 ? 'success' : ($dept->attendance_rate >= 70 ? 'warning' : 'danger')}}">
+                                        {{$dept->attendance_rate}}%
+                                    </div>
+                                    <div class="progress" style="width: 100px; height: 6px;">
+                                        <div class="progress-bar bg-{{$dept->attendance_rate >= 90 ? 'success' : ($dept->attendance_rate >= 70 ? 'warning' : 'danger')}}" style="width: {{$dept->attendance_rate}}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attendance Heatmap -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('Attendance Heatmap')}}</div>
+                            <div class="small text-gray">{{__('Last 30 days attendance pattern')}}</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="attendance-heatmap">
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach($attendance_heatmap as $day)
+                                <div class="heatmap-day"
+                                     style="width: 20px; height: 20px; background-color: {{ $day['intensity'] == 'high' ? '#28a745' : ($day['intensity'] == 'medium' ? '#ffc107' : ($day['intensity'] == 'low' ? '#fd7e14' : '#dc3545')) }}; border-radius: 3px; cursor: pointer;"
+                                     title="{{$day['date']}} - {{$day['attendance_rate']}}% ({{$day['checkins']}} checkins)">
+                                </div>
+                                @endforeach
+                            </div>
+                            <div class="d-flex justify-content-between mt-3">
+                                <small class="text-gray">{{__('Less')}}</small>
+                                <div class="d-flex gap-1">
+                                    <div style="width: 12px; height: 12px; background-color: #dc3545; border-radius: 2px;"></div>
+                                    <div style="width: 12px; height: 12px; background-color: #fd7e14; border-radius: 2px;"></div>
+                                    <div style="width: 12px; height: 12px; background-color: #ffc107; border-radius: 2px;"></div>
+                                    <div style="width: 12px; height: 12px; background-color: #28a745; border-radius: 2px;"></div>
+                                </div>
+                                <small class="text-gray">{{__('More')}}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Performers Table -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('Top Performers')}}</div>
+                            <div class="small text-gray">{{__('Best attendance records this month')}}</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-items-center">
+                                <thead>
+                                    <tr>
+                                        <th class="border-bottom">{{__('employee')}}</th>
+                                        <th class="border-bottom">{{__('department')}}</th>
+                                        <th class="border-bottom">{{__('Check-ins')}}</th>
+                                        <th class="border-bottom">{{__('Overtime Hours')}}</th>
+                                        <th class="border-bottom">{{__('Performance Score')}}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($top_performers as $performer)
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3">
+                                                    <span class="text-white">{{$performer->initials}}</span>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">{{$performer->first_name}} {{$performer->last_name}}</h6>
+                                                    <small class="text-gray">{{$performer->email}}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="fw-normal">{{$performer->department->name ?? 'N/A'}}</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold text-success">{{$performer->monthly_checkins}}</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-normal">{{$performer->monthly_overtimes}}</span>
+                                        </td>
+                                        <td>
+                                            @php
+                                                $score = min(100, ($performer->monthly_checkins / now()->daysInMonth) * 100);
+                                            @endphp
+                                            <span class="badge badge-lg bg-{{$score >= 90 ? 'success' : ($score >= 70 ? 'warning' : 'danger')}}">
+                                                {{round($score)}}%
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="5" class="text-center">
+                                            <div class="text-center text-gray-800 mt-2">
+                                                <h4 class="fs-4 fw-bold">{{__('No data available')}} &#128540;</h4>
+                                                <p>{{__('No performance data found')}}</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3 ">
+        <div class='d-flex justify-content-between align-items-end mx-2'>
+            <h5 class="h5">{{__("Last Checkin per employee")}}</h5>
+            <div>
+                <a href='{{route("portal.checklogs.index")}}' class='btn btn-primary'>{{__("View all")}}</a>
+            </div>
+        </div>
+        <div class="card mt-2">
+            <div class="table-responsive text-gray-700">
+                <table class="table table-hover align-items-center dataTable">
+                    <thead>
+                        <tr>
+                            <th class="border-bottom">{{__('employees.employee')}}</th>
+                            <th class="border-bottom">{{__('Checkin Time')}}</th>
+                            <th class="border-bottom">{{__('Checkout Time')}}</th>
+                            <th class="border-bottom">{{__('overtime.hours_worked')}}</th>
+                            <th class="border-bottom">{{__('common.sup_approval')}}</th>
+                            <th class="border-bottom">{{__('common.mgr_approval')}}</th>
+                            <th class="border-bottom">{{__('common.created_date')}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($checklogs as $checklog)
+                        <tr>
+                            <td>
+                                <a href="#" class="d-flex align-items-center">
+                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold fs-5 rounded bg-primary me-3"><span class="text-white">{{!empty($checklog->user) ? $checklog->user->initials : ''}}</span></div>
+                                    <div class="d-block"><span class="fw-bold fs-6">{{ucwords($checklog->userFull_name)}}</span>
+                                        <div class="small text-gray">
+                                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                                            </svg> {{$checklog->email}}
+                                        </div>
+                                        <div class="small text-gray d-flex align-items-end">
+                                            {{$checklog->company_name}} | {{$checklog->department_name}} | {{$checklog->service_name}}
+                                        </div>
+
+                                    </div>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="fw-normal">{{$checklog->start_time}}</span>
+                            </td>
+                            <td>
+                                <span class="fw-normal">{{$checklog->end_time}}</span>
+                            </td>
+                            <td>
+                                <span class="fw-bold">{{$checklog->time_worked}}</span>
+                            </td>
+
+                            <td>
+                                <span class="fw-normal badge super-badge badge-lg bg-{{$checklog->approvalStatusStyle('supervisor')}} rounded">{{$checklog->approvalStatusText('supervisor')}}</span>
+                            </td>
+                            <td>
+                                <span class="fw-normal badge super-badge badge-lg bg-{{$checklog->approvalStatusStyle('manager')}} rounded">{{$checklog->approvalStatusText('manager')}}</span>
+                            </td>
+                            <td>
+                                <span class="fw-normal">{{$checklog->created_at->format('Y-m-d')}}</span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="9" class="text-center">
+                                <div class="text-center text-gray-800 mt-2">
+                                    <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                    <p>{{__('common.no_employee_found')}}</p>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class='mt-5'>
+        <div class='d-flex justify-content-between align-items-end mx-2'>
+            <h5 class="h5">{{__("Lastest Audit logs")}}</h5>
+            <div>
+                <a href='{{route("portal.auditlogs.index")}}' class='btn btn-primary'>{{__("View all")}}</a>
+            </div>
+        </div>
+        <div class="card mt-2">
+            <div class="table-responsive text-gray-700">
+                <table class="table employee-table table-hover align-items-center ">
+                    <thead>
+                        <tr>
+                            <th class="border-bottom">{{__('employees.employee')}}</th>
+                            <th class="border-bottom">{{__('Action Type')}}</th>
+                            <th class="border-bottom">{{__('Action Performed')}}</th>
+                            <th class="border-bottom">{{__('common.created_date')}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($logs as $log)
+                        <tr>
+                            <td>
+                                <a href="#" class="d-flex align-items-center">
+                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($log->user)}}</span></div>
+                                    <div class="d-block"><span class="fw-bold">{{$log->user}}</span>
+                                        <div class="small text-gray">{{$log->user}}</div>
+                                    </div>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->action_type}}</span>
+                            </td>
+                            <td>
+                                <span class="fs-normal">{!! $log->action_perform}</span>
+                            </td>
+                            <td>
+                                <span class="fw-normal">{{$log->created_at->format('Y-m-d')}}</span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                <div class="text-center text-gray-800 mt-2">
+                                    <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                    <p>{{__('common.no_records_found')}}</p>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+
+    @push('styles')
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .metric-card-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .metric-card-warning {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .metric-card-info {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .chart-container canvas {
+            max-width: 100% !important;
+            max-height: 100% !important;
+        }
+        
+        /* Fix chart sizing issues */
+        canvas {
+            max-width: 100% !important;
+            max-height: 100% !important;
+        }
+        
+        .heatmap-day {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .heatmap-day:hover {
+            transform: scale(1.2);
+            z-index: 10;
+            position: relative;
+        }
+        
+        .progress-bar {
+            transition: width 0.6s ease;
+        }
+        
+        .icon-shape {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .icon-shape:hover {
+            transform: scale(1.1);
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    @endpush
+
+    @push('scripts')
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chartist CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/chartist.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/chartist.min.css">
+    
+    <script type="text/javascript">
+        // New Chart.js charts
+        // Initialize charts on DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded!');
+                return;
+            }
+            
+            // Use the same dynamic approach for initial load
+            fetchFreshChartData();
+        });
+
+        // Chart instances storage
+        let chartInstances = {
+            approvalPie: null,
+            departmentComparison: null,
+            monthlyTrends: null,
+            payslipLine: null,
+            payslipBar: null
+        };
+
+        // Function to destroy existing charts
+        function destroyCharts() {
+            // Destroy Chart.js charts
+            if (chartInstances.approvalPie) chartInstances.approvalPie.destroy();
+            if (chartInstances.departmentComparison) chartInstances.departmentComparison.destroy();
+            if (chartInstances.monthlyTrends) chartInstances.monthlyTrends.destroy();
+            
+            // Clear Chartist charts (they don't have destroy method, just clear the containers)
+            if (chartInstances.payslipLine) {
+                document.querySelector('.line-chart').innerHTML = '';
+                chartInstances.payslipLine = null;
+            }
+            if (chartInstances.payslipBar) {
+                document.querySelector('.bar-chart').innerHTML = '';
+                chartInstances.payslipBar = null;
+            }
+        }
+
+        // Function to recreate charts with new data
+        function recreateCharts() {
+            destroyCharts();
+            
+            // Small delay to ensure DOM is updated
+            setTimeout(() => {
+                // Fetch fresh chart data from Livewire component
+                fetchFreshChartData();
+            }, 100);
+        }
+
+        // Function to fetch fresh chart data
+        function fetchFreshChartData() {
+            // Wait for Livewire to be initialized
+            if (typeof Livewire === 'undefined') {
+                setTimeout(fetchFreshChartData, 100);
+                return;
+            }
+            
+            // Get the current Livewire component instance
+            const livewireElement = document.querySelector('[wire\\:id]');
+            if (livewireElement) {
+                const livewireComponent = Livewire.find(livewireElement.getAttribute('wire:id'));
+
+                if (livewireComponent) {
+                    // Call the chart data methods on the Livewire component
+                    livewireComponent.call('getChartData').then((chartData) => {
+                        createChartsWithData(chartData);
+                    });
+                } else {
+                    // Fallback: use static data for initial load
+                    createChartsWithStaticData();
+                }
+            } else {
+                // Fallback: use static data for initial load
+                createChartsWithStaticData();
+            }
+        }
+
+        // Function to create charts with static data (fallback)
+        function createChartsWithStaticData() {
+            // Set global Chart.js defaults for better visibility
+            Chart.defaults.color = '#333';
+            Chart.defaults.borderColor = '#333';
+            Chart.defaults.backgroundColor = 'rgba(54, 162, 235, 0.2)';
+
+            // Approval Status Pie Chart
+            const approvalPieElement = document.querySelector('.approval-pie-chart');
+            if (approvalPieElement) {
+                const approvalPieCtx = approvalPieElement.getContext('2d');
+                chartInstances.approvalPie = new Chart(approvalPieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: @json($approval_pie_chart['labels']),
+                        datasets: [{
+                            data: @json($approval_pie_chart['data']),
+                            backgroundColor: @json($approval_pie_chart['colors']),
+                            borderWidth: 0,
+                            cutout: '60%'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        aspectRatio: 1,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: '#fff',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        },
+                        elements: { arc: { borderWidth: 0 } }
+                    }
+                });
+            }
+
+            // Department Comparison Chart
+            const deptComparisonElement = document.querySelector('.department-comparison-chart');
+            if (deptComparisonElement) {
+                const deptComparisonCtx = deptComparisonElement.getContext('2d');
+                const labels = @json($department_comparison['labels']);
+                const attendanceData = @json($department_comparison['attendance']);
+                const overtimeData = @json($department_comparison['overtime']);
+                
+                if (!labels || labels.length === 0) {
+                    deptComparisonCtx.font = '16px Arial';
+                    deptComparisonCtx.fillStyle = '#333';
+                    deptComparisonCtx.textAlign = 'center';
+                    deptComparisonCtx.fillText('No department data available', deptComparisonElement.width / 2, deptComparisonElement.height / 2);
+                } else {
+                    chartInstances.departmentComparison = new Chart(deptComparisonCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Attendance Rate (%)',
+                                data: attendanceData,
+                                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }, {
+                                label: 'Overtime Count',
+                                data: overtimeData,
+                                backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: { display: true, text: 'Attendance Rate (%)' }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: { display: true, text: 'Overtime Count' },
+                                    grid: { drawOnChartArea: false }
+                                }
+                            },
+                            plugins: {
+                                legend: { position: 'top' },
+                                tooltip: { mode: 'index', intersect: false }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Monthly Trends Chart
+            const monthlyTrendsElement = document.querySelector('.monthly-trends-chart');
+            if (monthlyTrendsElement) {
+                const monthlyTrendsCtx = monthlyTrendsElement.getContext('2d');
+                const trendLabels = @json($monthly_trends['labels']);
+                const attendanceTrends = @json($monthly_trends['attendance']);
+                const overtimeTrends = @json($monthly_trends['overtime']);
+                const leaveTrends = @json($monthly_trends['leaves']);
+                
+                if (!trendLabels || trendLabels.length === 0) {
+                    monthlyTrendsCtx.font = '16px Arial';
+                    monthlyTrendsCtx.fillStyle = '#333';
+                    monthlyTrendsCtx.textAlign = 'center';
+                    monthlyTrendsCtx.fillText('No trend data available', monthlyTrendsElement.width / 2, monthlyTrendsElement.height / 2);
+                } else {
+                    chartInstances.monthlyTrends = new Chart(monthlyTrendsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: trendLabels,
+                            datasets: [{
+                                label: 'Check-ins',
+                                data: attendanceTrends,
+                                borderColor: 'rgb(75, 192, 192)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            }, {
+                                label: 'Overtime',
+                                data: overtimeTrends,
+                                borderColor: 'rgb(255, 159, 64)',
+                                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            }, {
+                                label: 'Leaves',
+                                data: leaveTrends,
+                                borderColor: 'rgb(153, 102, 255)',
+                                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            scales: {
+                                x: { display: true, title: { display: true, text: 'Month' } },
+                                y: { display: true, title: { display: true, text: 'Count' } }
+                            },
+                            plugins: {
+                                legend: { position: 'top' },
+                                tooltip: { mode: 'index', intersect: false }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Create Chartist charts with static data
+            console.log('Creating Chartist charts...');
+            console.log('Chartist available:', typeof Chartist !== 'undefined');
+            
+            // Payslip Performance Line Chart
+            const lineChartElement = document.querySelector('.line-chart');
+            console.log('Line chart element found:', lineChartElement);
+            if (lineChartElement && typeof Chartist !== 'undefined') {
+                const chartData = {
+                    labels: @json(json_decode($chart_data[0])),
+                    series: [
+                        @json(json_decode($chart_data[3])),
+                        @json(json_decode($chart_data[2])),
+                        @json(json_decode($chart_data[1]))
+                    ]
+                };
+                console.log('Static line chart data:', chartData);
+                
+                chartInstances.payslipLine = new Chartist.Line('.line-chart', chartData, {
+                    low: 0,
+                    scaleMinSpace: 10,
+                    showArea: true,
+                    fullWidth: true,
+                    plugins: [
+                        Chartist.plugins.tooltip()
+                    ],
+                    axisX: {
+                        position: 'end'
+                    },
+                    axisY: {
+                        showGrid: true,
+                        showLabel: true,
+                    }
+                });
+                console.log('Line chart created:', chartInstances.payslipLine);
+            }
+            
+            // Weekly Payslips Bar Chart
+            const barChartElement = document.querySelector('.bar-chart');
+            console.log('Bar chart element found:', barChartElement);
+            if (barChartElement && typeof Chartist !== 'undefined') {
+                const barChartData = {
+                    labels: @json(json_decode($chart_daily[0])),
+                    series: [
+                        @json(json_decode($chart_daily[3])),
+                        @json(json_decode($chart_daily[2])),
+                        @json(json_decode($chart_daily[1]))
+                    ]
+                };
+                console.log('Static bar chart data:', barChartData);
+                
+                chartInstances.payslipBar = new Chartist.Bar('.bar-chart', barChartData, {
+                    low: 0,
+                    showArea: true,
+                    plugins: [
+                        Chartist.plugins.tooltip()
+                    ],
+                    axisX: {
+                        position: 'end'
+                    },
+                    axisY: {
+                        showGrid: false,
+                        showLabel: false,
+                        offset: 0
+                    }
+                });
+                console.log('Bar chart created:', chartInstances.payslipBar);
+            }
+        }
+
+        // Function to create charts with fresh data
+        function createChartsWithData(chartData) {
+            // Set global Chart.js defaults for better visibility
+            Chart.defaults.color = '#333';
+            Chart.defaults.borderColor = '#333';
+            Chart.defaults.backgroundColor = 'rgba(54, 162, 235, 0.2)';
+
+            // Approval Status Pie Chart
+            const approvalPieElement = document.querySelector('.approval-pie-chart');
+            if (approvalPieElement && chartData.approval_pie_chart) {
+                const approvalPieCtx = approvalPieElement.getContext('2d');
+                chartInstances.approvalPie = new Chart(approvalPieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.approval_pie_chart.labels,
+                        datasets: [{
+                            data: chartData.approval_pie_chart.data,
+                            backgroundColor: chartData.approval_pie_chart.colors,
+                            borderWidth: 0,
+                            cutout: '60%'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        aspectRatio: 1,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: '#fff',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        },
+                        elements: { arc: { borderWidth: 0 } }
+                    }
+                });
+            }
+
+            // Department Comparison Chart
+            const deptComparisonElement = document.querySelector('.department-comparison-chart');
+            if (deptComparisonElement && chartData.department_comparison) {
+                const deptComparisonCtx = deptComparisonElement.getContext('2d');
+                const labels = chartData.department_comparison.labels;
+                const attendanceData = chartData.department_comparison.attendance;
+                const overtimeData = chartData.department_comparison.overtime;
+                
+                if (!labels || labels.length === 0) {
+                    deptComparisonCtx.font = '16px Arial';
+                    deptComparisonCtx.fillStyle = '#333';
+                    deptComparisonCtx.textAlign = 'center';
+                    deptComparisonCtx.fillText('No department data available', deptComparisonElement.width / 2, deptComparisonElement.height / 2);
+                } else {
+                    chartInstances.departmentComparison = new Chart(deptComparisonCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Attendance Rate (%)',
+                                data: attendanceData,
+                                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }, {
+                                label: 'Overtime Count',
+                                data: overtimeData,
+                                backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1,
+                                yAxisID: 'y1'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: { display: true, text: 'Attendance Rate (%)' }
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right',
+                                    title: { display: true, text: 'Overtime Count' },
+                                    grid: { drawOnChartArea: false }
+                                }
+                            },
+                            plugins: {
+                                legend: { position: 'top' },
+                                tooltip: { mode: 'index', intersect: false }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Monthly Trends Chart
+            const monthlyTrendsElement = document.querySelector('.monthly-trends-chart');
+            if (monthlyTrendsElement && chartData.monthly_trends) {
+                const monthlyTrendsCtx = monthlyTrendsElement.getContext('2d');
+                const trendLabels = chartData.monthly_trends.labels;
+                const attendanceTrends = chartData.monthly_trends.attendance;
+                const overtimeTrends = chartData.monthly_trends.overtime;
+                const leaveTrends = chartData.monthly_trends.leaves;
+                
+                if (!trendLabels || trendLabels.length === 0) {
+                    monthlyTrendsCtx.font = '16px Arial';
+                    monthlyTrendsCtx.fillStyle = '#333';
+                    monthlyTrendsCtx.textAlign = 'center';
+                    monthlyTrendsCtx.fillText('No trend data available', monthlyTrendsElement.width / 2, monthlyTrendsElement.height / 2);
+                } else {
+                    chartInstances.monthlyTrends = new Chart(monthlyTrendsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: trendLabels,
+                            datasets: [{
+                                label: 'Check-ins',
+                                data: attendanceTrends,
+                                borderColor: 'rgb(75, 192, 192)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            }, {
+                                label: 'Overtime',
+                                data: overtimeTrends,
+                                borderColor: 'rgb(255, 159, 64)',
+                                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            }, {
+                                label: 'Leaves',
+                                data: leaveTrends,
+                                borderColor: 'rgb(153, 102, 255)',
+                                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { mode: 'index', intersect: false },
+                            scales: {
+                                x: { display: true, title: { display: true, text: 'Month' } },
+                                y: { display: true, title: { display: true, text: 'Count' } }
+                            },
+                            plugins: {
+                                legend: { position: 'top' },
+                                tooltip: { mode: 'index', intersect: false }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Create Chartist charts
+            if (chartData.chart_data && chartData.chart_daily) {
+                console.log('Creating dynamic Chartist charts...');
+                console.log('Chartist available:', typeof Chartist !== 'undefined');
+                
+                // Payslip Performance Line Chart
+                const lineChartElement = document.querySelector('.line-chart');
+                console.log('Dynamic line chart element found:', lineChartElement);
+                if (lineChartElement && typeof Chartist !== 'undefined') {
+                    console.log('Dynamic line chart data:', chartData.chart_data);
+                    
+                    // Data comes pre-parsed from Livewire
+                    const labels = chartData.chart_data[0];
+                    const series = [
+                        chartData.chart_data[3],
+                        chartData.chart_data[2],
+                        chartData.chart_data[1]
+                    ];
+                    
+                    console.log('Parsed labels:', labels);
+                    console.log('Parsed series:', series);
+                    
+                    chartInstances.payslipLine = new Chartist.Line('.line-chart', {
+                        labels: labels,
+                        series: series
+                    }, {
+                        low: 0,
+                        scaleMinSpace: 10,
+                        showArea: true,
+                        fullWidth: true,
+                        plugins: [
+                            Chartist.plugins.tooltip()
+                        ],
+                        axisX: {
+                            position: 'end'
+                        },
+                        axisY: {
+                            showGrid: true,
+                            showLabel: true,
+                        }
+                    });
+                    console.log('Dynamic line chart created:', chartInstances.payslipLine);
+                }
+                
+                // Weekly Payslips Bar Chart
+                const barChartElement = document.querySelector('.bar-chart');
+                console.log('Dynamic bar chart element found:', barChartElement);
+                if (barChartElement && typeof Chartist !== 'undefined') {
+                    console.log('Dynamic bar chart data:', chartData.chart_daily);
+                    
+                    // Data comes pre-parsed from Livewire
+                    const barLabels = chartData.chart_daily[0];
+                    const barSeries = [
+                        chartData.chart_daily[3],
+                        chartData.chart_daily[2],
+                        chartData.chart_daily[1]
+                    ];
+                    
+                    console.log('Parsed bar labels:', barLabels);
+                    console.log('Parsed bar series:', barSeries);
+                    
+                    chartInstances.payslipBar = new Chartist.Bar('.bar-chart', {
+                        labels: barLabels,
+                        series: barSeries
+                    }, {
+                        low: 0,
+                        showArea: true,
+                        plugins: [
+                            Chartist.plugins.tooltip()
+                        ],
+                        axisX: {
+                            position: 'end'
+                        },
+                        axisY: {
+                            showGrid: false,
+                            showLabel: false,
+                            offset: 0
+                        }
+                    });
+                    console.log('Dynamic bar chart created:', chartInstances.payslipBar);
+                }
+            }
+        }
+
+        // Listen for Livewire events to update charts
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('charts-updated', () => {
+                recreateCharts();
+            });
+        });
+    </script>
+    @endpush
+</div>

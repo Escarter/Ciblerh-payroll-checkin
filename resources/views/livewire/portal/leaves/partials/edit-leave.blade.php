@@ -10,7 +10,7 @@
                     <x-form-items.form wire:submit="update">
                         <div class='row form-group mb-4'>
                             <div class="col">
-                                <label for="user">{{__('Employee')}}</label>
+                                <label for="user">{{__('employees.employee')}}</label>
                                 <input wire:model="user" type="text" class="form-control  @error('user') is-invalid @enderror " required="" name="user" disabled>
                                 @error('user')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -41,28 +41,28 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="leave_reason">{{__('Leave Reason')}}</label>
+                            <label for="leave_reason">{{__('employees.leave_reason')}}</label>
                             <textarea wire:model="leave_reason" name="leave_reason" class="form-control  @error('leave_reason') is-invalid @enderror" id='' cols='3' rows='3'></textarea>
                             @error('leave_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
-                        <h3 class="fw-bold fs-5">{{__('Approval section')}}</h3>
+                        <h3 class="fw-bold fs-5">{{__('common.approval_section')}}</h3>
                         <hr>
                         @if($role === "supervisor")
                         <div class='form-group mb-4'>
-                            <label for="supervisor_approval_status">{{__('Approval Status')}}</label>
+                            <label for="supervisor_approval_status">{{__('employees.approval_status')}}</label>
                             <select wire:model="supervisor_approval_status" name="supervisor_approval_status" class="form-select  @error('supervisor_approval_status') is-invalid @enderror" required="required">
-                                <option value="">{{__('Select status')}}</option>
-                                <option value="1">{{__('Approve')}}</option>
-                                <option value="2">{{__('Reject')}}</option>
+                                <option value="">{{__('common.select_status')}}</option>
+                                <option value="1">{{__('common.approve')}}</option>
+                                <option value="2">{{__('common.reject')}}</option>
                             </select>
                             @error('supervisor_approval_status')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="supervisor_approval_reason">{{__('Approval/Rejection Reason')}}</label>
+                            <label for="supervisor_approval_reason">{{__('common.approval_rejection_reason')}}</label>
                             <textarea wire:model="supervisor_approval_reason" name="supervisor_approval_reason" class="form-control  @error('supervisor_approval_reason') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
                             @error('supervisor_approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -70,18 +70,18 @@
                         </div>
                         @else
                         <div class='form-group mb-4'>
-                            <label for="manager_approval_status">{{__('Approval Status')}}</label>
+                            <label for="manager_approval_status">{{__('employees.approval_status')}}</label>
                             <select wire:model="manager_approval_status" name="manager_approval_status" class="form-select  @error('manager_approval_status') is-invalid @enderror">
-                                <option value="">{{__('Select status')}}</option>
-                                <option value="1">{{__('Approve')}}</option>
-                                <option value="2">{{__('Reject')}}</option>
+                                <option value="">{{__('common.select_status')}}</option>
+                                <option value="1">{{__('common.approve')}}</option>
+                                <option value="2">{{__('common.reject')}}</option>
                             </select>
                             @error('manager_approval_status')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="manager_approval_reason">{{__('Approval/Rejection Reason')}}</label>
+                            <label for="manager_approval_reason">{{__('common.approval_rejection_reason')}}</label>
                             <textarea wire:model="manager_approval_reason" name="manager_approval_reason" class="form-control  @error('manager_approval_reason') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
                             @error('manager_approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -89,8 +89,8 @@
                         </div>
                         @endif
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="update" class="btn btn-primary " wire:loading.attr="disabled">{{__('Confirm')}}</button>
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
+                            <button type="submit" wire:click.prevent="update" class="btn btn-primary " wire:loading.attr="disabled">{{__('common.confirm')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

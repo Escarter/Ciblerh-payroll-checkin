@@ -10,7 +10,7 @@
                     <x-form-items.form wire:submit="update">
                         <div class="form-group row mb-4">
                             <div class='col-md-6'>
-                                <label for="name">{{__('Name')}}</label>
+                                <label for="name">{{__('common.name')}}</label>
                                 <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
                                 @error('name')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -32,15 +32,15 @@
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="description">{{__('Description')}}</label>
+                            <label for="description">{{__('common.description')}}</label>
                             <textarea wire:model="description" name="description" class="form-control  @error('description') is-invalid @enderror" id='' cols='3' rows='3'></textarea>
                             @error('description')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="update" class="btn btn-primary" wire:loading.attr="disabled">{{__('Update')}}</button>
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
+                            <button type="submit" wire:click.prevent="update" class="btn btn-primary" wire:loading.attr="disabled">{{__('common.update')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

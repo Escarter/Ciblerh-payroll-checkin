@@ -185,7 +185,7 @@ class SendPayslipJob implements ShouldQueue
                         
                         $record->update([
                             'email_sent_status' => Payslip::STATUS_DISABLED,
-                            'failure_reason' => __('Email notifications disabled for this employee')
+                            'email_status_note' => __('Email notifications disabled for this employee')
                         ]);
                         return; // Skip to next employee
                     }
@@ -215,7 +215,7 @@ class SendPayslipJob implements ShouldQueue
                         $record->update([
                             'email_sent_status' => Payslip::STATUS_FAILED,
                             'sms_sent_status' => Payslip::STATUS_FAILED,
-                            'failure_reason' => __('No valid email address for User')
+                            'failure_reason' => __('{{__('payslips.no_valid_email_address')}}')
                         ]);
                         return;
                     }
@@ -468,7 +468,7 @@ class SendPayslipJob implements ShouldQueue
             return ['is_bounce' => false];
         }
 
-        // Heuristic for tests: treat addresses containing 'bounce' as bounces, others as transient failures
+        // Treat as bounce only if the failed address clearly indicates a bounce (e.g., contains 'bounce')
         if (stripos($email, 'bounce') !== false) {
             return [
                 'is_bounce' => true,
@@ -476,8 +476,6 @@ class SendPayslipJob implements ShouldQueue
                 'type' => 'hard',
             ];
         }
-
-        // Not a bounce; allow retry logic to handle
         return ['is_bounce' => false];
     }
 

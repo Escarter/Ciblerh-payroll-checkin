@@ -58,12 +58,12 @@
 
     <div class="row py-3">
         <div class="col">
-            <label for="search">{{__('Search')}}: </label>
-            <input wire:model.live="query_string" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+            <label for="search">{{__('common.search')}}: </label>
+            <input wire:model.live="query_string" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
         </div>
         @hasanyrole('manager|admin')
         <div class="col">
-            <label for="company">{{__('Company')}}: </label>
+            <label for="company">{{__('companies.company')}}: </label>
             <select wire:model.live="selectedCompanyId" class="form-select">
                 <option value="" selected>{{__('-- Select Company --')}}</option>
                 <option value="all">{{__('All Companies')}}</option>
@@ -74,7 +74,7 @@
         </div>
         @endhasanyrole
         <div class="col">
-            <label for="selectedDepartmentId">{{__('Department')}}: </label>
+            <label for="selectedDepartmentId">{{__('departments.department')}}: </label>
             <select wire:model.live="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror">
                 <option value="" selected>{{__('-- Select Department --')}}</option>
                 <option value="all">{{__('All Departments')}}</option>
@@ -88,7 +88,7 @@
         </div>
         <div class="col">
             <div>
-                <label for="orderBy">{{__('Employee')}}: </label>
+                <label for="orderBy">{{__('employees.employee')}}: </label>
                 <select wire:model.live="employee_id" class="form-select">
                     <option value="" selected>{{__('-- Select Employees --')}}</option>
                     <option value="all">{{__('All Employees')}}</option>
@@ -106,9 +106,9 @@
             <select wire:model.live="sms_status" class="form-select">
                 <option value="">{{__('-- Select Status --')}}</option>
                 <option value="all" selected>{{__('Select All')}}</option>
-                <option value="3">{{__('Pending')}}</option>
-                <option value="4">{{__('Successful')}}</option>
-                <option value="5">{{__('Failed')}}</option>
+                <option value="3">{{__('common.pending')}}</option>
+                <option value="4">{{__('common.successful')}}</option>
+                <option value="5">{{__('common.failed')}}</option>
                 <option value="6">{{__('Disabled')}}</option>
             </select>
         </div>
@@ -117,9 +117,9 @@
             <select wire:model.live="email_status" class="form-select">
                 <option value="">{{__('-- Select Status --')}}</option>
                 <option value="all" selected>{{__('Select All')}}</option>
-                <option value="0">{{__('Pending')}}</option>
-                <option value="1">{{__('Successful')}}</option>
-                <option value="2">{{__('Failed')}}</option>
+                <option value="0">{{__('common.pending')}}</option>
+                <option value="1">{{__('common.successful')}}</option>
+                <option value="2">{{__('common.failed')}}</option>
             </select>
         </div>
 
@@ -137,8 +137,8 @@
             <table class="table employee-table table-bordered table-hover align-items-center dataTable" id="datatable">
                 <thead>
                     <tr>
-                        <th class="border-bottom">{{__('Name')}}</th>
-                        <th class="border-bottom">{{__('Matricule')}}</th>
+                        <th class="border-bottom">{{__('common.name')}}</th>
+                        <th class="border-bottom">{{__('employees.matricule')}}</th>
                         <th class="border-bottom">{{__('Contacts')}}</th>
                         <th class="border-bottom">{{__('Period')}}</th>
                         <th class="border-bottom">{{__('When')}}</th>
@@ -177,22 +177,22 @@
                         </td>
                         <td>
                             @if($payslip->email_sent_status == 1)
-                            <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
+                            <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
                             @elseif($payslip->email_sent_status == 2 )
-                            <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                            <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                             @else
-                            <span class="badge badge-lg text-md text-gray bg-warning">{{__('Pending')}}</span>
+                            <span class="badge badge-lg text-md text-gray bg-warning">{{__('common.pending')}}</span>
                             @endif
                         </td>
                         <td>
                             @if($payslip->sms_sent_status == 1)
-                            <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
+                            <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
                             @elseif($payslip->sms_sent_status == 2)
-                            <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                            <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                             @elseif($payslip->sms_sent_status == 3)
                             <span class="badge badge-lg text-md bg-info">{{__('Disabled')}}</span>
                             @else
-                            <span class="badge badge-lg text-md text-dark bg-warning">{{__('Pending')}}</span>
+                            <span class="badge badge-lg text-md text-dark bg-warning">{{__('common.pending')}}</span>
                             @endif
                         </td>
                     </tr>
@@ -200,8 +200,8 @@
                     <tr>
                         <td colspan="10">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                                <p>{{__('No Record Found..!')}}</p>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <p>{{__('common.no_records_found')}}</p>
                             </div>
                         </td>
                     </tr>

@@ -45,7 +45,7 @@
                 <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#DepartmentModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center ">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('New')}}
+                    </svg> {{__('common.new')}}
                 </a>
                 @endcan
                 @can('department-update')
@@ -59,7 +59,7 @@
                 <a href="#" data-bs-toggle="modal" data-bs-target="#importDepartmentsModal" class="btn btn-sm btn-secondary py-2 d-inline-flex align-items-center">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg> {{__('Import')}}
+                    </svg> {{__('common.import')}}
                 </a>
                 @endcan
                 @can('department-export')
@@ -68,7 +68,7 @@
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                         </svg>
-                        {{__('Export')}}
+                        {{__('common.export')}}
                     </a>
                 </div>
                 <div class="text-center mx-2" wire:loading wire:target="export">
@@ -108,7 +108,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($departments_count ?? 0)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Department'), $departments_count ?? 0) }} {{__('in this company')}}</div>
+                                    <div>{{ \Str::plural(__('departments.department'), $departments_count ?? 0) }} {{__('in this company')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -136,7 +136,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_departments ?? 0)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Department'), $active_departments ?? 0) }} {{__('that are active!')}}</div>
+                                    <div>{{ \Str::plural(__('departments.department'), $active_departments ?? 0) }} {{__('that are active!')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -154,17 +154,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Department'), $deleted_departments ?? 0) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('departments.department'), $deleted_departments ?? 0) }}</h2>
                                     <h3 class="mb-1">{{numberFormat($deleted_departments ?? 0)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Department'), $deleted_departments ?? 0) }}</h2>
+                                    <h2 class="h5">{{ \Str::plural(__('departments.department'), $deleted_departments ?? 0) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_departments ?? 0)}} </h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Department'), $deleted_departments ?? 0) }} {{__('that are deleted!')}}</div>
+                                    <div>{{ \Str::plural(__('departments.department'), $deleted_departments ?? 0) }} {{__('that are deleted!')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -177,23 +177,23 @@
 
     <div class="row pt-2 pb-3">
         <div class="col-md-4">
-            <label for="search">{{__('Search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+            <label for="search">{{__('common.search')}}: </label>
+            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('Order By')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="name">{{__('Name')}}</option>
-                <option value="created_at">{{__('Created Date')}}</option>
+                <option value="name">{{__('common.name')}}</option>
+                <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
             <label for="direction">{{__('Order')}}: </label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
-                <option value="asc">{{__('Ascending')}}</option>
-                <option value="desc">{{__('Descending')}}</option>
+                <option value="asc">{{__('common.ascending')}}</option>
+                <option value="desc">{{__('common.descending')}}</option>
             </select>
         </div>
 
@@ -219,7 +219,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                 </svg>
-                {{__('Active')}}
+                {{__('common.active')}}
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_departments ?? 0 }}</span>
             </button>
 
@@ -229,7 +229,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Deleted')}}
+                {{__('common.deleted')}}
                 <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_departments ?? 0 }}</span>
             </button>
         </div>
@@ -258,7 +258,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Move to Trash')}}
+                {{__('common.move_to_trash')}}
                 <span class="badge bg-light text-white ms-1">{{ count($selectedDepartments) }}</span>
             </button>
             @endcan
@@ -270,7 +270,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
-                {{__('Restore Selected')}}
+                {{__('common.restore_selected')}}
                 <span class="badge bg-success text-white ms-1">{{ count($selectedDepartments) }}</span>
             </button>
 
@@ -282,7 +282,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Delete Forever')}}
+                {{__('common.delete_forever')}}
                 <span class="badge bg-danger text-white ms-1">{{ count($selectedDepartments) }}</span>
             </button>
             @endcan
@@ -293,7 +293,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
-                {{__('Clear')}}
+                {{__('common.clear')}}
             </button>
             @endif
         </div>
@@ -329,7 +329,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <h5 class="fw-bold text-gray-800 mb-0">{{ucwords($department->name)}}</h5>
                                 <span class="badge {{$department->is_active ? 'bg-success' : 'bg-danger'}} px-2 py-1 rounded-pill small">
-                                    {{$department->is_active ? __('Active') : __('Inactive')}}
+                                    {{$department->is_active ? __('common.active') : __('Inactive')}}
                                 </span>
                             </div>
                             @if(auth()->user()->hasRole('supervisor'))
@@ -415,7 +415,7 @@
                         </a>
                         @endcan
                         @can('department-delete')
-                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Move to Trash')}}">
+                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('common.move_to_trash')}}">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -444,7 +444,7 @@
             <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column mx-2'>
                 <div class="text-center text-gray-800 mt-4">
                     <img src="{{ asset('/img/illustrations/not_found.svg') }}" class="w-25 ">
-                    <h4 class="fs-4 fw-bold my-1">{{__('Empty set.')}}</h4>
+                    <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
                 </div>
                 @can('department-create')
                 <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#DepartmentModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">

@@ -44,12 +44,12 @@ class Index extends Component
 
         // Validate that user has required relationships
         if (empty($this->company)) {
-            $this->addError('company', __('You are not associated with any company. Please contact your administrator.'));
+            $this->addError('company', __('employees.not_associated_with_company'));
             return;
         }
 
         if (empty($this->department)) {
-            $this->addError('department', __('You are not associated with any department. Please contact your administrator.'));
+            $this->addError('department', __('employees.not_associated_with_department'));
             return;
         }
 
@@ -68,7 +68,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Absence request successfully submitted - nice 😍!'), 'CreateAbsenceModal');
+        $this->closeModalAndFlashMessage(__('employees.absence_request_submitted'), 'CreateAbsenceModal');
     }
     //Get & assign selected absence props
     public function initData($absence_id)
@@ -105,7 +105,7 @@ class Index extends Component
         }
         
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Absence request updated successfully - nice 😍!!'), 'EditAbsenceModal');
+        $this->closeModalAndFlashMessage(__('employees.absence_request_updated'), 'EditAbsenceModal');
     }
     public function delete()
     {
@@ -120,7 +120,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Absence successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.absence_deleted'), 'DeleteModal');
     }
 
     public function clearFields()

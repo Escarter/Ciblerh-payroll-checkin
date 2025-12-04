@@ -218,11 +218,11 @@
         <p>
             <span style="font-weight:bolder; padding: 10px, 0;">{{__("Portfolio Manager Reviews")}}</span>
             @if($advance_salary->approval_status === 1)
-            <span class="badge text-white bg-success">{{__('Approved')}}</span>
+            <span class="badge text-white bg-success">{{__('common.approved')}}</span>
             @elseif ($advance_salary->approval_status === 2)
-            <span class="badge bg-danger text-white">{{__('Rejected')}}</span>
+            <span class="badge bg-danger text-white">{{__('common.rejected')}}</span>
             @else
-            <span class="badge bg-warning text-white">{{__('Pending')}}</span>
+            <span class="badge bg-warning text-white">{{__('common.pending')}}</span>
             @endif
         </p>
         <table class="table">
@@ -243,7 +243,7 @@
                 </tr>
                 <tr>
                     <td>{{__("Signature")}}</td>
-                    <td>{{__('Approved')}}</td>
+                    <td>{{__('common.approved')}}</td>
                     <td></td>
                     <td></td>
                 </tr>

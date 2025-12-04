@@ -86,7 +86,7 @@
                                         :options="$availableRoles->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
                                         :selected="$selectedRoles"
                                         label="{{__('Select Roles (Max 2)')}}"
-                                        help="{{__('Maximum 2 roles allowed. Employee role is automatically included.')}}"
+                                        help="{{__('common.maximum_2_roles_allowed')}}"
                                         class="form-select" />
                                     @error('selectedRoles')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -118,7 +118,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" wire:click="closeModal">{{ __('Close') }}</button>
+                    <button type="button" class="btn btn-secondary" wire:click="closeModal">{{ __('common.close') }}</button>
                 </div>
             </div>
         </div>

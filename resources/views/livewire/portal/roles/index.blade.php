@@ -35,7 +35,7 @@
                 <a href="#" data-bs-toggle="modal" data-bs-target="#CreateRoleModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('New')}}
+                    </svg> {{__('common.new')}}
                 </a>
                 @endcan
 
@@ -45,7 +45,7 @@
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                         </svg>
-                        {{__('Export')}}
+                        {{__('common.export')}}
                     </a>
                 </div>
                 <div class="text-center mx-2" wire:loading wire:target="export">
@@ -64,7 +64,7 @@
                 <div class="col-md-3">
                     <label for="orderBy">{{__('Trier par')}}: </label>
                     <select wire:model="orderBy" id="orderBy" class="form-select">
-                        <option value="name">{{__('Name')}}</option>
+                        <option value="name">{{__('common.name')}}</option>
                         <option value="created_at">{{__('Date Creation')}}</option>
                     </select>
                 </div>
@@ -72,8 +72,8 @@
                 <div class="col-md-3">
                     <label for="direction">{{__('Direction')}}: </label>
                     <select wire:model="orderAsc" id="direction" class="form-select">
-                        <option value="asc">{{__('Ascending')}}</option>
-                        <option value="desc">{{__('Descending')}}</option>
+                        <option value="asc">{{__('common.ascending')}}</option>
+                        <option value="desc">{{__('common.descending')}}</option>
                     </select>
                 </div>
 
@@ -102,7 +102,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
-                {{__('Active')}}
+                {{__('common.active')}}
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_roles ?? 0 }}</span>
             </button>
 
@@ -112,7 +112,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Deleted')}}
+                {{__('common.deleted')}}
                 <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_roles ?? 0 }}</span>
             </button>
         </div>
@@ -140,7 +140,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Move to Trash')}}
+                    {{__('common.move_to_trash')}}
                     <span class="badge bg-light text-white ms-1">{{ count($selectedRoles) }}</span>
                 </button>
                 @endcan
@@ -152,7 +152,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
-                    {{__('Restore Selected')}}
+                    {{__('common.restore_selected')}}
                     <span class="badge bg-success text-white ms-1">{{ count($selectedRoles) }}</span>
                 </button>
 
@@ -164,7 +164,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Delete Forever')}}
+                    {{__('common.delete_forever')}}
                     <span class="badge bg-danger text-white ms-1">{{ count($selectedRoles) }}</span>
                 </button>
                 @endcan
@@ -175,7 +175,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    {{__('Clear')}}
+                    {{__('common.clear')}}
                 </button>
                 @endif
             </div>
@@ -241,7 +241,7 @@
                         </a>
                         @endcan
                         @can('role-delete')
-                        <a href="#" wire:click.prevent="initData({{$role->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{ __('Move to Trash') }}">
+                        <a href="#" wire:click.prevent="initData({{$role->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{ __('common.move_to_trash') }}">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -271,7 +271,7 @@
 
                 <div class="text-center text-gray-800 mt-4">
                     <img src="{{ asset('/img/illustrations/not_found.svg') }}" class="w-25 ">
-                    <h4 class="fs-4 fw-bold my-1">{{__('Empty set.')}}</h4>
+                    <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
                 </div>
                 @can('role-create')
                 <a href="#" data-bs-toggle="modal" data-bs-target="#CreateCompanyModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">

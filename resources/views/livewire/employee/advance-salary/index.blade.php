@@ -20,10 +20,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                     <span>
-                        {{__('Advance Salary')}}
+                        {{__('employees.advance_salary')}}
                     </span>
                 </h1>
-                <p class="text-gray-800">{{__('View all your request for advance salary')}} &#129297; </p>
+                <p class="text-gray-800">{{__('employees.view_all_advance_salary_requests')}} &#129297; </p>
             </div>
             <div class=''>
                 @can('advance_salary-create')
@@ -31,7 +31,7 @@
                     <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
-                    {{__('Requet Advance Salary')}}
+                    {{__('employees.request_advance_salary')}}
                 </a>
                 @endcan
             </div>
@@ -47,7 +47,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{number_format($approved_advance_salary)}} {{ __(Str::plural('Advance salary', $approved_advance_salary)) }}</h5>
-                                    <div class=" text-gray-500 ">{{__('Approved')}} &#128516;</div>
+                                    <div class=" text-gray-500 ">{{__('common.approved')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -62,7 +62,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{number_format($pending_advance_salary)}} {{ __(\Str::plural('Advance salary', $pending_advance_salary))}} </h5>
-                                    <div class=" text-gray-500 ">{{__('pending approval!')}} &#128516;</div>
+                                    <div class=" text-gray-500 ">{{__('common.pending_approval')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -77,7 +77,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{number_format($rejected_advance_salary)}} {{ __(\Str::plural('Advance salary', $rejected_advance_salary)) }}</h5>
-                                    <div class="text-gray-500 ">{{__('Rejected')}} &#128560;</div>
+                                    <div class="text-gray-500 ">{{__('common.rejected')}} &#128560;</div>
                                 </div>
                             </div>
                         </a>
@@ -87,29 +87,29 @@
         </div>
         <div class="row py-2 text-gray-600 mt-3">
             <div class="col-md-3 mb-2">
-                <label for="search">{{__('Search')}}: </label>
-                <input wire:model="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+                <label for="search">{{__('common.search')}}: </label>
+                <input wire:model="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="orderBy">{{__('Order By')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}: </label>
                 <select wire:model="orderBy" id="orderBy" class="form-select">
-                    <option value="reason">{{__('Reason')}}</option>
-                    <option value="approval_status">{{__('Approval status')}}</option>
-                    <option value="created_at">{{__('Created Date')}}</option>
+                    <option value="reason">{{__('common.reason')}}</option>
+                    <option value="approval_status">{{__('common.approval_status')}}</option>
+                    <option value="created_at">{{__('common.created_date')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="direction">{{__('Order direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}: </label>
                 <select wire:model="orderAsc" id="direction" class="form-select">
-                    <option value="asc">{{__('Ascending')}}</option>
-                    <option value="desc">{{__('Descending')}}</option>
+                    <option value="asc">{{__('common.ascending')}}</option>
+                    <option value="desc">{{__('common.descending')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="perPage">{{__('Items Per Page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}: </label>
                 <select wire:model="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -127,13 +127,13 @@
                 <table class="table employee-table table-hover align-items-center ">
                     <thead>
                         <tr>
-                            <th class="border-bottom">{{__('Beneficiary')}}</th>
-                            <th class="border-bottom">{{__('Amount')}}</th>
-                            <th class="border-bottom">{{__('Repaymet Start')}}</th>
-                            <th class="border-bottom">{{__('Repaymet End')}}</th>
-                            <th class="border-bottom">{{__('Status')}}</th>
-                            <th class="border-bottom">{{__('Date created')}}</th>
-                            <th class="border-bottom">{{__('Action')}}</th>
+                            <th class="border-bottom">{{__('employees.beneficiary')}}</th>
+                            <th class="border-bottom">{{__('common.amount')}}</th>
+                            <th class="border-bottom">{{__('employees.repayment_start')}}</th>
+                            <th class="border-bottom">{{__('employees.repayment_end')}}</th>
+                            <th class="border-bottom">{{__('common.status')}}</th>
+                            <th class="border-bottom">{{__('common.created_date')}}</th>
+                            <th class="border-bottom">{{__('common.action')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -148,7 +148,7 @@
                                 </a>
                             </td>
                             <td>
-                                <span class="fw-bold">{{number_format($advance_salary->amount)}} {{__('XAF')}}</span>
+                                <span class="fw-bold">{{number_format($advance_salary->amount)}} {{__('employees.currency_xaf')}}</span>
                             </td>
                             <td>
                                 <span class="fs-normal">{{$advance_salary->repayment_from_month->format('M, Y')}}</span>
@@ -194,8 +194,8 @@
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("Empty")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                <p>{{__('Request Advance salary to see them here!')}}</p>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <p>{{__('employees.request_advance_salary_message')}}</p>
             </div>
         </div>
         @endif

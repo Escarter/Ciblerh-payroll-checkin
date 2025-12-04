@@ -1,0 +1,114 @@
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Settings Management Language Lines
+    |--------------------------------------------------------------------------
+    */
+
+    'settings' => 'Settings',
+    'system_settings' => 'System Settings',
+    'application_settings' => 'Application Settings',
+    'general_settings' => 'General Settings',
+    'email_settings' => 'Email Settings',
+    'sms_settings' => 'SMS Settings',
+    'notification_settings' => 'Notification Settings',
+    'security_settings' => 'Security Settings',
+    'integration_settings' => 'Integration Settings',
+
+    // SMTP Settings
+    'smtp_host' => 'SMTP Host',
+    'smtp_port' => 'SMTP Port',
+    'smtp_username' => 'SMTP Username',
+    'smtp_password' => 'SMTP Password',
+    'smtp_encryption' => 'SMTP Encryption',
+    'smtp_from_address' => 'From Address',
+    'smtp_from_name' => 'From Name',
+    'test_email' => 'Test Email',
+    'send_test_email' => 'Send Test Email',
+    'smtp_settings_saved' => 'SMTP settings saved successfully!',
+    'smtp_test_sent' => 'Test email sent successfully!',
+
+    // SMS Settings
+    'sms_provider' => 'SMS Provider',
+    'sms_api_key' => 'SMS API Key',
+    'sms_api_secret' => 'SMS API Secret',
+    'sms_sender_id' => 'SMS Sender ID',
+    'sms_balance' => 'SMS Balance',
+    'test_sms' => 'Test SMS',
+    'send_test_sms' => 'Send Test SMS',
+    'sms_settings_saved' => 'SMS settings saved successfully!',
+    'sms_test_sent' => 'Test SMS sent successfully!',
+
+    // Company Settings
+    'company_name' => 'Company Name',
+    'company_logo' => 'Company Logo',
+    'company_address' => 'Company Address',
+    'company_phone' => 'Company Phone',
+    'company_email' => 'Company Email',
+    'company_website' => 'Company Website',
+    'fiscal_year_start' => 'Fiscal Year Start',
+    'timezone' => 'Timezone',
+    'currency' => 'Currency',
+    'language' => 'Language',
+    'date_format' => 'Date Format',
+    'time_format' => 'Time Format',
+
+    // Security Settings
+    'password_policy' => 'Password Policy',
+    'minimum_password_length' => 'Minimum Password Length',
+    'password_requires_uppercase' => 'Require Uppercase Letters',
+    'password_requires_lowercase' => 'Require Lowercase Letters',
+    'password_requires_numbers' => 'Require Numbers',
+    'password_requires_symbols' => 'Require Symbols',
+    'session_timeout' => 'Session Timeout',
+    'two_factor_authentication' => 'Two-Factor Authentication',
+    'login_attempts_limit' => 'Login Attempts Limit',
+    'account_lockout_duration' => 'Account Lockout Duration',
+
+    // Notification Settings
+    'email_notifications' => 'Email Notifications',
+    'sms_notifications' => 'SMS Notifications',
+    'push_notifications' => 'Push Notifications',
+    'notification_email' => 'Notification Email',
+    'notification_sms' => 'Notification SMS',
+    'notify_on_payslip_generation' => 'Notify on Payslip Generation',
+    'notify_on_leave_request' => 'Notify on Leave Request',
+    'notify_on_overtime_request' => 'Notify on Overtime Request',
+
+    // Integration Settings
+    'api_settings' => 'API Settings',
+    'webhook_settings' => 'Webhook Settings',
+    'third_party_integrations' => 'Third Party Integrations',
+    'api_key' => 'API Key',
+    'api_secret' => 'API Secret',
+    'webhook_url' => 'Webhook URL',
+    'webhook_secret' => 'Webhook Secret',
+
+    // Actions
+    'save_settings' => 'Save Settings',
+    'reset_settings' => 'Reset Settings',
+    'test_connection' => 'Test Connection',
+    'settings_saved_successfully' => 'Settings saved successfully!',
+    'settings_reset_successfully' => 'Settings reset successfully!',
+    'connection_test_successful' => 'Connection test successful!',
+    'connection_test_failed' => 'Connection test failed!',
+
+    // SMS Settings
+    'sms_package_configuration' => 'SMS Package Configuration',
+    'sms_provider' => 'SMS Provider',
+    'nexah' => 'NEXAH',
+    'twilio' => 'Twilio',
+    'aws_sns' => 'AWS SNS',
+    'username_or_token' => 'Username or Token',
+    'password_or_secret' => 'Password or secret',
+    'senderid' => 'SenderId',
+    'payslip_sms_message_config' => 'Payslip SMS Message config',
+    'enter_sms_content_english' => 'Enter sms Content English',
+    'enter_sms_content_french' => 'Enter sms Content French',
+    'do_not_remove_placeholders' => 'Do not remove or change the values of',
+    'placeholders_note' => 'as these are used as placeholders',
+    'birthday_sms_message_config' => 'Birthday SMS Message config',
+    'enter_birthday_sms_english' => 'Enter birthday sms English',
+];

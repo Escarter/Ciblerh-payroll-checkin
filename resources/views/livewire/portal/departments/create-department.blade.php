@@ -10,7 +10,7 @@
                     <x-form-items.form wire:submit="store">
 
                         <div class="form-group mb-4">
-                            <label for="company">{{__('Company')}}</label>
+                            <label for="company">{{__('companies.company')}}</label>
                             @if(auth()->user()->hasRole('supervisor'))
                                 <input type="text" class="form-control" value="{{__('Multiple Companies')}}" disabled>
                                 <small class="text-muted">{{__('Departments will be created in your assigned companies')}}</small>
@@ -19,7 +19,7 @@
                             @endif
                         </div>
                         <div class='form-group mb-4'>
-                            <label for="supervisor_id">{{__('Supervisor')}}</label>
+                            <label for="supervisor_id">{{__('common.supervisor')}}</label>
                             <select wire:model="supervisor_id" name="supervisor_id" class="form-select  @error('supervisor_id') is-invalid @enderror">
                                 <option value="">{{__("Select supervisor")}}</option>
                                 @foreach ($supervisors as $supervisor)
@@ -31,7 +31,7 @@
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="name">{{__('Name')}}</label>
+                            <label for="name">{{__('common.name')}}</label>
                             <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
                             @error('name')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -39,8 +39,8 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="store" class="btn btn-primary " wire:loading.attr="disabled">{{__('Create')}}</button>
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
+                            <button type="submit" wire:click.prevent="store" class="btn btn-primary " wire:loading.attr="disabled">{{__('common.create')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

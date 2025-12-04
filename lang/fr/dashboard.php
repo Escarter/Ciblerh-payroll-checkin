@@ -1,0 +1,86 @@
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard & Portal Language Lines
+    |--------------------------------------------------------------------------
+    */
+
+    'home' => 'Accueil',
+    'process_payslip' => 'Traiter la fiche de paie',
+    'payslips_processed' => 'Fiches de paie traitées',
+    'all_payslips_processed' => 'Toutes les fiches de paie traitées',
+    'view_all_payslips_processed' => 'Voir toutes les fiches de paie traitées',
+    'process_details' => 'Détails du processus',
+    'status_of_payslips_sending' => 'Statut de l\'envoi des fiches de paie!!!!',
+    'activities_log' => 'Journal des activités',
+    'view_all_activities' => 'Voir toutes les activités effectuées dans votre espace',
+    'recorded' => 'enregistré',
+    'recorded_exclamation' => 'enregistré!',
+    'creation_logs' => 'Journaux de création',
+    'update_log' => 'Journal de mise à jour',
+    'deletion_log' => 'Journal de suppression',
+    'cannot_remove' => 'Impossible de supprimer',
+
+    // Profile and user
+    'profile_settings' => 'Paramètres de profil',
+    'user' => 'Utilisateur',
+    'welcome' => 'Bienvenu,',
+    'logout' => 'Déconnexion',
+    'matricule' => 'Matricule',
+    'contacts' => 'Contacts',
+    'when' => 'Quand',
+    'encryption_status' => 'Statut de cryptage',
+    'email_status' => 'Statut email',
+    'sms_status' => 'Statut SMS',
+
+    // Common actions
+    'action' => 'Action',
+    'status' => 'Statut',
+    'successful' => 'Réussi',
+    'failed' => 'Échoué',
+    'disabled' => 'Désactivé',
+    'processing' => 'Traitement en cours...',
+    'pending' => 'En attente...',
+    'not_recorded' => 'Non enregistré',
+    'all_departments' => 'Tous les départements',
+    'all_time' => 'Tout le temps',
+    'last_15_days' => '15 derniers jours',
+    'last_month' => 'Le mois dernier',
+    'last_3_months' => '3 derniers mois',
+    'last_6_months' => '6 derniers mois',
+    'last_9_months' => '9 derniers mois',
+    'last_year' => 'L\'année dernière',
+    'period' => 'Période',
+    'delete' => 'Supprimer',
+    'restore' => 'Restaurer',
+    'clear' => 'Effacer',
+    'close' => 'Fermer',
+    'cancel' => 'Annuler',
+    'create' => 'Créer',
+    'update' => 'Mettre à jour',
+    'edit' => 'Modifier',
+    'view' => 'Voir',
+    'details' => 'Détails',
+    'search' => 'Rechercher',
+    'filter' => 'Filtrer',
+    'refresh' => 'Actualiser',
+    'download' => 'Télécharger',
+    'upload' => 'Téléverser',
+    'import' => 'Importer',
+    'export' => 'Exporter',
+    'generate' => 'Générer',
+
+    // Tableau de bord spécifique
+    'dashboard_status' => 'Statut du tableau de bord',
+    'update_profile_details' => 'Mettez à jour les détails de votre profil',
+    'you_approved' => 'vous avez approuvé!',
+    'you_rejected' => 'vous avez rejeté!',
+    'total_checkins' => 'Total des pointages',
+    'total_checkin' => 'Total des pointages',
+    'approved_checkin' => 'Pointage approuvé',
+    'pending_checkin' => 'Pointage en attente',
+    'rejected_checkin' => 'Pointage rejeté',
+    'checkin' => 'Pointage',
+];

@@ -63,9 +63,10 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
     {
         // Check if employee has SMS notifications enabled
         if (isset($emp->receive_sms_notifications) && !$emp->receive_sms_notifications) {
-            // Do not touch failure_reason when SMS is intentionally disabled
+            // Persist a note to explain the Disabled status without polluting failure_reason
             $record->update([
                 'sms_sent_status' => Payslip::STATUS_DISABLED,
+                'sms_status_note' => __('SMS notifications disabled for this employee'),
             ]);
             return;
         }
@@ -111,7 +112,7 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                     // Preserve existing failure reason if any
                     $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
                     $record->update([
-                        'sms_sent_status' => Payslip::STATUS_FAILED, 
+                        'sms_sent_status' => Payslip::STATUS_FAILED,
                         'failure_reason' => $existingReason . __('Failed sending SMS')
                     ]);
                 }
@@ -119,7 +120,7 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 // Preserve existing failure reason if any
                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
                 $record->update([
-                    'sms_sent_status' => Payslip::STATUS_FAILED, 
+                    'sms_sent_status' => Payslip::STATUS_FAILED,
                     'failure_reason' => $existingReason . __('No available SMS Balance')
                 ]);
             }
@@ -127,7 +128,7 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
             // Preserve existing failure reason if any
             $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
             $record->update([
-                'sms_sent_status' => Payslip::STATUS_FAILED, 
+                'sms_sent_status' => Payslip::STATUS_FAILED,
                 'failure_reason' => $existingReason . __('No valid phone number for user')
             ]);
         }

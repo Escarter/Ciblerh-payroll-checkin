@@ -1,7 +1,7 @@
 <nav class="navbar navbar-dark bg-primary px-4 col-12 d-md-none">
     <a class="" href="/">
         <span class="ml-0 lead ">
-            <span class="bg-white px-2 py-1 border rounded text-secondary display-4"> <span class="text-primary ">{{ __('WiMa') }}</span> {{ __('Admin') }}</span>
+            <span class="bg-white px-2 py-1 border rounded text-secondary display-4"> <span class="text-primary ">{{ __('WiMa') }}</span> {{ __('common.admin') }}</span>
 
         </span>
     </a>

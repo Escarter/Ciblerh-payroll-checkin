@@ -45,7 +45,7 @@ test('bounced email prevents future sends', function () {
 
 test('email bounce detection marks user email as bounced', function () {
     $user = User::factory()->create([
-        'email' => 'test@example.com',
+'email' => 'bounce@example.com',
         'email_bounced' => false,
     ]);
     
@@ -63,8 +63,8 @@ test('email bounce detection marks user email as bounced', function () {
         ->once()
         ->andReturn(true);
     
-    Mail::shouldReceive('failures')
-        ->andReturn(['test@example.com']);
+Mail::shouldReceive('failures')
+        ->andReturn(['bounce@example.com']);
     
     $job = new SendPayslipJob($employeeChunk, $process);
     $job->handle();
@@ -111,5 +111,8 @@ test('bounced email persists across multiple payslip attempts', function () {
     
     Mail::assertNothingSent();
 });
+
+
+
 
 

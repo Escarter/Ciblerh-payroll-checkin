@@ -19,7 +19,6 @@ class CreateSendPayslipProcessesTable extends Migration
             $table->foreignId('company_id')->nullable()->constrained();
             $table->foreignId('department_id')->nullable()->constrained();
             $table->foreignId('service_id')->nullable()->constrained();
-            $table->foreignId('author_id')->index()->nullable()->constrained('users');
             $table->longText('raw_file')->nullable();
             $table->string('destination_directory')->nullable();
             $table->integer('percentage_completion')->nullable();
@@ -29,6 +28,8 @@ class CreateSendPayslipProcessesTable extends Migration
             $table->longText('failure_reason')->nullable();
             $table->string('batch_id')->nullable();
             $table->timestamps();
+
+            $table->softDeletes();
         });
     }
 

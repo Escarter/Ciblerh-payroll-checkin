@@ -26,6 +26,8 @@ class Payslip extends Model
         'email_bounced' => 'boolean',
         'email_bounced_at' => 'datetime',
         'email_retry_count' => 'integer',
+        'sms_status_note' => 'string',
+        'email_status_note' => 'string',
     ];
 
     public function scopeSupervisor($query)
@@ -45,27 +47,27 @@ class Payslip extends Model
     public function getEncryptionStatusTextAttribute()
     {
         return match($this->encryption_status){
-            self::STATUS_FAILED => __('Failed'),
-            self::STATUS_SUCCESSFUL => __('Successful'),
-            default => __('Not recorded')
+            self::STATUS_FAILED => __('dashboard.failed'),
+            self::STATUS_SUCCESSFUL => __('dashboard.successful'),
+            default => __('dashboard.not_recorded')
         };
     }
     public function getEmailStatusTextAttribute()
     {
         return match($this->email_sent_status){
-            self::STATUS_FAILED => __('Failed'),
-            self::STATUS_PENDING => __('Pending'),
-            self::STATUS_SUCCESSFUL => __('Successful'),
+            self::STATUS_FAILED => __('dashboard.failed'),
+            self::STATUS_PENDING => __('dashboard.pending'),
+            self::STATUS_SUCCESSFUL => __('dashboard.successful'),
             default => ''
         };
     }
     public function getSmsStatusTextAttribute()
     {
         return match($this->sms_sent_status){
-            self::STATUS_FAILED => __('Failed'),
-            self::STATUS_PENDING => __('Pending'),
-            self::STATUS_SUCCESSFUL => __('Successful'),
-            self::STATUS_DISABLED => __('Disabled'),
+            self::STATUS_FAILED => __('dashboard.failed'),
+            self::STATUS_PENDING => __('dashboard.pending'),
+            self::STATUS_SUCCESSFUL => __('dashboard.successful'),
+            self::STATUS_DISABLED => __('dashboard.disabled'),
             default => ''
         };
     }

@@ -9,13 +9,13 @@
 
                             <div class=" mb-2 mt-md-0 text-center">
                                 <img src='/img/logo.jpg' class="w-75 h-auto" alt=''>
-                                <!-- <div class="mb-0  py-3"> <span class="text-xl fs-3 fw-bold">{{ __('CibeRH')}}</span> <span class="text-primary h3 bg-secondary p-2 rounded">{{__('HR')}}</span></div> -->
+                                <!-- <div class="mb-0  py-3"> <span class="text-xl fs-3 fw-bold">{{ __('auth.ciberh')}}</span> <span class="text-primary h3 bg-secondary p-2 rounded">{{__('auth.hr')}}</span></div> -->
                             </div>
                             <x-form-items.form method="POST" action="{{ route('login') }}" class="mt-1 form-modal needs-validation" id="">
                                 <div class='text-center'>
                                     <x-alert />
                                 </div>
-                                <div class="form-group mb-4"><label for="email">{{ __('E-Mail Address') }}</label>
+                                <div class="form-group mb-4"><label for="email">{{ __('auth.e_mail_address') }}</label>
                                     <div class="input-group ">
                                         <span class="input-group-text" id="basic-addon1">
                                             <!-- <span class="fas fa-envelope"></span> -->
@@ -34,7 +34,7 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="form-group mb-4">
-                                        <label for="password">{{ __('Password') }}</label>
+                                        <label for="password">{{ __('auth.password') }}</label>
                                         <div class="input-group">
                                             <span class="input-group-text" id="basic-addon2">
                                                 <!-- <span class="fas fa-unlock-alt"></span> -->
@@ -54,25 +54,25 @@
                                     <div class="d-flex justify-content-between align-items-top mb-3">
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" value="" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-                                            <label class="form-check-label mb-0" for="remember">{{ __('Remember Me') }}</label>
+                                            <label class="form-check-label mb-0" for="remember">{{ __('auth.remember_me') }}</label>
                                         </div>
                                         <div>
                                             @if (Route::has('password.request'))
                                             <a href="{{ route('password.request') }}" class="small text-right">
-                                                {{ __('Lost Password?') }}
+                                                {{ __('auth.lost_password') }}
                                             </a>
                                             @endif
                                         </div>
                                     </div>
                                 </div>
                                 <div class="d-grid">
-                                    <button type="submit" class="btn btn-primary btn-loading px-6"> {{ __('Login') }}</button>
+                                    <button type="submit" class="btn btn-primary btn-loading px-6"> {{ __('auth.login') }}</button>
                                 </div>
                             </x-form-items.form>
                             <div class='d-flex justify-content-center my-3'>
-                                <!-- {{__('Language')}} <br> -->
-                                <a class="{{ \App::isLocale('fr') ? ' text-secondary' : ''}} mx-2" href="{{route('language-switcher',['locale'=>'fr'])}}" >{{__('FR')}}</a> |
-                                <a class="{{ \App::isLocale('en') ? ' text-secondary' : ''}} mx-2" href="{{route('language-switcher',['locale'=>'en'])}}" >{{__('EN')}}</a>
+                                <!-- {{__('auth.language')}} <br> -->
+                                <a class="{{ \App::isLocale('fr') ? ' text-secondary' : ''}} mx-2" href="{{route('language-switcher',['locale'=>'fr'])}}" >{{__('auth.fr')}}</a> |
+                                <a class="{{ \App::isLocale('en') ? ' text-secondary' : ''}} mx-2" href="{{route('language-switcher',['locale'=>'en'])}}" >{{__('auth.en')}}</a>
                             </div>
                         </div>
                     </div>

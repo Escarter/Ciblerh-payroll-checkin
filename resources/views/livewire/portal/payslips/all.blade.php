@@ -127,7 +127,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                 </svg>
-                {{__('Active')}}
+                {{__('common.active')}}
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_jobs ?? 0 }}</span>
             </button>
             <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
@@ -136,7 +136,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Deleted')}}
+                {{__('common.deleted')}}
                 <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_jobs ?? 0 }}</span>
             </button>
         </div>
@@ -147,7 +147,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Move to Trash')}}
+                {{__('common.move_to_trash')}}
                 <span class="badge bg-danger text-white ms-1">{{ count($selectedJobs) }}</span>
             </button>
             <button wire:click="$set('selectedJobs', [])"
@@ -161,14 +161,14 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
-                {{__('Restore Selected')}}
+                {{__('common.restore_selected')}}
                 <span class="badge bg-success text-white ms-1">{{ count($selectedJobs) }}</span>
             </button>
             <button type="button" class="btn btn-sm btn-outline-danger me-2" data-bs-toggle="modal" data-bs-target="#bulkForceDeleteModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Delete Forever')}}
+                {{__('common.delete_forever')}}
                 <span class="badge bg-danger text-white ms-1">{{ count($selectedJobs) }}</span>
             </button>
             <button wire:click="$set('selectedJobs', [])"
@@ -191,11 +191,11 @@
                         <th class="border-bottom">
                             <input type="checkbox" class="form-check-input" wire:click="toggleSelectAll" {{ $selectAll ? 'checked' : '' }}>
                         </th>
-                        <th class="border-bottom">{{__('Department')}}</th>
+                        <th class="border-bottom">{{__('departments.department')}}</th>
                         <th class="border-bottom">{{__('By')}}</th>
                         <th class="border-bottom">{{__('Details')}}</th>
-                        <th class="border-bottom text-center">{{__('Status')}}</th>
-                        <th class="border-bottom text-center">{{__('Action')}}</th>
+                        <th class="border-bottom text-center">{{__('common.status')}}</th>
+                        <th class="border-bottom text-center">{{__('common.action')}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -255,9 +255,9 @@
                         </td>
                         <td class="text-center">
                             @if($job->status == 'successful')
-                            <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
+                            <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
                             @elseif($job->status == 'failed')
-                            <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                            <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                             @else
                             <span class="badge badge-lg text-md bg-warning">{{__('Processing...')}}</span>
                             @endif
@@ -285,7 +285,7 @@
                                 </svg>
                             </a>
                             <!-- Force Delete Link -->
-                            <a href='#' wire:click.prevent="$set('selectedJobs', [{{$job->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('Delete Forever')}}">
+                            <a href='#' wire:click.prevent="$set('selectedJobs', [{{$job->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('common.delete_forever')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>

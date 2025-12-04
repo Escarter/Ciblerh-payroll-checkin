@@ -12,14 +12,14 @@
                             </a>
                         </li>
                         <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Audit Logs')}}</li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('common.audit_logs')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    {{__('Audit Logs')}}
+                    {{__('common.audit_logs')}}
                 </h1>
                 <p class="mt-n1 mx-2">{{__('View all activities performed within your space')}} &#x23F0; </p>
             </div>
@@ -157,7 +157,7 @@
                             <svg class="icon icon-xxl text-danger mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <h1 class="mb-0 h2 fw-bolder">{{__('Are you sure?')}}</h1>
+                            <h1 class="mb-0 h2 fw-bolder">{{__('common.are_you_sure')}}</h1>
                             <p class="pt-2">{{__('You are about to move this audit log to trash. This action can be undone later.')}}</p>
                         </div>
                         @if($audit_log)
@@ -165,14 +165,14 @@
                             <strong>{{__('Audit Log Details:')}}</strong><br>
                             <small class="text-muted">
                                 {{__('User')}}: {{$audit_log->user}}<br>
-                                {{__('Action')}}: {{$audit_log->action_type}}<br>
+                                {{__('common.action')}}: {{$audit_log->action_type}}<br>
                                 {{__('Date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
                             </small>
                         </div>
                         @endif
                         <div class="d-flex justify-content-center">
-                            <button type="button" wire:click="delete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('Move to Trash')}}</button>
-                            <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{__('Cancel')}}</button>
+                            <button type="button" wire:click="delete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('common.move_to_trash')}}</button>
+                            <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{__('common.cancel')}}</button>
                         </div>
                     </div>
                 </div>
@@ -190,23 +190,23 @@
                             <svg class="icon icon-xxl text-danger mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                             </svg>
-                            <h1 class="mb-0 h2 fw-bolder">{{__('Permanent Deletion')}}</h1>
+                            <h1 class="mb-0 h2 fw-bolder">{{__('common.permanent_deletion')}}</h1>
                             <p class="pt-2">{{__('You are about to permanently delete this audit log from the system.')}}</p>
-                            <p class="text-danger fw-bold">{{__('This action cannot be undone!')}}</p>
+                            <p class="text-danger fw-bold">{{__('common.this_action_cannot_be_undone')}}</p>
                         </div>
                         @if($audit_log)
                         <div class="alert alert-danger mb-3">
                             <strong>{{__('Audit Log Details:')}}</strong><br>
                             <small>
                                 {{__('User')}}: {{$audit_log->user}}<br>
-                                {{__('Action')}}: {{$audit_log->action_type}}<br>
+                                {{__('common.action')}}: {{$audit_log->action_type}}<br>
                                 {{__('Date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
                             </small>
                         </div>
                         @endif
                         <div class="d-flex justify-content-center">
-                            <button type="button" wire:click="forceDelete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('Delete Forever')}}</button>
-                            <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{__('Cancel')}}</button>
+                            <button type="button" wire:click="forceDelete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('common.delete_forever')}}</button>
+                            <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{__('common.cancel')}}</button>
                         </div>
                     </div>
                 </div>
@@ -218,29 +218,29 @@
 
     <div class="row p-3">
         <div class="col-md-3">
-            <label for="search">{{__('Search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+            <label for="search">{{__('common.search')}}: </label>
+            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('Order By')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
                 <option value="user">{{__('User')}}</option>
                 <option value="action_type">{{__('Action Type')}}</option>
-                <option value="created_at">{{__('Created Date')}}</option>
+                <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('Order direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}: </label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
-                <option value="asc">{{__('Ascending')}}</option>
-                <option value="desc">{{__('Descending')}}</option>
+                <option value="asc">{{__('common.ascending')}}</option>
+                <option value="desc">{{__('common.descending')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('Items Per Page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}: </label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -262,7 +262,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
-                {{__('Active')}}
+                {{__('common.active')}}
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_logs ?? 0 }}</span>
             </button>
 
@@ -272,7 +272,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Deleted')}}
+                {{__('common.deleted')}}
                 <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_logs ?? 0 }}</span>
             </button>
         </div>
@@ -291,7 +291,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Move to Trash')}}
+                    {{__('common.move_to_trash')}}
                     <span class="badge bg-danger text-white ms-1">{{ count($selectedAuditLogs) }}</span>
                 </button>
 
@@ -300,7 +300,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    {{__('Clear')}}
+                    {{__('common.clear')}}
                 </button>
             </div>
             @endif
@@ -314,7 +314,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
-                    {{__('Restore Selected')}}
+                    {{__('common.restore_selected')}}
                     <span class="badge bg-success text-white ms-1">{{ count($selectedAuditLogs) }}</span>
                 </button>
 
@@ -326,7 +326,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Delete Forever')}}
+                    {{__('common.delete_forever')}}
                     <span class="badge bg-danger text-white ms-1">{{ count($selectedAuditLogs) }}</span>
                 </button>
 
@@ -335,7 +335,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    {{__('Clear')}}
+                    {{__('common.clear')}}
                 </button>
             </div>
             @endif
@@ -359,7 +359,7 @@
                         <th class="border-bottom">{{__('Logger')}}</th>
                         <th class="border-bottom">{{__('Task ')}}</th>
                         <th class="border-bottom">{{__('Task Performed & Date')}}</th>
-                        <th class="border-bottom">{{__('Action')}}</th>
+                        <th class="border-bottom">{{__('common.action')}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -422,7 +422,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>
                             </a>
-                            <a href="#" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#ForceDeleteAuditLogModal" class="text-danger" title="{{__('Delete Forever')}}">
+                            <a href="#" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#ForceDeleteAuditLogModal" class="text-danger" title="{{__('common.delete_forever')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
@@ -434,8 +434,8 @@
                     <tr>
                         <td colspan="5" class="text-center">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                                <p>{{__('No Record Found..!')}}</p>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <p>{{__('common.no_records_found')}}</p>
                             </div>
                         </td>
                     </tr>

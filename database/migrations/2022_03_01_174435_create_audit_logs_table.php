@@ -23,6 +23,8 @@ return new class extends Migration
             $table->foreignId('company_id')->nullable();
             $table->foreignId('department_id')->index()->nullable();
             $table->timestamps();
+
+            $table->softDeletes();
         });
     }
 

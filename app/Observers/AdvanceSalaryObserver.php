@@ -31,7 +31,7 @@ class AdvanceSalaryObserver
     public function updated(AdvanceSalary $advanceSalary)
     {
         if ($advanceSalary->approval_status !== $advanceSalary->getOriginal('approval_status')) {
-            $changes = ($advanceSalary->approval_status == 1 ? __('Approved') : __('Rejected')) . " " . __(' the advance salary by '). $advanceSalary->user->name . __(' of amount ') . number_format($advanceSalary->amount) . 'XAF';
+            $changes = ($advanceSalary->approval_status == 1 ? __('common.approved') : __('common.rejected')) . " " . __(' the advance salary by '). $advanceSalary->user->name . __(' of amount ') . number_format($advanceSalary->amount) . 'XAF';
             $status = "advanceSalary_" . ($advanceSalary->approval_status == 1 ? "approved" : "rejected");
         } else {
             $status = "advanceSalary_updated";

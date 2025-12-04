@@ -4,59 +4,59 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Update Advance Salary Request')}}</h1>
-                        <p>{{__('Edit and submit an advance salary request')}} &#128530;</p>
+                        <h1 class="mb-0 h4">{{__('employees.update_advance_salary_request')}}</h1>
+                        <p>{{__('employees.edit_and_submit_advance_salary_request')}} &#128530;</p>
                     </div>
                     <x-form-items.form wire:submit.prevent="update" enctype="multipart/form-data" class="form-modal">
-                        <h5 class="pb-0 mb-n2">{{__('Request details')}}</h5>
+                        <h5 class="pb-0 mb-n2">{{__('common.request_details')}}</h5>
                         <hr class="mb-3">
                         <div class="form-group mb-4">
-                            <label for="amount">{{__('Amount')}}</label>
+                            <label for="amount">{{__('common.amount')}}</label>
                             <input wire:model.defer="amount" type="money" class="form-control  @error('amount') is-invalid @enderror" placeholder="{{__('25,000')}}" value="" required="">
                             @error('amount')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="reason">{{__('Reason')}}</label>
+                            <label for="reason">{{__('common.reason')}}</label>
                             <textarea wire:model.defer="reason" class="form-control  @error('reason') is-invalid @enderror" id='' cols='3' rows="3" placeholder="{{__('To manage an urgent family matter')}}"></textarea>
                             @error('reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="repayment_from_month">{{__('Which month will start repayment?')}}</label>
+                            <label for="repayment_from_month">{{__('employees.repayment_from_month')}}</label>
                             <input wire:model.defer="repayment_from_month" type="month" class="form-control  @error('repayment_from_month') is-invalid @enderror" min="{{now()->addMonth(1)->format('Y-m')}}" value="" required="">
                             @error('repayment_from_month')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="repayment_to_month">{{__('Which month will end repayment?')}}</label>
+                            <label for="repayment_to_month">{{__('employees.repayment_to_month')}}</label>
                             <input wire:model.defer="repayment_to_month" type="month" class="form-control  @error('repayment_to_month') is-invalid @enderror" min="{{now()->addMonth(1)->format('Y-m')}}" value="" required="">
                             @error('end_repayment_month')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
 
-                        <h5 class="pb-0 mb-n2">{{__('Beneficiary details')}}</h5>
+                        <h5 class="pb-0 mb-n2">{{__('common.beneficiary_details')}}</h5>
                         <hr class="mb-3">
                         <div class="form-group mb-4">
-                            <label for="beneficiary_name">{{__('Beneficiary Name')}}</label>
+                            <label for="beneficiary_name">{{__('employees.beneficiary_name')}}</label>
                             <input wire:model.defer="beneficiary_name" type="text" class="form-control  @error('beneficiary_name') is-invalid @enderror" placeholder="{{__('Janette Jaqueline')}}" value="" required="">
                             @error('beneficiary_name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="beneficiary_mobile_money_number">{{__('Beneficiary Mobile Money Number')}}</label>
+                            <label for="beneficiary_mobile_money_number">{{__('employees.beneficiary_mobile_money_number')}}</label>
                             <input wire:model.defer="beneficiary_mobile_money_number" type="text" class="form-control  @error('beneficiary_mobile_money_number') is-invalid @enderror" placeholder="{{__('6XXXXXXXX')}}" value="" required="">
                             @error('beneficiary_mobile_money_number')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="beneficiary_id_card_number">{{__('Beneficiary ID Card Number')}}</label>
+                            <label for="beneficiary_id_card_number">{{__('employees.beneficiary_id_card_number')}}</label>
                             <input wire:model.defer="beneficiary_id_card_number" type="text" class="form-control  @error('beneficiary_id_card_number') is-invalid @enderror" placeholder="{{__('12xxxxxxxx')}}" value="" required="">
                             @error('beneficiary_id_card_number')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -64,8 +64,8 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="update" class="btn btn-secondary " wire:loading.attr="disabled">{{__('Update Request')}}</button>
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
+                            <button type="submit" wire:click.prevent="update" class="btn btn-secondary " wire:loading.attr="disabled">{{__('employees.update_request')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

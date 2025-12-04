@@ -20,10 +20,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                     <span>
-                        {{__('Absences History')}}
+                        {{__('employees.absences_history')}}
                     </span>
                 </h1>
-                <p class="text-gray-800">{{__('View all your absebces recorded so far')}} &#128517;</p>
+                <p class="text-gray-800">{{__('employees.view_all_absences_recorded')}} &#128517;</p>
             </div>
             <div class=''>
                 @can('absence-create')
@@ -31,7 +31,7 @@
                     <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    {{__('Requet Absence')}}
+                    {{__('employees.request_absence')}}
                 </a>
                 @endcan
             </div>
@@ -47,7 +47,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($approved_absence)}} {{ __(\Str::plural('Absence', $approved_absence)) }} </h5>
-                                    <div class=" text-gray-500 ">{{__('Approved')}} &#128516;</div>
+                                    <div class=" text-gray-500 ">{{__('common.approved')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -62,7 +62,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($pending_absence)}} {{ __(\Str::plural('Absence', $pending_absence)) }} </h5>
-                                    <div class=" text-gray-500 ">{{__('pending approval!')}} &#128516;</div>
+                                    <div class=" text-gray-500 ">{{__('common.pending_approval')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -77,7 +77,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($rejected_absence)}} {{ __(\Str::plural('Absence', $rejected_absence)) }}</h5>
-                                    <div class="text-gray-500 ">{{__('Rejected')}} &#128560;</div>
+                                    <div class="text-gray-500 ">{{__('common.rejected')}} &#128560;</div>
                                 </div>
                             </div>
                         </a>
@@ -87,30 +87,30 @@
         </div>
         <div class="row text-gray-600 ">
             <div class="col-md-3 mb-2">
-                <label for="search">{{__('Search')}}: </label>
-                <input wire:model="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+                <label for="search">{{__('common.search')}}: </label>
+                <input wire:model="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="orderBy">{{__('Order By')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}: </label>
                 <select wire:model="orderBy" id="orderBy" class="form-select">
                     <option value="absence_date">{{__('Date')}}</option>
-                    <option value="absence_reason">{{__('Reason')}}</option>
-                    <option value="approval_status">{{__('Approval status')}}</option>
-                    <option value="created_at">{{__('Created Date')}}</option>
+                    <option value="absence_reason">{{__('common.reason')}}</option>
+                    <option value="approval_status">{{__('common.approval_status')}}</option>
+                    <option value="created_at">{{__('common.created_date')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="direction">{{__('Order direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}: </label>
                 <select wire:model="orderAsc" id="direction" class="form-select">
-                    <option value="asc">{{__('Ascending')}}</option>
-                    <option value="desc">{{__('Descending')}}</option>
+                    <option value="asc">{{__('common.ascending')}}</option>
+                    <option value="desc">{{__('common.descending')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="perPage">{{__('Items Per Page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}: </label>
                 <select wire:model="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -127,12 +127,12 @@
                 <table class="table employee-table table-hover align-items-center dataTable" id="datatable">
                     <thead>
                         <tr>
-                            <th class="border-bottom">{{__('Absence Date')}}</th>
-                            <th class="border-bottom">{{__('Reason')}}</th>
-                            <th class="border-bottom">{{__('Attachment Link')}}</th>
-                            <th class="border-bottom">{{__('Status')}}</th>
-                            <th class="border-bottom">{{__('Date created')}}</th>
-                            <th class="border-bottom">{{__('Action')}}</th>
+                            <th class="border-bottom">{{__('employees.absence_date')}}</th>
+                            <th class="border-bottom">{{__('common.reason')}}</th>
+                            <th class="border-bottom">{{__('employees.attachment_link')}}</th>
+                            <th class="border-bottom">{{__('common.status')}}</th>
+                            <th class="border-bottom">{{__('common.created_date')}}</th>
+                            <th class="border-bottom">{{__('common.action')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -145,7 +145,7 @@
                                 <span class="fs-normal">{{\Str::limit($absence->absence_reason,50)}}</span>
                             </td>
                             <td>
-                                <span class="fs-normal"><a href="{{asset('storage/attachments/'.$absence->attachment_path)}}" target="_blank">{{__('view attachment')}}</a></span>
+                                <span class="fs-normal"><a href="{{asset('storage/attachments/'.$absence->attachment_path)}}" target="_blank">{{__('employees.view_attachment')}}</a></span>
                             </td>
 
                             <td>
@@ -186,8 +186,8 @@
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("Empty")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                <p>{{__('Recorded absence to see them here!')}}</p>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <p>{{__('employees.recorded_absence_message')}}</p>
             </div>
         </div>
         @endif

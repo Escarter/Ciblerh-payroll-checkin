@@ -66,13 +66,13 @@ class UserRoles extends Component
         // Check if any selected role is not allowed
         $unauthorizedRoles = array_diff($this->selectedRoles, $allowedRoles);
         if (!empty($unauthorizedRoles)) {
-            $this->addError('selectedRoles', 'You do not have permission to assign the following roles: ' . implode(', ', $unauthorizedRoles));
+            $this->addError('selectedRoles', __('employees.no_permission_assign_roles') . implode(', ', $unauthorizedRoles));
             return;
         }
 
         // Validate maximum 2 roles
         if (count($this->selectedRoles) > 2) {
-            $this->addError('selectedRoles', 'A user can have a maximum of 2 roles.');
+            $this->addError('selectedRoles', __('employees.maximum_2_roles_allowed'));
             return;
         }
 
@@ -88,7 +88,7 @@ class UserRoles extends Component
         $this->user->refresh();
         $this->userRoles = $this->user->roles->toArray();
 
-        session()->flash('message', 'Roles updated successfully!');
+        session()->flash('message', __('common.roles_updated_successfully'));
     }
 
     public function closeModal()

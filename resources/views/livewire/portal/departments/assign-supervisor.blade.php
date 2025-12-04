@@ -10,7 +10,7 @@
                     <x-form-items.form wire:submit="assignSupervisor">
 
                         <div class='form-group mb-4'>
-                            <label for="department_id">{{__('Department')}}</label>
+                            <label for="department_id">{{__('departments.department')}}</label>
                             <select wire:model="department_id" name="department_id" class="form-select  @error('department_id') is-invalid @enderror">
                                 <option value="">{{__("Select Department")}}</option>
                                 @foreach ($departments as $department)
@@ -22,7 +22,7 @@
                             @enderror
                         </div>
                         <div class='form-group mb-4'>
-                            <label for="supervisor_id">{{__('Supervisor')}}</label>
+                            <label for="supervisor_id">{{__('common.supervisor')}}</label>
                             <select wire:model="supervisor_id" name="supervisor_id" class="form-select  @error('supervisor_id') is-invalid @enderror">
                                 <option value="">{{__("Select supervisor")}}</option>
                                 @foreach ($supervisors as $supervisor)
@@ -35,7 +35,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
                             <button type="submit" wire:click.prevent="assignSupervisor" class="btn btn-primary" wire:loading.attr="disabled">{{__('Assign')}}</button>
                         </div>
                     </x-form-items.form>

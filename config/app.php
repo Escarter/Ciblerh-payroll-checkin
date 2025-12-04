@@ -146,6 +146,181 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Global Search Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Defines the list of navigable destinations that appear in the global search
+    | palette. Each item references an existing route and the permission(s)
+    | required to access it. Items are filtered per-user before reaching the UI.
+    |
+    */
+
+    'global_search' => [
+        'bypass_permissions' => env('GLOBAL_SEARCH_BYPASS_PERMISSIONS', false),
+        'items' => [
+            [
+                'id' => 'dashboard',
+                'label' => 'Dashboard',
+                'group' => 'Navigation',
+                'description' => 'Dashboard',
+                'route' => 'portal.dashboard',
+                'icon' => 'fa fa-tachometer-alt',
+                'keywords' => ['Dashboard', 'dashboard', 'home', 'overview'],
+            ],
+            [
+                'id' => 'companies',
+                'label' => 'Companies',
+                'group' => 'Navigation',
+                'description' => 'Companies Management',
+                'route' => 'portal.companies.index',
+                'icon' => 'fa fa-building',
+                'keywords' => ['Companies', 'companies', 'organization'],
+                'permissions' => ['company-read'],
+            ],
+            [
+                'id' => 'all-employees',
+                'label' => 'Employees',
+                'group' => 'Navigation', 
+                'description' => 'Employees',
+                'route' => 'portal.all-employees',
+                'icon' => 'fa fa-users',
+                'keywords' => ['Employees', 'employees', 'staff', 'personnel'],
+            ],
+            [
+                'id' => 'departments-supervisor',
+                'label' => 'My Departments',
+                'group' => 'Navigation',
+                'description' => 'My Departments',
+                'route' => 'portal.departments.supervisor',
+                'icon' => 'fa fa-building',
+                'keywords' => ['departments', 'supervisor'],
+                'roles' => ['supervisor'],
+            ],
+            [
+                'id' => 'checkins',
+                'label' => 'Checkins',
+                'group' => 'Time Tracking',
+                'description' => 'Checkins',
+                'route' => 'portal.checklogs.index',
+                'icon' => 'fa fa-clock',
+                'keywords' => ['Checkins', 'checkins', 'attendance', 'time'],
+                'permissions' => ['ticking-read'],
+            ],
+            [
+                'id' => 'overtimes',
+                'label' => 'Overtimes',
+                'group' => 'Time Tracking',
+                'description' => 'Overtimes',
+                'route' => 'portal.overtimes.index',
+                'icon' => 'fa fa-clock',
+                'keywords' => ['Overtimes', 'overtimes', 'overtime', 'extra hours'],
+                'permissions' => ['overtime-read'],
+            ],
+            [
+                'id' => 'advance-salaries',
+                'label' => 'Advance Salaries',
+                'group' => 'Payroll',
+                'description' => 'Advance Salaries',
+                'route' => 'portal.advance-salaries.index',
+                'icon' => 'fa fa-money-bill',
+                'keywords' => ['Advance Salaries', 'advance', 'salary', 'payment'],
+                'permissions' => ['advance_salary-read'],
+            ],
+            [
+                'id' => 'absences',
+                'label' => 'Absences',
+                'group' => 'Leave Management',
+                'description' => 'Absences',
+                'route' => 'portal.absences.index',
+                'icon' => 'fa fa-calendar-times',
+                'keywords' => ['Absences', 'absences', 'time off'],
+                'permissions' => ['absence-read'],
+            ],
+            [
+                'id' => 'payslips-send',
+                'label' => 'Send Payslips',
+                'group' => 'Payroll',
+                'description' => 'Send Payslips',
+                'route' => 'portal.payslips.index',
+                'icon' => 'fa fa-file-invoice',
+                'keywords' => ['Send Payslips', 'payslips', 'salary', 'send'],
+                'permissions' => ['payslip-sending'],
+            ],
+            [
+                'id' => 'payslips-history',
+                'label' => 'Payslip History',
+                'group' => 'Payroll',
+                'description' => 'Payslip History',
+                'route' => 'portal.payslips.history',
+                'icon' => 'fa fa-history',
+                'keywords' => ['Payslip History', 'payslips', 'history', 'records'],
+                'permissions' => ['payslip-read'],
+            ],
+            [
+                'id' => 'leaves',
+                'label' => 'Leaves',
+                'group' => 'Leave Management',
+                'description' => 'Leaves',
+                'route' => 'portal.leaves.index',
+                'icon' => 'fa fa-calendar-alt',
+                'keywords' => ['Leaves', 'leaves', 'vacation', 'time off'],
+                'permissions' => ['leave-read'],
+            ],
+            [
+                'id' => 'leave-types',
+                'label' => 'Leave Types',
+                'group' => 'Leave Management',
+                'description' => 'Leave Types',
+                'route' => 'portal.leaves.types',
+                'icon' => 'fa fa-list',
+                'keywords' => ['Leave Types', 'leave types', 'categories'],
+                'permissions' => ['leave_type-read'],
+            ],
+            [
+                'id' => 'reports',
+                'label' => 'Reports',
+                'group' => 'Analytics',
+                'description' => 'Reports',
+                'route' => 'portal.reports.checklogs',
+                'icon' => 'fa fa-chart-bar',
+                'keywords' => ['Reports', 'reports', 'analytics', 'statistics'],
+                'permissions' => ['report-read'],
+            ],
+            [
+                'id' => 'audit-logs',
+                'label' => 'Audit Logs',
+                'group' => 'Administration',
+                'description' => 'Audit Logs',
+                'route' => 'portal.auditlogs.index',
+                'icon' => 'fa fa-history',
+                'keywords' => ['Audit Logs', 'audit', 'logs', 'history'],
+                'permissions' => ['audit_log-read'],
+            ],
+            [
+                'id' => 'roles',
+                'label' => 'Roles',
+                'group' => 'Administration',
+                'description' => 'Roles',
+                'route' => 'portal.roles.index',
+                'icon' => 'fa fa-user-shield',
+                'keywords' => ['Roles', 'roles', 'permissions', 'access'],
+                'permissions' => ['role-read'],
+            ],
+            [
+                'id' => 'settings',
+                'label' => 'Settings',
+                'group' => 'Administration',
+                'description' => 'Settings',
+                'route' => 'portal.settings.index',
+                'icon' => 'fa fa-cog',
+                'keywords' => ['Settings', 'settings', 'configuration'],
+                'permissions' => ['setting-read'],
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Autoloaded Service Providers
     |--------------------------------------------------------------------------
     |

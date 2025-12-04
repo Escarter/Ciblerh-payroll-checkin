@@ -9,7 +9,7 @@
                     </div>
                     <form wire:submit.prevent="assignManager">
                         <div class='form-group mb-4'>
-                            <label for="company_id">{{__('Company')}}</label>
+                            <label for="company_id">{{__('companies.company')}}</label>
                             <select wire:model="company_id" name="company_id" class="form-select @error('company_id') is-invalid @enderror">
                                 <option value="">{{__('Select Company')}}</option>
                                 @foreach ($companies as $company)
@@ -23,7 +23,7 @@
                         <div class='form-group mb-4'>
                             <label for="manager_id">{{__('Manager')}}</label>
                             <select wire:model="manager_id" name="manager_id" class="form-select @error('manager_id') is-invalid @enderror">
-                                <option value="">{{__('Select Manager')}}</option>
+                                <option value="">{{__('employees.select_manager')}}</option>
                                 @foreach ($managers as $manager)
                                 <option value="{{$manager->id}}">{{$manager->name}}</option>
                                 @endforeach
@@ -33,7 +33,7 @@
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
                             <button type="submit" class="btn btn-primary">{{__('Assign')}}</button>
                         </div>
                     </form>

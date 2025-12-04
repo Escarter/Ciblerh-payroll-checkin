@@ -20,10 +20,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                     <span>
-                        {{__('Leaves History')}}
+                        {{__('employees.leaves_history')}}
                     </span>
                 </h1>
-                <p class="text-gray-800">{{__('View all your absebces recorded so far')}} &#128517;</p>
+                <p class="text-gray-800">{{__('employees.view_all_leaves_recorded')}} &#128517;</p>
             </div>
             <div class=''>
                 @can('leave-create')
@@ -31,7 +31,7 @@
                     <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    {{__('Request Leave')}}
+                    {{__('employees.request_leave')}}
                 </a>
                 @endcan
             </div>
@@ -47,8 +47,8 @@
                                 </svg>
 
                                 <div class="mb-3 mb-md-0">
-                                    <h6 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('remaining days')}} | {{__('monthly allocation')}} <strong>{{number_format(auth()->user()->monthly_leave_allocation)}} </strong>{{__('days')}} </h6>
-                                    <div class="text-gray-500 ">{{__('Remaining Leave days and monthly leave allocation')}}</div>
+                                    <h6 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('employees.remaining_days')}} | {{__('employees.monthly_allocation')}} <strong>{{number_format(auth()->user()->monthly_leave_allocation)}} </strong>{{__('employees.days')}} </h6>
+                                    <div class="text-gray-500 ">{{__('employees.remaining_leave_days_allocation')}}</div>
                                 </div>
                             </div>
                         </a>
@@ -62,8 +62,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($approved_leave) }} </span> {{__('leave days taken so far!')}} </h5>
-                                    <div class="text-gray-500 ">{{__('All leave days taken so far!')}}</div>
+                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($approved_leave) }} </span> {{__('employees.leave_days_taken')}} </h5>
+                                    <div class="text-gray-500 ">{{__('employees.all_leave_days_taken')}}</div>
                                 </div>
                             </div>
                         </a>
@@ -80,7 +80,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($approved_leave)}} {{ __(\Str::plural('Leave', $approved_leave)) }} </h5>
-                                    <div class=" text-gray-500 ">{{__('Approved')}} &#128516;</div>
+                                    <div class=" text-gray-500 ">{{__('common.approved')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -95,7 +95,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($pending_leave)}} {{ __(\Str::plural('Leave', $pending_leave)) }} </h5>
-                                    <div class=" text-gray-500 ">{{__('pending approval!')}} &#128516;</div>
+                                    <div class=" text-gray-500 ">{{__('common.pending_approval')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -110,7 +110,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($rejected_leave)}} {{ __(\Str::plural('Leave', $rejected_leave)) }}</h5>
-                                    <div class="text-gray-500 ">{{__('Rejected')}} &#128560;</div>
+                                    <div class="text-gray-500 ">{{__('common.rejected')}} &#128560;</div>
                                 </div>
                             </div>
                         </a>
@@ -120,32 +120,32 @@
         </div>
         <div class="row py-2 text-gray-600 mt-3">
             <div class="col-md-3 mb-2">
-                <label for="search">{{__('Search')}}: </label>
-                <input wire:model="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+                <label for="search">{{__('common.search')}}: </label>
+                <input wire:model="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="orderBy">{{__('Order By')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}: </label>
                 <select wire:model="orderBy" id="orderBy" class="form-select">
-                    <option value="start_date">{{__('Startdate')}}</option>
-                    <option value="end_date">{{__('End date')}}</option>
-                    <option value="leave_reason">{{__('Reason')}}</option>
-                    <option value="supervisor_approval_status">{{__('Sup Approval status')}}</option>
-                    <option value="manager_approval_status">{{__('Mgr Approval status')}}</option>
-                    <option value="created_at">{{__('Created Date')}}</option>
+                    <option value="start_date">{{__('employees.start_date')}}</option>
+                    <option value="end_date">{{__('employees.end_date')}}</option>
+                    <option value="leave_reason">{{__('common.reason')}}</option>
+                    <option value="supervisor_approval_status">{{__('employees.sup_approval_status')}}</option>
+                    <option value="manager_approval_status">{{__('employees.mgr_approval_status')}}</option>
+                    <option value="created_at">{{__('common.created_date')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="direction">{{__('Order direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}: </label>
                 <select wire:model="orderAsc" id="direction" class="form-select">
-                    <option value="asc">{{__('Ascending')}}</option>
-                    <option value="desc">{{__('Descending')}}</option>
+                    <option value="asc">{{__('common.ascending')}}</option>
+                    <option value="desc">{{__('common.descending')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="perPage">{{__('Items Per Page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}: </label>
                 <select wire:model="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -162,13 +162,13 @@
                 <table class="table employee-table table-hover align-items-center dataTable" id="datatable">
                     <thead>
                         <tr>
-                            <th class="border-bottom">{{__('Leave Type')}}</th>
-                            <th class="border-bottom">{{__('Period')}}</th>
-                            <th class="border-bottom">{{__('Reason')}}</th>
-                            <th class="border-bottom">{{__('Sup Approval')}}</th>
-                            <th class="border-bottom">{{__('Mgr Approval')}}</th>
-                            <th class="border-bottom">{{__('Date created')}}</th>
-                            <th class="border-bottom">{{__('Action')}}</th>
+                            <th class="border-bottom">{{__('employees.leave_type')}}</th>
+                            <th class="border-bottom">{{__('employees.period')}}</th>
+                            <th class="border-bottom">{{__('common.reason')}}</th>
+                            <th class="border-bottom">{{__('common.sup_approval')}}</th>
+                            <th class="border-bottom">{{__('common.mgr_approval')}}</th>
+                            <th class="border-bottom">{{__('common.created_date')}}</th>
+                            <th class="border-bottom">{{__('common.action')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -178,9 +178,9 @@
                                 <span class="fs-bold">{{$leave->leaveType->name}}</span>
                             </td>
                             <td>
-                                <span class="fw-bold">{{__('Start Date')}}</span>: <span class="fw-normal">{{$leave->start_date->ISOFormat('LL')}}</span><br>
-                                <span class="fw-bold">{{__('End Date')}}</span>: <span class="fw-normal">{{$leave->end_date->ISOFormat('LL')}}</span><br>
-                                <span class="fw-bold">{{__('Number of Days')}}</span>: <span class="fw-normal">{{$leave->period}}</span><br>
+                                <span class="fw-bold">{{__('employees.start_date')}}</span>: <span class="fw-normal">{{$leave->start_date->ISOFormat('LL')}}</span><br>
+                                <span class="fw-bold">{{__('employees.end_date')}}</span>: <span class="fw-normal">{{$leave->end_date->ISOFormat('LL')}}</span><br>
+                                <span class="fw-bold">{{__('employees.number_of_days')}}</span>: <span class="fw-normal">{{$leave->period}}</span><br>
                             </td>
                             <td>
                                 <span class="fs-normal">{{\Str::limit($leave->leave_reason,50)}}</span>
@@ -226,8 +226,8 @@
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("Empty")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                <p>{{__('Recorded leave to see them here!')}}</p>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <p>{{__('employees.record_leave_message')}}</p>
             </div>
         </div>
         @endif

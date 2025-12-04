@@ -128,9 +128,9 @@ class User extends Authenticatable implements HasLocalePreference
     public function getStatusTextAttribute()
     {
         return match($this->status){
-            true => __('Active'),
+            true => __('common.active'),
             false => __('Banned'),
-            default => __('Active'),
+            default => __('common.active'),
         };
     }
 

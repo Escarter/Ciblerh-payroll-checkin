@@ -25,6 +25,12 @@ return new class extends Migration
             $table->string('username')->nullable();
             $table->string('professional_phone_number')->nullable();
             $table->string('personal_phone_number')->nullable();
+            $table->boolean('receive_sms_notifications')->default(true);
+            $table->boolean('receive_email_notifications')->default(true);
+            $table->string('alternative_email')->nullable();
+            $table->boolean('email_bounced')->default(false);
+            $table->timestamp('email_bounced_at')->nullable();
+            $table->text('email_bounce_reason')->nullable();
             $table->string('matricule');
             $table->string('pdf_password')->nullable();
             $table->string('position')->nullable();
@@ -35,6 +41,7 @@ return new class extends Migration
             $table->double('remaining_leave_days',10,3)->nullable();
             $table->double('monthly_leave_allocation',10,3)->nullable();
             $table->date('contract_end')->nullable();
+            $table->date('date_of_birth')->nullable();
             $table->time('work_start_time',0)->default('08:00:00');
             $table->time('work_end_time',0)->default('17:30:00');
             $table->timestamp('email_verified_at')->nullable();

@@ -20,11 +20,12 @@ trait WithDataTable {
     public function closeModalAndFlashMessage($message, $modal)  
     {
         session()->flash(
-            // Use a unique key for flash messages to avoid conflicts
-            // and allow tests to assert on specific events
             str_replace("\\App\\Livewire\\", "", get_class($this)) . "." . $modal,
             $message
         );
+        // Generic event expected by tests
+        $this->dispatch("flash-message", message: $message, modalId: $modal);
+        // Specific event variant for consumers that use modal-specific channels
         $this->dispatch("flash-message-{$modal}", message: $message, modalId: $modal);
     }
 

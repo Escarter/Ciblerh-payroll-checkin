@@ -34,7 +34,7 @@
                 <x-form-items.form wire:submit="send">
                     @hasanyrole('manager|admin')
                     <div class="form-group mb-4">
-                        <label for="company">{{__('Company')}}</label>
+                        <label for="company">{{__('companies.company')}}</label>
                         <select wire:model.live="company_id" class="form-select @error('company_id') is-invalid @enderror" id="company">
                             <option value=''>{{__('--Select Company--')}}</option>
                             @foreach ($companies as $company)
@@ -50,7 +50,7 @@
                     @endhasanyrole
 
                     <div class="form-group mb-4">
-                        <label for="department">{{__('Department')}}</label>
+                        <label for="department">{{__('departments.department')}}</label>
                         <select wire:model.live="department_id" class="form-select @error('department_id') is-invalid @enderror" id="department">
                             <option value=''>{{__('--Select Department--')}}</option>
                             @foreach ($departments as $department)
@@ -123,7 +123,7 @@
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
-                        {{__('Active')}}
+                        {{__('common.active')}}
                         <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_processes ?? 0 }}</span>
                     </button>
 
@@ -133,7 +133,7 @@
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
-                        {{__('Deleted')}}
+                        {{__('common.deleted')}}
                         <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_processes ?? 0 }}</span>
                     </button>
                 </div>
@@ -153,7 +153,7 @@
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            {{__('Move to Trash')}}
+                            {{__('common.move_to_trash')}}
                             <span class="badge bg-danger text-white ms-1">{{ count($selectedSendPayslipProcesses) }}</span>
                         </button>
                         @endcan
@@ -163,7 +163,7 @@
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
-                            {{__('Clear')}}
+                            {{__('common.clear')}}
                         </button>
                     </div>
                     @endif
@@ -178,7 +178,7 @@
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
-                            {{__('Restore Selected')}}
+                            {{__('common.restore_selected')}}
                             <span class="badge bg-success text-white ms-1">{{ count($selectedSendPayslipProcesses) }}</span>
                         </button>
 
@@ -190,7 +190,7 @@
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            {{__('Delete Forever')}}
+                            {{__('common.delete_forever')}}
                             <span class="badge bg-danger text-white ms-1">{{ count($selectedSendPayslipProcesses) }}</span>
                         </button>
                         @endcan
@@ -200,7 +200,7 @@
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
-                            {{__('Clear')}}
+                            {{__('common.clear')}}
                         </button>
                     </div>
                     @endif
@@ -222,9 +222,9 @@
                                             wire:click="toggleSelectAll">
                                     </div>
                                 </th>
-                                <th class="border-bottom">{{__('Department')}}</th>
+                                <th class="border-bottom">{{__('departments.department')}}</th>
                                 <th class="border-bottom">{{__('Details')}}</th>
-                                <th class="border-bottom">{{__('Status')}}</th>
+                                <th class="border-bottom">{{__('common.status')}}</th>
                                 <th class="border-bottom">{{__('Delete')}}</th>
                             </tr>
                         </thead>
@@ -282,9 +282,9 @@
                                 </td>
                                 <td>
                                     @if($job->status == 'successful')
-                                    <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
+                                    <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
                                     @elseif($job->status == 'failed')
-                                    <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                                    <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @else
                                     <span class="badge badge-lg text-md bg-warning">{{__('Processing...')}}</span>
                                     @endif
@@ -303,7 +303,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>
                                     </a>
-                                    <a href="#" wire:click="forceDelete({{ $job->id }})" class="text-danger" title="{{__('Delete Forever')}}">
+                                    <a href="#" wire:click="forceDelete({{ $job->id }})" class="text-danger" title="{{__('common.delete_forever')}}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>

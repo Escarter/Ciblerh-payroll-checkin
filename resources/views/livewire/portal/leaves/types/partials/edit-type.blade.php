@@ -11,7 +11,7 @@
 
                         <div class='row form-group mb-2'>
                             <div class="col">
-                                <label for="name">{{__('Name')}}</label>
+                                <label for="name">{{__('common.name')}}</label>
                                 <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
                                 @error('name')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -27,7 +27,7 @@
                         </div>
 
                         <div class="form-group mb-4">
-                            <label for="description">{{__('Description')}}</label>
+                            <label for="description">{{__('common.description')}}</label>
                             <textarea wire:model="description" name="description" class="form-control  @error('description') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
                             @error('description')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -35,10 +35,10 @@
                         </div>
 
                         <div class='form-group mb-4'>
-                            <label for="is_active">{{__('Status')}}?</label>
+                            <label for="is_active">{{__('common.status')}}?</label>
                             <select wire:model="is_active" class="form-select  @error('is_active') is-invalid @enderror">
-                                <option value="">{{__('Select status')}}</option>
-                                <option value="1">{{__('Active')}}</option>
+                                <option value="">{{__('common.select_status')}}</option>
+                                <option value="1">{{__('common.active')}}</option>
                                 <option value="0">{{__('Inactive')}}</option>
                             </select>
                             @error('is_active')
@@ -46,8 +46,8 @@
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="update" class="btn btn-primary" wire:loading.attr="disabled">{{__('Update')}}</button>
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
+                            <button type="submit" wire:click.prevent="update" class="btn btn-primary" wire:loading.attr="disabled">{{__('common.update')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

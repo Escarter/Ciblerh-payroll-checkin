@@ -25,7 +25,7 @@
                                 <td>{{strtoupper($selectedJob->report_format)}}</td>
                             </tr>
                             <tr>
-                                <td><strong>{{__('Status')}}:</strong></td>
+                                <td><strong>{{__('common.status')}}:</strong></td>
                                 <td>
                                     <span class="badge badge-{{$selectedJob->status_badge}}">
                                         {{$selectedJob->status_display}}
@@ -68,7 +68,7 @@
                                 <td>{{$selectedJob->processed_records}}</td>
                             </tr>
                             <tr>
-                                <td><strong>{{__('Failed')}}:</strong></td>
+                                <td><strong>{{__('common.failed')}}:</strong></td>
                                 <td>{{$selectedJob->failed_records}}</td>
                             </tr>
                             @if($selectedJob->file_size)
@@ -111,22 +111,22 @@
                             <div class="row">
                                 @if(isset($selectedJob->filters['company_name']))
                                 <div class="col-md-6">
-                                    <strong>{{__('Company')}}:</strong> {{$selectedJob->filters['company_name']}}
+                                    <strong>{{__('companies.company')}}:</strong> {{$selectedJob->filters['company_name']}}
                                 </div>
                                 @endif
                                 @if(isset($selectedJob->filters['department_name']))
                                 <div class="col-md-6">
-                                    <strong>{{__('Department')}}:</strong> {{$selectedJob->filters['department_name']}}
+                                    <strong>{{__('departments.department')}}:</strong> {{$selectedJob->filters['department_name']}}
                                 </div>
                                 @endif
                                 @if(isset($selectedJob->filters['employee_name']))
                                 <div class="col-md-6">
-                                    <strong>{{__('Employee')}}:</strong> {{$selectedJob->filters['employee_name']}}
+                                    <strong>{{__('employees.employee')}}:</strong> {{$selectedJob->filters['employee_name']}}
                                 </div>
                                 @endif
                                 @if(isset($selectedJob->filters['status']) && $selectedJob->filters['status'] !== 'all')
                                 <div class="col-md-6">
-                                    <strong>{{__('Status')}}:</strong> {{ucfirst($selectedJob->filters['status'])}}
+                                    <strong>{{__('common.status')}}:</strong> {{ucfirst($selectedJob->filters['status'])}}
                                 </div>
                                 @endif
                                 @if(isset($selectedJob->filters['start_date']) && isset($selectedJob->filters['end_date']))
@@ -181,7 +181,7 @@
                 </div>
                 @endif
                         <div class="d-flex justify-content-end gap-2 mt-3">
-                            <button type="button" class="btn btn-secondary" wire:click="closeDetailsModal">{{__('Close')}}</button>
+                            <button type="button" class="btn btn-secondary" wire:click="closeDetailsModal">{{__('common.close')}}</button>
                     @if($selectedJob->canBeDownloaded())
                     <button type="button" class="btn btn-success" wire:click="downloadFile({{$selectedJob->id}})">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,7 +195,7 @@
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
-                        {{__('Cancel')}}
+                        {{__('common.cancel')}}
                     </button>
                     @endif
                     @if($selectedJob->canBeDeleted())

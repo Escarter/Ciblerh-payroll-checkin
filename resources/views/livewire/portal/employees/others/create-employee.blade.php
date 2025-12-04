@@ -17,7 +17,7 @@
                         <input type='hidden' name='employee_id' value="" id="EmployeeId">
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="company">{{__('Company')}}</label>
+                                <label for="company">{{__('companies.company')}}</label>
                                 @if(auth()->user()->hasRole('supervisor'))
                                     <input type="text" class="form-control" value="{{__('Department Company')}}" disabled>
                                 @else
@@ -25,7 +25,7 @@
                                 @endif
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="department">{{__('Department')}}</label>
+                                <label for="department">{{__('departments.department')}}</label>
                                 <select wire:model.live="department_id" class="form-select  @error('department_id') is-invalid @enderror">
                                     <option value="">{{__("Select department")}}</option>
                                     @foreach ($departments as $department)
@@ -36,7 +36,7 @@
                         </div>
 
                         <div class='form-group mb-2'>
-                            <label for="service_id">{{__('Service')}}</label>
+                            <label for="service_id">{{__('employees.service')}}</label>
                             <select wire:model="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
                                 <option value="">{{__("Select service")}}</option>
                                 @foreach ($services as $service)
@@ -53,20 +53,20 @@
                                 wireModel="selected_roles"
                                 :options="$roles->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
                                 :selected="$selected_roles"
-                                label="{{__('Roles')}}"
-                                help="{{__('Maximum 2 roles allowed. Employee role is automatically included.')}}"
+                                label="{{__('common.roles')}}"
+                                help="{{__('common.maximum_2_roles_allowed')}}"
                                 class="form-select" />
                         </div>
                         <div class="form-group mb-2">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="first_name">{{__('First Name')}}</label>
+                                <label for="first_name">{{__('employees.first_name')}}</label>
                                 <input wire:model="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" placeholder="John" required="" name="first_name">
                                 @error('first_name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="last_name">{{__('Last Name')}}</label>
+                                <label for="last_name">{{__('employees.last_name')}}</label>
                                 <input wire:model="last_name" type="text" class="form-control  @error('last_name') is-invalid @enderror" placeholder="Doe" required="" name="last_name">
                                 @error('last_name')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -74,7 +74,7 @@
                             </div>
                         </div>
                         <div class='form-group mb-2'>
-                            <label for="date_of_birth">{{__('Date of Birth')}}</label>
+                            <label for="date_of_birth">{{__('common.date_of_birth')}}</label>
                             <input wire:model="date_of_birth" type="date" class="form-control @error('date_of_birth') is-invalid @enderror" required="" name="date_of_birth">
                             @error('date_of_birth')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -82,14 +82,14 @@
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="matricule">{{__('Matricule')}}</label>
+                                <label for="matricule">{{__('employees.matricule')}}</label>
                                 <input wire:model="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" placeholder="1134578" required="" name="matricule">
                                 @error('matricule')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="email">{{__('Email')}}</label>
+                                <label for="email">{{__('employees.email')}}</label>
                                 <input wire:model="email" type="email" class="form-control @error('email') is-invalid @enderror" placeholder="example@company.com" required="" name="email">
                                 @error('email')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -99,14 +99,14 @@
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="professional_phone_number">{{__('Prof Phone Number')}}</label>
+                                <label for="professional_phone_number">{{__('common.prof_phone_number')}}</label>
                                 <input wire:model="professional_phone_number" type="text" class="form-control  @error('professional_phone_number') is-invalid @enderror" placeholder="2376xxxxxxxxx" name="professional_phone_number">
                                 @error('professional_phone_number')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="personal_phone_number">{{__('Personal Phone Number')}}</label>
+                                <label for="personal_phone_number">{{__('common.personal_phone_number')}}</label>
                                 <input wire:model="personal_phone_number" type="text" class="form-control  @error('personal_phone_number') is-invalid @enderror" placeholder="2376xxxxxxxxx" name="personal_phone_number">
                                 @error('personal_phone_number')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -120,7 +120,7 @@
                                     {{__('Receive SMS notifications for payslips')}}
                                 </label>
                             </div>
-                            <small class="text-muted">{{__('Enable or disable SMS notifications when payslips are sent to this employee')}}</small>
+                            <small class="text-muted">{{__('employees.enable_sms_notifications')}}</small>
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
@@ -139,7 +139,7 @@
                             </div>
                         </div>
                         <div class="form-group mb-2">
-                            <label for="net_salary">{{__('Net Salary')}}</label>
+                            <label for="net_salary">{{__('employees.net_salary')}}</label>
                             <input wire:model="net_salary" type="text" class="form-control  @error('net_salary') is-invalid @enderror" name="net_salary">
                             @error('net_salary')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -147,14 +147,14 @@
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="salary_grade">{{__('Salary Grade')}}</label>
+                                <label for="salary_grade">{{__('employees.salary_grade')}}</label>
                                 <input wire:model="salary_grade" type="text" class="form-control  @error('salary_grade') is-invalid @enderror" autofocus="" name="salary_grade">
                                 @error('salary_grade')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="position">{{__('Position')}}</label>
+                                <label for="position">{{__('common.position')}}</label>
                                 <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position">
                                 @error('position')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -163,14 +163,14 @@
                         </div>
                         <div class="form-group row mb-2">
                             <div class='col'>
-                                <label for="work_start_time">{{__('Work start time')}}</label>
+                                <label for="work_start_time">{{__('overtime.work_start_time')}}</label>
                                 <input wire:model="work_start_time" type="time" class="form-control  @error('work_start_time') is-invalid @enderror" value="{{now()->format('H:i')}}" required="">
                                 @error('work_start_time')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col'>
-                                <label for="work_end_time">{{__('Work end time')}}</label>
+                                <label for="work_end_time">{{__('overtime.work_end_time')}}</label>
                                 <input wire:model="work_end_time" type="time" class="form-control  @error('work_end_time') is-invalid @enderror" value="{{now()->format('H:i')}}" required="">
                                 @error('work_end_time')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -179,10 +179,10 @@
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="status">{{__('Status')}}</label>
+                                <label for="status">{{__('common.status')}}</label>
                                 <select wire:model="status" name="status" class="form-select  @error('status') is-invalid @enderror">
                                     <option value="">{{__("Select status")}}</option>
-                                    <option value="true">{{__('Active')}}</option>
+                                    <option value="true">{{__('common.active')}}</option>
                                     <option value="false">{{__('Banned')}}</option>
                                 </select>
                                 @error('status')
@@ -205,7 +205,7 @@
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
                             <button type="submit" wire:click.prevent="store" class="btn btn-primary " wire:loading.attr="disabled">
                                 @if(auth()->user()->hasRole('supervisor'))
                                     {{__('Add Employee')}}

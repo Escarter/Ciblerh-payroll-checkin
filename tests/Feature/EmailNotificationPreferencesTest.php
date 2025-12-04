@@ -37,7 +37,7 @@ test('email notifications disabled prevents email sending', function () {
     
     expect($payslip)->not->toBeNull();
     expect($payslip->email_sent_status)->toBe(Payslip::STATUS_DISABLED);
-    expect($payslip->failure_reason)->toContain('Email notifications disabled');
+    expect($payslip->email_status_note)->toContain('Email notifications disabled');
     
     Mail::assertNothingSent();
 });
@@ -119,5 +119,8 @@ test('payslip marked as failed when no email addresses available', function () {
     
     Mail::assertNothingSent();
 });
+
+
+
 
 

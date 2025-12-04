@@ -32,7 +32,7 @@ class CheckinObserver
     {
         if(auth()->user()->getRoleNames()->first() ===  "supervisor"){
             if ($ticking->supervisor_approval_status !== $ticking->getOriginal('supervisor_approval_status')) {
-                $changes = ($ticking->supervisor_approval_status == 1 ? __('Approved') : __('Rejected')) . " " . __(' the checkin for ') . $ticking->user->name . __(' for the date ') . $ticking->start_time;
+                $changes = ($ticking->supervisor_approval_status == 1 ? __('common.approved') : __('common.rejected')) . " " . __(' the checkin for ') . $ticking->user->name . __(' for the date ') . $ticking->start_time;
                 $status = "checkin_" . ($ticking->supervisor_approval_status == 1 ? "approved" : "rejected");
             } else {
                 $status = "checkin_updated";
@@ -40,7 +40,7 @@ class CheckinObserver
             }
         }else{
             if ($ticking->manager_approval_status !== $ticking->getOriginal('manager_approval_status')) {
-                $changes = ($ticking->manager_approval_status == 1 ? __('Approved') : __('Rejected')) . " " . __(' the checkin for ') . $ticking->user->name . __(' for the date ') . $ticking->start_time;
+                $changes = ($ticking->manager_approval_status == 1 ? __('common.approved') : __('common.rejected')) . " " . __(' the checkin for ') . $ticking->user->name . __(' for the date ') . $ticking->start_time;
                 $status = "checkin_" . ($ticking->manager_approval_status == 1 ? "approved" : "rejected");
             } else {
                 $status = "checkin_updated";

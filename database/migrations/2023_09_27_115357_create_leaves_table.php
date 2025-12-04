@@ -26,7 +26,6 @@ return new class extends Migration
             $table->longText('supervisor_approval_reason')->nullable();
             $table->tinyInteger('manager_approval_status')->default(Leave::MANAGER_APPROVAL_PENDING);
             $table->longText('manager_approval_reason')->nullable();
-            $table->foreignId('author_id')->index()->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes();
         });

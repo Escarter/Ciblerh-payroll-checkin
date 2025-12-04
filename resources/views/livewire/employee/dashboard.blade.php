@@ -21,17 +21,17 @@
                     </div>
                 </div>
                 <div class=''>
-                    <div class='fw-bold display-4 text-gray-600'>{{__('Hi')}}, {{auth()->user()->first_name}}</div>
+                    <div class='fw-bold display-4 text-gray-600'>{{__('employees.hi')}}, {{auth()->user()->first_name}}</div>
                     <div class='d-flex align-items-center justify-content-start '>
                         <div class='leading text-gray-400 '>
                             @if(!empty(auth()->user()->date_of_birth))
                             @if(auth()->user()->date_of_birth->isBirthday())
-                            {{__('Happy Birthday 🎉, enjoy your day!')}} 🎊 🎂 🥂
+                            {{__('employees.happy_birthday')}} 🎊 🎂 🥂
                             @else
-                            {{ auth()->user()->company ? auth()->user()->company->name : __('No Company')}} | {{ auth()->user()->department ? auth()->user()->department->name : __('No Department')}}
+                            {{ auth()->user()->company ? auth()->user()->company->name : __('employees.no_company')}} | {{ auth()->user()->department ? auth()->user()->department->name : __('employees.no_department')}}
                             @endif
                             @else
-                            {{ auth()->user()->company ? auth()->user()->company->name : __('No Company')}} | {{ auth()->user()->department ? auth()->user()->department->name : __('No Department')}}
+                            {{ auth()->user()->company ? auth()->user()->company->name : __('employees.no_company')}} | {{ auth()->user()->department ? auth()->user()->department->name : __('employees.no_department')}}
                             @endif
                         </div>
                     </div>
@@ -40,26 +40,26 @@
                             <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" strokelinejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                             </svg>
-                            {{__('CheckIns')}}
+                            {{__('employees.checkins')}}
                         </a>
 
                         <a href='{{route("employee.overtimes")}}' wire:navigate class='btn btn-outline-primary mr-lg-2'>
                             <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            {{__('Overtime')}}
+                            {{__('common.overtime')}}
                         </a>
                         <a href='{{route("employee.advance-salaries")}}' wire:navigate class='btn btn-outline-tertiary'>
                             <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                             </svg>
-                            {{__('A. Salary')}}
+                            {{__('employees.advance_salary_short')}}
                         </a>
                         <a href='{{route("employee.absences")}}' wire:navigate class='btn btn-outline-info'>
                             <svg class="icon icon-sm me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
-                            {{__('Absence')}}
+                            {{__('employees.absence')}}
                         </a>
                         <a href='{{route("employee.payslips")}}' wire:navigate class='btn btn-outline-success'>
 
@@ -67,14 +67,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                             </svg>
 
-                            {{__('Payslips')}}
+                            {{__('common.payslips')}}
                         </a>
                         <a href='{{route("employee.leaves")}}' wire:navigate class='btn btn-outline-gray-500'>
                             <svg class="icon icon-sm me-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                             </svg>
 
-                            {{__('Leave')}}
+                            {{__('employees.leave')}}
                         </a>
                     </div>
                 </div>
@@ -93,12 +93,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                         </svg>
                         <div class="mb-3 mb-md-0">
-                            <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_checklogs)}}</span> {{__('Checkins and Checkout recorded')}} <span class="mx-2">&#x23F0;</span> </h5>
-                            <div class="text-gray-500 ">{{__('You can view all your past checkins/chechout by clicking there!')}}<span class="mx-2"> &#x1F449;</span> </div>
+                            <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_checklogs)}}</span> {{__('employees.checkins_checkout_recorded')}} <span class="mx-2">&#x23F0;</span> </h5>
+                            <div class="text-gray-500 ">{{__('employees.view_past_checkins')}}<span class="mx-2"> &#x1F449;</span> </div>
                         </div>
                     </div>
                     <div class="d-flex flex-wrap justify-content-center align-items-center ">
-                        <a href="{{route('employee.checklogs')}}" wire:navigate class="btn btn-gray-300 text-gray-700 mx-3 "> {{__('View history')}}</a>
+                        <a href="{{route('employee.checklogs')}}" wire:navigate class="btn btn-gray-300 text-gray-700 mx-3 "> {{__('employees.view_history')}}</a>
                     </div>
                 </div>
             </div>
@@ -111,8 +111,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_overtime)}}</span> {{__('Overtime recorded')}} </h5>
-                                    <div class=" text-gray-500 ">{{__('View all your overtime records!')}}</div>
+                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_overtime)}}</span> {{__('employees.overtime_recorded')}} </h5>
+                                    <div class=" text-gray-500 ">{{__('employees.view_all_overtime_records')}}</div>
                                 </div>
                             </div>
                         </a>
@@ -126,8 +126,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_advance_salary)}}</span> {{__('Advance salary')}} </h5>
-                                    <div class="text-gray-500 ">{{__('View all your request!')}}</div>
+                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_advance_salary)}}</span> {{__('employees.advance_salary')}} </h5>
+                                    <div class="text-gray-500 ">{{__('employees.view_all_requests')}}</div>
                                 </div>
                             </div>
                         </a>
@@ -141,8 +141,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_absences)}}</span> {{__('Absences')}} </h5>
-                                    <div class=" text-gray-500 ">{{__('View all your absence!')}}</div>
+                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_absences)}}</span> {{__('employees.absences')}} </h5>
+                                    <div class=" text-gray-500 ">{{__('employees.view_all_absences')}}</div>
                                 </div>
                             </div>
                         </a>
@@ -159,8 +159,8 @@
                                 </svg>
 
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_payslips)}}</span> {{__('Available payslips')}} </h5>
-                                    <div class=" text-gray-500 ">{{__('View all your payslips records!')}}</div>
+                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($total_payslips)}}</span> {{__('employees.available_payslips')}} </h5>
+                                    <div class=" text-gray-500 ">{{__('employees.view_all_payslips_records')}}</div>
                                 </div>
                             </div>
                         </a>
@@ -174,8 +174,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('Remaining Leave days')}} </h5>
-                                    <div class="text-gray-500 ">{{__('View all your request!')}}</div>
+                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('employees.remaining_leave_days')}} </h5>
+                                    <div class="text-gray-500 ">{{__('employees.view_all_requests')}}</div>
                                 </div>
                             </div>
                         </a>
@@ -242,9 +242,9 @@
          -->
         <div class='mt-5'>
             <div class='d-flex justify-content-between align-items-end mx-2'>
-                <h5 class="h5 text-gray-600">{{__("Lastest Audit logs")}}</h5>
+                <h5 class="h5 text-gray-600">{{__("employees.latest_audit_logs")}}</h5>
                 <div>
-                    <a href='{{route("employee.auditlogs")}}' wire:navigate class='btn btn-secondary'>{{__("View all")}}</a>
+                    <a href='{{route("employee.auditlogs")}}' wire:navigate class='btn btn-secondary'>{{__("employees.view_all")}}</a>
                 </div>
             </div>
             <div class="card mt-2">
@@ -252,10 +252,10 @@
                     <table class="table employee-table table-hover align-items-center ">
                         <thead>
                             <tr>
-                                <!-- <th class="border-bottom">{{__('Employee')}}</th> -->
-                                <th class="border-bottom">{{__('Action Type')}}</th>
-                                <th class="border-bottom">{{__('Action Performed')}}</th>
-                                <th class="border-bottom">{{__('Date')}}</th>
+                                <!-- <th class="border-bottom">{{__('employees.employee')}}</th> -->
+                                <th class="border-bottom">{{__('employees.action_type')}}</th>
+                                <th class="border-bottom">{{__('employees.action_performed')}}</th>
+                                <th class="border-bottom">{{__('employees.date')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -283,8 +283,8 @@
                             <tr>
                                 <td colspan="7" class="text-center">
                                     <div class="text-center text-gray-800 mt-2">
-                                        <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                                        <p>{{__('No Record Found..!')}}</p>
+                                        <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                        <p>{{__('common.no_records_found')}}</p>
                                     </div>
                                 </td>
                             </tr>

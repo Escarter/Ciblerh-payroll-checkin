@@ -12,17 +12,17 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page" wire:navigate>{{__('Profile settings')}}</li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>{{__('dashboard.home')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page" wire:navigate>{{__('dashboard.profile_settings')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    {{__('Profile Settings ')}}
+                    {{__('dashboard.profile_settings')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('Update your profile details ')}} </p>
+                <p class="mt-n1 mx-2">{{__('dashboard.update_profile_details')}} </p>
             </div>
 
         </div>
@@ -35,14 +35,14 @@
                     <x-form-items.form wire:submit="updateProfile" nctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="first_name">{{__('First Name')}}</label>
+                                <label for="first_name">{{__('employees.first_name')}}</label>
                                 <input wire:model="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" value="{{auth()->user()->first_name}}" required="" name="first_name">
                                 @error('first_name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="last_name">{{__('Last Name')}}</label>
+                                <label for="last_name">{{__('employees.last_name')}}</label>
                                 <input wire:model="last_name" type="text" class="form-control  @error('last_name') is-invalid @enderror" value="{{auth()->user()->last_name}}" required="" name="last_name">
                                 @error('last_name')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -51,14 +51,14 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="matricule">{{__('Matricule')}}</label>
+                                <label for="matricule">{{__('employees.matricule')}}</label>
                                 <input wire:model="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" value="{{auth()->user()->matricule}}" required="" name="matricule">
                                 @error('matricule')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="email">{{__('Email')}}</label>
+                                <label for="email">{{__('employees.email')}}</label>
                                 <input wire:model="email" type="email" class="form-control @error('email') is-invalid @enderror" value="{{auth()->user()->email}}" required="" name="email">
                                 @error('email')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -75,7 +75,7 @@
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="position">{{__('Position')}}</label>
+                                <label for="position">{{__('common.position')}}</label>
                                 <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position">
                                 @error('position')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -85,7 +85,7 @@
                         <div class='form-group mb-4'>
                             <label for="preferred_language">{{__('Select Preferred Notification language')}}</label>
                             <select wire:model="preferred_language" name="preferred_language" class="form-select  @error('preferred_language') is-invalid @enderror" required="">
-                                <option value="">{{__('Select status')}}</option>
+                                <option value="">{{__('common.select_status')}}</option>
                                 <option value="en">{{__('English')}}</option>
                                 <option value="fr">{{__('French')}}</option>
                             </select>
@@ -94,7 +94,7 @@
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="submit" wire:click.prevent="updateProfile" class="btn btn-secondary btn-loading">{{__('Update')}} </button>
+                            <button type="submit" wire:click.prevent="updateProfile" class="btn btn-secondary btn-loading">{{__('common.update')}} </button>
                         </div>
                     </x-form-items.form>
                 </div>

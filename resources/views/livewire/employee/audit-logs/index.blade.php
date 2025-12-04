@@ -17,10 +17,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                     <span>
-                        {{__('Audit Logs')}}
+                        {{__('common.audit_logs')}}
                     </span>
                 </h1>
-                <p class="text-gray-800">{{__('View all activities audit Logs')}} &#129297; </p>
+                <p class="text-gray-800">{{__('employees.view_all_activities_audit_logs')}} &#129297; </p>
             </div>
             <div class=''>
 
@@ -37,7 +37,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($creation_log_count)}} {{ __(\Str::plural('Creation log', $creation_log_count)) }} </h5>
-                                    <div class=" text-gray-500 ">{{__('recorded!')}} &#128516;</div>
+                                    <div class=" text-gray-500 ">{{__('employees.recorded')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -52,7 +52,7 @@
                                 </svg>
                                 <div class="mb-3 mb-md-0">
                                     <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($update_log_count)}} {{ __(\Str::plural('Update log', $update_log_count)) }} </h5>
-                                    <div class=" text-gray-500 ">{{__('recorded!')}} &#128516;</div>
+                                    <div class=" text-gray-500 ">{{__('employees.recorded')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -77,26 +77,26 @@
         </div>
         <div class="row pt-4 pb-2 text-gray-600 ">
             <div class="col-md-3 mb-2">
-                <label for="search">{{__('Search')}}: </label>
-                <input wire:model="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+                <label for="search">{{__('common.search')}}: </label>
+                <input wire:model="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="orderBy">{{__('Order By')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}: </label>
                 <select wire:model="orderBy" id="orderBy" class="form-select">
                     <option value="action_type">{{__('Action Type')}}</option>
-                    <option value="created_at">{{__('Created Date')}}</option>
+                    <option value="created_at">{{__('common.created_date')}}</option>
                 </select>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="direction">{{__('Order direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}: </label>
                 <select wire:model="orderAsc" id="direction" class="form-select">
-                    <option value="asc">{{__('Ascending')}}</option>
-                    <option value="desc">{{__('Descending')}}</option>
+                    <option value="asc">{{__('common.ascending')}}</option>
+                    <option value="desc">{{__('common.descending')}}</option>
                 </select>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="perPage">{{__('Items Per Page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}: </label>
                 <select wire:model="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -115,10 +115,10 @@
                 <table class="table employee-table table-hover align-items-center ">
                     <thead>
                         <tr>
-                            <!-- <th class="border-bottom">{{__('Employee')}}</th> -->
-                            <th class="border-bottom">{{__('Action Type')}}</th>
-                            <th class="border-bottom">{{__('Action Performed')}}</th>
-                            <th class="border-bottom">{{__('Date created')}}</th>
+                            <!-- <th class="border-bottom">{{__('employees.employee')}}</th> -->
+                            <th class="border-bottom">{{__('employees.action_type')}}</th>
+                            <th class="border-bottom">{{__('employees.action_performed')}}</th>
+                            <th class="border-bottom">{{__('common.created_date')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -146,8 +146,8 @@
                         <tr>
                             <td colspan="7" class="text-center">
                                 <div class="text-center text-gray-800 mt-2">
-                                    <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                                    <p>{{__('No Record Found..!')}}</p>
+                                    <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                    <p>{{__('common.no_records_found')}}</p>
                                 </div>
                             </td>
                         </tr>
@@ -164,8 +164,8 @@
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("Empty")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                <p>{{__('Record advance salary worked to see them here!')}}</p>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <p>{{__('employees.record_audit_logs_message')}}</p>
             </div>
         </div>
         @endif

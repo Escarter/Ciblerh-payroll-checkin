@@ -64,7 +64,7 @@ test('it skips email when employee has email notifications disabled', function (
     
     expect($payslip)->not->toBeNull();
     expect($payslip->email_sent_status)->toBe(Payslip::STATUS_DISABLED);
-    expect($payslip->failure_reason)->toContain('Email notifications disabled');
+    expect($payslip->email_status_note)->toContain('Email notifications disabled');
     
     // Mail not sent when notifications disabled
 });

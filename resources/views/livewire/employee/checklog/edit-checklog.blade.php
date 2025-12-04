@@ -4,20 +4,20 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Update Checkin')}}</h1>
-                        <p>{{__('Update checkin record')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('employees.update_checkin')}}</h1>
+                        <p>{{__('employees.update_checkin_record')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit.prevent="update">
                         <div class="form-group row mb-4">
                             <div class='col-md-6'>
-                                <label for="start_time">{{__('Checkin Time')}}</label>
+                                <label for="start_time">{{__('employees.checkin_time')}}</label>
                                 <input wire:model.defer="start_time" type="datetime-local" class="form-control  @error('start_time') is-invalid @enderror" required="" name="start_time">
                                 @error('start_time')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6'>
-                                <label for="end_time">{{__('Checkout Time')}}</label>
+                                <label for="end_time">{{__('employees.checkout_time')}}</label>
                                 <input wire:model.defer="end_time" type="datetime-local" class="form-control  @error('end_time') is-invalid @enderror" required="" name="end_time">
                                 @error('end_time')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -25,7 +25,7 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="comments">{{__('Comments')}}</label>
+                            <label for="comments">{{__('employees.comments')}}</label>
                             <textarea wire:model.defer="comments" name="comments" class="form-control  @error('comments') is-invalid @enderror" id='' cols='3' rows='3'></textarea>
                             @error('comments')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -33,8 +33,8 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="update" class="btn btn-secondary " wire:loading.attr="disabled">{{__('Update')}}</button>
+                            <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
+                            <button type="submit" wire:click.prevent="update" class="btn btn-secondary " wire:loading.attr="disabled">{{__('common.update')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

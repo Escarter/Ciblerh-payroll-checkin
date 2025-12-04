@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('replyTo_email')->nullable();
             $table->string('replyTo_name')->nullable();
             //sms 
-            $table->enum('sms_provider',['twilio','nexah'])->default('nexah');
+            $table->enum('sms_provider',['twilio','nexah','aws_sns'])->default('aws_sns');
             $table->integer('sms_balance')->nullable();
             $table->string('sms_provider_username')->nullable();
             $table->string('sms_provider_password')->nullable();
@@ -42,6 +42,16 @@ return new class extends Migration
             $table->longText('sms_content_en')->nullable();
             $table->longText('email_content_fr')->nullable();
             $table->longText('email_content_en')->nullable();
+
+            // Welcome email
+            $table->string('welcome_email_subject_fr')->nullable();
+            $table->string('welcome_email_subject_en')->nullable();
+            $table->longText('welcome_email_content_fr')->nullable();
+            $table->longText('welcome_email_content_en')->nullable();
+
+            // Birthday SMS
+            $table->longText('birthday_sms_message_fr')->nullable();
+            $table->longText('birthday_sms_message_en')->nullable();
 
             $table->foreignId('company_id')->nullable();
             $table->foreignId('author_id')->nullable();

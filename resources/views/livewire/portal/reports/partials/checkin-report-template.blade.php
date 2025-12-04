@@ -175,7 +175,7 @@
                 <span style="font-size: x-larger; font-weight:bolder; ">{{__('ATTACHEMENT')}} <small style="font-size: small; color:red;">{{\Str::random(10)}}</small></span>
                 <br />{{__('Period From')}} {{ now()->month($month)->startOfMonth()->ISOFormat('LL')}} {{__('to')}} {{ now()->month($month)->endOfMonth()->ISOFormat('LL') }}
                 <br />{{__('Client')}} : {{!is_null($company) ? $company->name : ''}}
-                <br>{{__('Department')}} : {{!is_null($department) ? $department->name : ''}}
+                <br>{{__('departments.department')}} : {{!is_null($department) ? $department->name : ''}}
             </p>
         </div>
         <table class="table">

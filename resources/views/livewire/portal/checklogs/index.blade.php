@@ -36,7 +36,7 @@
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
-                        {{__('Export')}}
+                        {{__('common.export')}}
                     </a>
                 </div>
                 <div class="text-center mx-2" wire:loading wire:target="export">
@@ -92,13 +92,13 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Checkin'), $approved_checklogs_count) }} {{__('Approved')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Checkin'), $approved_checklogs_count) }} {{__('common.approved')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($approved_checklogs_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Checkin'), $approved_checklogs_count) }} {{__('Approved')}}</h2>
+                                    <h2 class="h5">{{ \Str::plural(__('Checkin'), $approved_checklogs_count) }} {{__('common.approved')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($approved_checklogs_count)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
@@ -148,13 +148,13 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Checkin'), $rejected_checklogs_count) }} {{__('Rejected')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Checkin'), $rejected_checklogs_count) }} {{__('common.rejected')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($rejected_checklogs_count)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Checkin'), $rejected_checklogs_count) }} {{__('Rejected')}}</h2>
+                                    <h2 class="h5">{{ \Str::plural(__('Checkin'), $rejected_checklogs_count) }} {{__('common.rejected')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_checklogs_count)}} </h3>
                                 </a>
                                 <div class="small d-flex mt-1">
@@ -176,34 +176,34 @@
     @endcan
     <div class="row py-3">
         <div class="col-md-3">
-            <label for="search">{{__('Search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+            <label for="search">{{__('common.search')}}: </label>
+            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('Order By')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="company_name">{{__('Company')}}</option>
-                <option value="department_name">{{__('Department')}}</option>
-                <option value="service_name">{{__('Service')}}</option>
-                <option value="start_time">{{__('Start Time')}}</option>
-                <option value="end_time">{{__('End Time')}}</option>
+                <option value="company_name">{{__('companies.company')}}</option>
+                <option value="department_name">{{__('departments.department')}}</option>
+                <option value="service_name">{{__('employees.service')}}</option>
+                <option value="start_time">{{__('common.start_time')}}</option>
+                <option value="end_time">{{__('common.end_time')}}</option>
                 <option value="supervisor_approval_status">{{__('Sup Approval status')}}</option>
                 <option value="manager_approval_status">{{__('Mgr Approval status')}}</option>
-                <option value="created_at">{{__('Created Date')}}</option>
+                <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('Order direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}: </label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
-                <option value="asc">{{__('Ascending')}}</option>
-                <option value="desc">{{__('Descending')}}</option>
+                <option value="asc">{{__('common.ascending')}}</option>
+                <option value="desc">{{__('common.descending')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('Items Per Page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}: </label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -225,7 +225,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                 </svg>
-                {{__('Active')}}
+                {{__('common.active')}}
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_checklogs ?? 0 }}</span>
             </button>
 
@@ -235,7 +235,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Deleted')}}
+                {{__('common.deleted')}}
                 <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_checklogs ?? 0 }}</span>
             </button>
         </div>
@@ -255,7 +255,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    {{__('Bulk Approve')}}
+                    {{__('common.bulk_approve')}}
                     <span class="badge bg-light text-dark ms-1">{{ count($selectedChecklogs) }}</span>
                 </button>
 
@@ -266,7 +266,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    {{__('Bulk Reject')}}
+                    {{__('common.bulk_reject')}}
                     <span class="badge bg-light text-dark ms-1">{{ count($selectedChecklogs) }}</span>
                 </button>
                 @endcan
@@ -281,7 +281,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Move to Trash')}}
+                    {{__('common.move_to_trash')}}
                     <span class="badge bg-danger text-white ms-1">{{ count($selectedChecklogs) }}</span>
                 </button>
                 @endcan
@@ -292,7 +292,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    {{__('Clear')}}
+                    {{__('common.clear')}}
                 </button>
             </div>
             @endif
@@ -307,7 +307,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
-                    {{__('Restore Selected')}}
+                    {{__('common.restore_selected')}}
                     <span class="badge bg-success text-white ms-1">{{ count($selectedChecklogsForDelete) }}</span>
                 </button>
 
@@ -319,7 +319,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Delete Forever')}}
+                    {{__('common.delete_forever')}}
                     <span class="badge bg-danger text-white ms-1">{{ count($selectedChecklogsForDelete) }}</span>
                 </button>
                 @endcan
@@ -329,7 +329,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    {{__('Clear')}}
+                    {{__('common.clear')}}
                 </button>
             </div>
             @endif
@@ -356,13 +356,13 @@
                                 @endif
                             </div>
                         </th>
-                        <th class="border-bottom">{{__('Employee')}}</th>
+                        <th class="border-bottom">{{__('employees.employee')}}</th>
                         <th class="border-bottom">{{__('Check Period')}}</th>
-                        <th class="border-bottom">{{__('Sup Approval')}}</th>
-                        <th class="border-bottom">{{__('Mgr Approval')}}</th>
-                        <th class="border-bottom">{{__('Date created')}}</th>
+                        <th class="border-bottom">{{__('common.sup_approval')}}</th>
+                        <th class="border-bottom">{{__('common.mgr_approval')}}</th>
+                        <th class="border-bottom">{{__('common.created_date')}}</th>
                         @canany('ticking-update','ticking-delete')
-                        <th class="border-bottom">{{__('Action')}}</th>
+                        <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>
@@ -451,7 +451,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>
                             </a>
-                            <a href="#" wire:click.prevent="$set('selectedChecklogsForDelete', [{{ $checklog->id }}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('Delete Forever')}}">
+                            <a href="#" wire:click.prevent="$set('selectedChecklogsForDelete', [{{ $checklog->id }}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('common.delete_forever')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
@@ -466,8 +466,8 @@
                     <tr>
                         <td colspan="9" class="text-center">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                                <p>{{__('No Employee Found..!')}}</p>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <p>{{__('common.no_employee_found')}}</p>
                             </div>
                         </td>
                     </tr>

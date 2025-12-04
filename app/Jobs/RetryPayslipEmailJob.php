@@ -111,7 +111,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_DISABLED,
-                'failure_reason' => __('Email notifications disabled for this employee')
+                'email_status_note' => __('Email notifications disabled for this employee')
             ]);
             return;
         }

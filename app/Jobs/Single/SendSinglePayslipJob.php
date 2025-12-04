@@ -62,7 +62,7 @@ class SendSinglePayslipJob implements ShouldQueue
                 $this->record->update([
                     'email_sent_status' => 'failed',
                     'sms_sent_status' => 'failed',
-                    'failure_reason' => __('Failed sending Email & SMS')
+                    'failure_reason' => __('{{__('payslips.failed_sending_email_sms')}}')
                 ]);
             } else {
                 $this->record->update(['email_sent_status' => 'successful']);
@@ -72,7 +72,7 @@ class SendSinglePayslipJob implements ShouldQueue
             $this->record->update([
                 'email_sent_status' => 'failed',
                 'sms_sent_status' => 'failed',
-                'failure_reason' => __('No valid email address for User')
+                'failure_reason' => __('{{__('payslips.no_valid_email_address')}}')
             ]);
         }
     }

@@ -58,3 +58,6 @@ wait
 echo "All test processes completed!"
 echo "Check dusk-process-*.log files for results"
 
+
+
+

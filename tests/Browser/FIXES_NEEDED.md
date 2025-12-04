@@ -124,3 +124,6 @@ php artisan dusk --screenshots tests/Browser/Companies/CompaniesUITest.php
 3. Update this document with fixes
 4. Re-run tests to verify fixes
 
+
+
+

@@ -1,0 +1,86 @@
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard & Portal Language Lines
+    |--------------------------------------------------------------------------
+    */
+
+    'home' => 'Home',
+    'process_payslip' => 'Process Payslip',
+    'payslips_processed' => 'Payslips Processed',
+    'all_payslips_processed' => 'All Payslips Processed',
+    'view_all_payslips_processed' => 'View all payslips processed',
+    'process_details' => 'Process Details',
+    'status_of_payslips_sending' => 'Status of Payslips sending!!!!',
+    'activities_log' => 'Activities Log',
+    'view_all_activities' => 'View all activities performed within your space',
+    'recorded' => 'recorded',
+    'recorded_exclamation' => 'recorded!',
+    'creation_logs' => 'Creation Logs',
+    'update_log' => 'Update Log',
+    'deletion_log' => 'Deletion Log',
+    'cannot_remove' => 'Cannot remove',
+
+    // Profile and user
+    'profile_settings' => 'Profile Settings',
+    'user' => 'User',
+    'welcome' => 'Welcome,',
+    'logout' => 'Logout',
+    'matricule' => 'Matricule',
+    'contacts' => 'Contacts',
+    'when' => 'When',
+    'encryption_status' => 'Encryption status',
+    'email_status' => 'Email status',
+    'sms_status' => 'SMS status',
+
+    // Common actions
+    'action' => 'Action',
+    'status' => 'Status',
+    'successful' => 'Successful',
+    'failed' => 'Failed',
+    'disabled' => 'Disabled',
+    'processing' => 'Processing...',
+    'pending' => 'Pending...',
+    'not_recorded' => 'Not Recorded',
+    'all_departments' => 'All Departments',
+    'all_time' => 'All time',
+    'last_15_days' => 'Last 15 Days',
+    'last_month' => 'Last Month',
+    'last_3_months' => 'Last 3 months',
+    'last_6_months' => 'Last 6 months',
+    'last_9_months' => 'Last 9 months',
+    'last_year' => 'Last year',
+    'period' => 'Period',
+    'delete' => 'Delete',
+    'restore' => 'Restore',
+    'clear' => 'Clear',
+    'close' => 'Close',
+    'cancel' => 'Cancel',
+    'create' => 'Create',
+    'update' => 'Update',
+    'edit' => 'Edit',
+    'view' => 'View',
+    'details' => 'Details',
+    'search' => 'Search',
+    'filter' => 'Filter',
+    'refresh' => 'Refresh',
+    'download' => 'Download',
+    'upload' => 'Upload',
+    'import' => 'Import',
+    'export' => 'Export',
+    'generate' => 'Generate',
+
+    // Dashboard specific
+    'dashboard_status' => 'Dashboard Status',
+    'update_profile_details' => 'Update your profile details',
+    'you_approved' => 'you approved!',
+    'you_rejected' => 'you rejected!',
+    'total_checkins' => 'Total Checkins',
+    'total_checkin' => 'Total Checkin',
+    'approved_checkin' => 'Approved Checkin',
+    'pending_checkin' => 'Pending Checkin',
+    'rejected_checkin' => 'Rejected Checkin',
+    'checkin' => 'Checkin',
+];

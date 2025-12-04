@@ -140,7 +140,7 @@ class History extends Component
                                 'sms_sent_status' => Payslip::STATUS_FAILED,
                                 'failure_reason' => $e->getMessage()
                             ]);
-                        $this->closeModalAndFlashMessage(__('Failed to resent Email'), 'resendEmailModal');
+                        $this->closeModalAndFlashMessage(__('payslips.failed_to_resent_email'), 'resendEmailModal');
                         } catch (\Swift_RfcComplianceException $e) {
                             Log::info('------> err Swift_Rfc:' . $e->getMessage());
                             Log::info('' . PHP_EOL . '');
@@ -150,7 +150,7 @@ class History extends Component
                                 'sms_sent_status' => Payslip::STATUS_FAILED,
                                 'failure_reason' => $e->getMessage()
                             ]);
-                        $this->closeModalAndFlashMessage(__('Failed to resent Email'), 'resendEmailModal');
+                        $this->closeModalAndFlashMessage(__('payslips.failed_to_resent_email'), 'resendEmailModal');
                         } catch (Exception $e) {
                             Log::info('------> err' . $e->getMessage());
                             Log::info('' . PHP_EOL . '');
@@ -160,15 +160,15 @@ class History extends Component
                                 'sms_sent_status' => Payslip::STATUS_FAILED,
                                 'failure_reason' => $e->getMessage()
                             ]);
-                        $this->closeModalAndFlashMessage(__('Failed to resent Email'), 'resendEmailModal');
+                        $this->closeModalAndFlashMessage(__('payslips.failed_to_resent_email'), 'resendEmailModal');
                         }
                     } else {
                         $this->payslip->update([
                             'email_sent_status' => Payslip::STATUS_FAILED,
                             'sms_sent_status' => Payslip::STATUS_FAILED,
-                            'failure_reason' => __('No valid email address for User')
+                            'failure_reason' => __('payslips.no_valid_email_address')
                         ]);
-                    $this->closeModalAndFlashMessage(__('Failed to resent Email'), 'resendEmailModal');
+                    $this->closeModalAndFlashMessage(__('payslips.failed_to_resent_email'), 'resendEmailModal');
                     }
                 }
             

@@ -49,7 +49,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllCompanyPermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($CompanyPermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -70,7 +70,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllDepartmentPermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($DepartmentPermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -91,7 +91,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllServicePermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($ServicePermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -105,14 +105,14 @@
                             </div>
                             <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
-                                <div class="text-gray-800 w-25">{{__('Employee')}}</div>
+                                <div class="text-gray-800 w-25">{{__('employees.employee')}}</div>
                                 <div>
                                     <!--begin::Wrapper-->
                                     <div class="d-flex">
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllEmployeePermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($EmployeePermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -130,14 +130,14 @@
                             <div class="text-gray-800 w-100 mt-3 fs-0 fw-bold">{{__('Overtime and Payments Permissions')}}</div>
                             <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
-                                <div class="text-gray-800 w-25">{{__('Checkins')}}</div>
+                                <div class="text-gray-800 w-25">{{__('common.checkins')}}</div>
                                 <div>
                                     <!--begin::Wrapper-->
                                     <div class="d-flex">
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllTickingPermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($TickingPermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -152,14 +152,14 @@
                             </div>
                             <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
-                                <div class="text-gray-800 w-25">{{__('Overtime')}}</div>
+                                <div class="text-gray-800 w-25">{{__('common.overtime')}}</div>
                                 <div>
                                     <!--begin::Wrapper-->
                                     <div class="d-flex">
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllOvertimePermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($OvertimePermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -182,7 +182,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllAdvanceSalaryPermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($AdvanceSalaryPermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -203,7 +203,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllAbsencePermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($AbsencePermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -225,7 +225,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllLeavePermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($LeavePermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -246,7 +246,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllLeaveTypePermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($LeaveTypePermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -269,7 +269,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllPayslipPermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($PayslipPermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -292,7 +292,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllRolePermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($RolePermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -313,7 +313,7 @@
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllAuditLogPermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($AuditLogPermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
@@ -327,14 +327,14 @@
                             </div>
                             <div class="d-flex border-bottom border-1">
                                 <!--begin::Label-->
-                                <div class="text-gray-800 w-25">{{__('Reports')}}</div>
+                                <div class="text-gray-800 w-25">{{__('common.reports')}}</div>
                                 <div>
                                     <!--begin::Wrapper-->
                                     <div class="d-flex">
                                         <!--begin::Checkbox-->
                                         <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
                                             <input class="form-check-input" type="checkbox" value="" wire:model="selectAllReportPermissions">
-                                            <span class="form-check-label">{{__('All')}}</span>
+                                            <span class="form-check-label">{{__('common.all')}}</span>
                                         </label>
                                         @foreach($ReportPermissions as $key => $value)
                                         <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">

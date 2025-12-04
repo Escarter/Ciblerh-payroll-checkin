@@ -28,7 +28,7 @@
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
-                    {{__('Leave Types')}}
+                    {{__('common.leave_types')}}
                 </h1>
                 <p class="mt-n1 mx-2">{{__('Manage Leave Types')}}&#x23F0; </p>
             </div>
@@ -38,14 +38,14 @@
                     <a href="#" data-bs-toggle="modal" data-bs-target="#CreateLeaveTypeModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg> {{__('New')}}
+                        </svg> {{__('common.new')}}
                     </a>
                     @endcan
                   {{--  @can('leave_type-import')
                     <a href="#" data-bs-toggle="modal" data-bs-target="#importLeaveTypesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg> {{__('Import')}}
+                        </svg> {{__('common.import')}}
                     </a>
                     @endcan
                     @can('leave_type-export')
@@ -54,7 +54,7 @@
                             <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                             </svg>
-                            {{__('Export')}}
+                            {{__('common.export')}}
                         </a>
                     </div>
                     <div class="text-center mx-2" wire:loading wire:target="export">
@@ -162,28 +162,28 @@
     </div>
     <div class="row pt-2 pb-3 px-3">
         <div class="col-md-3">
-            <label for="search">{{__('Search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+            <label for="search">{{__('common.search')}}: </label>
+            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('Order By')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="name">{{__('Name')}}</option>
-                <option value="created_at">{{__('Created Date')}}</option>
+                <option value="name">{{__('common.name')}}</option>
+                <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('Order direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}: </label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
-                <option value="asc">{{__('Ascending')}}</option>
-                <option value="desc">{{__('Descending')}}</option>
+                <option value="asc">{{__('common.ascending')}}</option>
+                <option value="desc">{{__('common.descending')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('Items Per Page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}: </label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -205,7 +205,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
-                {{__('Active')}}
+                {{__('common.active')}}
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ ($active_leave_types + $inactive_leave_types) ?? 0 }}</span>
             </button>
 
@@ -215,7 +215,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Deleted')}}
+                {{__('common.deleted')}}
                 <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_leave_types ?? 0 }}</span>
             </button>
         </div>
@@ -235,7 +235,7 @@
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
-                        {{__('Move to Trash')}}
+                        {{__('common.move_to_trash')}}
                         <span class="badge bg-danger text-white ms-1">{{ count($selectedLeaveTypes) }}</span>
                     </button>
                     @endcan
@@ -245,7 +245,7 @@
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
-                        {{__('Clear')}}
+                        {{__('common.clear')}}
                     </button>
                 </div>
                 @endif
@@ -260,7 +260,7 @@
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
-                        {{__('Restore Selected')}}
+                        {{__('common.restore_selected')}}
                         <span class="badge bg-success text-white ms-1">{{ count($selectedLeaveTypes) }}</span>
                     </button>
 
@@ -272,7 +272,7 @@
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
-                        {{__('Delete Forever')}}
+                        {{__('common.delete_forever')}}
                         <span class="badge bg-danger text-white ms-1">{{ count($selectedLeaveTypes) }}</span>
                     </button>
                     @endcan
@@ -282,7 +282,7 @@
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
-                        {{__('Clear')}}
+                        {{__('common.clear')}}
                     </button>
                 </div>
                 @endif
@@ -306,10 +306,10 @@
                         <th class="border-bottom">{{__('Leave Type ID')}}</th>
                         <th class="border-bottom">{{__('Leave Type')}}</th>
                         <th class="border-bottom">{{__('Default Number of Days')}}</th>
-                        <th class="border-bottom">{{__('Status')}}</th>
-                        <th class="border-bottom">{{__('Date created')}}</th>
+                        <th class="border-bottom">{{__('common.status')}}</th>
+                        <th class="border-bottom">{{__('common.created_date')}}</th>
                         @canany('leave_type-update','leave_type-delete')
-                        <th class="border-bottom">{{__('Action')}}</th>
+                        <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>
@@ -363,7 +363,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>
                                 </a>
-                                <a href="#" wire:click.prevent="$set('selectedLeaveTypes', [{{ $leave_type->id }}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('Delete Forever')}}">
+                                <a href="#" wire:click.prevent="$set('selectedLeaveTypes', [{{ $leave_type->id }}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('common.delete_forever')}}">
                                     <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                     </svg>
@@ -377,7 +377,7 @@
                     <tr>
                         <td colspan="8">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
                                 <p>{{__('No LeaveType Found..!')}}</p>
                             </div>
                         </td>

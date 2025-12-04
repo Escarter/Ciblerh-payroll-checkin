@@ -31,7 +31,7 @@ class OvertimeObserver
     public function updated(Overtime $overtime)
     {
         if ($overtime->approval_status !== $overtime->getOriginal('approval_status')) {
-            $changes = ($overtime->approval_status == 1 ? __('Approved') : __('Rejected')) . " " . __(' the overtime from ') . $overtime->user->name . __(' with date') . $overtime->overtime_date ;
+            $changes = ($overtime->approval_status == 1 ? __('common.approved') : __('common.rejected')) . " " . __(' the overtime from ') . $overtime->user->name . __(' with date') . $overtime->overtime_date ;
             $status = "overtime_" . ($overtime->approval_status == 1 ? "approved" : "rejected");
         } else {
             $status = "overtime_updated";

@@ -18,10 +18,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                     <span>
-                        {{__('Payslips')}}
+                        {{__('common.payslips')}}
                     </span>
                 </h1>
-                <p class="text-gray-800">{{__('View all your payslips')}} &#129297; </p>
+                <p class="text-gray-800">{{__('employees.view_all_payslips')}} &#129297; </p>
             </div>
             <div class=''>
             </div>
@@ -29,29 +29,29 @@
 
         <div class="row py-2 text-gray-600  mb-2">
             <div class="col-md-3">
-                <label for="search">{{__('Search')}}: </label>
-                <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+                <label for="search">{{__('common.search')}}: </label>
+                <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3">
-                <label for="orderBy">{{__('Order By')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}: </label>
                 <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                    <option value="first_name">{{__('First Name')}}</option>
-                    <option value="last_name">{{__('Last Name')}}</option>
-                    <option value="created_at">{{__('Created Date')}}</option>
+                    <option value="first_name">{{__('employees.first_name')}}</option>
+                    <option value="last_name">{{__('employees.last_name')}}</option>
+                    <option value="created_at">{{__('common.created_date')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3">
-                <label for="direction">{{__('Order direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}: </label>
                 <select wire:model.live="orderAsc" id="direction" class="form-select">
-                    <option value="asc">{{__('Ascending')}}</option>
-                    <option value="desc">{{__('Descending')}}</option>
+                    <option value="asc">{{__('common.ascending')}}</option>
+                    <option value="desc">{{__('common.descending')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3">
-                <label for="perPage">{{__('Items Per Page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}: </label>
                 <select wire:model.live="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -67,10 +67,10 @@
                 <table class="table table-bordered table-hover align-items-center dataTable">
                     <thead>
                         <tr>
-                            <th class="border-bottom">{{__('Year')}}</th>
-                            <th class="border-bottom">{{__('Month')}}</th>
-                            <th class="border-bottom">{{__('Sent Date')}}</th>
-                            <th class="border-bottom d-flex justify-content-center">{{__('Download')}}</th>
+                            <th class="border-bottom">{{__('employees.year')}}</th>
+                            <th class="border-bottom">{{__('employees.month')}}</th>
+                            <th class="border-bottom">{{__('employees.sent_date')}}</th>
+                            <th class="border-bottom d-flex justify-content-center">{{__('employees.download')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,8 +117,8 @@
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("Empty")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                <p>{{__('Record overtime worked to see them here!')}}</p>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <p>{{__('employees.record_payslip_message')}}</p>
             </div>
         </div>
         @endif

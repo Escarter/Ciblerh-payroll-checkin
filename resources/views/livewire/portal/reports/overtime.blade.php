@@ -53,7 +53,7 @@
     <div class="row py-3">
         @hasanyrole('manager|admin')
         <div class="col">
-            <label for="company">{{__('Company')}}: </label>
+            <label for="company">{{__('companies.company')}}: </label>
             <select wire:model.live="selectedCompanyId" class="form-select">
                 <option value="all" selected>{{__('Select Company')}}</option>
                 @foreach ($companies as $company)
@@ -63,7 +63,7 @@
         </div>
         @endhasanyrole
         <div class="col">
-            <label for="selectedDepartmentId">{{__('Department')}}: </label>
+            <label for="selectedDepartmentId">{{__('departments.department')}}: </label>
             <select wire:model.live="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror">
                 <option value="" selected>{{__('Select Departments')}}</option>
                 @foreach ($departments as $department)
@@ -76,7 +76,7 @@
         </div>
         <div class="col">
             <div>
-                <label for="orderBy">{{__('Employee')}}: </label>
+                <label for="orderBy">{{__('employees.employee')}}: </label>
                 <select wire:model.live="employee_id" class="form-select">
                     <option value="all" selected>{{__('All Employees')}}</option>
                     @foreach ($employees as $employee)
@@ -86,12 +86,12 @@
             </div>
         </div>
         <div class="col">
-            <label for="status">{{__('Status')}}: </label>
+            <label for="status">{{__('common.status')}}: </label>
             <select wire:model.live="status" class="form-select">
                 <option value="all" selected>{{__('Select Status')}}</option>
-                <option value="approved">{{__('Approved')}}</option>
-                <option value="rejected">{{__('Rejected')}}</option>
-                <option value="pending">{{__('Pending')}}</option>
+                <option value="approved">{{__('common.approved')}}</option>
+                <option value="rejected">{{__('common.rejected')}}</option>
+                <option value="pending">{{__('common.pending')}}</option>
             </select>
         </div>
         <div class="col">
@@ -112,12 +112,12 @@
             <table class="table table-hover table-bordered align-items-center dataTable">
                 <thead>
                     <tr>
-                        <th class="border-bottom">{{__('Employee')}}</th>
-                        <th class="border-bottom">{{__('Start Time')}}</th>
-                        <th class="border-bottom">{{__('End Time')}}</th>
-                        <th class="border-bottom">{{__('Hours Worked')}}</th>
+                        <th class="border-bottom">{{__('employees.employee')}}</th>
+                        <th class="border-bottom">{{__('common.start_time')}}</th>
+                        <th class="border-bottom">{{__('common.end_time')}}</th>
+                        <th class="border-bottom">{{__('overtime.hours_worked')}}</th>
                         <th class="border-bottom">{{__('Approval')}}</th>
-                        <th class="border-bottom">{{__('Date created')}}</th>
+                        <th class="border-bottom">{{__('common.created_date')}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -161,8 +161,8 @@
                     <tr>
                         <td colspan="9" class="text-center">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                                <p>{{__('No Record Found..!')}}</p>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <p>{{__('common.no_records_found')}}</p>
                             </div>
                         </td>
                     </tr>

@@ -30,14 +30,14 @@ class Index extends Component
     {
         if(!empty($value))
         {
-            $this->interval = Carbon::parse($this->start_date)->lt(Carbon::parse($this->end_date)) ? __('Selected Leave days are '). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->start_date)) . '</strong>'.__(' days'): __('Start date must be less than End date');
+            $this->interval = Carbon::parse($this->start_date)->lt(Carbon::parse($this->end_date)) ? __('employees.selected_leave_days'). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->start_date)) . '</strong>'.__('employees.days'): __('employees.start_date_before_end');
         }
     }
     public function updatedStartDate($value)
     {
         if(!empty($value))
         {
-            $this->interval = Carbon::parse($value)->lt(Carbon::parse($this->end_date)) ? __('Selected Leave days are '). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->end_date)) .'</strong>'.__(' days'): __('Start date must be less than End date');
+            $this->interval = Carbon::parse($value)->lt(Carbon::parse($this->end_date)) ? __('employees.selected_leave_days'). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->end_date)) .'</strong>'.__('employees.days'): __('employees.start_date_before_end');
         }
     }
 
@@ -64,12 +64,12 @@ class Index extends Component
 
         // Validate that user has required relationships
         if (empty($this->company)) {
-            $this->addError('company', __('You are not associated with any company. Please contact your administrator.'));
+            $this->addError('company', __('employees.not_associated_with_company'));
             return;
         }
 
         if (empty($this->department)) {
-            $this->addError('department', __('You are not associated with any department. Please contact your administrator.'));
+            $this->addError('department', __('employees.not_associated_with_department'));
             return;
         }
 
@@ -86,7 +86,7 @@ class Index extends Component
         );
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Leave request successfully submitted - nice 😍!'), 'CreateLeaveModal');
+        $this->closeModalAndFlashMessage(__('employees.leave_request_submitted'), 'CreateLeaveModal');
     }
     //Get & assign selected absence props
     public function initData($leave_id)
@@ -123,7 +123,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Leave request updated successfully - nice 😍!!'), 'EditLeaveModal');
+        $this->closeModalAndFlashMessage(__('employees.leave_request_updated'), 'EditLeaveModal');
     }
     public function delete()
     {
@@ -137,7 +137,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Leave successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.leave_deleted'), 'DeleteModal');
     }
 
     public function clearFields()

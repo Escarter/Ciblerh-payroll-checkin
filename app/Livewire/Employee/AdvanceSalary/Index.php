@@ -56,12 +56,12 @@ class Index extends Component
 
         // Validate that user has required relationships
         if (empty($this->company)) {
-            $this->addError('company', __('You are not associated with any company. Please contact your administrator.'));
+            $this->addError('company', __('employees.not_associated_with_company'));
             return;
         }
 
         if (empty($this->department)) {
-            $this->addError('department', __('You are not associated with any department. Please contact your administrator.'));
+            $this->addError('department', __('employees.not_associated_with_department'));
             return;
         }
 
@@ -80,7 +80,7 @@ class Index extends Component
             ]
         );
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Advance salary recorded successfully!'), 'CreateAdvanceSalaryModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_recorded'), 'CreateAdvanceSalaryModal');
     }
     //Get & assign selected advance_salary props
     public function initData($advance_salary_id)
@@ -118,7 +118,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Advance Salary successfully updated!'), 'EditAdvanceSalaryModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_updated'), 'EditAdvanceSalaryModal');
     }
     public function delete()
     {
@@ -132,7 +132,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Advance salary successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_deleted'), 'DeleteModal');
     }
 
     public function clearFields()

@@ -15,8 +15,8 @@
                                 wireModel="selected_roles"
                                 :options="$roles->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
                                 :selected="$selected_roles"
-                                label="{{__('Roles')}}"
-                                help="{{__('Maximum 2 roles allowed. Employee role is automatically included.')}}"
+                                label="{{__('common.roles')}}"
+                                help="{{__('common.maximum_2_roles_allowed')}}"
                                 class="form-select" />
                             @error('selected_roles')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -24,14 +24,14 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="first_name">{{__('First Name')}}</label>
+                                <label for="first_name">{{__('employees.first_name')}}</label>
                                 <input wire:model="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" placeholder="John" required="" name="first_name">
                                 @error('first_name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="last_name">{{__('Last Name')}}</label>
+                                <label for="last_name">{{__('employees.last_name')}}</label>
                                 <input wire:model="last_name" type="text" class="form-control  @error('last_name') is-invalid @enderror" placeholder="Doe" required="" name="last_name">
                                 @error('last_name')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -40,14 +40,14 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="matricule">{{__('Matricule')}}</label>
+                                <label for="matricule">{{__('employees.matricule')}}</label>
                                 <input wire:model="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" placeholder="1134578" required="" name="matricule">
                                 @error('matricule')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="email">{{__('Email')}}</label>
+                                <label for="email">{{__('employees.email')}}</label>
                                 <input wire:model="email" type="email" class="form-control @error('email') is-invalid @enderror" placeholder="example@company.com" required="" name="email">
                                 @error('email')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -57,14 +57,14 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="professional_phone_number">{{__('Prof Phone Number')}}</label>
+                                <label for="professional_phone_number">{{__('common.prof_phone_number')}}</label>
                                 <input wire:model="professional_phone_number" type="text" class="form-control  @error('professional_phone_number') is-invalid @enderror" placeholder="2376xxxxxxxxx" name="professional_phone_number">
                                 @error('professional_phone_number')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="personal_phone_number">{{__('Personal Phone Number')}}</label>
+                                <label for="personal_phone_number">{{__('common.personal_phone_number')}}</label>
                                 <input wire:model="personal_phone_number" type="text" class="form-control  @error('personal_phone_number') is-invalid @enderror" placeholder="2376xxxxxxxxx" name="personal_phone_number">
                                 @error('personal_phone_number')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -73,7 +73,7 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-12 col-xs-12'>
-                                <label for="date_of_birth">{{__('Date of Birth')}}</label>
+                                <label for="date_of_birth">{{__('common.date_of_birth')}}</label>
                                 <input wire:model="date_of_birth" type="date" class="form-control  @error('date_of_birth') is-invalid @enderror" name="date_of_birth">
                                 @error('date_of_birth')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -82,10 +82,10 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="status">{{__('Status')}}</label>
+                                <label for="status">{{__('common.status')}}</label>
                                 <select wire:model="status" name="status" class="form-select  @error('status') is-invalid @enderror">
                                     <option value="">{{__("Select status")}}</option>
-                                    <option value="true" @if($status === true || $status === "true") selected @endif>{{__('Active')}}</option>
+                                    <option value="true" @if($status === true || $status === "true") selected @endif>{{__('common.active')}}</option>
                                     <option value="false" @if($status === false || $status === "false") selected @endif>{{__('Banned')}}</option>
                                 </select>
                                 @error('status')
@@ -101,8 +101,8 @@
                             </div>
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="button" wire:click.prevent="clearFields" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="updateManager" class="btn btn-primary " wire:loading.attr="disabled">{{__('Update')}}</button>
+                            <button type="button" wire:click.prevent="clearFields" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
+                            <button type="submit" wire:click.prevent="updateManager" class="btn btn-primary " wire:loading.attr="disabled">{{__('common.update')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

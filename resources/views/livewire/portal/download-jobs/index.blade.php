@@ -4,7 +4,7 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h4 mb-1">{{__('Generate')}}</h1>
+            <h1 class="h4 mb-1">{{__('common.generate')}}</h1>
             <p class="text-muted mb-0">{{__('Generate and manage all your reports')}}</p>
         </div>
         <div class="d-flex gap-2">
@@ -93,13 +93,13 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Failed')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('common.failed')}}</h2>
                                     <h3 class="mb-1">{{$stats['failed']}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Failed')}}</h2>
+                                    <h2 class="h5">{{__('common.failed')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{$stats['failed']}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
@@ -163,13 +163,13 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{__('Status')}}</label>
+                    <label class="form-label">{{__('common.status')}}</label>
                     <select wire:model.live="statusFilter" class="form-select">
                         <option value="">{{__('All Statuses')}}</option>
-                        <option value="pending">{{__('Pending')}}</option>
+                        <option value="pending">{{__('common.pending')}}</option>
                         <option value="processing">{{__('Processing')}}</option>
                         <option value="completed">{{__('Completed')}}</option>
-                        <option value="failed">{{__('Failed')}}</option>
+                        <option value="failed">{{__('common.failed')}}</option>
                         <option value="cancelled">{{__('Cancelled')}}</option>
                     </select>
                 </div>
@@ -182,8 +182,8 @@
                     <input wire:model.live="dateTo" type="date" class="form-control">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">{{__('Search')}}</label>
-                    <input wire:model.live.debounce.300ms="searchQuery" type="text" class="form-control" placeholder="{{__('Search...')}}">
+                    <label class="form-label">{{__('common.search')}}</label>
+                    <input wire:model.live.debounce.300ms="searchQuery" type="text" class="form-control" placeholder="{{__('common.search_placeholder')}}">
                 </div>
             </div>
         </div>
@@ -198,7 +198,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
-                {{__('Active')}}
+                {{__('common.active')}}
                 <span class="badge {{$activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white'}} ms-1">{{$this->activeJobsCount}}</span>
             </button>
             <button wire:click="$set('activeTab', 'completed')"
@@ -216,7 +216,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                 </svg>
-                {{__('Failed')}}
+                {{__('common.failed')}}
                 <span class="badge {{$activeTab === 'failed' ? 'bg-light text-white' : 'bg-danger text-white'}} ms-1">{{$this->failedJobsCount}}</span>
             </button>
             <button wire:click="$set('activeTab', 'all')"
@@ -235,7 +235,7 @@
         <div class="d-flex gap-2 align-items-center">
             <span class="badge bg-primary">{{count($selectedJobs)}} {{__('selected')}}</span>
             <button wire:click="bulkCancel" class="btn btn-sm btn-warning">
-                <i class="fas fa-times"></i> {{__('Cancel')}}
+                <i class="fas fa-times"></i> {{__('common.cancel')}}
             </button>
             <button wire:click="confirmBulkDelete" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#BulkDeleteModal">
                 <i class="fas fa-trash"></i> {{__('Delete')}}
@@ -258,7 +258,7 @@
                             </th>
                             <th class="border-0">{{__('Report ID')}}</th>
                             <th class="border-0">{{__('Type')}}</th>
-                            <th class="border-0">{{__('Status')}}</th>
+                            <th class="border-0">{{__('common.status')}}</th>
                             <th class="border-0">{{__('Progress')}}</th>
                             <th class="border-0">{{__('Created')}}</th>
                             <th class="border-0">{{__('Duration')}}</th>
@@ -347,7 +347,7 @@
                                 </div>
                                 @elseif($job->status === 'failed')
                                 <span class="text-danger">
-                                    <i class="fas fa-exclamation-triangle"></i> {{__('Failed')}}
+                                    <i class="fas fa-exclamation-triangle"></i> {{__('common.failed')}}
                                 </span>
                                 @else
                                 <span class="text-muted">-</span>
@@ -364,7 +364,7 @@
                                     @endif
 
                                     @if($job->canBeCancelled())
-                                    <a href="#" wire:click="cancelJob({{$job->id}})" class="text-warning" title="{{__('Cancel')}}">
+                                    <a href="#" wire:click="cancelJob({{$job->id}})" class="text-warning" title="{{__('common.cancel')}}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>

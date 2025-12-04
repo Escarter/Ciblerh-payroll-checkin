@@ -115,7 +115,7 @@ test('it skips retry when email notifications disabled', function () {
     $payslip->refresh();
     
     expect($payslip->email_sent_status)->toBe(Payslip::STATUS_DISABLED);
-    expect($payslip->failure_reason)->toContain('Email notifications disabled');
+    expect($payslip->email_status_note)->toContain('Email notifications disabled');
     
     // Email not sent when encryption failed
     expect($payslip->email_sent_status)->not->toBe(Payslip::STATUS_SUCCESSFUL);

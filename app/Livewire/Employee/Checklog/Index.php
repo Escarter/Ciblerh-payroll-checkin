@@ -92,7 +92,7 @@ class Index extends Component
 
         }
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Checkin recorded successfully - have a nice day 😍!'), 'CheckInModal');
+        $this->closeModalAndFlashMessage(__('employees.checkin_recorded_success'), 'CheckInModal');
     }
 
     public function bulkStore()
@@ -151,7 +151,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Checkins recorded successfully - have a nice day 😍!'), 'BulkCheckInModal');
+        $this->closeModalAndFlashMessage(__('employees.checkins_recorded_success'), 'BulkCheckInModal');
     }
     public function update()
     {
@@ -182,7 +182,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Checkin successfully updated!'), 'EditChecklogModal');
+        $this->closeModalAndFlashMessage(__('employees.checkin_updated_success'), 'EditChecklogModal');
     }
     public function delete()
     {
@@ -196,7 +196,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Checkin record successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.checkin_deleted_success'), 'DeleteModal');
     }
 
     public function recordOvertime($end_time)

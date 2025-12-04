@@ -43,7 +43,7 @@
                         <h6>{{__('Report Filters')}}</h6>
                         <div class="row">
                             <div class="col-md-6">
-                                <label class="form-label">{{__('Company')}}</label>
+                                <label class="form-label">{{__('companies.company')}}</label>
                                 <select wire:model.live="newReport.filters.selectedCompanyId" class="form-select">
                                     <option value="all">{{__('All Companies')}}</option>
                                     @foreach($companies as $company)
@@ -52,7 +52,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">{{__('Department')}}</label>
+                                <label class="form-label">{{__('departments.department')}}</label>
                                 <select wire:model.live="newReport.filters.selectedDepartmentId" class="form-select">
                                     <option value="all">{{__('All Departments')}}</option>
                                     @foreach($departments as $department)
@@ -66,7 +66,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">{{__('Employee')}}</label>
+                                <label class="form-label">{{__('employees.employee')}}</label>
                                 <select wire:model.live="newReport.filters.employee_id" class="form-select">
                                     <option value="all">{{__('All Employees')}}</option>
                                     @foreach($employees as $employee)
@@ -77,12 +77,12 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">{{__('Status')}}</label>
+                                <label class="form-label">{{__('common.status')}}</label>
                                 <select wire:model.live="newReport.filters.status" class="form-select">
                                     <option value="all">{{__('All Statuses')}}</option>
-                                    <option value="approved">{{__('Approved')}}</option>
-                                    <option value="pending">{{__('Pending')}}</option>
-                                    <option value="rejected">{{__('Rejected')}}</option>
+                                    <option value="approved">{{__('common.approved')}}</option>
+                                    <option value="pending">{{__('common.pending')}}</option>
+                                    <option value="rejected">{{__('common.rejected')}}</option>
                                 </select>
                             </div>
                         </div>
@@ -111,9 +111,9 @@
                                 <label class="form-label">{{__('Email Status')}}</label>
                                 <select wire:model.live="newReport.filters.email_status" class="form-select">
                                     <option value="">{{__('All Email Statuses')}}</option>
-                                    <option value="successful">{{__('Successful')}}</option>
-                                    <option value="pending">{{__('Pending')}}</option>
-                                    <option value="failed">{{__('Failed')}}</option>
+                                    <option value="successful">{{__('common.successful')}}</option>
+                                    <option value="pending">{{__('common.pending')}}</option>
+                                    <option value="failed">{{__('common.failed')}}</option>
                                 </select>
                             </div>
                         </div>
@@ -122,9 +122,9 @@
                                 <label class="form-label">{{__('SMS Status')}}</label>
                                 <select wire:model.live="newReport.filters.sms_status" class="form-select">
                                     <option value="">{{__('All SMS Statuses')}}</option>
-                                    <option value="successful">{{__('Successful')}}</option>
-                                    <option value="pending">{{__('Pending')}}</option>
-                                    <option value="failed">{{__('Failed')}}</option>
+                                    <option value="successful">{{__('common.successful')}}</option>
+                                    <option value="pending">{{__('common.pending')}}</option>
+                                    <option value="failed">{{__('common.failed')}}</option>
                                 </select>
                             </div>
                         </div>
@@ -137,7 +137,7 @@
                     </div>
                     @endif
                     <div class="d-flex justify-content-end gap-2 mt-3">
-                        <button type="button" class="btn btn-secondary" wire:click="closeCreateModal">{{__('Cancel')}}</button>
+                        <button type="button" class="btn btn-secondary" wire:click="closeCreateModal">{{__('common.cancel')}}</button>
                         <button type="submit" class="btn btn-primary">
                             <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>

@@ -62,12 +62,12 @@ class Index extends Component
 
         // Validate that user has required relationships
         if (empty($this->company)) {
-            $this->addError('company', __('You are not associated with any company. Please contact your administrator.'));
+            $this->addError('company', __('employees.not_associated_with_company'));
             return;
         }
 
         if (empty($this->department)) {
-            $this->addError('department', __('You are not associated with any department. Please contact your administrator.'));
+            $this->addError('department', __('employees.not_associated_with_department'));
             return;
         }
 
@@ -82,7 +82,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Overtime successfully created!'), 'CreateOvertimeModal');
+        $this->closeModalAndFlashMessage(__('employees.overtime_created'), 'CreateOvertimeModal');
     }
     public function update()
     {
@@ -104,7 +104,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Overtime successfully updated!'), 'EditOvertimeModal');
+        $this->closeModalAndFlashMessage(__('employees.overtime_updated'), 'EditOvertimeModal');
     }
 
     public function delete()
@@ -119,7 +119,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Overtime record successfully deleted!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.overtime_deleted'), 'DeleteModal');
     }
 
     public function clearFields()

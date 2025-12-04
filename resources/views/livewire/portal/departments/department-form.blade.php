@@ -9,7 +9,7 @@
                     </div>
                     <x-form-items.form wire:submit="{{ $isEditMode ? 'update' : 'store' }}">
                         <div class="form-group mb-4">
-                            <label for="company">{{__('Company')}}</label>
+                            <label for="company">{{__('companies.company')}}</label>
                             @if(auth()->user()->hasRole('supervisor'))
                                 <input type="text" class="form-control" value="{{ $isEditMode ? ($department->company->name ?? __('Unknown Company')) : __('Multiple Companies') }}" disabled>
                                 @if(!$isEditMode)
@@ -20,7 +20,7 @@
                             @endif
                         </div>
                         <div class='form-group mb-4'>
-                            <label for="supervisor_id">{{__('Supervisor')}}</label>
+                            <label for="supervisor_id">{{__('common.supervisor')}}</label>
                             <select wire:model="supervisor_id" name="supervisor_id" class="form-select  @error('supervisor_id') is-invalid @enderror">
                                 <option value="">{{__("Select supervisor")}}</option>
                                 @foreach ($supervisors as $supervisor)
@@ -32,7 +32,7 @@
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="name">{{__('Name')}}</label>
+                            <label for="name">{{__('common.name')}}</label>
                             <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
                             @error('name')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -42,8 +42,8 @@
                         <div class='form-group mb-4'>
                             <label for="is_active">{{__('Is Active')}}?</label>
                             <select wire:model="is_active" name="is_active" class="form-select  @error('is_active') is-invalid @enderror">
-                                <option value="">{{__('Select status')}}</option>
-                                <option value="1" {{ $is_active == true || $is_active == 1 ? 'selected' : '' }}>{{__('Active')}}</option>
+                                <option value="">{{__('common.select_status')}}</option>
+                                <option value="1" {{ $is_active == true || $is_active == 1 ? 'selected' : '' }}>{{__('common.active')}}</option>
                                 <option value="0" {{ $is_active == false || $is_active == 0 ? 'selected' : '' }}>{{__('Inactive')}}</option>
                             </select>
                             @error('is_active')
@@ -52,8 +52,8 @@
                         </div>
                         @endif
                         <div class="d-flex justify-content-end">
-                            <button type="button" wire:click.prevent="{{ $isEditMode ? 'clearFields' : '' }}" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('Close')}}</button>
-                            <button type="submit" wire:click.prevent="{{ $isEditMode ? 'update' : 'store' }}" class="btn btn-primary" wire:loading.attr="disabled">{{ $isEditMode ? __('Update') : __('Create') }}</button>
+                            <button type="button" wire:click.prevent="{{ $isEditMode ? 'clearFields' : '' }}" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
+                            <button type="submit" wire:click.prevent="{{ $isEditMode ? 'update' : 'store' }}" class="btn btn-primary" wire:loading.attr="disabled">{{ $isEditMode ? __('common.update') : __('common.create') }}</button>
                         </div>
                     </x-form-items.form>
                 </div>

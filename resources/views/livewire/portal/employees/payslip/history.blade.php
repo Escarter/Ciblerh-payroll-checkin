@@ -125,29 +125,29 @@
             <x-alert />
             <div class="row pb-3">
                 <div class="col-md-3">
-                    <label for="search">{{__('Search')}}: </label>
-                    <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+                    <label for="search">{{__('common.search')}}: </label>
+                    <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                     <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
                 </div>
                 <div class="col-md-3">
-                    <label for="orderBy">{{__('Order By')}}: </label>
+                    <label for="orderBy">{{__('common.order_by')}}: </label>
                     <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                        <option value="first_name">{{__('First Name')}}</option>
-                        <option value="last_name">{{__('Last Name')}}</option>
-                        <option value="created_at">{{__('Created Date')}}</option>
+                        <option value="first_name">{{__('employees.first_name')}}</option>
+                        <option value="last_name">{{__('employees.last_name')}}</option>
+                        <option value="created_at">{{__('common.created_date')}}</option>
                     </select>
                 </div>
 
                 <div class="col-md-3">
-                    <label for="direction">{{__('Order direction')}}: </label>
+                    <label for="direction">{{__('common.order_direction')}}: </label>
                     <select wire:model.live="orderAsc" id="direction" class="form-select">
-                        <option value="asc">{{__('Ascending')}}</option>
-                        <option value="desc">{{__('Descending')}}</option>
+                        <option value="asc">{{__('common.ascending')}}</option>
+                        <option value="desc">{{__('common.descending')}}</option>
                     </select>
                 </div>
 
                 <div class="col-md-3">
-                    <label for="perPage">{{__('Items Per Page')}}: </label>
+                    <label for="perPage">{{__('common.items_per_page')}}: </label>
                     <select wire:model.live="perPage" id="perPage" class="form-select">
                         <option value="5">5</option>
                         <option value="10">10</option>
@@ -169,7 +169,7 @@
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
-                        {{__('Active')}}
+                        {{__('common.active')}}
                         <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_payslips ?? 0 }}</span>
                     </button>
 
@@ -179,7 +179,7 @@
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
-                        {{__('Deleted')}}
+                        {{__('common.deleted')}}
                         <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_payslips ?? 0 }}</span>
                     </button>
                 </div>
@@ -199,7 +199,7 @@
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
-                                {{__('Move to Trash')}}
+                                {{__('common.move_to_trash')}}
                                 <span class="badge bg-danger text-white ms-1">{{ count($selectedPayslips) }}</span>
                             </button>
                             @endcan
@@ -209,7 +209,7 @@
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
-                                {{__('Clear')}}
+                                {{__('common.clear')}}
                             </button>
                         </div>
                         @endif
@@ -224,7 +224,7 @@
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>
-                                {{__('Restore Selected')}}
+                                {{__('common.restore_selected')}}
                                 <span class="badge bg-success text-white ms-1">{{ count($selectedPayslips) }}</span>
                             </button>
 
@@ -236,7 +236,7 @@
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
-                                {{__('Delete Forever')}}
+                                {{__('common.delete_forever')}}
                                 <span class="badge bg-danger text-white ms-1">{{ count($selectedPayslips) }}</span>
                             </button>
                             @endcan
@@ -246,7 +246,7 @@
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
-                                {{__('Clear')}}
+                                {{__('common.clear')}}
                             </button>
                         </div>
                         @endif
@@ -267,14 +267,14 @@
                                             wire:click="toggleSelectAll">
                                     </div>
                                 </th>
-                                <th class="border-bottom">{{__('Name')}}</th>
+                                <th class="border-bottom">{{__('common.name')}}</th>
                                 <th class="border-bottom">{{__('Employee Info')}}</th>
                                 <th class="border-bottom">{{__('Category')}}</th>
                                 <th class="border-bottom">{{__('Timeline')}}</th>
                                 <th class="border-bottom">{{__('Encryption status')}}</th>
                                 <th class="border-bottom">{{__('Email status')}}</th>
                                 <th class="border-bottom">{{__('SMS status')}}</th>
-                                <th class="border-bottom">{{__('Action')}}</th>
+                                <th class="border-bottom">{{__('common.action')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -300,7 +300,7 @@
                                 <td>
                                     <div class="d-flex flex-column">
                                         <div class="mb-1">
-                                            <span class="fw-bold text-primary">{{__('Matricule')}}:</span>
+                                            <span class="fw-bold text-primary">{{__('employees.matricule')}}:</span>
                                             <span class="ms-1 fw-normal">{{$payslip->matricule}}</span>
                                         </div>
                                         @if(!empty($payslip->phone))
@@ -337,27 +337,27 @@
                                 </td>
                                 <td>
                                     @if($payslip->encryption_status == 1)
-                                    <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
+                                    <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
                                     @elseif($payslip->encryption_status == 2 )
-                                    <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                                    <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @else
                                     <span class="badge badge-lg text-md text-white bg-gray-400">{{__('Not Recorded')}}</span>
                                     @endif
                                 </td>
                                 <td>
                                     @if($payslip->email_sent_status == 1)
-                                    <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
+                                    <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
                                     @elseif($payslip->email_sent_status == 2 )
-                                    <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                                    <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @else
                                     <span class="badge badge-lg text-md text-gray bg-warning">{{__('Pending...')}}</span>
                                     @endif
                                 </td>
                                 <td>
                                     @if($payslip->sms_sent_status == 1)
-                                    <span class="badge badge-lg text-md bg-success">{{__('Succesful')}}</span>
+                                    <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
                                     @elseif($payslip->sms_sent_status == 2)
-                                    <span class="badge badge-lg text-md bg-danger">{{__('Failed')}}</span>
+                                    <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @elseif($payslip->sms_sent_status == 3)
                                     <span class="badge badge-lg text-md bg-info">{{__('Disabled')}}</span>
                                     @else
@@ -401,7 +401,7 @@
                                             </svg>
                                         </a>
                                         <!-- Force Delete Link -->
-                                        <a href="#" wire:click.prevent="$set('selectedPayslips', [{{ $payslip->id }}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('Delete Forever')}}">
+                                        <a href="#" wire:click.prevent="$set('selectedPayslips', [{{ $payslip->id }}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('common.delete_forever')}}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                             </svg>
@@ -414,8 +414,8 @@
                             <tr>
                                 <td colspan="8">
                                     <div class="text-center text-gray-800 mt-2">
-                                        <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                                        <p>{{__('No Record Found..!')}}</p>
+                                        <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                        <p>{{__('common.no_records_found')}}</p>
                                     </div>
                                 </td>
                             </tr>

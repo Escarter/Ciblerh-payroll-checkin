@@ -36,37 +36,37 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{ __('Dashboard') }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{ __('dashboard.home') }}</a></li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path>
                     </svg>
-                    {{__('Companies Management')}}
+                    {{__('companies.companies_management')}}
                 </h1>
-                <p class="mt-n2">{{__('Manage companies and their related details')}} &#128524;</p>
+                <p class="mt-n2">{{__('companies.manage_companies_details')}} &#128524;</p>
             </div>
             <div class="d-flex justify-content-between mb-2">
                 @can('company-create')
                 <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#CompanyModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('New')}}
+                    </svg> {{__('common.new')}}
                 </a>
                 @endcan
                 @hasrole('admin')
                 <a href="#" data-bs-toggle="modal" data-bs-target="#AssignManagerModal" class="btn btn-sm btn-info py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 01-8 0m8 0a4 4 0 00-8 0m8 0V5a4 4 0 00-8 0v2m8 0v2a4 4 0 01-8 0V7m8 0V5a4 4 0 00-8 0v2" />
-                    </svg> {{__('Assign Manager')}}
+                    </svg> {{__('companies.assign_manager')}}
                 </a>
                 @endhasrole
                 @can('company-import')
                 <a href="#" data-bs-toggle="modal" data-bs-target="#importCompaniesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>{{__('Import')}}
+                    </svg>{{__('common.import')}}
                 </a>
                 @endcan
                 @can('company-export')
@@ -75,7 +75,7 @@
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                         </svg>
-                        {{__('Export')}}
+                        {{__('common.export')}}
                     </a>
                 </div>
                 <div class="text-center mx-2" wire:loading wire:target="export">
@@ -105,17 +105,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Companies')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('companies.total_companies')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($companies_count ?? 0)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Companies')}}</h2>
+                                    <h2 class="h5">{{__('companies.total_companies')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($companies_count ?? 0)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Company'), $companies_count ?? 0) }} {{__('in the system')}}</div>
+                                    <div>{{ \Str::plural(__('companies.company'), $companies_count ?? 0) }} {{__('companies.in_the_system')}}</div>
                                 </div>
                 </div>
                         </div>
@@ -143,7 +143,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_companies ?? 0)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Company'), $active_companies ?? 0) }} {{__('that are active!')}}</div>
+                                    <div>{{ \Str::plural(__('companies.company'), $active_companies ?? 0) }} {{__('that are active!')}}</div>
                     </div>
                             </div>
                         </div>
@@ -161,17 +161,17 @@
                         </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Company'), $deleted_companies ?? 0) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('companies.company'), $deleted_companies ?? 0) }}</h2>
                                     <h3 class="mb-1">{{numberFormat($deleted_companies ?? 0)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Company'), $deleted_companies ?? 0) }}</h2>
+                                    <h2 class="h5">{{ \Str::plural(__('companies.company'), $deleted_companies ?? 0) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_companies ?? 0)}} </h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Company'), $deleted_companies ?? 0) }} {{__('that are deleted!')}}</div>
+                                    <div>{{ \Str::plural(__('companies.company'), $deleted_companies ?? 0) }} {{__('that are deleted!')}}</div>
                                 </div>
                     </div>
                     </div>
@@ -184,30 +184,30 @@
 
     <div class="row pt-2 pb-3">
         <div class="col-md-3">
-            <label for="search">{{__('Search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+            <label for="search">{{__('common.search')}}: </label>
+            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('Order By')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="name">{{__('Name')}}</option>
+                <option value="name">{{__('common.name')}}</option>
                 <option value="code">{{__('Code')}}</option>
                 <option value="sector">{{__('Sector')}}</option>
-                <option value="created_at">{{__('Created Date')}}</option>
+                <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('Order direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}: </label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
-                <option value="asc">{{__('Ascending')}}</option>
-                <option value="desc">{{__('Descending')}}</option>
+                <option value="asc">{{__('common.ascending')}}</option>
+                <option value="desc">{{__('common.descending')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('Items Per Page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}: </label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -229,7 +229,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path>
                 </svg>
-                {{__('Active')}}
+                {{__('common.active')}}
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_companies ?? 0 }}</span>
             </button>
 
@@ -239,7 +239,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Deleted')}}
+                {{__('common.deleted')}}
                 <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_companies ?? 0 }}</span>
             </button>
         </div>
@@ -268,7 +268,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Move to Trash')}}
+                    {{__('common.move_to_trash')}}
                     <span class="badge bg-light text-white ms-1">{{ count($selectedCompanies) }}</span>
                 </button>
                 @endcan
@@ -280,7 +280,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
-                    {{__('Restore Selected')}}
+                    {{__('common.restore_selected')}}
                     <span class="badge bg-success text-white ms-1">{{ count($selectedCompanies) }}</span>
                 </button>
 
@@ -292,7 +292,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Delete Forever')}}
+                    {{__('common.delete_forever')}}
                     <span class="badge bg-danger text-white ms-1">{{ count($selectedCompanies) }}</span>
                 </button>
                 @endcan
@@ -303,7 +303,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    {{__('Clear')}}
+                    {{__('common.clear')}}
                 </button>
                 @endif
             </div>
@@ -340,7 +340,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <h5 class="fw-bold text-gray-800 mb-0">{{ucwords($company->name)}}</h5>
                                 <span class="badge {{$company->is_active ? 'bg-success' : 'bg-danger'}} px-2 py-1 rounded-pill small">
-                                    {{$company->is_active ? __('Active') : __('Inactive')}}
+                                    {{$company->is_active ? __('common.active') : __('Inactive')}}
                                 </span>
                             </div>
                             @if($company->sector)
@@ -448,7 +448,7 @@
                         </a>
                         @endcan
                         @can('company-delete')
-                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Move to Trash')}}">
+                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('common.move_to_trash')}}">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -477,7 +477,7 @@
             <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column mx-2'>
                 <div class="text-center text-gray-800 mt-4">
                     <img src="{{ asset('/img/illustrations/not_found.svg') }}" class="w-25 ">
-                    <h4 class="fs-4 fw-bold my-1">{{__('Empty set.')}}</h4>
+                    <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
                     <p class="fw-light">{{__('No record found here!')}}</p>
                     @can('company-create')
                     <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#CompanyModal" class="btn btn-sm btn-primary py-2 mt-3 d-inline-flex align-items-center">

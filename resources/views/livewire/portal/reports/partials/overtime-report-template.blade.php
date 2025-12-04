@@ -181,7 +181,7 @@
                 <span style="font-size: x-larger; font-weight:bolder; ">{{__('ATTACHEMENT')}} <small style="font-size: small; color:red;">{{\Str::random(10)}}</small></span>
                 <br />{{__('Period From')}} {{ now()->isoweek($week)->startOfWeek()->ISOFormat('L')}} {{__('to')}} {{ now()->isoweek($week)->endOfWeek()->ISOFormat('L') }}
                 <br />{{__('Client')}} : {{!is_null($company) ? $company->name : ''}}
-                <br>{{__('Department')}} : {{!is_null($department) ? $department->name : ''}}
+                <br>{{__('departments.department')}} : {{!is_null($department) ? $department->name : ''}}
             </p>
             <p class="text-underline" style="margin-left: 45%; text-align: center; font-weight:bolder; ">{{__("Overtimes Recorded")}}</p>
         </div>
@@ -223,7 +223,7 @@
                             <img src="{{'data:image/png;base64,'.base64_encode(file_get_contents(asset('storage/attachments/'.$user->signature_path)))}}" alt='' style="width:auto;height:50px;">
                         </div>
                         @else
-                        {{__('Confirm')}}
+                        {{__('common.confirm')}}
                         @endif
                     </td>
                     <td>

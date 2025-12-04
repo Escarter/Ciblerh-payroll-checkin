@@ -48,7 +48,7 @@
                 <a href="#" data-bs-toggle="modal" data-bs-target="#importEmployeesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg> {{__('Import')}}
+                    </svg> {{__('common.import')}}
                 </a>
                 @endcan
                 @can('employee-export')
@@ -58,7 +58,7 @@
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                         </svg>
-                        {{__('Export')}}
+                        {{__('common.export')}}
                     </a>
                 </div>
                 <div class="text-center mx-2" wire:loading wire:target="export">
@@ -98,7 +98,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($employees_count)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Employee'), $employees_count) }} {{__('recorded by manager')}}</div>
+                                    <div>{{ \Str::plural(__('employees.employee'), $employees_count) }} {{__('recorded by manager')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -116,17 +116,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Employee'), $active_employees) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('employees.employee'), $active_employees) }}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_employees)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Employee'), $active_employees) }}</h2>
+                                    <h2 class="h5">{{ \Str::plural(__('employees.employee'), $active_employees) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_employees)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Employee'), $active_employees) }} {{__('who are active!')}}</div>
+                                    <div>{{ \Str::plural(__('employees.employee'), $active_employees) }} {{__('who are active!')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -144,17 +144,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Employee'), $banned_employees) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('employees.employee'), $banned_employees) }}</h2>
                                     <h3 class="mb-1">{{numberFormat($banned_employees)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Employee'), $banned_employees) }}</h2>
+                                    <h2 class="h5">{{ \Str::plural(__('employees.employee'), $banned_employees) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($banned_employees)}} </h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Employee'), $banned_employees) }} {{__('who are banned!')}}</div>
+                                    <div>{{ \Str::plural(__('employees.employee'), $banned_employees) }} {{__('who are banned!')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -167,29 +167,29 @@
 
     <div class="row pt-2 pb-3">
         <div class="col-md-3">
-            <label for="search">{{__('Search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('Search...')}}" class="form-control">
+            <label for="search">{{__('common.search')}}: </label>
+            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('Order By')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="first_name">{{__('First Name')}}</option>
-                <option value="last_name">{{__('Last Name')}}</option>
-                <option value="created_at">{{__('Created Date')}}</option>
+                <option value="first_name">{{__('employees.first_name')}}</option>
+                <option value="last_name">{{__('employees.last_name')}}</option>
+                <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('Order direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}: </label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
-                <option value="asc">{{__('Ascending')}}</option>
-                <option value="desc">{{__('Descending')}}</option>
+                <option value="asc">{{__('common.ascending')}}</option>
+                <option value="desc">{{__('common.descending')}}</option>
             </select>
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('Items Per Page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}: </label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -211,7 +211,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
-                {{__('Active')}}
+                {{__('common.active')}}
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_employees ?? 0 }}</span>
             </button>
 
@@ -221,7 +221,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-                {{__('Deleted')}}
+                {{__('common.deleted')}}
                 <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_employees ?? 0 }}</span>
             </button>
         </div>
@@ -240,7 +240,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Move to Trash')}}
+                    {{__('common.move_to_trash')}}
                     <span class="badge bg-light text-white ms-1">{{ count($selectedEmployees) }}</span>
                 </button>
                 @endcan
@@ -252,7 +252,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
-                    {{__('Restore Selected')}}
+                    {{__('common.restore_selected')}}
                     <span class="badge bg-success text-white ms-1">{{ count($selectedEmployees) }}</span>
                 </button>
 
@@ -264,7 +264,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
-                    {{__('Delete Forever')}}
+                    {{__('common.delete_forever')}}
                     <span class="badge bg-danger text-white ms-1">{{ count($selectedEmployees) }}</span>
                 </button>
                 @endcan
@@ -275,7 +275,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
-                    {{__('Clear')}}
+                    {{__('common.clear')}}
                 </button>
             </div>
             @endif
@@ -293,12 +293,12 @@
                                 wire:change="toggleSelectAll"
                                 class="form-check-input">
                         </th>
-                        <th class="border-bottom">{{__('Employee')}}</th>
-                        <th class="border-bottom">{{__('Company')}}</th>
+                        <th class="border-bottom">{{__('employees.employee')}}</th>
+                        <th class="border-bottom">{{__('companies.company')}}</th>
                         <th class="border-bottom">{{__(key: 'Details')}}</th>
                         <th class="border-bottom">{{__('Roles & Status')}}</th>
                         @canany('employee-delete','employee-update')
-                        <th class="border-bottom">{{__('Action')}}</th>
+                        <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>
@@ -334,19 +334,19 @@
                             </a>
                         </td>
                         <td>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Company')}} </span>: {{is_null($employee->company) ? __('NA'): ucfirst($employee->company->name) }}</span> <br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Department')}}</span> : {{is_null($employee->department) ? __('NA'): ucfirst($employee->department->name) }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Service')}}</span> : {{is_null($employee->service) ? __('NA'): ucfirst($employee->service->name) }}</span>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('companies.company')}} </span>: {{is_null($employee->company) ? __('NA'): ucfirst($employee->company->name) }}</span> <br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('departments.department')}}</span> : {{is_null($employee->department) ? __('NA'): ucfirst($employee->department->name) }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.service')}}</span> : {{is_null($employee->service) ? __('NA'): ucfirst($employee->service->name) }}</span>
                         </td>
                         <td>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Matricule')}} </span>: {{ $employee->matricule }}</span> <br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.matricule')}} </span>: {{ $employee->matricule }}</span> <br>
                             <span class="fs-normal"><span class="fw-bolder">{{__('PDF Password')}}</span> : {{ $employee->pdf_password }}</span><br>
                             <span class="fs-normal"><span class="fw-bolder">{{__('Professional Phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
                             <span class="fs-normal"><span class="fw-bolder">{{__('Personal Phone')}}</span> : {{ $employee->personal_phone_number }}</span>
                         </td>
                         <td>
                             <div class="mb-2">
-                                <small class="text-muted fw-bold">{{__('Roles')}}:</small>
+                                <small class="text-muted fw-bold">{{__('common.roles')}}:</small>
                                 <div class="d-flex flex-wrap align-items-center mt-1">
                                     @foreach($employee->roles as $role)
                                     <span class="fw-normal badge badge-lg bg-{{ match($role->name) {
@@ -361,7 +361,7 @@
                             </div>
                             <hr class="my-2">
                             <div>
-                                <small class="text-muted fw-bold">{{__('Status')}}:</small>
+                                <small class="text-muted fw-bold">{{__('common.status')}}:</small>
                                 <div class="mt-1">
                                     <span class="fw-normal badge super-badge badge-lg bg-{{$employee->status_style}} rounded">{{$employee->status_text}}</span>
                                 </div>
@@ -433,8 +433,8 @@
                     <tr>
                         <td colspan="9">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('Opps nothing here')}} &#128540;</h4>
-                                <p>{{__('No Employee Found..!')}}</p>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <p>{{__('common.no_employee_found')}}</p>
                             </div>
                         </td>
                     </tr>

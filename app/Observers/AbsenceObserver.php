@@ -33,7 +33,7 @@ class AbsenceObserver
     {
         
         if ($absence->approval_status !== $absence->getOriginal('approval_status')) {
-            $changes = ($absence->approval_status == 1 ? __('Approved') : __('Rejected') ). " ". __(' the absence from '). $absence->user->name . __(' with date ') . $absence->absence_date; 
+            $changes = ($absence->approval_status == 1 ? __('common.approved') : __('common.rejected') ). " ". __(' the absence from '). $absence->user->name . __(' with date ') . $absence->absence_date; 
             $status = "absence_". ($absence->approval_status == 1 ? "approved" : "rejected");
         }else{
             $status = "absence_updated";

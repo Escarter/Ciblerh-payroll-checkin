@@ -112,10 +112,10 @@ class DownloadJob extends Model
     public function getStatusDisplayAttribute(): string
     {
         return match($this->status) {
-            self::STATUS_PENDING => __('Pending'),
+            self::STATUS_PENDING => __('common.pending'),
             self::STATUS_PROCESSING => __('Processing'),
             self::STATUS_COMPLETED => __('Completed'),
-            self::STATUS_FAILED => __('Failed'),
+            self::STATUS_FAILED => __('common.failed'),
             self::STATUS_CANCELLED => __('Cancelled'),
             default => __('Unknown')
         };

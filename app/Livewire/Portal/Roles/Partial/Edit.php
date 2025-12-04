@@ -160,7 +160,7 @@ class Edit extends Component
             $this->dispatch('cancel', modalId: 'EditRoleModal');
             
         } catch (\Throwable $th) {
-            session()->flash('error', 'Something went wrong: ' . $th->getMessage());
+            session()->flash('error', __('common.something_went_wrong') . $th->getMessage());
         }
     }
 
