@@ -41,6 +41,18 @@
      </div>
      @endif
      
+     {{-- Global Search --}}
+     <button class="btn btn-outline-light btn-sm me-2 px-2 d-none d-md-inline-flex align-items-center"
+             onclick="Livewire.dispatch('openGlobalSearch')"
+             title="Search (Ctrl+K)">
+         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+         </svg>
+         <span class="d-none d-lg-inline">Search</span>
+         <kbd class="badge bg-light bg-opacity-25 text-light ms-2 d-none d-xl-inline">⌘K</kbd>
+     </button>
+
      {{-- User Actions --}}
      <div class="d-flex align-items-center">
          <a href='{{route("employee.profile")}}' wire:navigate 

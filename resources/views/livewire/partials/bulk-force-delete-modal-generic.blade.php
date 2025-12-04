@@ -8,7 +8,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                         </svg>
                         <h1 class="mb-0 h2 fw-bolder">{{__('common.permanent_deletion')}}</h1>
-                        <p class="pt-2">{{__('You are about to permanently delete')}} <strong>{{ count($selectedItems ?? []) }} {{ $itemType ?? __('items') }}</strong> {{__('from the system.')}}</p>
+                        <p class="pt-2">{{__('common.you_are_about_to_permanently_delete')}} <strong>{{ count($selectedItems ?? []) }} {{ $itemType ?? __('common.items') }}</strong> {{__('common.from_the_system')}}</p>
                         <p class="text-danger fw-bold">{{__('common.this_action_cannot_be_undone')}}</p>
                     </div>
                     <div class="d-flex justify-content-center">

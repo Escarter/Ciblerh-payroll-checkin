@@ -5,4 +5,7 @@
         <x-layouts.navigation.navbar />
         {{$slot}}
     </main>
+    
+    <!-- Global Search Component -->
+    @livewire('components.global-search')
 </x-layouts.app>

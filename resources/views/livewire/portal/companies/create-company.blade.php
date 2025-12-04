@@ -4,8 +4,8 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Create Company')}}</h1>
-                        <p>{{__('Create a new company to manage')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('companies.create_company')}}</h1>
+                        <p>{{__('companies.create_new_company_to_manage')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="store">
                         <div class="form-group row mb-4">
@@ -17,7 +17,7 @@
                                 @enderror
                             </div>
                             <div class='col-md-6'>
-                                <label for="code">{{__('Code')}}</label>
+                                <label for="code">{{__('companies.code')}}</label>
                                 <input wire:model="code" type="text" class="form-control  @error('code') is-invalid @enderror" required="" value="" name="code">
                                 @error('code')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -26,7 +26,7 @@
                         </div>
                         @hasrole('admin')
                         <div class="form-group mb-4">
-                            <label for="assign_manager">{{__('Assign Manager')}}</label>
+                            <label for="assign_manager">{{__('companies.assign_manager')}}</label>
                             <select wire:model="manager_id" name="manager_id" class="form-select">
                                 <option value="">{{__('employees.select_manager')}}</option>
                                 @foreach($managers as $manager)
@@ -36,7 +36,7 @@
                         </div>
                         @endhasrole
                         <div class='form-group mb-4'>
-                                <label for="sector">{{__('Sector')}}</label>
+                                <label for="sector">{{__('companies.sector')}}</label>
                                 <input wire:model="sector" type="text" class="form-control  @error('sector') is-invalid @enderror" required="" name="sector">
                                 @error('sector')
                                 <div class="invalid-feedback">{{$message}}</div>

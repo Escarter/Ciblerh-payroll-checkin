@@ -204,4 +204,15 @@ return [
     // Messages de succès et d'erreur
     'roles_updated_successfully' => 'Rôles mis à jour avec succès!',
     'something_went_wrong' => 'Quelque chose s\'est mal passé: ',
+
+    // Modal de suppression en masse
+    'you_are_about_to_move' => 'Vous êtes sur le point de déplacer',
+    'to_trash_this_action_can_be_undone_later' => 'vers la corbeille, cette action peut être annulée plus tard.',
+    'item' => 'élément',
+    'items' => 'éléments',
+    'you_are_about_to_permanently_delete' => 'Vous êtes sur le point de supprimer définitivement',
+    'you_are_about_to_permanently_delete_this' => 'Vous êtes sur le point de supprimer définitivement cet',
+    'from_the_system' => 'du système.',
+    'warning' => 'Attention:',
+    'related_records_protection' => 'Si cet élément a des enregistrements liés, la suppression sera empêchée pour maintenir l\'intégrité des données.',
 ];

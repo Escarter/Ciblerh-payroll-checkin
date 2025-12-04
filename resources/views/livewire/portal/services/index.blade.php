@@ -18,19 +18,19 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item "><a href="{{route('portal.companies.index')}}" wire:navigate>{{__('Companies')}}</a></li>
-                        <li class="breadcrumb-item "><a href="{{route('portal.departments.index',['company_uuid' => $department->company->uuid])}}" wire:navigate>{{__('Departments')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Services')}}</li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>{{__('dashboard.home')}}</a></li>
+                        <li class="breadcrumb-item "><a href="{{route('portal.companies.index')}}" wire:navigate>{{__('companies.companies_management')}}</a></li>
+                        <li class="breadcrumb-item "><a href="{{route('portal.departments.index',['company_uuid' => $department->company->uuid])}}" wire:navigate>{{__('departments.departments_management')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('services.services')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
-                    {{$department->name}} - {{__('Services')}}
+                    {{$department->name}} - {{__('services.services')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('Manage Services for the')}} {{__('department')}} {{ucfirst($department->name)}}&#x23F0; </p>
+                <p class="mt-n1 mx-2">{{__('services.manage_services_for_department')}} {{__('services.department')}} {{ucfirst($department->name)}}&#x23F0; </p>
             </div>
             <div>
                 <div class="d-flex justify-content-between">
@@ -84,17 +84,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Services')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('services.total_services')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($services_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Services')}}</h2>
+                                    <h2 class="h5">{{__('services.total_services')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($services_count)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ __(\Str::plural(__('employees.service'), $services_count)) }} {{__('in for this department')}}</div>
+                                    <div>{{ __(\Str::plural(__('services.service'), $services_count)) }} {{__('services.in_for_this_department')}}</div>
                                 </div>
                             </div>
                         </div>

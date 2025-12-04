@@ -143,7 +143,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_companies ?? 0)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('companies.company'), $active_companies ?? 0) }} {{__('that are active!')}}</div>
+                                    <div>{{ \Str::plural(__('companies.company'), $active_companies ?? 0) }} {{__('companies.that_are_active')}}</div>
                     </div>
                             </div>
                         </div>
@@ -171,7 +171,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_companies ?? 0)}} </h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('companies.company'), $deleted_companies ?? 0) }} {{__('that are deleted!')}}</div>
+                                    <div>{{ \Str::plural(__('companies.company'), $deleted_companies ?? 0) }} {{__('companies.that_are_deleted')}}</div>
                                 </div>
                     </div>
                     </div>
@@ -276,7 +276,7 @@
                 @can('company-delete')
                 <button wire:click="bulkRestore"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                    title="{{ __('Restore Selected Companies') }}">
+                    title="{{ __('companies.restore_selected_companies') }}">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -286,7 +286,7 @@
 
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Permanently Delete Selected Companies') }}"
+                    title="{{ __('companies.permanently_delete_selected_companies') }}"
                     data-bs-toggle="modal" 
                     data-bs-target="#BulkForceDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -340,7 +340,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <h5 class="fw-bold text-gray-800 mb-0">{{ucwords($company->name)}}</h5>
                                 <span class="badge {{$company->is_active ? 'bg-success' : 'bg-danger'}} px-2 py-1 rounded-pill small">
-                                    {{$company->is_active ? __('common.active') : __('Inactive')}}
+                                    {{$company->is_active ? __('common.active') : __('companies.inactive')}}
                                 </span>
                             </div>
                             @if($company->sector)

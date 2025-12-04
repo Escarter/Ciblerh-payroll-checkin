@@ -19,12 +19,12 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{ __('Dashboard') }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{ __('dashboard.home') }}</a></li>
                         @if(auth()->user()->hasRole('supervisor'))
-                            <li class="breadcrumb-item active" aria-current="page">{{ __('My Departments') }}</li>
+                            <li class="breadcrumb-item active" aria-current="page">{{ __('departments.my_departments') }}</li>
                         @else
-                            <li class="breadcrumb-item"><a href="{{route('portal.companies.index')}}" wire:navigate>{{ __('Companies') }}</a></li>
-                            <li class="breadcrumb-item active">{{ __('Departments') }}</li>
+                            <li class="breadcrumb-item"><a href="{{route('portal.companies.index')}}" wire:navigate>{{ __('companies.companies_management') }}</a></li>
+                            <li class="breadcrumb-item active">{{ __('departments.departments_management') }}</li>
                         @endif
                     </ol>
                 </nav>
@@ -33,12 +33,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                     </svg>
                     @if(auth()->user()->hasRole('supervisor'))
-                        {{__('My Departments')}}
+                        {{__('departments.my_departments')}}
                     @else
-                        {{$company->name}} - {{__('Departments Management')}}
+                        {{$company->name}} - {{__('departments.departments_management')}}
                     @endif
                 </h1>
-                <p class="mt-n1">{{__('Manage departments and their related details')}} &#128524;</p>
+                <p class="mt-n1">{{__('departments.manage_departments_details')}} &#128524;</p>
             </div>
             <div class="d-flex justify-content-between mb-2">
                 @can('department-create')
@@ -52,7 +52,7 @@
                 <a href="#" data-bs-toggle="modal" data-bs-target="#AssignSupModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                    </svg> {{__('Assign Supervisor')}}
+                    </svg> {{__('departments.assign_supervisor')}}
                 </a>
                 @endcan
                 @can('department-import')
@@ -98,17 +98,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Departments')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('departments.total_departments')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($departments_count ?? 0)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Departments')}}</h2>
+                                    <h2 class="h5">{{__('departments.total_departments')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($departments_count ?? 0)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('departments.department'), $departments_count ?? 0) }} {{__('in this company')}}</div>
+                                    <div>{{ \Str::plural(__('departments.department'), $departments_count ?? 0) }} {{__('departments.in_this_company')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -136,7 +136,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_departments ?? 0)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('departments.department'), $active_departments ?? 0) }} {{__('that are active!')}}</div>
+                                    <div>{{ \Str::plural(__('departments.department'), $active_departments ?? 0) }} {{__('departments.that_are_active')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -198,7 +198,7 @@
         </div>
 
         <div class="col-md-2">
-            <label for="perPage">{{__('Per Page')}}: </label>
+            <label for="perPage">{{__('departments.per_page')}}: </label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -243,7 +243,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                {{ $selectAll ? __('Deselect All') : __('Select All') }}
+                {{ $selectAll ? __('departments.deselect_all') : __('departments.select_all') }}
             </button>
             @endif
 

@@ -52,5 +52,8 @@ return [
     'cannot_permanently_delete_services' => 'Impossible de supprimer définitivement les services suivants car ils ont des enregistrements de pointage liés: ',
     'related_records_protection' => 'Si cet élément a des enregistrements liés, la suppression sera empêchée pour maintenir l\'intégrité des données.',
     'manage_services_for_department' => 'Gérer les services pour le',
+    'create_new_service_to_manage' => 'Créer un nouveau service à gérer',
+    'edit_service_details' => 'Modifier les détails du service',
+    'in_for_this_department' => 'pour ce département',
     'new' => 'Nouveau',
 ];

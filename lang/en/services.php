@@ -52,5 +52,8 @@ return [
     'cannot_permanently_delete_services' => 'Cannot permanently delete the following services as they have related tickings records: ',
     'related_records_protection' => 'If this item has related records, the deletion will be prevented to maintain data integrity.',
     'manage_services_for_department' => 'Manage Services for the',
+    'create_new_service_to_manage' => 'Create a new Service to manage',
+    'edit_service_details' => 'Edit Service details',
+    'in_for_this_department' => 'in for this department',
     'new' => 'New',
 ];

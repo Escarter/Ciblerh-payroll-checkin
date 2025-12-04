@@ -204,4 +204,15 @@ return [
     // Success and error messages
     'roles_updated_successfully' => 'Roles updated successfully!',
     'something_went_wrong' => 'Something went wrong: ',
+
+    // Bulk delete modal
+    'you_are_about_to_move' => 'You are about to move',
+    'to_trash_this_action_can_be_undone_later' => 'to trash, this action can be undone later.',
+    'item' => 'item',
+    'items' => 'items',
+    'you_are_about_to_permanently_delete' => 'You are about to permanently delete',
+    'you_are_about_to_permanently_delete_this' => 'You are about to permanently delete this',
+    'from_the_system' => 'from the system.',
+    'warning' => 'Warning:',
+    'related_records_protection' => 'If this item has related records, the deletion will be prevented to maintain data integrity.',
 ];

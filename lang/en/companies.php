@@ -61,4 +61,13 @@ return [
     'in_the_system' => 'in the system',
     'that_are_active' => 'that are active!',
     'that_are_deleted' => 'that are deleted!',
+    'restore_selected_companies' => 'Restore Selected Companies',
+    'permanently_delete_selected_companies' => 'Permanently Delete Selected Companies',
+    'inactive' => 'Inactive',
+    'create_company' => 'Create Company',
+    'create_new_company_to_manage' => 'Create a new company to manage',
+    'edit_company' => 'Edit Company',
+    'edit_company_details' => 'Edit company details',
+    'code' => 'Code',
+    'sector' => 'Sector',
 ];
