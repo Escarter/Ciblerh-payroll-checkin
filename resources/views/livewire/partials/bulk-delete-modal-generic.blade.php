@@ -8,7 +8,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <h1 class="mb-0 h2 fw-bolder">{{__('common.are_you_sure')}}</h1>
-                            <p class="pt-2">{{__('common.you_are_about_to_move')}} <strong>{{ count($selectedItems ?? []) }} {{ $itemType ?? __(\Str::plural('common.item', count($selectedItems ?? []))) }}</strong> {{__('common.to_trash_this_action_can_be_undone_later')}}</p>
+                            <p class="pt-2">{{__('common.you_are_about_to_move')}} <strong>{{ count($selectedItems ?? []) }} {{ $itemType ?? __(\Str::plural('common.item', count($selectedItems ?? []) )) }}</strong> {{__('common.to_trash_this_action_can_be_undone_later') }} &#128522;</p>
                     </div>
                     <div class="d-flex justify-content-center">
                         <button type="button" wire:click="bulkDelete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('common.move_to_trash')}}</button>

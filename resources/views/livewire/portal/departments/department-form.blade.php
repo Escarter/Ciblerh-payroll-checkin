@@ -4,16 +4,16 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{ $isEditMode ? __('Edit Department') : __('Create Department') }}</h1>
-                        <p>{{ $isEditMode ? __('Edit and update department details') : __('Create a new Department to manage') }} &#128522;</p>
+                        <h1 class="mb-0 h4">{{ $isEditMode ? __('departments.edit_department') : __('departments.create_department') }}</h1>
+                        <p>{{ $isEditMode ? __('departments.edit_department_details') : __('departments.create_department_to_manage') }} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="{{ $isEditMode ? 'update' : 'store' }}">
                         <div class="form-group mb-4">
                             <label for="company">{{__('companies.company')}}</label>
                             @if(auth()->user()->hasRole('supervisor'))
-                                <input type="text" class="form-control" value="{{ $isEditMode ? ($department->company->name ?? __('Unknown Company')) : __('Multiple Companies') }}" disabled>
+                                <input type="text" class="form-control" value="{{ $isEditMode ? ($department->company->name ?? __('companies.unknown_company')) : __('departments.multiple_companies') }}" disabled>
                                 @if(!$isEditMode)
-                                <small class="text-muted">{{__('Departments will be created in your assigned companies')}}</small>
+                                <small class="text-muted">{{__('departments.departments_will_be_created_in_assigned_companies')}}</small>
                                 @endif
                             @else
                                 <input type="text" class="form-control  @error('company') is-invalid @enderror" value="{{$company->name}}" disabled>
@@ -22,7 +22,7 @@
                         <div class='form-group mb-4'>
                             <label for="supervisor_id">{{__('common.supervisor')}}</label>
                             <select wire:model="supervisor_id" name="supervisor_id" class="form-select  @error('supervisor_id') is-invalid @enderror">
-                                <option value="">{{__("Select supervisor")}}</option>
+                                <option value="">{{__("departments.select_supervisor")}}</option>
                                 @foreach ($supervisors as $supervisor)
                                 <option value="{{$supervisor->id}}" {{ $isEditMode && $supervisor_id == $supervisor->id ? 'selected' : '' }}>{{$supervisor->name}}</option>
                                 @endforeach

@@ -12,6 +12,8 @@ return [
     'update' => 'Update',
     'edit' => 'Edit',
     'delete' => 'Delete',
+    'deleted' => 'Deleted',
+    'action'=>'Action',
     'cancel' => 'Cancel',
     'save' => 'Save',
     'submit' => 'Submit',
@@ -60,6 +62,14 @@ return [
     'no_data_available' => 'No data available',
     'no_records_found' => 'No records found',
     'all' => 'All',
+
+    // Global search
+    'search_pages_features' => 'Search pages, features...',
+    'type_to_search' => 'Type to search for pages and features',
+    'try_searching_else' => 'Try searching for something else',
+    'navigate' => 'to navigate',
+    'to_select' => 'to select',
+    'to_search' => 'to search',
 
     // Pagination
     'showing' => 'Showing',
@@ -126,7 +136,6 @@ return [
     'delete_forever' => 'Delete Forever',
     'bulk_reject' => 'Bulk Reject',
     'bulk_approve' => 'Bulk Approve',
-    'no_records_found' => 'No Record Found..!',
 
     // Approval actions
     'reject' => 'Reject',
@@ -192,7 +201,6 @@ return [
     'requested_leaves' => 'Requested Leaves',
     'leave_types' => 'Leave Types',
     'reports' => 'Reports',
-    'checkins' => 'Checkins',
     'overtime' => 'Overtime',
     'payslips' => 'Payslips',
     'generate' => 'Generate',
@@ -200,6 +208,35 @@ return [
     'settings' => 'Settings',
     'audit_logs' => 'Audit Logs',
     'support' => 'Support',
+
+    // Global Search Groups
+    'navigation' => 'Navigation',
+    'time_tracking' => 'Time Tracking',
+    'payroll' => 'Payroll',
+    'leave_management' => 'Leave Management',
+    'analytics' => 'Analytics',
+    'administration' => 'Administration',
+
+    // Global Search Descriptions
+    'companies_management' => 'Companies Management',
+    'all_employees' => 'All Employees',
+    'my_departments_desc' => 'My Departments',
+    'checkins_desc' => 'Time Tracking',
+    'overtimes_desc' => 'Overtime Management',
+    'advance_salaries_desc' => 'Advance Salary Requests',
+    'absences_desc' => 'Absence Management',
+    'send_payslips_desc' => 'Send Payslips to Employees',
+    'payslip_history_desc' => 'Payslip History & Records',
+    'leaves_desc' => 'Leave Requests',
+    'leave_types_desc' => 'Leave Type Configuration',
+    'reports_desc' => 'Reports & Analytics',
+    'audit_logs_desc' => 'System Audit Logs',
+    'roles_desc' => 'Role Management',
+    'settings_desc' => 'System Settings',
+
+    // Global Search Shortcuts
+    'fast_nav' => 'fast nav',
+    'home_end' => 'Home/End to first/last',
 
     // Success and error messages
     'roles_updated_successfully' => 'Roles updated successfully!',
@@ -213,6 +250,8 @@ return [
     'you_are_about_to_permanently_delete' => 'You are about to permanently delete',
     'you_are_about_to_permanently_delete_this' => 'You are about to permanently delete this',
     'from_the_system' => 'from the system.',
-    'warning' => 'Warning:',
     'related_records_protection' => 'If this item has related records, the deletion will be prevented to maintain data integrity.',
+    'no_performance_data_found' => 'No performance data found for the selected period.',
+    'opps_nothing_here' => 'Oops! Nothing here',
+    'date_creation' => 'Date Creation',
 ];

@@ -13,6 +13,10 @@ return [
     'payslip_process' => 'Payslip Process',
     'payslip_processes' => 'Payslip Processes',
     'total_processes' => 'Total Processes',
+    'payslips_management' => 'Payslips Management',
+    'send_payslips' => 'Send Payslips',
+    'select_company' => '--Select Company--',
+    'manage_payslips_processes' => 'Create new, update and delete any groups on the platform',
 
     // Payslip actions
     'download_payslip' => 'Download Payslip',
@@ -62,6 +66,7 @@ return [
     'sms_setting_required' => 'Setting for SMS required!',
     'sms_smtp_settings_required' => 'Setting for SMS and SMTP configurations required!!',
     'insufficient_sms_balance_refill' => 'SMS Balance is not enough, Refill SMS to proceed',
+    'file_upload_max_pages' => 'File uploaded needs to have :max pages maximum',
     'file_upload_page_limit' => 'File uploaded needs to have ',
     'file_upload_page_limit_suffix' => ' pages maximum',
     'job_processing_status' => 'Job started to process list and file uploaded check the status on the table!',

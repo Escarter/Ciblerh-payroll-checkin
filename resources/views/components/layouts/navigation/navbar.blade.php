@@ -14,7 +14,7 @@
                 {{-- Language Switcher --}}
                 <div class="d-flex align-items-center text-gray-500 me-2 me-md-3">
                     <a class="btn btn-sm {{ \App::isLocale('fr') ? 'btn-outline-secondary' : 'btn-outline-light' }} rounded-start border-0 px-1 px-md-2"
-                        href="{{route('language-switcher',['locale'=>'fr'])}}" wire:navigate 
+                        href="{{route('language-switcher',['locale'=>'fr'])}}" wire:navigate
                         title="Français">
                         <span class="d-inline d-md-none">🇫🇷</span>
                         <span class="d-none d-md-inline">FR</span>
@@ -26,12 +26,23 @@
                         <span class="d-none d-md-inline">EN</span>
                     </a>
                 </div>
+                {{-- Global Search --}}
+                <button class="btn btn-outline-light btn-sm me-2 px-2 d-none d-md-inline-flex align-items-center"
+                    onclick="Livewire.dispatch('openGlobalSearch')"
+                    title="Search (Ctrl+K)">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span class="d-none d-lg-inline">Search</span>
+                    <kbd class="badge bg-light bg-opacity-25 text-light ms-2 d-none d-xl-inline">⌘K</kbd>
+                </button>
 
                 {{-- Portal Switcher for users with both admin/supervisor/manager AND employee roles --}}
                 @if(auth()->user()->canSwitchPortals())
                 <div class="me-2 me-md-3">
                     <div class="btn-group btn-group-sm" role="group" aria-label="Portal Switcher">
-                        <a href="{{ route('portal.dashboard') }}" 
+                        <a href="{{ route('portal.dashboard') }}"
                             class="btn btn-sm {{ request()->routeIs('portal.*') ? 'btn-secondary' : 'btn-outline-secondary' }} rounded-start px-1 px-md-2"
                             title="Admin Portal">
                             <svg class="icon icon-xs {{ request()->routeIs('portal.*') ? '' : 'me-md-1' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -40,7 +51,7 @@
                             </svg>
                             <span class="d-none d-md-inline">Admin</span>
                         </a>
-                        <a href="{{ route('employee.dashboard') }}" 
+                        <a href="{{ route('employee.dashboard') }}"
                             class="btn btn-sm {{ request()->routeIs('employee.*') ? 'btn-secondary' : 'btn-outline-secondary' }} rounded-end px-1 px-md-2"
                             title="Employee Portal">
                             <svg class="icon icon-xs {{ request()->routeIs('employee.*') ? '' : 'me-md-1' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -52,30 +63,20 @@
                 </div>
                 @endif
 
-                {{-- Global Search --}}
-                <button class="btn btn-outline-light btn-sm me-2 px-2 d-none d-md-inline-flex align-items-center"
-                        onclick="Livewire.dispatch('openGlobalSearch')"
-                        title="Search (Ctrl+K)">
-                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <span class="d-none d-lg-inline">Search</span>
-                    <kbd class="badge bg-light bg-opacity-25 text-light ms-2 d-none d-xl-inline">⌘K</kbd>
-                </button>
+
 
                 {{-- User Actions --}}
                 <div class="d-flex align-items-center">
-                    <a href='{{route("portal.profile-setting")}}' wire:navigate 
-                       class='btn btn-outline-primary btn-sm me-1 me-md-2 px-1 px-md-2'
-                       title="Profile Settings">
+                    <a href='{{route("portal.profile-setting")}}' wire:navigate
+                        class='btn btn-outline-primary btn-sm me-1 me-md-2 px-1 px-md-2'
+                        title="Profile Settings">
                         <svg class="icon icon-xs me-md-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <span class="d-none d-md-inline">Profile</span>
                     </a>
                     <a class="btn btn-outline-danger btn-sm px-1 px-md-2" href="{{route('logout')}}" wire:navigate
-                       title="Logout">
+                        title="Logout">
                         <svg class="icon icon-xs me-md-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>

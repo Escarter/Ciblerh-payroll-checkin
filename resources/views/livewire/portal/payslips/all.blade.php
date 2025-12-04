@@ -1,7 +1,7 @@
 <div>
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => count($selectedJobs) === 1 ? __('payslip process') : __('payslip processes')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => count($selectedJobs) === 1 ? __('payslip process') : __('payslip processes')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => count($selectedJobs) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => count($selectedJobs) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => __('payslip process')])
     <x-alert />
     <div class='py-2 pb-2'>

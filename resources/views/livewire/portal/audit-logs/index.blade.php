@@ -144,8 +144,8 @@
             </div>
         </div>
     </div>
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('audit log') : __('audit logs')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('audit log') : __('audit logs')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('employees.employee') : __('employees.employees')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('employees.employee') : __('employees.employees')])
     
     <!-- Individual Delete Confirmation Modal -->
     <div wire:ignore.self class="modal fade" id="DeleteAuditLogModal" tabindex="-1" role="dialog" aria-labelledby="deleteAuditLogModal" aria-hidden="true">
@@ -165,7 +165,7 @@
                             <strong>{{__('Audit Log Details:')}}</strong><br>
                             <small class="text-muted">
                                 {{__('User')}}: {{$audit_log->user}}<br>
-                                {{__('common.action')}}: {{$audit_log->action_type}}<br>
+                                {{__('common.action')}}: {{$audit_log->translated_action_type}}<br>
                                 {{__('Date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
                             </small>
                         </div>
@@ -199,7 +199,7 @@
                             <strong>{{__('Audit Log Details:')}}</strong><br>
                             <small>
                                 {{__('User')}}: {{$audit_log->user}}<br>
-                                {{__('common.action')}}: {{$audit_log->action_type}}<br>
+                                {{__('common.action')}}: {{$audit_log->translated_action_type}}<br>
                                 {{__('Date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
                             </small>
                         </div>
@@ -384,7 +384,7 @@
                         <td>
                             <div class="d-flex flex-column">
                                 <div class="mb-2">
-                                    <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->action_type}}</span>
+                                    <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->translated_action_type}}</span>
                                 </div>
 
                             </div>
@@ -394,7 +394,7 @@
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                                 </svg>
-                                <span class="fs-normal">{!! $log->action_perform !!}</span>
+                                <span class="fs-normal">{!! $log->translated_action_perform !!}</span>
                             </div>
                             <div class="small text-muted">
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

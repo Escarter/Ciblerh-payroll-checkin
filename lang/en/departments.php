@@ -59,6 +59,7 @@ return [
     'departments_management' => 'Departments Management',
     'manage_departments_details' => 'Manage departments and their related details',
     'assign_supervisor' => 'Assign Supervisor',
+    'for_these_companies' => 'for these companies',
     'in_this_company' => 'in this company',
     'that_are_active' => 'that are active!',
     'per_page' => 'Per Page',

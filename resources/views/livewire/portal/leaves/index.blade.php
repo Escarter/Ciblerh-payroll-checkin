@@ -2,9 +2,9 @@
     @include('livewire.portal.leaves.partials.edit-leave')
     @include('livewire.portal.leaves.partials.bulk-approval')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => count($selectedLeavesForDelete) === 1 ? __('leave record') : __('leave records')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => count($selectedLeavesForDelete) === 1 ? __('leave record') : __('leave records')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => __('leave record')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => count($selectedLeavesForDelete) === 1 ? __('leaves.leave') : __('leaves.leaves')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => count($selectedLeavesForDelete) === 1 ? __('leaves.leave') : __('leaves.leaves')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => __('leaves.leave')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -17,17 +17,17 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Leaves')}}</li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>{{__('dashboard.home')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('leaves.leaves')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    {{__('Leaves Management')}}
+                    {{__('leaves.leaves_management')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('Manage Employees Leaves request!')}} &#x23F0; </p>
+                <p class="mt-n1 mx-2">{{__('leaves.manage_employees_leaves_request')}} &#x23F0; </p>
             </div>
             @can('leave-export')
             <div class="mb-2 mx-3">
@@ -348,7 +348,7 @@
                             </div>
                         </th>
                         <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('Leave Type')}}</th>
+                        <th class="border-bottom">{{__('leaves.leave_type')}}</th>
                         <th class="border-bottom">{{__('Period')}}</th>
                         <th class="border-bottom">{{__('employees.leave_reason')}}</th>
                         <th class="border-bottom">{{__('common.sup_approval')}}</th>

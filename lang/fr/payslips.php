@@ -13,6 +13,10 @@ return [
     'payslip_process' => 'Processus de fiche de paie',
     'payslip_processes' => 'Processus de fiches de paie',
     'total_processes' => 'Total des processus',
+    'payslips_management' => 'Gestion des fiches de paie',
+    'send_payslips' => 'Envoyer les fiches de paie',
+    'select_company' => '--Sélectionner une entreprise--',
+    'manage_payslips_processes' => 'Créer nouveau, mettre à jour et supprimer tout groupe sur la plateforme',
 
     // Payslip actions
     'download_payslip' => 'Télécharger la fiche de paie',
@@ -62,6 +66,7 @@ return [
     'sms_setting_required' => 'Configuration SMS requise!',
     'sms_smtp_settings_required' => 'Configurations SMS et SMTP requises!!',
     'insufficient_sms_balance_refill' => 'Le solde SMS n\'est pas suffisant, rechargez le SMS pour continuer',
+    'file_upload_max_pages' => 'Le fichier téléversé doit avoir :max pages maximum',
     'file_upload_page_limit' => 'Le fichier téléversé doit avoir ',
     'file_upload_page_limit_suffix' => ' pages maximum',
     'job_processing_status' => 'Tâche démarrée pour traiter la liste et vérifier le fichier téléversé sur la table!',

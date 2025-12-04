@@ -2,9 +2,9 @@
     @include('livewire.portal.overtimes.edit-overtime')
     @include('livewire.portal.overtimes.bulk-approval')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => count($selectedOvertimesForDelete) === 1 ? __('overtime record') : __('overtime records')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => count($selectedOvertimesForDelete) === 1 ? __('overtime record') : __('overtime records')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => __('overtime record')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => count($selectedOvertimesForDelete) === 1 ? __('overtime.overtime') : __('overtime.overtimes')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => count($selectedOvertimesForDelete) === 1 ? __('overtime.overtime') : __('overtime.overtimes')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => __('overtime.overtime')])
     <x-alert />
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -18,17 +18,17 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Employees Overtimes')}}</li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>{{__('dashboard.home')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('overtime.employees_overtimes')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    {{__('Employees Overtimes')}}
+                    {{__('overtime.employees_overtimes')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('Manage Employees Overtimes')}} &#x23F0; </p>
+                <p class="mt-n1 mx-2">{{__('overtime.manage_employees_overtimes')}} &#x23F0; </p>
             </div>
             <div>
                 @can('overtime-export')

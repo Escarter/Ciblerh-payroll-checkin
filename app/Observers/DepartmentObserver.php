@@ -18,7 +18,7 @@ class DepartmentObserver
             auth()->user(),
             'department_created',
             'web',
-            __('Created department with name ') . $department->name
+            __('audit_logs.created_entity', ['entity' => 'department', 'name' => $department->name])
         );
     }
 
@@ -34,7 +34,7 @@ class DepartmentObserver
             auth()->user(),
             'department_updated',
             'web',
-            __('Updated department with name ') . $department->name
+            __('audit_logs.updated_entity', ['entity' => 'department', 'name' => $department->name])
         );
     }
 
@@ -50,7 +50,7 @@ class DepartmentObserver
             auth()->user(),
             'department_deleted',
             'web',
-            __('Deleted department with name ') . $department->name
+            __('audit_logs.deleted_entity', ['entity' => 'department', 'name' => $department->name])
         );
     }
 

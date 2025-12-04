@@ -43,19 +43,31 @@ class GlobalSearch extends Component
         $this->selectedIndex = -1;
     }
 
-    public function selectNext()
+    public function selectNext($step = 1)
     {
         if (count($this->results) > 0) {
-            $this->selectedIndex = ($this->selectedIndex + 1) % count($this->results);
+            $this->selectedIndex = min(count($this->results) - 1, $this->selectedIndex + $step);
         }
     }
 
-    public function selectPrevious()
+    public function selectPrevious($step = 1)
     {
         if (count($this->results) > 0) {
-            $this->selectedIndex = $this->selectedIndex <= 0 
-                ? count($this->results) - 1 
-                : $this->selectedIndex - 1;
+            $this->selectedIndex = max(0, $this->selectedIndex - $step);
+        }
+    }
+
+    public function selectFirst()
+    {
+        if (count($this->results) > 0) {
+            $this->selectedIndex = 0;
+        }
+    }
+
+    public function selectLast()
+    {
+        if (count($this->results) > 0) {
+            $this->selectedIndex = count($this->results) - 1;
         }
     }
 

@@ -23,7 +23,7 @@ class UserObserver
             auth()->user(),
             'user_created',
             'web',
-            __('Created user with name ') . $user->name
+            __('audit_logs.created_entity', ['entity' => 'user', 'name' => $user->name])
         );
     }
 
@@ -39,7 +39,7 @@ class UserObserver
             auth()->user(),
             'user_updated',
             'web',
-            __('Updated user with name ') . $user->name
+            __('audit_logs.updated_entity', ['entity' => 'user', 'name' => $user->name])
         );
     }
 
@@ -55,7 +55,7 @@ class UserObserver
             auth()->user(),
             'user_deleted',
             'web',
-            __('Deleted user with name ') . $user->name
+            __('audit_logs.deleted_entity', ['entity' => 'user', 'name' => $user->name])
         );
     }
 

@@ -132,7 +132,7 @@ class Index extends Component
             }
         }
 
-        $this->closeModalAndFlashMessage(__('Setting for SMS successfully added!'),'');
+        $this->closeModalAndFlashMessage(__('settings.setting_for_sms_successfully_added'),'');
         return $this->redirect(route('portal.settings.index'), navigate: true);
 
     }
@@ -169,7 +169,7 @@ class Index extends Component
 
         setSavedSmtpCredentials();
 
-        $this->closeModalAndFlashMessage(__('Setting for SMTP successfully added!'),'');
+        $this->closeModalAndFlashMessage(__('settings.setting_for_smtp_successfully_added'),'');
 
         return $this->redirect(route('portal.settings.index'), navigate: true);
     }
@@ -182,14 +182,14 @@ class Index extends Component
 
         if(empty($setting->smtp_host) && empty($setting->smtp_port))
         {
-            $this->closeModalAndFlashMessage(__('Setting for SMTP required!'), '');
+            $this->closeModalAndFlashMessage(__('settings.setting_for_smtp_required'), '');
         }
 
         setSavedSmtpCredentials();
 
         Mail::to($this->test_email_address)->send(new TestEmail($this->test_email_message));
 
-        $this->closeModalAndFlashMessage(__('Test Email sent successfully!'), '');
+        $this->closeModalAndFlashMessage(__('settings.test_email_sent_successfully'), '');
 
         return $this->redirect(route('portal.settings.index'), navigate: true);
     }
@@ -202,7 +202,7 @@ class Index extends Component
 
         if (!empty($this->setting)) {
             if (empty($setting->sms_provider_username) && empty($setting->sms_provider_password)) {
-                $this->closeModalAndFlashMessage(__('Setting for SMS required!'), '');
+                $this->closeModalAndFlashMessage(__('settings.setting_for_sms_required'), '');
             }
 
             $sms_client = match ($setting->sms_provider) {
@@ -218,9 +218,9 @@ class Index extends Component
             ]);
 
             if ($response['responsecode'] === 1) {
-                $this->closeModalAndFlashMessage(__('Test sms was sent successfully!'), '');
+                $this->closeModalAndFlashMessage(__('settings.test_sms_sent_successfully'), '');
             } else {
-                $this->closeModalAndFlashMessage(__('Test Sms Failed!'), '');
+                $this->closeModalAndFlashMessage(__('settings.test_sms_failed'), '');
             }
         }
 

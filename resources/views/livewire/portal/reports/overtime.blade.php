@@ -11,17 +11,17 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Employees Overtime Reports')}}</li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>{{__('dashboard.home')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('reports.employees_overtime_reports')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
-                    {{__('Employees Overtime Report')}}
+                    {{__('reports.employees_overtime_report')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('Generate weekly employees overtime reports!')}} &#x1F4DD; </p>
+                <p class="mt-n1 mx-2">{{__('reports.generate_weekly_employees_overtime_reports')}} &#x1F4DD; </p>
             </div>
             <div class="mb-2 mx-3">
                 <div class="btn-toolbar " wire:loading.remove>

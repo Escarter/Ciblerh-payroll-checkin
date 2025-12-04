@@ -4,8 +4,8 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Update or Approve Checkin')}}</h1>
-                        <p>{{__('Upate or Approvel Employee chekin record')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('overtime.update_or_approve_overtime')}}</h1>
+                        <p>{{__('overtime.update_or_approve_employee_overtime_record')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="update">
                         <div class="form-group mb-4">

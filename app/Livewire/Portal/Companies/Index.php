@@ -103,7 +103,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Company created successfully!'), 'CompanyModal');
+        $this->closeModalAndFlashMessage(__('companies.company_created_successfully'), 'CompanyModal');
     }
 
     public function update()
@@ -122,7 +122,7 @@ class Index extends Component
             ]);
         });
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Company successfully updated!'), 'CompanyModal');
+        $this->closeModalAndFlashMessage(__('companies.company_updated_successfully'), 'CompanyModal');
     }
 
     public function delete()
@@ -136,7 +136,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Company successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('companies.company_deleted_successfully'), 'DeleteModal');
     }
 
     public function restore($companyId)
@@ -148,7 +148,7 @@ class Index extends Component
         $company = Company::withTrashed()->findOrFail($companyId);
         $company->restore();
 
-        $this->closeModalAndFlashMessage(__('Company successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('companies.company_restored_successfully'), 'RestoreModal');
     }
 
     public function forceDelete($companyId)
@@ -167,13 +167,13 @@ class Index extends Component
                            $company->payslipProcess()->count() > 0;
         
         if ($hasRelatedRecords) {
-            session()->flash('error', __('Cannot permanently delete company. It has related records.'));
+            session()->flash('error', __('companies.cannot_permanently_delete_company'));
             return;
         }
         
         $company->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Company permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('companies.company_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -187,7 +187,7 @@ class Index extends Component
             $this->selectedCompanies = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected companies moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('companies.selected_companies_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -201,7 +201,7 @@ class Index extends Component
             $this->selectedCompanies = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected companies restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('companies.selected_companies_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -228,7 +228,7 @@ class Index extends Component
             
             if (!empty($companiesWithRelatedRecords)) {
                 $companyNames = implode(', ', $companiesWithRelatedRecords);
-                session()->flash('error', __('Cannot permanently delete the following companies as they have related records: ') . $companyNames);
+                session()->flash('error', __('companies.cannot_permanently_delete_companies') . $companyNames);
                 return;
             }
             

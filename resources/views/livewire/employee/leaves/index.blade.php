@@ -79,8 +79,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($approved_leave)}} {{ __(\Str::plural('Leave', $approved_leave)) }} </h5>
-                                    <div class=" text-gray-500 ">{{__('common.approved')}} &#128516;</div>
+                                    <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($approved_leave)}} {{ __(\Str::plural('employees.leave', $approved_leave)) }} </h5>
+                                    <div class=" text-gray-500 ">{{__('employees.approved')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -94,8 +94,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($pending_leave)}} {{ __(\Str::plural('Leave', $pending_leave)) }} </h5>
-                                    <div class=" text-gray-500 ">{{__('common.pending_approval')}} &#128516;</div>
+                                    <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($pending_leave)}} {{ __(\Str::plural('employees.leave', $pending_leave)) }} </h5>
+                                    <div class=" text-gray-500 ">{{__('employees.pending_approval')}} &#128516;</div>
                                 </div>
                             </div>
                         </a>
@@ -109,7 +109,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($rejected_leave)}} {{ __(\Str::plural('Leave', $rejected_leave)) }}</h5>
+                                    <h5 class="text-gray-700 fw-bold mb-0">{{numberFormat($rejected_leave)}} {{ __(\Str::plural('employees.leave', $rejected_leave)) }}</h5>
                                     <div class="text-gray-500 ">{{__('common.rejected')}} &#128560;</div>
                                 </div>
                             </div>

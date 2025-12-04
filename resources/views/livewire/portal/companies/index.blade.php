@@ -21,9 +21,9 @@
     @include('livewire.portal.companies.import-companies')
     @livewire('portal.companies.assign-manager')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedCompanies, 'itemType' => count($selectedCompanies) === 1 ? __('company') : __('companies')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedCompanies, 'itemType' => count($selectedCompanies) === 1 ? __('company') : __('companies')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedCompanies, 'itemType' => __('company')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedCompanies, 'itemType' => count($selectedCompanies) === 1 ? __('companies.company') : __('companies.companies')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedCompanies, 'itemType' => count($selectedCompanies) === 1 ? __('companies.company') : __('companies.companies')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedCompanies, 'itemType' => __('companies.company')])
     <div class='pb-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-0 align-items-center">
             <div class="mb-lg-0">
@@ -133,13 +133,13 @@
                         </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural('Company', $active_companies ?? 0)) }}</h2>
+                                        <h2 class="fw-extrabold h5">{{ __(\Str::plural('companies.company', $active_companies ?? 0)) }}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_companies ?? 0)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural('Company', $active_companies ?? 0)) }}</h2>
+                                    <h2 class="h5">{{ __(\Str::plural('companies.company', $active_companies ?? 0)) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_companies ?? 0)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
@@ -161,13 +161,13 @@
                         </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('companies.company'), $deleted_companies ?? 0) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural('companies.company', $deleted_companies ?? 0)) }}</h2>
                                     <h3 class="mb-1">{{numberFormat($deleted_companies ?? 0)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('companies.company'), $deleted_companies ?? 0) }}</h2>
+                                    <h2 class="h5">{{ __(\Str::plural('companies.company', $deleted_companies ?? 0)) }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_companies ?? 0)}} </h3>
                                 </a>
                                 <div class="small d-flex mt-1">
@@ -390,7 +390,7 @@
                             <div class="col-3">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-warning">{{numberFormat(count($company->services)) }}</div>
-                                    <div class="small text-gray-600">{{__('Services')}}</div>
+                                    <div class="small text-gray-600">{{__('companies.services')}}</div>
                                 </div>
                             </div>
                         </div>

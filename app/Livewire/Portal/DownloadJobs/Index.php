@@ -199,16 +199,16 @@ class Index extends Component
         $job = DownloadJob::findOrFail($jobId);
 
         if (!$job->canBeCancelled()) {
-            session()->flash('error', __('Job cannot be cancelled in its current status.'));
+            session()->flash('error', __('download_jobs.job_cannot_be_cancelled'));
             return;
         }
 
         try {
             $job->update(['status' => DownloadJob::STATUS_CANCELLED]);
-            session()->flash('message', __('Job cancelled successfully.'));
+            session()->flash('message', __('download_jobs.job_cancelled_successfully'));
             $this->loadStats();
         } catch (\Exception $e) {
-            session()->flash('error', __('Unable to cancel job. Please try again.'));
+            session()->flash('error', __('download_jobs.unable_to_cancel_job'));
         }
     }
 
@@ -217,7 +217,7 @@ class Index extends Component
         $job = DownloadJob::findOrFail($jobId);
 
         if (!$job->canBeDeleted()) {
-            session()->flash('error', __('Report cannot be deleted in its current status.'));
+            session()->flash('error', __('download_jobs.report_cannot_be_deleted'));
             return;
         }
 
@@ -228,7 +228,7 @@ class Index extends Component
     public function delete()
     {
         if (!$this->jobToDelete) {
-            session()->flash('error', __('Report not found.'));
+            session()->flash('error', __('download_jobs.report_not_found'));
             return;
         }
 
@@ -239,10 +239,10 @@ class Index extends Component
             }
 
             $this->jobToDelete->delete();
-            session()->flash('message', __('Report deleted successfully.'));
+            session()->flash('message', __('download_jobs.report_deleted_successfully'));
             $this->loadStats();
         } catch (\Exception $e) {
-            session()->flash('error', __('Unable to delete report. Please try again.'));
+            session()->flash('error', __('download_jobs.unable_to_delete_report'));
         } finally {
             $this->showDeleteModal = false;
             $this->jobToDelete = null;
@@ -261,7 +261,7 @@ class Index extends Component
     public function bulkCancel()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('Please select jobs to cancel.'));
+            session()->flash('error', __('download_jobs.please_select_jobs_to_cancel'));
             return;
         }
 
@@ -280,7 +280,7 @@ class Index extends Component
             }
         }
 
-        session()->flash('message', __(':count jobs cancelled successfully.', ['count' => $cancelled]));
+        session()->flash('message', __('download_jobs.jobs_cancelled_successfully', ['count' => $cancelled]));
         $this->reset(['selectedJobs', 'selectAll']);
         $this->loadStats();
     }
@@ -288,7 +288,7 @@ class Index extends Component
     public function confirmBulkDelete()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('Please select reports to delete.'));
+            session()->flash('error', __('download_jobs.please_select_reports_to_delete'));
             return;
         }
 
@@ -298,7 +298,7 @@ class Index extends Component
     public function bulkDelete()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('Please select reports to delete.'));
+            session()->flash('error', __('download_jobs.please_select_reports_to_delete'));
             return;
         }
 
@@ -321,7 +321,7 @@ class Index extends Component
             }
         }
 
-        session()->flash('message', __(':count reports deleted successfully.', ['count' => $deleted]));
+        session()->flash('message', __('download_jobs.reports_deleted_successfully', ['count' => $deleted]));
         $this->reset(['selectedJobs', 'selectAll']);
         $this->showBulkDeleteModal = false;
         $this->loadStats();
@@ -339,7 +339,7 @@ class Index extends Component
     public function refreshJobs()
     {
         $this->loadStats();
-        session()->flash('message', __('Jobs refreshed successfully.'));
+        session()->flash('message', __('download_jobs.jobs_refreshed_successfully'));
     }
 
     public function getAvailableJobTypes()
@@ -426,10 +426,10 @@ class Index extends Component
             // Refresh stats
             $this->loadStats();
 
-            session()->flash('message', __('Report generation started successfully! You will be notified when it\'s ready.'));
+            session()->flash('message', __('download_jobs.report_generation_started'));
         } catch (\Exception $e) {
             logger('Error in generateNewReport:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            session()->flash('error', __('Error starting report generation: ') . $e->getMessage());
+            session()->flash('error', __('download_jobs.error_starting_report_generation') . $e->getMessage());
         }
     }
 

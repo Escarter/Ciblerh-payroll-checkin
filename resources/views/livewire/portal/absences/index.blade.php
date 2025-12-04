@@ -2,8 +2,8 @@
     @include('livewire.portal.absences.edit-absence')
     @include('livewire.portal.absences.bulk-approval')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => count($selectedAbsencesForDelete) === 1 ? __('absence record') : __('absence records')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => count($selectedAbsencesForDelete) === 1 ? __('absence record') : __('absence records')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => count($selectedAbsencesForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => count($selectedAbsencesForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => __('absence record')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">

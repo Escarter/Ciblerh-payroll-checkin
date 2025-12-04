@@ -2,9 +2,9 @@
     @include('livewire.portal.roles.create-role')
     @include('livewire.portal.roles.edit-role')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => count($selectedRoles) === 1 ? __('role') : __('roles')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => count($selectedRoles) === 1 ? __('role') : __('roles')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => __('role')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => count($selectedRoles) === 1 ? __('roles.role') : __('roles.roles')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => count($selectedRoles) === 1 ? __('roles.role') : __('roles.roles')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => __('roles.role')])
     <x-alert />
     <div class='pb-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-0 align-items-center">
@@ -18,17 +18,17 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="">{{ __('Home') }}</a></li>
-                        <li class="breadcrumb-item active"><a href="">{{ __('Roles Management') }}</a></li>
+                        <li class="breadcrumb-item"><a href="">{{ __('dashboard.home') }}</a></li>
+                        <li class="breadcrumb-item active"><a href="">{{ __('roles.roles_management') }}</a></li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    {{__('Roles Management')}}
+                    {{__('roles.roles_management')}}
                 </h1>
-                <p class="mt-n2">{{__('Manage all permissions and roles')}}</p>
+                <p class="mt-n2">{{__('roles.manage_all_permissions_and_roles')}}</p>
             </div>
             <div class="d-flex justify-content-between mb-2">
                 @can('role-create')
@@ -62,10 +62,10 @@
         <div class='pb-4'>
             <div class="row">
                 <div class="col-md-3">
-                    <label for="orderBy">{{__('Trier par')}}: </label>
+                    <label for="orderBy">{{__('common.order_by')}}: </label>
                     <select wire:model="orderBy" id="orderBy" class="form-select">
                         <option value="name">{{__('common.name')}}</option>
-                        <option value="created_at">{{__('Date Creation')}}</option>
+                        <option value="created_at">{{__('common.date_creation')}}</option>
                     </select>
                 </div>
 

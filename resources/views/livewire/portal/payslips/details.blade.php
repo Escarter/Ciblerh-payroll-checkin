@@ -1,8 +1,8 @@
 <div>
     @include('livewire.portal.payslips.partials.resend-payslip')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslip') : __('payslips')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslip') : __('payslips')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => __('payslip')])
     
     <!-- Bulk Resend Failed Modal -->

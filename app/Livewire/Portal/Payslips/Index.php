@@ -49,13 +49,13 @@ class Index extends Component
                 auth()->user(),
                 'delete_payslip_process',
                 'web',
-                __('Delete Payslip process for ') . $process->month . "-" . $process->year . " @ " . now()
+                __('payslips.delete_payslip_process') . $process->month . "-" . $process->year . " @ " . now()
             );
             $process->payslips()->delete(); // Soft delete related payslips
             $process->delete(); // Soft delete the process
         }
         $this->reset(['send_payslip_process']);
-        $this->closeModalAndFlashMessage(__('Payslip Process successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_process_moved_to_trash'), 'DeleteModal');
     }
 
     public function restore($processId)
@@ -67,7 +67,7 @@ class Index extends Component
         $process = SendPayslipProcess::withTrashed()->findOrFail($processId);
         $process->restore();
 
-        $this->closeModalAndFlashMessage(__('Payslip Process successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_process_restored'), 'RestoreModal');
     }
 
     public function forceDelete($processId)
@@ -80,7 +80,7 @@ class Index extends Component
         $process->payslips()->forceDelete(); // Force delete related payslips
         $process->forceDelete(); // Force delete the process
 
-        $this->closeModalAndFlashMessage(__('Payslip Process permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_process_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -98,7 +98,7 @@ class Index extends Component
             $this->selectedSendPayslipProcesses = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected payslip processes moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.selected_payslip_processes_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -112,7 +112,7 @@ class Index extends Component
             $this->selectedSendPayslipProcesses = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected payslip processes restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('payslips.selected_payslip_processes_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -130,7 +130,7 @@ class Index extends Component
             $this->selectedSendPayslipProcesses = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected payslip processes permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.selected_payslip_processes_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)
@@ -230,17 +230,17 @@ class Index extends Component
           
 
             if (empty($setting->smtp_host) && empty($setting->smtp_port)) {
-                session()->flash('error', __('Setting for SMTP required!!'));
+                session()->flash('error', __('payslips.smtp_setting_required'));
                 return;
             }
 
             if (empty($setting->sms_provider_username) && empty($setting->sms_provider_password)) {
-                session()->flash('error', __('Setting for SMS required!'));
+                session()->flash('error', __('payslips.sms_setting_required'));
                 return;
             }
 
         }else{
-            session()->flash('error', __('Setting for SMS and SMTP configurations required!!'));
+            session()->flash('error', __('payslips.sms_smtp_settings_required'));
             return;
         }
 
@@ -252,7 +252,7 @@ class Index extends Component
         };
 
         if ($sms_client->getBalance()['credit'] === 0) {
-            session()->flash('error', __('SMS Balance is not enough, Refill SMS to proceed'));
+            session()->flash('error', __('payslips.insufficient_sms_balance_refill'));
             return;
         }
         
@@ -270,7 +270,7 @@ class Index extends Component
 
 
         if (countPages(Storage::disk('raw')->path($raw_file_path)) > config('ciblerh.max_payslip_pages')) {
-            session()->flash('error',__('File uploaded needs to have ' . config('ciblerh.max_payslip_pages') . ' pages maximum'));
+            session()->flash('error', __('payslips.file_upload_max_pages', ['max' => config('ciblerh.max_payslip_pages')]));
             return $this->redirect(route('portal.payslips.index'), navigate: true);
         }
 
@@ -303,7 +303,7 @@ class Index extends Component
             'User <a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> initiated the sending of payslip to department <strong>' . $choosen_department->name . '</strong> for the month of ' . $this->month . ' - ' . now()->year . '<a href="/portal/payslips/history"> Go to Playslips details</a>'
         );
 
-        session()->flash('message', __('Job started to process list and file uploaded check the status on the table!'));
+        session()->flash('message', __('payslips.job_processing_status'));
         return $this->redirect(route('portal.payslips.index'), navigate: true);
     }
 

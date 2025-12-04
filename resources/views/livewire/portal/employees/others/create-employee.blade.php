@@ -4,12 +4,12 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-5">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Create a new Employee')}}</h1>
+                        <h1 class="mb-0 h4">{{__('employees.create_new_employee')}}</h1>
                         <p>
                             @if(auth()->user()->hasRole('supervisor'))
-                                {{__('Create a new employee in your department')}} &#128522;
+                                {{__('employees.create_new_employee_in_department')}} &#128522;
                             @else
-                                {{__('Create a new employee for')}} - {{$company->name ?? '' }} &#128522;
+                                {{__('employees.create_new_employee_for')}} - {{$company->name ?? '' }} &#128522;
                             @endif
                         </p>
                     </div>
@@ -19,7 +19,7 @@
                             <div class='col-md-6 col-xs-12'>
                                 <label for="company">{{__('companies.company')}}</label>
                                 @if(auth()->user()->hasRole('supervisor'))
-                                    <input type="text" class="form-control" value="{{__('Department Company')}}" disabled>
+                                    <input type="text" class="form-control" value="{{__('employees.department_company')}}" disabled>
                                 @else
                                     <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? ''}}" disabled>
                                 @endif
@@ -27,7 +27,7 @@
                             <div class='col-md-6 col-xs-12'>
                                 <label for="department">{{__('departments.department')}}</label>
                                 <select wire:model.live="department_id" class="form-select  @error('department_id') is-invalid @enderror">
-                                    <option value="">{{__("Select department")}}</option>
+                                    <option value="">{{__("employees.select_department")}}</option>
                                     @foreach ($departments as $department)
                                     <option value="{{$department->id}}">{{$department->name}}</option>
                                     @endforeach

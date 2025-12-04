@@ -54,4 +54,8 @@ return [
     'work_start_time' => 'Heure de début du travail',
     'work_end_time' => 'Heure de fin du travail',
     'rejected_overtimes' => 'Heures supplémentaires rejetées',
+    'employees_overtimes' => 'Heures supplémentaires des employés',
+    'manage_employees_overtimes' => 'Gérer les heures supplémentaires des employés',
+    'update_or_approve_overtime' => 'Mettre à jour ou approuver les heures supplémentaires',
+    'update_or_approve_employee_overtime_record' => 'Mettre à jour ou approuver l\'enregistrement des heures supplémentaires de l\'employé',
 ];

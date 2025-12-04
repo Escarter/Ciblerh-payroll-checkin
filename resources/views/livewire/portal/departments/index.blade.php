@@ -4,9 +4,9 @@
     @include('livewire.portal.departments.import-departments')
     @include('livewire.portal.departments.assign-supervisor')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedDepartments, 'itemType' => count($selectedDepartments) === 1 ? __('department') : __('departments')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedDepartments, 'itemType' => count($selectedDepartments) === 1 ? __('department') : __('departments')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedDepartments, 'itemType' => __('department')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedDepartments, 'itemType' => count($selectedDepartments) === 1 ? __('departments.department') : __('departments.departments')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedDepartments, 'itemType' => count($selectedDepartments) === 1 ? __('departments.department') : __('departments.departments')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedDepartments, 'itemType' => __('departments.department')])
     <div class='pb-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-0 align-items-center">
             <div class="mb-lg-0">

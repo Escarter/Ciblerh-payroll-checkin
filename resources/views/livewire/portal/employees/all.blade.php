@@ -4,9 +4,9 @@
     @include('livewire.portal.employees.manager.edit-manager')
     @include('livewire.portal.employees.others.import-employees')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employee') : __('employees')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employee') : __('employees')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employee')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employees.employee')])
     @livewire('portal.employees.partial.user-roles')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -21,17 +21,17 @@
                             </a>
                         </li>
                         <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item "><a href="{{route('portal.companies.index')}}" wire:navigate>{{__('Companies')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Employees')}}</li>
+                        <li class="breadcrumb-item "><a href="{{route('portal.companies.index')}}" wire:navigate>{{__('companies.companies_management')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('employees.employees')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
-                    {{__('All Employees')}}
+                    {{__('employees.all_employees')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('All employess under my supervision')}}&#x23F0; </p>
+                <p class="mt-n1 mx-2">{{__('employees.all_employees_under_my_supervision')}} &#x23F0; </p>
             </div>
 
             <div class="d-flex justify-content-between mb-2">
@@ -40,7 +40,7 @@
                 <a href="#" data-bs-toggle="modal" data-bs-target="#CreateManagerModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('New Manager')}}
+                    </svg> {{__('employees.create_manager')}}
                 </a>
                 @endhasrole
                 @endcan
@@ -88,17 +88,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Employees')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('employees.total_employees')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($employees_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Employees')}}</h2>
+                                    <h2 class="h5">{{__('employees.total_employees')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($employees_count)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.employee'), $employees_count) }} {{__('recorded by manager')}}</div>
+                                    <div>{{ \Str::plural(__('employees.employee'), $employees_count) }} {{__('employees.recorded_by_manager')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -126,7 +126,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_employees)}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.employee'), $active_employees) }} {{__('who are active!')}}</div>
+                                    <div>{{ \Str::plural(__('employees.employee'), $active_employees) }} {{__('employees.who_are_active')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -154,7 +154,7 @@
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($banned_employees)}} </h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.employee'), $banned_employees) }} {{__('who are banned!')}}</div>
+                                    <div>{{ \Str::plural(__('employees.employee'), $banned_employees) }} {{__('employees.who_are_banned')}}</div>
                                 </div>
                             </div>
                         </div>

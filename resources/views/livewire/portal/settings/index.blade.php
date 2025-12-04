@@ -6,7 +6,7 @@
             <div class="col-lg-7">
                 <div class="mb-5 card shadow-md card-raised">
                     <div class="py-4 px-5 card-body">
-                        <div class="card-title h5 ">{{__('SMS Package Configuration')}} </div>
+                        <div class="card-title h5 ">{{__('settings.sms_package_configuration')}} </div>
                         <x-form-items.form wire:submit="saveSmsConfig">
                             <div class='form-group row mb-4'>
                                 <div class='col'>
@@ -34,7 +34,7 @@
                                 </div>
                             </div>
 
-                            <div class="card-title h5 pt-3 ">{{__('Payslip SMS Message config')}} </div>
+                            <div class="card-title h5 pt-3 ">{{__('settings.payslip_sms_message_config')}} </div>
                             <hr>
                             <div class="form-group mb-2">
                                 <label for="sms_content_en">{{ __('Enter sms Content English') }}</label>
@@ -48,7 +48,7 @@
                                 {{__('Do not remove or change the values of')}} <strong class="fw-bolder"> :name: , :month: , :year: , :pdf_password: </strong>,{{__(' as these are used as placeholders')}}
                             </div>
 
-                            <div class="card-title h5 pt-3">{{__('Birthday SMS Message config')}} </div>
+                            <div class="card-title h5 pt-3">{{__('settings.birthday_sms_message_config')}} </div>
                             <hr>
                             <div class="form-group mb-2">
                                 <label for="birthday_sms_message_en">{{ __('Enter birthday sms English') }}</label>
@@ -64,7 +64,7 @@
 
                             <div class="mt-4 mb-0 form-group d-flex justify-content-end">
                                 <button type="submit" wire:click.prevent="saveSmsConfig" class="btn btn-primary" wire:loading.attr="disabled">
-                                    {{ __('Save SMS Config') }}
+                                    {{ __('settings.save_sms_config') }}
                                 </button>
                             </div>
 
@@ -80,11 +80,11 @@
                             <p class='display-3'>
                                 {{ $sms_balance }}
                             </p>
-                            <div class="card-title">{{__('SMS Balance')}}</div>
+                            <div class="card-title">{{__('settings.sms_balance')}}</div>
                             <div class="mb-2 text-muted text-xs">{{__('You can check the detail of SMS sent on sms management section')}}.</div>
                         </div>
                         <div class="card card-body mt-3">
-                            <div class="card-title h5 ">{{__('Test SMS configuration')}} </div>
+                            <div class="card-title h5 ">{{__('settings.test_sms_configuration')}} </div>
                             <x-form-items.form wire:submit="sendTestSms">
 
                                 <div class="form-group mb-2">
@@ -111,7 +111,7 @@
                     <div class='col-md-7'>
                         <div class="mb-5 card card-raised">
                             <div class="py-4 px-5 card-body">
-                                <div class="card-title h5 ">{{__('SMTP Configuration')}} </div>
+                                <div class="card-title h5 ">{{__('settings.smtp_configuration')}} </div>
                                 <x-form-items.form wire:submit="saveSmtpConfig">
                                     <div class='form-group mb-2'>
                                         <label for='smtp_provider'>{{__('SMTP Provider')}}</label>

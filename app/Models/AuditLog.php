@@ -73,6 +73,73 @@ class AuditLog extends Model
         
         return $styles[$action] ?? 'secondary'; // Default fallback
     }
+    public function getTranslatedActionTypeAttribute()
+    {
+        $translated = __('audit_logs.' . $this->action_type);
+        return $translated !== 'audit_logs.' . $this->action_type ? $translated : $this->action_type;
+    }
+
+    public function getTranslatedActionPerformAttribute()
+    {
+        // For new entries that use translation keys
+        if (str_starts_with($this->action_perform, 'audit_logs.')) {
+            return __('audit_logs.' . str_replace('audit_logs.', '', $this->action_perform));
+        }
+
+        // Try to match and translate common patterns in existing entries
+        $actionPerform = $this->action_perform;
+
+        // Login patterns
+        if (preg_match('/Successfully logged in from ip ([0-9.]+)/i', $actionPerform, $matches)) {
+            return __('audit_logs.login_successful', ['ip' => $matches[1]]);
+        }
+        if (preg_match('/Successfully logged out from ip ([0-9.]+)/i', $actionPerform, $matches)) {
+            return __('audit_logs.logout_successful', ['ip' => $matches[1]]);
+        }
+        if (preg_match('/Tried to log in from ip ([0-9.]+) but contract has expired!/i', $actionPerform, $matches)) {
+            return __('audit_logs.login_contract_expired', ['ip' => $matches[1]]);
+        }
+        if (preg_match('/Tried to log in from ip ([0-9.]+)but account is banned!/i', $actionPerform, $matches)) {
+            return __('audit_logs.login_account_banned', ['ip' => $matches[1]]);
+        }
+
+        // CRUD patterns
+        if (preg_match('/Created ([a-zA-Z_]+) with name (.+)/i', $actionPerform, $matches)) {
+            return __('audit_logs.created_entity', ['entity' => $matches[1], 'name' => $matches[2]]);
+        }
+        if (preg_match('/Updated ([a-zA-Z_]+) with name (.+)/i', $actionPerform, $matches)) {
+            return __('audit_logs.updated_entity', ['entity' => $matches[1], 'name' => $matches[2]]);
+        }
+        if (preg_match('/Deleted ([a-zA-Z_]+) with name (.+)/i', $actionPerform, $matches)) {
+            return __('audit_logs.deleted_entity', ['entity' => $matches[1], 'name' => $matches[2]]);
+        }
+
+        // Import patterns
+        if (preg_match('/Imported excel file for ([a-zA-Z_]+) for ([a-zA-Z_]+) (.+)/i', $actionPerform, $matches)) {
+            $entity = $matches[1];
+            $parentType = $matches[2];
+            $parentName = $matches[3];
+            if ($parentType === 'company') {
+                return __('audit_logs.imported_entities_for_company', ['entities' => $entity, 'company' => $parentName]);
+            } elseif ($parentType === 'department') {
+                return __('audit_logs.imported_entities_for_department', ['entities' => $entity, 'department' => $parentName]);
+            }
+        }
+        if (preg_match('/Exported excel file for ([a-zA-Z_]+) for ([a-zA-Z_]+) (.+)/i', $actionPerform, $matches)) {
+            $entity = $matches[1];
+            $parentType = $matches[2];
+            $parentName = $matches[3];
+            if ($parentType === 'company') {
+                return __('audit_logs.exported_entities_for_company', ['entities' => $entity, 'company' => $parentName]);
+            } elseif ($parentType === 'department') {
+                return __('audit_logs.exported_entities_for_department', ['entities' => $entity, 'department' => $parentName]);
+            }
+        }
+
+        // Return original text if no pattern matches
+        return $actionPerform;
+    }
+
     public static function search($query)
     {
         return empty($query) ?

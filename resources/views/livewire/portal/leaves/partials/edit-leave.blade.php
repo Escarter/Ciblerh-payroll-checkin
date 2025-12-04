@@ -4,8 +4,8 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Update or Approve Leave')}}</h1>
-                        <p>{{__('Upate or Approvel Employee Leave record')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('leaves.update_or_approve_leave')}}</h1>
+                        <p>{{__('leaves.update_or_approve_employee_leave_record')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="update">
                         <div class='row form-group mb-4'>
@@ -17,7 +17,7 @@
                                 @enderror
                             </div>
                             <div class="col">
-                                <label for="user">{{__('Leave type')}}</label>
+                                <label for="user">{{__('leaves.leave_type')}}</label>
                                 <input wire:model="leave_type" type="text" class="form-control  @error('leave_type') is-invalid @enderror " required="" name="leave_type" disabled>
                                 @error('leave_type')
                                 <div class="invalid-feedback">{{$message}}</div>

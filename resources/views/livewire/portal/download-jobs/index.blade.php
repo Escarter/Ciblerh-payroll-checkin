@@ -5,20 +5,20 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h4 mb-1">{{__('common.generate')}}</h1>
-            <p class="text-muted mb-0">{{__('Generate and manage all your reports')}}</p>
+            <p class="text-muted mb-0">{{__('download_jobs.manage_download_jobs')}}</p>
         </div>
         <div class="d-flex gap-2">
             <button wire:click="refreshJobs" class="btn btn-outline-secondary">
                 <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
-                {{__('Refresh')}}
+                {{__('download_jobs.refresh')}}
             </button>
             <button wire:click="openCreateModal" class="btn btn-primary">
                 <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                {{__('Generate New Report')}}
+                {{__('reports.generate_new_report')}}
             </button>
         </div>
     </div>
@@ -37,17 +37,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Active Reports')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('reports.active_reports')}}</h2>
                                     <h3 class="mb-1">{{$stats['pending'] + $stats['processing']}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Active Reports')}}</h2>
+                                    <h2 class="h5">{{__('reports.active_reports')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{$stats['pending'] + $stats['processing']}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{$stats['pending']}} {{__('pending')}}, {{$stats['processing']}} {{__('processing')}}</div>
+                                    <div>{{$stats['pending']}} {{__('common.pending')}}, {{$stats['processing']}} {{__('download_jobs.processing')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -65,17 +65,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Completed')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('download_jobs.completed')}}</h2>
                                     <h3 class="mb-1">{{$stats['completed']}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Completed')}}</h2>
+                                    <h2 class="h5">{{__('download_jobs.completed')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{$stats['completed']}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{round(($stats['completed'] / max($stats['total'], 1)) * 100, 1)}}% {{__('success rate')}}</div>
+                                    <div>{{round(($stats['completed'] / max($stats['total'], 1)) * 100, 1)}}% {{__('download_jobs.success_rate')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -103,7 +103,7 @@
                                     <h3 class="fw-extrabold mb-1">{{$stats['failed']}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{round(($stats['failed'] / max($stats['total'], 1)) * 100, 1)}}% {{__('failure rate')}}</div>
+                                    <div>{{round(($stats['failed'] / max($stats['total'], 1)) * 100, 1)}}% {{__('download_jobs.failure_rate')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -121,17 +121,17 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Reports')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('download_jobs.total_reports')}}</h2>
                                     <h3 class="mb-1">{{$stats['total']}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Reports')}}</h2>
+                                    <h2 class="h5">{{__('download_jobs.total_reports')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{$stats['total']}}</h3>
                                 </a>
                                 <div class="small d-flex mt-1">
-                                    <div>{{__('All time')}}</div>
+                                    <div>{{__('download_jobs.all_time')}}</div>
                                 </div>
                             </div>
                         </div>
@@ -145,9 +145,9 @@
     <div class="card mb-4">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">{{__('Filters & Search')}}</h6>
+                <h6 class="mb-0">{{__('download_jobs.filters_and_search')}}</h6>
                 <button wire:click="clearFilters" class="btn btn-sm btn-outline-secondary">
-                    <i class="fas fa-times"></i> {{__('Clear All')}}
+                    <i class="fas fa-times"></i> {{__('download_jobs.clear_all')}}
                 </button>
             </div>
         </div>
@@ -156,7 +156,7 @@
                 <div class="col-md-3">
                     <label class="form-label">{{__('Report Type')}}</label>
                     <select wire:model.live="jobTypeFilter" class="form-select">
-                        <option value="">{{__('All Report Types')}}</option>
+                        <option value="">{{__('download_jobs.all_report_types')}}</option>
                         @foreach($availableJobTypes as $type => $label)
                         <option value="{{$type}}">{{$label}}</option>
                         @endforeach
@@ -167,18 +167,18 @@
                     <select wire:model.live="statusFilter" class="form-select">
                         <option value="">{{__('All Statuses')}}</option>
                         <option value="pending">{{__('common.pending')}}</option>
-                        <option value="processing">{{__('Processing')}}</option>
-                        <option value="completed">{{__('Completed')}}</option>
+                        <option value="processing">{{__('download_jobs.processing')}}</option>
+                        <option value="completed">{{__('download_jobs.completed')}}</option>
                         <option value="failed">{{__('common.failed')}}</option>
-                        <option value="cancelled">{{__('Cancelled')}}</option>
+                        <option value="cancelled">{{__('download_jobs.cancelled')}}</option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">{{__('Date From')}}</label>
+                    <label class="form-label">{{__('download_jobs.date_from')}}</label>
                     <input wire:model.live="dateFrom" type="date" class="form-control">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">{{__('Date To')}}</label>
+                    <label class="form-label">{{__('download_jobs.date_to')}}</label>
                     <input wire:model.live="dateTo" type="date" class="form-control">
                 </div>
                 <div class="col-md-2">
@@ -225,7 +225,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
                 </svg>
-                {{__('All Reports')}}
+                {{__('download_jobs.all_reports')}}
                 <span class="badge {{$activeTab === 'all' ? 'bg-light text-white' : 'bg-secondary text-white'}} ms-1">{{$this->allJobsCount}}</span>
             </button>
         </div>
@@ -233,12 +233,12 @@
         <!-- Bulk Actions -->
         @if(count($selectedJobs) > 0)
         <div class="d-flex gap-2 align-items-center">
-            <span class="badge bg-primary">{{count($selectedJobs)}} {{__('selected')}}</span>
+                            <span class="badge bg-primary">{{count($selectedJobs)}} {{__('download_jobs.selected')}}</span>
             <button wire:click="bulkCancel" class="btn btn-sm btn-warning">
                 <i class="fas fa-times"></i> {{__('common.cancel')}}
             </button>
             <button wire:click="confirmBulkDelete" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#BulkDeleteModal">
-                <i class="fas fa-trash"></i> {{__('Delete')}}
+                <i class="fas fa-trash"></i> {{__('common.delete')}}
             </button>
         </div>
         @endif
@@ -256,14 +256,14 @@
                                     <input class="form-check-input" type="checkbox" wire:model="selectAll">
                                 </div>
                             </th>
-                            <th class="border-0">{{__('Report ID')}}</th>
-                            <th class="border-0">{{__('Type')}}</th>
+                            <th class="border-0">{{__('download_jobs.report_id')}}</th>
+                            <th class="border-0">{{__('download_jobs.type')}}</th>
                             <th class="border-0">{{__('common.status')}}</th>
-                            <th class="border-0">{{__('Progress')}}</th>
-                            <th class="border-0">{{__('Created')}}</th>
-                            <th class="border-0">{{__('Duration')}}</th>
-                            <th class="border-0">{{__('File')}}</th>
-                            <th class="border-0">{{__('Actions')}}</th>
+                            <th class="border-0">{{__('download_jobs.progress')}}</th>
+                            <th class="border-0">{{__('download_jobs.created')}}</th>
+                            <th class="border-0">{{__('download_jobs.duration')}}</th>
+                            <th class="border-0">{{__('download_jobs.file')}}</th>
+                            <th class="border-0">{{__('download_jobs.actions')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -356,7 +356,7 @@
                             <td>
                                 <div class="d-flex gap-2">
                                     @if($job->canBeDownloaded())
-                                    <a href="#" wire:click="downloadFile({{$job->id}})" class="text-success" title="{{__('Download')}}">
+                                    <a href="#" wire:click="downloadFile({{$job->id}})" class="text-success" title="{{__('download_jobs.download')}}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
@@ -370,7 +370,7 @@
                                         </svg>
                                     </a>
                                     @endif
-                                    <a href="#" wire:click="viewJobDetails({{$job->id}})" class="text-primary" title="{{__('Details')}}">
+                                    <a href="#" wire:click="viewJobDetails({{$job->id}})" class="text-primary" title="{{__('download_jobs.details')}}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -378,7 +378,7 @@
                                     </a>
 
                                     @if($job->canBeDeleted())
-                                    <a href="#" wire:click="confirmDeleteJob({{$job->id}})" class="text-danger" title="{{__('Delete')}}" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                                    <a href="#" wire:click="confirmDeleteJob({{$job->id}})" class="text-danger" title="{{__('common.delete')}}" data-bs-toggle="modal" data-bs-target="#DeleteModal">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
@@ -395,13 +395,13 @@
                                 <div class="mb-3">
                                     <i class="fas fa-chart-line fa-3x text-muted opacity-50"></i>
                                 </div>
-                                <h5 class="text-muted">{{__('No reports found')}}</h5>
-                                <p class="text-muted">{{__('Your generated reports will appear here')}}</p>
+                                <h5 class="text-muted">{{__('download_jobs.no_reports_found')}}</h5>
+                                <p class="text-muted">{{__('download_jobs.your_generated_reports_will_appear_here')}}</p>
                                 <button wire:click="openCreateModal" class="btn btn-primary">
                                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                     </svg>
-                                    {{__('Create Your First Report')}}
+                                    {{__('download_jobs.create_your_first_report')}}
                                 </button>
                             </td>
                         </tr>
@@ -427,5 +427,5 @@
     @include('livewire.partials.delete-modal')
 
     <!-- Bulk Delete Confirmation Modal -->
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => count($selectedJobs) === 1 ? __('report') : __('reports')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => count($selectedJobs) === 1 ? __('common.item') : __('common.items')])
 </div>

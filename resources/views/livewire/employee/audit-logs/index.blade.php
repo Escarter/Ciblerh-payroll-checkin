@@ -133,10 +133,10 @@
                                 </a>
                             </td> -->
                             <td>
-                                <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->action_type}}</span>
+                                <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->translated_action_type}}</span>
                             </td>
                             <td>
-                                <span class="fs-normal">{!! $log->action_perform !!}</span>
+                                <span class="fs-normal">{!! $log->translated_action_perform !!}</span>
                             </td>
                             <td>
                                 <span class="fw-normal">{{$log->created_at}}</span>

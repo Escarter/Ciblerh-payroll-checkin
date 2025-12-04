@@ -53,7 +53,9 @@ return [
     'related_records_protection' => 'Si cet élément a des enregistrements liés, la suppression sera empêchée pour maintenir l\'intégrité des données.',
     'manage_services_for_department' => 'Gérer les services pour le',
     'create_new_service_to_manage' => 'Créer un nouveau service à gérer',
+    'for_these_departments' => 'pour ces départements',
     'edit_service_details' => 'Modifier les détails du service',
     'in_for_this_department' => 'pour ce département',
+    'for_these_departments' => 'pour ces départements',
     'new' => 'Nouveau',
 ];

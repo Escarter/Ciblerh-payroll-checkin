@@ -18,7 +18,7 @@ class ServiceObserver
             auth()->user(),
             'service_created',
             'web',
-           __('Created service with name ') . $service->name
+            __('audit_logs.created_entity', ['entity' => 'service', 'name' => $service->name])
         );
     }
 

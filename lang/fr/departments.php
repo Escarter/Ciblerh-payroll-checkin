@@ -59,6 +59,7 @@ return [
     'departments_management' => 'Gestion des départements',
     'manage_departments_details' => 'Gérer les départements et leurs détails connexes',
     'assign_supervisor' => 'Assigner un superviseur',
+    'for_these_companies' => 'pour ces entreprises',
     'in_this_company' => 'dans cette entreprise',
     'that_are_active' => 'qui sont actifs!',
     'per_page' => 'Par page',

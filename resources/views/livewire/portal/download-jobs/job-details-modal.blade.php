@@ -3,21 +3,21 @@
     <div class="modal-dialog modal-sm modal-dialog-centered " role="document" style="max-width:65%;">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{__('Job Details')}} @if($selectedJob)- #{{$selectedJob->uuid}}@endif</h5>
+                <h5 class="modal-title">{{__('download_jobs.job_details')}} @if($selectedJob)- #{{$selectedJob->uuid}}@endif</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="closeDetailsModal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
                 @if($selectedJob)
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <p>{{__('View job status and details')}} &#128522;</p>
+                        <p>{{__('download_jobs.view_job_status_and_details')}} &#128522;</p>
                     </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <h6>{{__('Job Information')}}</h6>
+                        <h6>{{__('download_jobs.job_information')}}</h6>
                         <table class="table table-sm">
                             <tr>
-                                <td><strong>{{__('Type')}}:</strong></td>
+                                <td><strong>{{__('download_jobs.type')}}:</strong></td>
                                 <td>{{$selectedJob->job_type_display}}</td>
                             </tr>
                             <tr>
@@ -33,38 +33,38 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td><strong>{{__('Created')}}:</strong></td>
+                                <td><strong>{{__('download_jobs.created')}}:</strong></td>
                                 <td>{{$selectedJob->created_at->format('M d, Y H:i:s')}}</td>
                             </tr>
                             @if($selectedJob->started_at)
                             <tr>
-                                <td><strong>{{__('Started')}}:</strong></td>
+                                <td><strong>{{__('download_jobs.started')}}:</strong></td>
                                 <td>{{$selectedJob->started_at->format('M d, Y H:i:s')}}</td>
                             </tr>
                             @endif
                             @if($selectedJob->completed_at)
                             <tr>
-                                <td><strong>{{__('Completed')}}:</strong></td>
+                                <td><strong>{{__('download_jobs.completed')}}:</strong></td>
                                 <td>{{$selectedJob->completed_at->format('M d, Y H:i:s')}}</td>
                             </tr>
                             @endif
                             @if($selectedJob->duration)
                             <tr>
-                                <td><strong>{{__('Duration')}}:</strong></td>
+                                <td><strong>{{__('download_jobs.duration')}}:</strong></td>
                                 <td>{{$selectedJob->duration}}</td>
                             </tr>
                             @endif
                         </table>
                     </div>
                     <div class="col-md-6">
-                        <h6>{{__('Progress & Results')}}</h6>
+                        <h6>{{__('download_jobs.progress_and_results')}}</h6>
                         <table class="table table-sm">
                             <tr>
-                                <td><strong>{{__('Total Records')}}:</strong></td>
+                                <td><strong>{{__('download_jobs.total_records')}}:</strong></td>
                                 <td>{{$selectedJob->total_records}}</td>
                             </tr>
                             <tr>
-                                <td><strong>{{__('Processed')}}:</strong></td>
+                                <td><strong>{{__('download_jobs.processed')}}:</strong></td>
                                 <td>{{$selectedJob->processed_records}}</td>
                             </tr>
                             <tr>
@@ -73,7 +73,7 @@
                             </tr>
                             @if($selectedJob->file_size)
                             <tr>
-                                <td><strong>{{__('File Size')}}:</strong></td>
+                                <td><strong>{{__('download_jobs.file_size')}}:</strong></td>
                                 <td>{{$selectedJob->formatted_file_size}}</td>
                             </tr>
                             @endif

@@ -3,9 +3,9 @@
     @include('livewire.portal.services.service-form')
     @include('livewire.portal.services.import-services')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('service') : __('services')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('service') : __('services')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => __('service')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('services.service') : __('services.services')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('services.service') : __('services.services')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => __('services.service')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">

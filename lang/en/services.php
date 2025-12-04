@@ -53,7 +53,9 @@ return [
     'related_records_protection' => 'If this item has related records, the deletion will be prevented to maintain data integrity.',
     'manage_services_for_department' => 'Manage Services for the',
     'create_new_service_to_manage' => 'Create a new Service to manage',
+    'for_these_departments' => 'for these departments',
     'edit_service_details' => 'Edit Service details',
     'in_for_this_department' => 'in for this department',
+    'for_these_departments' => 'for these departments',
     'new' => 'New',
 ];

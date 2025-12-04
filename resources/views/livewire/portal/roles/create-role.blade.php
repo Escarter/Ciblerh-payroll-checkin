@@ -4,8 +4,8 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{ __('Create Role') }}</h1>
-                        <p>{{ __('Create new role and allocate permissions') }} &#128522;</p>
+                        <h1 class="mb-0 h4">{{ __('roles.create_role') }}</h1>
+                        <p>{{ __('roles.create_new_role_allocate_permissions') }} &#128522;</p>
                     </div>
                     @livewire('portal.roles.partial.create')
                 </div>

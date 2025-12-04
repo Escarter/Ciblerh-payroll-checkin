@@ -12,6 +12,8 @@ return [
     'update' => 'Mettre à jour',
     'edit' => 'Modifier',
     'delete' => 'Supprimer',
+    'deleted' => 'Supprimé',
+    'action' => 'Action',
     'cancel' => 'Annuler',
     'save' => 'Enregistrer',
     'submit' => 'Soumettre',
@@ -60,6 +62,14 @@ return [
     'no_data_available' => 'Aucune donnée disponible',
     'no_records_found' => 'Aucun enregistrement trouvé',
     'all' => 'Tous',
+
+    // Global search
+    'search_pages_features' => 'Rechercher pages, fonctionnalités...',
+    'type_to_search' => 'Tapez pour rechercher des pages et fonctionnalités',
+    'try_searching_else' => 'Essayez de rechercher autre chose',
+    'navigate' => 'pour naviguer',
+    'to_select' => 'pour sélectionner',
+    'to_search' => 'pour rechercher',
 
     // Pagination
     'showing' => 'Affichage',
@@ -126,7 +136,6 @@ return [
     'delete_forever' => 'Supprimer définitivement',
     'bulk_reject' => 'Rejet en masse',
     'bulk_approve' => 'Approbation en masse',
-    'no_records_found' => 'Aucun enregistrement trouvé..!',
 
     // Approval actions
     'reject' => 'Rejeter',
@@ -192,7 +201,6 @@ return [
     'requested_leaves' => 'Congés demandés',
     'leave_types' => 'Types de congé',
     'reports' => 'Rapports',
-    'checkins' => 'Pointages',
     'overtime' => 'Heures supplémentaires',
     'payslips' => 'Fiches de paie',
     'generate' => 'Générer',
@@ -200,6 +208,35 @@ return [
     'settings' => 'Paramètres',
     'audit_logs' => 'Journaux d\'audit',
     'support' => 'Support',
+
+    // Global Search Groups
+    'navigation' => 'Navigation',
+    'time_tracking' => 'Suivi du temps',
+    'payroll' => 'Paie',
+    'leave_management' => 'Gestion des congés',
+    'analytics' => 'Analyses',
+    'administration' => 'Administration',
+
+    // Global Search Descriptions
+    'companies_management' => 'Gestion des sociétés',
+    'all_employees' => 'Tous les employés',
+    'my_departments_desc' => 'Mes départements',
+    'checkins_desc' => 'Suivi du temps',
+    'overtimes_desc' => 'Gestion des heures supplémentaires',
+    'advance_salaries_desc' => 'Demandes d\'avances sur salaire',
+    'absences_desc' => 'Gestion des absences',
+    'send_payslips_desc' => 'Envoyer les fiches de paie aux employés',
+    'payslip_history_desc' => 'Historique et enregistrements des fiches de paie',
+    'leaves_desc' => 'Demandes de congé',
+    'leave_types_desc' => 'Configuration des types de congé',
+    'reports_desc' => 'Rapports et analyses',
+    'audit_logs_desc' => 'Journaux d\'audit système',
+    'roles_desc' => 'Gestion des rôles',
+    'settings_desc' => 'Paramètres système',
+
+    // Global Search Shortcuts
+    'fast_nav' => 'nav rapide',
+    'home_end' => 'Début/Fin premier/dernier',
 
     // Messages de succès et d'erreur
     'roles_updated_successfully' => 'Rôles mis à jour avec succès!',
@@ -213,6 +250,8 @@ return [
     'you_are_about_to_permanently_delete' => 'Vous êtes sur le point de supprimer définitivement',
     'you_are_about_to_permanently_delete_this' => 'Vous êtes sur le point de supprimer définitivement cet',
     'from_the_system' => 'du système.',
-    'warning' => 'Attention:',
     'related_records_protection' => 'Si cet élément a des enregistrements liés, la suppression sera empêchée pour maintenir l\'intégrité des données.',
+    'no_performance_data_found' => 'Aucune donnée de performance trouvée pour la période sélectionnée.',
+    'opps_nothing_here' => 'Oups ! Rien ici',
+    'date_creation' => 'Date de création',
 ];

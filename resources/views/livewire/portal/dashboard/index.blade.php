@@ -1,15 +1,26 @@
 <div>
     <div class='pb-3 pt-3'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-0 align-items-center">
-            <div class="mb-lg-0">
-
+            <div class="mb-lg-0 d-flex flex-column align-items-start">
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     {{__('dashboard.welcome')}} {{auth()->user()->name}}
                 </h1>
                 <p class="mt-n2">{{__('companies.manage_companies_details')}} &#128524;</p>
             </div>
-            <div class="d-flex justify-content-between">
-                
+            <div class="d-flex justify-content-between align-items-start">
+                <!-- Live Clock -->
+                <div class="d-flex align-items-start" wire:poll.1s="updateCurrentTime">
+                    <svg class="icon icon-sm me-2 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <div>
+                        <div class="fw-bold text-primary fs-5" id="live-clock">{{ $currentTime }}</div>
+                        <small class="text-muted">{{ now()->format(__('dashboard.date_format_readable')) }}</small>
+                    </div>
+                </div>
             </div>
         </div>
         <div style="">
@@ -134,7 +145,7 @@
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($pending_checklogs_count)}}</h3>
                                     </a>
                                     <div class="d-flex mt-1" style="font-size:x-small;">
-                                        <div>{{ __(\Str::plural('Checkin', $pending_checklogs_count)) }} {{__('pending your validation')}}</div>
+                                        <div>{{ __(\Str::plural('dashboard.checkin', $pending_checklogs_count)) }} {{__('dashboard.pending_your_validation')}}</div>
                                     </div>
                                 </div>
                             </div>
@@ -324,7 +335,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path>
                                                 </svg>
                                                 @endif
-                                                {{abs($attendance_rate - $attendance_rate_last_month)}}% vs last month
+                                                {{abs($attendance_rate - $attendance_rate_last_month)}}% {{__('dashboard.vs_last_month')}}
                                         </div>
                                     </div>
                                 </div>
@@ -332,7 +343,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
                     <div class="card border-0 shadow">
                         <div class="card-body">
@@ -355,7 +365,7 @@
                                     </div>
                                     <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div class="text-{{$leave_utilization_rate >= 80 ? 'warning' : 'success'}}">
-                                            {{$leave_utilization_rate >= 80 ? 'dashboard.high_utilization' : 'dashboard.healthy_utilization'}}
+                                            {{$leave_utilization_rate >= 80 ? __('dashboard.high_utilization') : __('dashboard.healthy_utilization')}}
                                         </div>
                                     </div>
                                 </div>
@@ -394,7 +404,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
                     <div class="card border-0 shadow">
                         <div class="card-body">
@@ -417,7 +426,7 @@
                                     </div>
                                     <div class="d-flex mt-1" style="font-size:x-small;">
                                         <div class="text-success">
-                                            Best attendance this month
+                                            {{ __('dashboard.best_attendance_this_month') }}
                                         </div>
                                     </div>
                                 </div>
@@ -477,7 +486,7 @@
                             <div class="fs-5 fw-normal mb-2 ">{{__('dashboard.payslips_performance_overview')}}</div>
                             <h2 class="fs-3 fw-extrabold ">{{number_format($payslips_failed + $payslips_success)}}</h2>
                             <div class="small mt-2 -50">
-                                <span class="fw-normal me-2">{{now()->subMonth()->format('F') ." - ". now()->year}} {{__('dashboard.success_rate')}} - </span>
+                                <span class="fw-normal me-2">{{now()->subMonth()->locale(app()->getLocale())->isoFormat(__('dashboard.month_year_format'))}} {{__('dashboard.success_rate')}} - </span>
                                 <span class="fas fa-angle-up text-success"></span>
                                 <span class="text-success fw-bold">{{ ceil(($payslips_last_month_success_count/($payslips_last_month_total_count == 0 ? 1 : $payslips_last_month_total_count))*100)}}%</span>
                             </div>
@@ -485,15 +494,14 @@
                         <div class="d-block ms-auto">
                             <div class="d-flex align-items-center text-end "><span class="dot rounded-circle bg-success me-2"></span> <span class="fw-normal small">{{__('dashboard.success')}}</span></div>
                             <div class="d-flex align-items-center text-end "><span class="dot rounded-circle bg-danger me-2"></span> <span class="fw-normal small">{{__('dashboard.failed')}}</span></div>
-                            <div class="d-flex align-items-center text-end mb-2 "><span class="dot rounded-circle bg-warning me-2"></span> <span class="fw-normal small">{{__('dashboard.pending')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-2 "><span class="dot rounded-circle bg-warning me-2"></span> <span class="fw-normal {{ $payslips_failed > 0 ? 'text-danger' : 'text-success' }}">{{__('dashboard.pending')}}</span></div>
                         </div>
                     </div>
-                    <div class="card-body p-3">
+                    <div class=" card-body p-3">
                         <div class='line-chart ct-double-octave flex-grow' style="height: 300px;"></div>
                     </div>
                 </div>
             </div>
-
             <!-- Approval Status Pie Chart -->
             <div class="col-12 col-lg-4">
                 <div class="card border-0 shadow-lg h-100">
@@ -618,17 +626,30 @@
                 <div class="card border-0 shadow">
                     <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
                         <div class="d-block">
-                            <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.department_performance')}}</div>
-                            <div class="small text-gray">{{__('dashboard.attendance_rates_by_department')}}</div>
+                            <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.top_departments_performance')}}</div>
+                            <div class="small text-gray">{{__('dashboard.top_5_departments_by_attendance')}} <span class="badge bg-primary ms-2">{{count($top_departments)}}/5</span></div>
+                        </div>
+                        <div class="ms-auto">
+                            <button type="button" class="btn btn-outline-primary btn-sm" wire:click="openDepartmentModal">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {{__('dashboard.view_details')}}
+                            </button>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="department-performance-chart">
-                            @foreach($department_performance as $dept)
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                            @forelse($top_departments as $index => $dept)
+                            <div class="d-flex justify-content-between align-items-center mb-3 department-row" style="cursor: pointer;" wire:click="selectDepartmentForModal({{$dept->id}})">
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3">
-                                        <span class="text-white">{{substr($dept->name, 0, 2)}}</span>
+                                    <div class="position-relative">
+                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3">
+                                            <span class="text-white">{{substr($dept->name, 0, 2)}}</span>
+                                        </div>
+                                        <div class="position-absolute top-0 start-0 translate-middle">
+                                            <span class="badge rounded-pill bg-{{[$index+1][0] === 1 ? 'warning' : ($index+1 === 2 ? 'gray' : ($index+1 === 3 ? 'tertiary' : 'light'))}} text-dark fw-bold" style="font-size: 0.7rem; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">{{$index+1}}</span>
+                                        </div>
                                     </div>
                                     <div>
                                         <h6 class="mb-0">{{$dept->name}}</h6>
@@ -636,16 +657,21 @@
                                     </div>
                                 </div>
                                 <div class="text-end">
-                                    <div class="fw-bold text-{{$dept->attendance_rate >= 90 ? 'success' : ($dept->attendance_rate >= 70 ? 'warning' : 'danger')}}">
-                                        {{$dept->attendance_rate}}%
+                                    <div class="fw-bold text-{{$dept->performance_score >= 90 ? 'success' : ($dept->performance_score >= 70 ? 'warning' : 'danger')}}">
+                                        {{$dept->performance_score}}%
                                     </div>
                                     <div class="progress" style="width: 100px; height: 6px;">
-                                        <div class="progress-bar bg-{{$dept->attendance_rate >= 90 ? 'success' : ($dept->attendance_rate >= 70 ? 'warning' : 'danger')}}"
-                                            style="width: {{$dept->attendance_rate}}%"></div>
+                                        <div class="progress-bar bg-{{$dept->performance_score >= 90 ? 'success' : ($dept->performance_score >= 70 ? 'warning' : 'danger')}}"
+                                            style="width: {{$dept->performance_score}}%"></div>
                                     </div>
                                 </div>
                             </div>
-                            @endforeach
+                            @empty
+                            <div class="text-center text-gray-800 mt-4">
+                                <h4 class="fs-4 fw-bold">{{__('common.no_data_available')}} &#128540;</h4>
+                                <p>{{__('dashboard.no_department_performance_data')}}</p>
+                            </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>
@@ -665,14 +691,8 @@
                             <div class="d-flex flex-wrap gap-1">
                                 @foreach($attendance_heatmap as $day)
                                 <div class="heatmap-day"
-                                    style="width: 20px; height: 20px; background-color: 
-                                     @if($day['intensity'] == 'high') #28a745
-                                     @elseif($day['intensity'] == 'medium') #ffc107
-                                     @elseif($day['intensity'] == 'low') #fd7e14
-                                     @else #dc3545
-                                     @endif; 
-                                     border-radius: 3px; cursor: pointer;"
-                                    title="{{$day['date']}} - {{$day['attendance_rate']}}% ({{$day['checkins']}} checkins)">
+                                    style="width: 20px; height: 20px; background-color: {{$day['intensity'] == 'high' ? '#28a745' : ($day['intensity'] == 'medium' ? '#ffc107' : ($day['intensity'] == 'low' ? '#fd7e14' : '#dc3545'))}}; border-radius: 3px; cursor: pointer;"
+                                    title="{{$day['date']}} - {{$day['attendance_rate']}}% ({{$day['checkins']}} {{__('dashboard.checkins')}})">
                                 </div>
                                 @endforeach
                             </div>
@@ -763,564 +783,974 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="mt-3 ">
-        <div class='d-flex justify-content-between align-items-end mx-2'>
-            <h5 class="h5">{{__("dashboard.last_checkin_per_employee")}}</h5>
-            <div>
-                <a href='{{route("portal.checklogs.index")}}' class='btn btn-primary'>{{__("View all")}}</a>
+
+        <div class="mt-4">
+            <div class='d-flex justify-content-between align-items-end mx-2'>
+                <h5 class="h5">{{__("dashboard.last_checkin_per_employee")}}</h5>
+                <div>
+                    <a href='{{route("portal.checklogs.index")}}' class='btn btn-primary'>{{__('dashboard.view_all')}}</a>
+                </div>
             </div>
-        </div>
-        <div class="card mt-2">
-            <div class="table-responsive text-gray-700">
-                <table class="table table-hover align-items-center dataTable">
-                    <thead>
-                        <tr>
-                            <th class="border-bottom">{{__('employees.employee')}}</th>
-                            <th class="border-bottom">{{__('dashboard.checkin_time')}}</th>
-                            <th class="border-bottom">{{__('dashboard.checkout_time')}}</th>
-                            <th class="border-bottom">{{__('dashboard.hours_worked')}}</th>
-                            <th class="border-bottom">{{__('dashboard.sup_approval')}}</th>
-                            <th class="border-bottom">{{__('dashboard.mgr_approval')}}</th>
-                            <th class="border-bottom">{{__('dashboard.date_created')}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($checklogs as $checklog)
-                        <tr>
-                            <td>
-                                <a href="#" class="d-flex align-items-center">
-                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold fs-5 rounded bg-primary me-3"><span class="text-white">{{!empty($checklog->user) ? $checklog->user->initials : ''}}</span></div>
-                                    <div class="d-block"><span class="fw-bold fs-6">{{ucwords($checklog->userFull_name)}}</span>
-                                        <div class="small text-gray">
-                                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-                                            </svg> {{$checklog->email}}
+            <div class="card mt-2">
+                <div class="table-responsive text-gray-700">
+                    <table class="table table-hover align-items-center dataTable">
+                        <thead>
+                            <tr>
+                                <th class="border-bottom">{{__('employees.employee')}}</th>
+                                <th class="border-bottom">{{__('dashboard.checkin_time')}}</th>
+                                <th class="border-bottom">{{__('dashboard.checkout_time')}}</th>
+                                <th class="border-bottom">{{__('dashboard.hours_worked')}}</th>
+                                <th class="border-bottom">{{__('dashboard.sup_approval')}}</th>
+                                <th class="border-bottom">{{__('dashboard.mgr_approval')}}</th>
+                                <th class="border-bottom">{{__('dashboard.date_created')}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($checklogs as $checklog)
+                            <tr>
+                                <td>
+                                    <a href="#" class="d-flex align-items-center">
+                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold fs-5 rounded bg-primary me-3"><span class="text-white">{{!empty($checklog->user) ? $checklog->user->initials : ''}}</span></div>
+                                        <div class="d-block"><span class="fw-bold fs-6">{{ucwords($checklog->userFull_name)}}</span>
+                                            <div class="small text-gray">
+                                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                                                </svg> {{$checklog->email}}
+                                            </div>
+                                            <div class="small text-gray d-flex align-items-end">
+                                                {{$checklog->company_name}} | {{$checklog->department_name}} | {{$checklog->service_name}}
+                                            </div>
+
                                         </div>
-                                        <div class="small text-gray d-flex align-items-end">
-                                            {{$checklog->company_name}} | {{$checklog->department_name}} | {{$checklog->service_name}}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="fw-normal">{{$checklog->start_time}}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-normal">{{$checklog->end_time}}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">{{$checklog->time_worked}}</span>
+                                </td>
+
+                                <td>
+                                    <span class="fw-normal badge super-badge badge-lg bg-{{$checklog->approvalStatusStyle('supervisor')}} rounded">{{$checklog->approvalStatusText('supervisor')}}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-normal badge super-badge badge-lg bg-{{$checklog->approvalStatusStyle('manager')}} rounded">{{$checklog->approvalStatusText('manager')}}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-normal">{{$checklog->created_at->locale(app()->getLocale())->isoFormat(__('dashboard.date_format_short'))}}</span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="9" class="text-center">
+                                    <div class="text-center text-gray-800 mt-2">
+                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}} &#128540;</h4>
+                                        <p>{{__('common.no_employee_found')}}</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class='mt-4'>
+            <div class='d-flex justify-content-between align-items-end mx-2'>
+                <h5 class="h5">{{__("dashboard.lastest_audit_logs")}}</h5>
+                <div>
+                    <a href='{{route("portal.auditlogs.index")}}' class='btn btn-primary'>{{__('dashboard.view_all')}}</a>
+                </div>
+            </div>
+            <div class="card mt-2">
+                <div class="table-responsive text-gray-700">
+                    <table class="table employee-table table-hover align-items-center ">
+                        <thead>
+                            <tr>
+                                <th class="border-bottom">{{__('employees.employee')}}</th>
+                                <th class="border-bottom">{{__('employees.action_type')}}</th>
+                                <th class="border-bottom">{{__('employees.action_performed')}}</th>
+                                <th class="border-bottom">{{__('dashboard.date_created')}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($logs as $log)
+                            <tr>
+                                <td>
+                                    <a href="#" class="d-flex align-items-center">
+                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($log->user)}}</span></div>
+                                        <div class="d-block"><span class="fw-bold">{{$log->user}}</span>
+                                            <div class="small text-gray">{{$log->user}}</div>
                                         </div>
-
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->translated_action_type}}</span>
+                                </td>
+                                <td>
+                                    <span class="fs-normal">{!! $log->translated_action_perform !!}</span>
+                                </td>
+                                <td>
+                                    <span class="fw-normal">{{$log->created_at->locale(app()->getLocale())->isoFormat(__('dashboard.date_format_short'))}}</span>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="7" class="text-center">
+                                    <div class="text-center text-gray-800 mt-2">
+                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}} &#128540;</h4>
+                                        <p>{{__('common.no_record_found')}}</p>
                                     </div>
-                                </a>
-                            </td>
-                            <td>
-                                <span class="fw-normal">{{$checklog->start_time}}</span>
-                            </td>
-                            <td>
-                                <span class="fw-normal">{{$checklog->end_time}}</span>
-                            </td>
-                            <td>
-                                <span class="fw-bold">{{$checklog->time_worked}}</span>
-                            </td>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
 
-                            <td>
-                                <span class="fw-normal badge super-badge badge-lg bg-{{$checklog->approvalStatusStyle('supervisor')}} rounded">{{$checklog->approvalStatusText('supervisor')}}</span>
-                            </td>
-                            <td>
-                                <span class="fw-normal badge super-badge badge-lg bg-{{$checklog->approvalStatusStyle('manager')}} rounded">{{$checklog->approvalStatusText('manager')}}</span>
-                            </td>
-                            <td>
-                                <span class="fw-normal">{{$checklog->created_at->format('Y-m-d')}}</span>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="9" class="text-center">
-                                <div class="text-center text-gray-800 mt-2">
-                                    <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}} &#128540;</h4>
-                                    <p>{{__('common.no_employee_found')}}</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Department Performance Details Modal -->
+        <div class="department-modal-overlay"
+            style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1050; {{ $showDepartmentModal ? 'display: block;' : 'display: none;' }}"
+            wire:click="closeDepartmentModal">
+
+            <div class="department-modal-content"
+                style="position: fixed; top: 0; right: 0; width: 950px; height: 100%; background-color: white; box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15); overflow-y: auto; transform: translateX({{ $showDepartmentModal ? '0' : '100%' }}); transition: transform 300ms ease-in-out;">
+
+                <div class="modal-header p-4 border-bottom">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{__('dashboard.department_performance_details')}}</h5>
+                            <small class="text-gray">{{__('dashboard.comprehensive_department_analysis')}}</small>
+                        </div>
+                        <button type="button" class="btn-close" wire:click="closeDepartmentModal" aria-label="Close"></button>
+                    </div>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">{{__('dashboard.all_departments_performance')}}</h6>
+                        <div id="allDepartmentsList">
+                            @foreach($department_performance as $index => $dept)
+                            <div class="department-detail-card mb-3 p-3 border rounded" data-department-id="{{$dept->id}}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3" style="width: 40px; height: 40px;">
+                                            <span class="text-white">{{substr($dept->name, 0, 2)}}</span>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{$dept->name}}</h6>
+                                            <small class="text-gray">{{$dept->employees_count}} {{__('employees.employee')}}</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold fs-5 text-{{$dept->attendance_rate >= 90 ? 'success' : ($dept->attendance_rate >= 70 ? 'warning' : 'danger')}}">
+                                            {{$dept->attendance_rate}}%
+                                        </div>
+                                        <small class="text-gray">{{__('dashboard.attendance_rate')}}</small>
+                                    </div>
                                 </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+
+                                <div class="progress mb-3" style="height: 8px;">
+                                    <div class="progress-bar bg-{{$dept->attendance_rate >= 90 ? 'success' : ($dept->attendance_rate >= 70 ? 'warning' : 'danger')}}"
+                                        style="width: {{$dept->attendance_rate}}%"></div>
+                                </div>
+
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="p-2 bg-light rounded text-center">
+                                            <div class="fw-bold text-primary">{{$dept->total_checkins}}</div>
+                                            <small class="text-gray">{{__('dashboard.total_checkins')}}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 bg-light rounded text-center">
+                                            <div class="fw-bold text-info">{{$dept->total_overtimes}}</div>
+                                            <small class="text-gray">{{__('dashboard.overtime_hours')}}</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-2">
+                                    <div class="p-2 bg-light rounded text-center">
+                                        <div class="fw-bold text-warning">{{$dept->total_leaves}}</div>
+                                        <small class="text-gray">{{__('dashboard.total_leaves')}}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Performance Summary -->
+                    <div class="border-top pt-3">
+                        <h6 class="fw-bold mb-3">{{__('dashboard.performance_summary')}}</h6>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="card bg-success bg-opacity-10 border-success">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="fw-bold text-white fs-4">{{count($department_performance->where('attendance_rate', '>=', 90))}}</div>
+                                        <small class="text-white">{{__('dashboard.excellent_performance')}}<br>(≥90%)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card bg-warning bg-opacity-10 border-warning">
+                                    <div class="card-body p-3 text-center">
+                                        <div class="fw-bold text-white fs-4">{{count($department_performance->whereBetween('attendance_rate', [70, 89]))}}</div>
+                                        <small class="text-white">{{__('dashboard.good_performance')}}<br>(70-89%)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                            <div class="row g-3 py-2">
+                                <div class="col-6"> 
+                                    <div class="card bg-danger bg-opacity-10 border-danger">
+                                        <div class="card-body p-3 text-center">
+                                            <div class="fw-bold text-white fs-4">{{count($department_performance->where('attendance_rate', '<', 70))}}</div>
+                                            <small class="text-white">{{__('dashboard.needs_improvement')}}<br>(<70%) </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-info bg-opacity-10 border-info">
+                                        <div class="card-body p-3 text-center">
+                                            <div class="fw-bold text-white fs-4">{{round($department_performance->avg('attendance_rate'), 1)}}%</div>
+                                            <small class="text-white">{{__('dashboard.average_rate')}}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class='mt-5'>
-        <div class='d-flex justify-content-between align-items-end mx-2'>
-            <h5 class="h5">{{__("dashboard.lastest_audit_logs")}}</h5>
-            <div>
-                <a href='{{route("portal.auditlogs.index")}}' class='btn btn-primary'>{{__("View all")}}</a>
-            </div>
-        </div>
-        <div class="card mt-2">
-            <div class="table-responsive text-gray-700">
-                <table class="table employee-table table-hover align-items-center ">
-                    <thead>
-                        <tr>
-                            <th class="border-bottom">{{__('employees.employee')}}</th>
-                            <th class="border-bottom">{{__('employees.action_type')}}</th>
-                            <th class="border-bottom">{{__('employees.action_performed')}}</th>
-                            <th class="border-bottom">{{__('dashboard.date_created')}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($logs as $log)
-                        <tr>
-                            <td>
-                                <a href="#" class="d-flex align-items-center">
-                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($log->user)}}</span></div>
-                                    <div class="d-block"><span class="fw-bold">{{$log->user}}</span>
-                                        <div class="small text-gray">{{$log->user}}</div>
-                                    </div>
-                                </a>
-                            </td>
-                            <td>
-                                <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->action_type}}</span>
-                            </td>
-                            <td>
-                                <span class="fs-normal">{!! $log->action_perform !!}</span>
-                            </td>
-                            <td>
-                                <span class="fw-normal">{{$log->created_at->format('Y-m-d')}}</span>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center">
-                                <div class="text-center text-gray-800 mt-2">
-                                    <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}} &#128540;</h4>
-                                    <p>{{__('common.no_record_found')}}</p>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+</div>
+@push('styles')
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
 
-            </div>
-        </div>
-    </div>
+    .card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
 
-    @push('styles')
-    <style>
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    }
 
-        .card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-        }
+    .metric-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+    }
 
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-        }
+    .metric-card-success {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
 
-        .metric-card {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
+    .metric-card-warning {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+    }
 
-        .metric-card-success {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
+    .metric-card-info {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        color: white;
+    }
 
-        .metric-card-warning {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            color: white;
-        }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
 
-        .metric-card-info {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            color: white;
-        }
+    .chart-container canvas {
+        max-width: 100% !important;
+        max-height: 100% !important;
+    }
 
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
+    /* Fix chart sizing issues */
+    canvas {
+        max-width: 100% !important;
+        max-height: 100% !important;
+    }
 
-        .chart-container canvas {
-            max-width: 100% !important;
-            max-height: 100% !important;
-        }
+    .heatmap-day {
+        transition: transform 0.2s ease-in-out;
+    }
 
-        /* Fix chart sizing issues */
-        canvas {
-            max-width: 100% !important;
-            max-height: 100% !important;
-        }
+    .heatmap-day:hover {
+        transform: scale(1.2);
+        z-index: 10;
+        position: relative;
+    }
 
-        .heatmap-day {
-            transition: transform 0.2s ease-in-out;
-        }
+    .progress-bar {
+        transition: width 0.6s ease;
+    }
 
-        .heatmap-day:hover {
-            transform: scale(1.2);
-            z-index: 10;
-            position: relative;
-        }
+    .icon-shape {
+        transition: transform 0.2s ease-in-out;
+    }
 
-        .progress-bar {
-            transition: width 0.6s ease;
-        }
+    .icon-shape:hover {
+        transform: scale(1.1);
+    }
 
-        .icon-shape {
-            transition: transform 0.2s ease-in-out;
-        }
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
 
-        .icon-shape:hover {
-            transform: scale(1.1);
-        }
-
+    @media (max-width: 768px) {
         .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+@endpush
+
+@push('scripts')
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Chartist CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/chartist.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/chartist.min.css">
+
+<script type="text/javascript">
+    // New Chart.js charts
+    // Initialize charts on DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js not loaded!');
+            return;
         }
 
-        @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
+        // Use the same dynamic approach for initial load
+        fetchFreshChartData();
+    });
+
+    // Chart instances storage
+    let chartInstances = {
+        approvalPie: null,
+        departmentComparison: null,
+        monthlyTrends: null,
+        payslipLine: null,
+        payslipBar: null
+    };
+
+    // Function to destroy existing charts
+    function destroyCharts() {
+        // Destroy Chart.js charts
+        if (chartInstances.approvalPie) chartInstances.approvalPie.destroy();
+        if (chartInstances.departmentComparison) chartInstances.departmentComparison.destroy();
+        if (chartInstances.monthlyTrends) chartInstances.monthlyTrends.destroy();
+
+        // Clear Chartist charts (they don't have destroy method, just clear the containers)
+        if (chartInstances.payslipLine) {
+            document.querySelector('.line-chart').innerHTML = '';
+            chartInstances.payslipLine = null;
         }
-    </style>
-    @endpush
+        if (chartInstances.payslipBar) {
+            document.querySelector('.bar-chart').innerHTML = '';
+            chartInstances.payslipBar = null;
+        }
+    }
 
-    @push('scripts')
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chartist CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/chartist.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/chartist.min.css">
+    // Function to recreate charts with new data
+    function recreateCharts() {
+        destroyCharts();
 
-    <script type="text/javascript">
-        // New Chart.js charts
-        // Initialize charts on DOM ready
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof Chart === 'undefined') {
-                console.error('Chart.js not loaded!');
-                return;
-            }
-
-            // Use the same dynamic approach for initial load
+        // Small delay to ensure DOM is updated
+        setTimeout(() => {
+            // Fetch fresh chart data from Livewire component
             fetchFreshChartData();
-        });
+        }, 100);
+    }
 
-        // Chart instances storage
-        let chartInstances = {
-            approvalPie: null,
-            departmentComparison: null,
-            monthlyTrends: null,
-            payslipLine: null,
-            payslipBar: null
-        };
-
-        // Function to destroy existing charts
-        function destroyCharts() {
-            // Destroy Chart.js charts
-            if (chartInstances.approvalPie) chartInstances.approvalPie.destroy();
-            if (chartInstances.departmentComparison) chartInstances.departmentComparison.destroy();
-            if (chartInstances.monthlyTrends) chartInstances.monthlyTrends.destroy();
-
-            // Clear Chartist charts (they don't have destroy method, just clear the containers)
-            if (chartInstances.payslipLine) {
-                document.querySelector('.line-chart').innerHTML = '';
-                chartInstances.payslipLine = null;
-            }
-            if (chartInstances.payslipBar) {
-                document.querySelector('.bar-chart').innerHTML = '';
-                chartInstances.payslipBar = null;
-            }
+    // Function to fetch fresh chart data
+    function fetchFreshChartData() {
+        // Wait for Livewire to be initialized
+        if (typeof Livewire === 'undefined') {
+            setTimeout(fetchFreshChartData, 100);
+            return;
         }
 
-        // Function to recreate charts with new data
-        function recreateCharts() {
-            destroyCharts();
+        // Get the current Livewire component instance
+        const livewireElement = document.querySelector('[wire\\:id]');
+        if (livewireElement) {
+            const livewireComponent = Livewire.find(livewireElement.getAttribute('wire:id'));
 
-            // Small delay to ensure DOM is updated
-            setTimeout(() => {
-                // Fetch fresh chart data from Livewire component
-                fetchFreshChartData();
-            }, 100);
-        }
-
-        // Function to fetch fresh chart data
-        function fetchFreshChartData() {
-            // Wait for Livewire to be initialized
-            if (typeof Livewire === 'undefined') {
-                setTimeout(fetchFreshChartData, 100);
-                return;
-            }
-
-            // Get the current Livewire component instance
-            const livewireElement = document.querySelector('[wire\\:id]');
-            if (livewireElement) {
-                const livewireComponent = Livewire.find(livewireElement.getAttribute('wire:id'));
-
-                if (livewireComponent) {
-                    // Call the chart data methods on the Livewire component
-                    livewireComponent.call('getChartData').then((chartData) => {
-                        createChartsWithData(chartData);
-                    });
-                } else {
-                    // Fallback: use static data for initial load
-                    createChartsWithStaticData();
-                }
+            if (livewireComponent) {
+                // Call the chart data methods on the Livewire component
+                livewireComponent.call('getChartData').then((chartData) => {
+                    createChartsWithData(chartData);
+                });
             } else {
                 // Fallback: use static data for initial load
                 createChartsWithStaticData();
             }
+        } else {
+            // Fallback: use static data for initial load
+            createChartsWithStaticData();
+        }
+    }
+
+    // Function to create charts with static data (fallback)
+    function createChartsWithStaticData() {
+        // Set global Chart.js defaults for better visibility
+        Chart.defaults.color = '#333';
+        Chart.defaults.borderColor = '#333';
+        Chart.defaults.backgroundColor = 'rgba(54, 162, 235, 0.2)';
+
+        // Approval Status Pie Chart
+        const approvalPieElement = document.querySelector('.approval-pie-chart');
+        if (approvalPieElement) {
+            const approvalPieCtx = approvalPieElement.getContext('2d');
+            chartInstances.approvalPie = new Chart(approvalPieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: {
+                        !!json_encode($approval_pie_chart['labels']) !!
+                    },
+                    datasets: [{
+                        data: {
+                            !!json_encode($approval_pie_chart['data']) !!
+                        },
+                        backgroundColor: {
+                            !!json_encode($approval_pie_chart['colors']) !!
+                        },
+                        borderWidth: 0,
+                        cutout: '60%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#fff',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    elements: {
+                        arc: {
+                            borderWidth: 0
+                        }
+                    }
+                }
+            });
         }
 
-        // Function to create charts with static data (fallback)
-        function createChartsWithStaticData() {
-            // Set global Chart.js defaults for better visibility
-            Chart.defaults.color = '#333';
-            Chart.defaults.borderColor = '#333';
-            Chart.defaults.backgroundColor = 'rgba(54, 162, 235, 0.2)';
+        // Department Comparison Chart
+        const deptComparisonElement = document.querySelector('.department-comparison-chart');
+        if (deptComparisonElement) {
+            const deptComparisonCtx = deptComparisonElement.getContext('2d');
+            const labels = {
+                !!json_encode($department_comparison['labels']) !!
+            };
+            const attendanceData = {
+                !!json_encode($department_comparison['attendance']) !!
+            };
+            const overtimeData = {
+                !!json_encode($department_comparison['overtime']) !!
+            };
 
-            // Approval Status Pie Chart
-            const approvalPieElement = document.querySelector('.approval-pie-chart');
-            if (approvalPieElement) {
-                const approvalPieCtx = approvalPieElement.getContext('2d');
-                chartInstances.approvalPie = new Chart(approvalPieCtx, {
-                    type: 'doughnut',
+            if (!labels || labels.length === 0) {
+                deptComparisonCtx.font = '16px Arial';
+                deptComparisonCtx.fillStyle = '#333';
+                deptComparisonCtx.textAlign = 'center';
+                deptComparisonCtx.fillText('No department data available', deptComparisonElement.width / 2, deptComparisonElement.height / 2);
+            } else {
+                chartInstances.departmentComparison = new Chart(deptComparisonCtx, {
+                    type: 'bar',
                     data: {
-                        labels: {
-                            !!json_encode($approval_pie_chart['labels']) !!
-                        },
+                        labels: labels,
                         datasets: [{
-                            data: {
-                                !!json_encode($approval_pie_chart['data']) !!
-                            },
-                            backgroundColor: {
-                                !!json_encode($approval_pie_chart['colors']) !!
-                            },
-                            borderWidth: 0,
-                            cutout: '60%'
+                            label: 'Attendance Rate (%)',
+                            data: attendanceData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }, {
+                            label: 'Overtime Count',
+                            data: overtimeData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        aspectRatio: 1,
-                        plugins: {
-                            legend: {
-                                display: false
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Attendance Rate (%)'
+                                }
                             },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#fff',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
-                                    }
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Overtime Count'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
                                 }
                             }
                         },
-                        elements: {
-                            arc: {
-                                borderWidth: 0
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
                             }
                         }
                     }
                 });
             }
+        }
 
-            // Department Comparison Chart
-            const deptComparisonElement = document.querySelector('.department-comparison-chart');
-            if (deptComparisonElement) {
-                const deptComparisonCtx = deptComparisonElement.getContext('2d');
-                const labels = {
-                    !!json_encode($department_comparison['labels']) !!
-                };
-                const attendanceData = {
-                    !!json_encode($department_comparison['attendance']) !!
-                };
-                const overtimeData = {
-                    !!json_encode($department_comparison['overtime']) !!
-                };
+        // Monthly Trends Chart
+        const monthlyTrendsElement = document.querySelector('.monthly-trends-chart');
+        if (monthlyTrendsElement) {
+            const monthlyTrendsCtx = monthlyTrendsElement.getContext('2d');
+            const trendLabels = {
+                !!json_encode($monthly_trends['labels']) !!
+            };
+            const attendanceTrends = {
+                !!json_encode($monthly_trends['attendance']) !!
+            };
+            const overtimeTrends = {
+                !!json_encode($monthly_trends['overtime']) !!
+            };
+            const leaveTrends = {
+                !!json_encode($monthly_trends['leaves']) !!
+            };
 
-                if (!labels || labels.length === 0) {
-                    deptComparisonCtx.font = '16px Arial';
-                    deptComparisonCtx.fillStyle = '#333';
-                    deptComparisonCtx.textAlign = 'center';
-                    deptComparisonCtx.fillText('No department data available', deptComparisonElement.width / 2, deptComparisonElement.height / 2);
-                } else {
-                    chartInstances.departmentComparison = new Chart(deptComparisonCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Attendance Rate (%)',
-                                data: attendanceData,
-                                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                                borderColor: 'rgba(54, 162, 235, 1)',
-                                borderWidth: 1
-                            }, {
-                                label: 'Overtime Count',
-                                data: overtimeData,
-                                backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                                borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1,
-                                yAxisID: 'y1'
-                            }]
+            if (!trendLabels || trendLabels.length === 0) {
+                monthlyTrendsCtx.font = '16px Arial';
+                monthlyTrendsCtx.fillStyle = '#333';
+                monthlyTrendsCtx.textAlign = 'center';
+                monthlyTrendsCtx.fillText('No trend data available', monthlyTrendsElement.width / 2, monthlyTrendsElement.height / 2);
+            } else {
+                chartInstances.monthlyTrends = new Chart(monthlyTrendsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: trendLabels,
+                        datasets: [{
+                            label: 'Check-ins',
+                            data: attendanceTrends,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Overtime',
+                            data: overtimeTrends,
+                            borderColor: 'rgb(255, 159, 64)',
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Leaves',
+                            data: leaveTrends,
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {
-                                    type: 'linear',
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
                                     display: true,
-                                    position: 'left',
-                                    title: {
-                                        display: true,
-                                        text: 'Attendance Rate (%)'
-                                    }
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right',
-                                    title: {
-                                        display: true,
-                                        text: 'Overtime Count'
-                                    },
-                                    grid: {
-                                        drawOnChartArea: false
-                                    }
+                                    text: 'Month'
                                 }
                             },
-                            plugins: {
-                                legend: {
-                                    position: 'top'
-                                },
-                                tooltip: {
-                                    mode: 'index',
-                                    intersect: false
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Count'
                                 }
                             }
-                        }
-                    });
-                }
-            }
-
-            // Monthly Trends Chart
-            const monthlyTrendsElement = document.querySelector('.monthly-trends-chart');
-            if (monthlyTrendsElement) {
-                const monthlyTrendsCtx = monthlyTrendsElement.getContext('2d');
-                const trendLabels = {
-                    !!json_encode($monthly_trends['labels']) !!
-                };
-                const attendanceTrends = {
-                    !!json_encode($monthly_trends['attendance']) !!
-                };
-                const overtimeTrends = {
-                    !!json_encode($monthly_trends['overtime']) !!
-                };
-                const leaveTrends = {
-                    !!json_encode($monthly_trends['leaves']) !!
-                };
-
-                if (!trendLabels || trendLabels.length === 0) {
-                    monthlyTrendsCtx.font = '16px Arial';
-                    monthlyTrendsCtx.fillStyle = '#333';
-                    monthlyTrendsCtx.textAlign = 'center';
-                    monthlyTrendsCtx.fillText('No trend data available', monthlyTrendsElement.width / 2, monthlyTrendsElement.height / 2);
-                } else {
-                    chartInstances.monthlyTrends = new Chart(monthlyTrendsCtx, {
-                        type: 'line',
-                        data: {
-                            labels: trendLabels,
-                            datasets: [{
-                                label: 'Check-ins',
-                                data: attendanceTrends,
-                                borderColor: 'rgb(75, 192, 192)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                tension: 0.4,
-                                fill: true
-                            }, {
-                                label: 'Overtime',
-                                data: overtimeTrends,
-                                borderColor: 'rgb(255, 159, 64)',
-                                backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                                tension: 0.4,
-                                fill: true
-                            }, {
-                                label: 'Leaves',
-                                data: leaveTrends,
-                                borderColor: 'rgb(153, 102, 255)',
-                                backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                                tension: 0.4,
-                                fill: true
-                            }]
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            interaction: {
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            },
+                            tooltip: {
                                 mode: 'index',
                                 intersect: false
-                            },
-                            scales: {
-                                x: {
-                                    display: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Month'
-                                    }
-                                },
-                                y: {
-                                    display: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Count'
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    position: 'top'
-                                },
-                                tooltip: {
-                                    mode: 'index',
-                                    intersect: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Create Chartist charts with static data
+        console.log('Creating Chartist charts...');
+        console.log('Chartist available:', typeof Chartist !== 'undefined');
+
+        // Payslip Performance Line Chart
+        const lineChartElement = document.querySelector('.line-chart');
+        console.log('Line chart element found:', lineChartElement);
+        if (lineChartElement && typeof Chartist !== 'undefined') {
+            const chartData = {
+                labels: {
+                    !!html_entity_decode($chart_data[0]) !!
+                },
+                series: [{
+                        !!html_entity_decode($chart_data[3]) !!
+                    },
+                    {
+                        !!html_entity_decode($chart_data[2]) !!
+                    },
+                    {
+                        !!html_entity_decode($chart_data[1]) !!
+                    }
+                ]
+            };
+            console.log('Static line chart data:', chartData);
+
+            chartInstances.payslipLine = new Chartist.Line('.line-chart', chartData, {
+                low: 0,
+                scaleMinSpace: 10,
+                showArea: true,
+                fullWidth: true,
+                plugins: [
+                    Chartist.plugins.tooltip()
+                ],
+                axisX: {
+                    position: 'end'
+                },
+                axisY: {
+                    showGrid: true,
+                    showLabel: true,
+                }
+            });
+            console.log('Line chart created:', chartInstances.payslipLine);
+        }
+
+        // Weekly Payslips Bar Chart
+        const barChartElement = document.querySelector('.bar-chart');
+        console.log('Bar chart element found:', barChartElement);
+        if (barChartElement && typeof Chartist !== 'undefined') {
+            const barChartData = {
+                labels: {
+                    !!html_entity_decode($chart_daily[0]) !!
+                },
+                series: [{
+                        !!html_entity_decode($chart_daily[3]) !!
+                    },
+                    {
+                        !!html_entity_decode($chart_daily[2]) !!
+                    },
+                    {
+                        !!html_entity_decode($chart_daily[1]) !!
+                    }
+                ]
+            };
+            console.log('Static bar chart data:', barChartData);
+
+            chartInstances.payslipBar = new Chartist.Bar('.bar-chart', barChartData, {
+                low: 0,
+                showArea: true,
+                plugins: [
+                    Chartist.plugins.tooltip()
+                ],
+                axisX: {
+                    position: 'end'
+                },
+                axisY: {
+                    showGrid: false,
+                    showLabel: false,
+                    offset: 0
+                }
+            });
+            console.log('Bar chart created:', chartInstances.payslipBar);
+        }
+    }
+
+    // Function to create charts with fresh data
+    function createChartsWithData(chartData) {
+        // Set global Chart.js defaults for better visibility
+        Chart.defaults.color = '#333';
+        Chart.defaults.borderColor = '#333';
+        Chart.defaults.backgroundColor = 'rgba(54, 162, 235, 0.2)';
+
+        // Approval Status Pie Chart
+        const approvalPieElement = document.querySelector('.approval-pie-chart');
+        if (approvalPieElement && chartData.approval_pie_chart) {
+            const approvalPieCtx = approvalPieElement.getContext('2d');
+            chartInstances.approvalPie = new Chart(approvalPieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.approval_pie_chart.labels,
+                    datasets: [{
+                        data: chartData.approval_pie_chart.data,
+                        backgroundColor: chartData.approval_pie_chart.colors,
+                        borderWidth: 0,
+                        cutout: '60%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#fff',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
                                 }
                             }
                         }
-                    });
+                    },
+                    elements: {
+                        arc: {
+                            borderWidth: 0
+                        }
+                    }
                 }
-            }
+            });
+        }
 
-            // Create Chartist charts with static data
-            console.log('Creating Chartist charts...');
+        // Department Comparison Chart
+        const deptComparisonElement = document.querySelector('.department-comparison-chart');
+        if (deptComparisonElement && chartData.department_comparison) {
+            const deptComparisonCtx = deptComparisonElement.getContext('2d');
+            const labels = chartData.department_comparison.labels;
+            const attendanceData = chartData.department_comparison.attendance;
+            const overtimeData = chartData.department_comparison.overtime;
+
+            if (!labels || labels.length === 0) {
+                deptComparisonCtx.font = '16px Arial';
+                deptComparisonCtx.fillStyle = '#333';
+                deptComparisonCtx.textAlign = 'center';
+                deptComparisonCtx.fillText('No department data available', deptComparisonElement.width / 2, deptComparisonElement.height / 2);
+            } else {
+                chartInstances.departmentComparison = new Chart(deptComparisonCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Attendance Rate (%)',
+                            data: attendanceData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }, {
+                            label: 'Overtime Count',
+                            data: overtimeData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Attendance Rate (%)'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Overtime Count'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Monthly Trends Chart
+        const monthlyTrendsElement = document.querySelector('.monthly-trends-chart');
+        if (monthlyTrendsElement && chartData.monthly_trends) {
+            const monthlyTrendsCtx = monthlyTrendsElement.getContext('2d');
+            const trendLabels = chartData.monthly_trends.labels;
+            const attendanceTrends = chartData.monthly_trends.attendance;
+            const overtimeTrends = chartData.monthly_trends.overtime;
+            const leaveTrends = chartData.monthly_trends.leaves;
+
+            if (!trendLabels || trendLabels.length === 0) {
+                monthlyTrendsCtx.font = '16px Arial';
+                monthlyTrendsCtx.fillStyle = '#333';
+                monthlyTrendsCtx.textAlign = 'center';
+                monthlyTrendsCtx.fillText('No trend data available', monthlyTrendsElement.width / 2, monthlyTrendsElement.height / 2);
+            } else {
+                chartInstances.monthlyTrends = new Chart(monthlyTrendsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: trendLabels,
+                        datasets: [{
+                            label: 'Check-ins',
+                            data: attendanceTrends,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Overtime',
+                            data: overtimeTrends,
+                            borderColor: 'rgb(255, 159, 64)',
+                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Leaves',
+                            data: leaveTrends,
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Month'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Count'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Create Chartist charts
+        if (chartData.chart_data && chartData.chart_daily) {
+            console.log('Creating dynamic Chartist charts...');
             console.log('Chartist available:', typeof Chartist !== 'undefined');
 
             // Payslip Performance Line Chart
             const lineChartElement = document.querySelector('.line-chart');
-            console.log('Line chart element found:', lineChartElement);
+            console.log('Dynamic line chart element found:', lineChartElement);
             if (lineChartElement && typeof Chartist !== 'undefined') {
-                const chartData = {
-                    labels: {
-                        !!html_entity_decode($chart_data[0]) !!
-                    },
-                    series: [{
-                            !!html_entity_decode($chart_data[3]) !!
-                        },
-                        {
-                            !!html_entity_decode($chart_data[2]) !!
-                        },
-                        {
-                            !!html_entity_decode($chart_data[1]) !!
-                        }
-                    ]
-                };
-                console.log('Static line chart data:', chartData);
+                console.log('Dynamic line chart data:', chartData.chart_data);
 
-                chartInstances.payslipLine = new Chartist.Line('.line-chart', chartData, {
+                // Parse the JSON strings to actual arrays
+                const labels = JSON.parse(chartData.chart_data[0]);
+                const series = [
+                    JSON.parse(chartData.chart_data[3]),
+                    JSON.parse(chartData.chart_data[2]),
+                    JSON.parse(chartData.chart_data[1])
+                ];
+
+                console.log('Parsed labels:', labels);
+                console.log('Parsed series:', series);
+
+                chartInstances.payslipLine = new Chartist.Line('.line-chart', {
+                    labels: labels,
+                    series: series
+                }, {
                     low: 0,
                     scaleMinSpace: 10,
                     showArea: true,
@@ -1336,28 +1766,30 @@
                         showLabel: true,
                     }
                 });
-                console.log('Line chart created:', chartInstances.payslipLine);
+                console.log('Dynamic line chart created:', chartInstances.payslipLine);
             }
 
             // Weekly Payslips Bar Chart
             const barChartElement = document.querySelector('.bar-chart');
-            console.log('Bar chart element found:', barChartElement);
+            console.log('Dynamic bar chart element found:', barChartElement);
             if (barChartElement && typeof Chartist !== 'undefined') {
-                const barChartData = {
-                    labels: {
-                        !!html_entity_decode($chart_daily[0]) !!
-                    },
-                    series: [{
-                        !!html_entity_decode($chart_daily[3]) !!
-                    }, {
-                        !!html_entity_decode($chart_daily[2]) !!
-                    }, {
-                        !!html_entity_decode($chart_daily[1]) !!
-                    }],
-                };
-                console.log('Static bar chart data:', barChartData);
+                console.log('Dynamic bar chart data:', chartData.chart_daily);
 
-                chartInstances.payslipBar = new Chartist.Bar('.bar-chart', barChartData, {
+                // Parse the JSON strings to actual arrays
+                const barLabels = JSON.parse(chartData.chart_daily[0]);
+                const barSeries = [
+                    JSON.parse(chartData.chart_daily[3]),
+                    JSON.parse(chartData.chart_daily[2]),
+                    JSON.parse(chartData.chart_daily[1])
+                ];
+
+                console.log('Parsed bar labels:', barLabels);
+                console.log('Parsed bar series:', barSeries);
+
+                chartInstances.payslipBar = new Chartist.Bar('.bar-chart', {
+                    labels: barLabels,
+                    series: barSeries
+                }, {
                     low: 0,
                     showArea: true,
                     plugins: [
@@ -1372,306 +1804,16 @@
                         offset: 0
                     }
                 });
-                console.log('Bar chart created:', chartInstances.payslipBar);
+                console.log('Dynamic bar chart created:', chartInstances.payslipBar);
             }
         }
+    }
 
-        // Function to create charts with fresh data
-        function createChartsWithData(chartData) {
-            // Set global Chart.js defaults for better visibility
-            Chart.defaults.color = '#333';
-            Chart.defaults.borderColor = '#333';
-            Chart.defaults.backgroundColor = 'rgba(54, 162, 235, 0.2)';
-
-            // Approval Status Pie Chart
-            const approvalPieElement = document.querySelector('.approval-pie-chart');
-            if (approvalPieElement && chartData.approval_pie_chart) {
-                const approvalPieCtx = approvalPieElement.getContext('2d');
-                chartInstances.approvalPie = new Chart(approvalPieCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: chartData.approval_pie_chart.labels,
-                        datasets: [{
-                            data: chartData.approval_pie_chart.data,
-                            backgroundColor: chartData.approval_pie_chart.colors,
-                            borderWidth: 0,
-                            cutout: '60%'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        aspectRatio: 1,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#fff',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                        return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
-                                    }
-                                }
-                            }
-                        },
-                        elements: {
-                            arc: {
-                                borderWidth: 0
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Department Comparison Chart
-            const deptComparisonElement = document.querySelector('.department-comparison-chart');
-            if (deptComparisonElement && chartData.department_comparison) {
-                const deptComparisonCtx = deptComparisonElement.getContext('2d');
-                const labels = chartData.department_comparison.labels;
-                const attendanceData = chartData.department_comparison.attendance;
-                const overtimeData = chartData.department_comparison.overtime;
-
-                if (!labels || labels.length === 0) {
-                    deptComparisonCtx.font = '16px Arial';
-                    deptComparisonCtx.fillStyle = '#333';
-                    deptComparisonCtx.textAlign = 'center';
-                    deptComparisonCtx.fillText('No department data available', deptComparisonElement.width / 2, deptComparisonElement.height / 2);
-                } else {
-                    chartInstances.departmentComparison = new Chart(deptComparisonCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Attendance Rate (%)',
-                                data: attendanceData,
-                                backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                                borderColor: 'rgba(54, 162, 235, 1)',
-                                borderWidth: 1
-                            }, {
-                                label: 'Overtime Count',
-                                data: overtimeData,
-                                backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                                borderColor: 'rgba(255, 99, 132, 1)',
-                                borderWidth: 1,
-                                yAxisID: 'y1'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'left',
-                                    title: {
-                                        display: true,
-                                        text: 'Attendance Rate (%)'
-                                    }
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right',
-                                    title: {
-                                        display: true,
-                                        text: 'Overtime Count'
-                                    },
-                                    grid: {
-                                        drawOnChartArea: false
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    position: 'top'
-                                },
-                                tooltip: {
-                                    mode: 'index',
-                                    intersect: false
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-
-            // Monthly Trends Chart
-            const monthlyTrendsElement = document.querySelector('.monthly-trends-chart');
-            if (monthlyTrendsElement && chartData.monthly_trends) {
-                const monthlyTrendsCtx = monthlyTrendsElement.getContext('2d');
-                const trendLabels = chartData.monthly_trends.labels;
-                const attendanceTrends = chartData.monthly_trends.attendance;
-                const overtimeTrends = chartData.monthly_trends.overtime;
-                const leaveTrends = chartData.monthly_trends.leaves;
-
-                if (!trendLabels || trendLabels.length === 0) {
-                    monthlyTrendsCtx.font = '16px Arial';
-                    monthlyTrendsCtx.fillStyle = '#333';
-                    monthlyTrendsCtx.textAlign = 'center';
-                    monthlyTrendsCtx.fillText('No trend data available', monthlyTrendsElement.width / 2, monthlyTrendsElement.height / 2);
-                } else {
-                    chartInstances.monthlyTrends = new Chart(monthlyTrendsCtx, {
-                        type: 'line',
-                        data: {
-                            labels: trendLabels,
-                            datasets: [{
-                                label: 'Check-ins',
-                                data: attendanceTrends,
-                                borderColor: 'rgb(75, 192, 192)',
-                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                tension: 0.4,
-                                fill: true
-                            }, {
-                                label: 'Overtime',
-                                data: overtimeTrends,
-                                borderColor: 'rgb(255, 159, 64)',
-                                backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                                tension: 0.4,
-                                fill: true
-                            }, {
-                                label: 'Leaves',
-                                data: leaveTrends,
-                                borderColor: 'rgb(153, 102, 255)',
-                                backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                                tension: 0.4,
-                                fill: true
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            interaction: {
-                                mode: 'index',
-                                intersect: false
-                            },
-                            scales: {
-                                x: {
-                                    display: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Month'
-                                    }
-                                },
-                                y: {
-                                    display: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Count'
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    position: 'top'
-                                },
-                                tooltip: {
-                                    mode: 'index',
-                                    intersect: false
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-
-            // Create Chartist charts
-            if (chartData.chart_data && chartData.chart_daily) {
-                console.log('Creating dynamic Chartist charts...');
-                console.log('Chartist available:', typeof Chartist !== 'undefined');
-
-                // Payslip Performance Line Chart
-                const lineChartElement = document.querySelector('.line-chart');
-                console.log('Dynamic line chart element found:', lineChartElement);
-                if (lineChartElement && typeof Chartist !== 'undefined') {
-                    console.log('Dynamic line chart data:', chartData.chart_data);
-
-                    // Parse the JSON strings to actual arrays
-                    const labels = JSON.parse(chartData.chart_data[0]);
-                    const series = [
-                        JSON.parse(chartData.chart_data[3]),
-                        JSON.parse(chartData.chart_data[2]),
-                        JSON.parse(chartData.chart_data[1])
-                    ];
-
-                    console.log('Parsed labels:', labels);
-                    console.log('Parsed series:', series);
-
-                    chartInstances.payslipLine = new Chartist.Line('.line-chart', {
-                        labels: labels,
-                        series: series
-                    }, {
-                        low: 0,
-                        scaleMinSpace: 10,
-                        showArea: true,
-                        fullWidth: true,
-                        plugins: [
-                            Chartist.plugins.tooltip()
-                        ],
-                        axisX: {
-                            position: 'end'
-                        },
-                        axisY: {
-                            showGrid: true,
-                            showLabel: true,
-                        }
-                    });
-                    console.log('Dynamic line chart created:', chartInstances.payslipLine);
-                }
-
-                // Weekly Payslips Bar Chart
-                const barChartElement = document.querySelector('.bar-chart');
-                console.log('Dynamic bar chart element found:', barChartElement);
-                if (barChartElement && typeof Chartist !== 'undefined') {
-                    console.log('Dynamic bar chart data:', chartData.chart_daily);
-
-                    // Parse the JSON strings to actual arrays
-                    const barLabels = JSON.parse(chartData.chart_daily[0]);
-                    const barSeries = [
-                        JSON.parse(chartData.chart_daily[3]),
-                        JSON.parse(chartData.chart_daily[2]),
-                        JSON.parse(chartData.chart_daily[1])
-                    ];
-
-                    console.log('Parsed bar labels:', barLabels);
-                    console.log('Parsed bar series:', barSeries);
-
-                    chartInstances.payslipBar = new Chartist.Bar('.bar-chart', {
-                        labels: barLabels,
-                        series: barSeries
-                    }, {
-                        low: 0,
-                        showArea: true,
-                        plugins: [
-                            Chartist.plugins.tooltip()
-                        ],
-                        axisX: {
-                            position: 'end'
-                        },
-                        axisY: {
-                            showGrid: false,
-                            showLabel: false,
-                            offset: 0
-                        }
-                    });
-                    console.log('Dynamic bar chart created:', chartInstances.payslipBar);
-                }
-            }
-        }
-
-        // Listen for Livewire events to update charts
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('charts-updated', () => {
-                recreateCharts();
-            });
+    // Listen for Livewire events to update charts
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('charts-updated', () => {
+            recreateCharts();
         });
-    </script>
-    @endpush
-</div>
+    });
+</script>
+@endpush

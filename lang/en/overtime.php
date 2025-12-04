@@ -54,4 +54,8 @@ return [
     'work_start_time' => 'Work start time',
     'work_end_time' => 'Work end time',
     'rejected_overtimes' => 'Rejected Overtimes',
+    'employees_overtimes' => 'Employees Overtimes',
+    'manage_employees_overtimes' => 'Manage Employees Overtimes',
+    'update_or_approve_overtime' => 'Update or Approve Overtime',
+    'update_or_approve_employee_overtime_record' => 'Update or Approve Employee overtime record',
 ];

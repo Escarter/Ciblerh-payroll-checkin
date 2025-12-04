@@ -2,8 +2,8 @@
     @include('livewire.portal.checklogs.edit-checklog')
     @include('livewire.portal.checklogs.bulk-approval')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedChecklogsForDelete, 'itemType' => count($selectedChecklogsForDelete) === 1 ? __('checkin record') : __('checkin records')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedChecklogsForDelete, 'itemType' => count($selectedChecklogsForDelete) === 1 ? __('checkin record') : __('checkin records')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedChecklogsForDelete, 'itemType' => count($selectedChecklogsForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedChecklogsForDelete, 'itemType' => count($selectedChecklogsForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedChecklogsForDelete, 'itemType' => __('checkin record')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">

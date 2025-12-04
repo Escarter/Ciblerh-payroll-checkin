@@ -9,7 +9,7 @@
                     </div>
                     <x-form-items.form wire:submit.prevent="store" class="form-modal">
                         <div class="form-group mb-4">
-                            <label for="leave_type_id">{{__('Leave Type')}}</label>
+                            <label for="leave_type_id">{{__('leaves.leave_type')}}</label>
                             <select wire:model.defer="leave_type_id" class="form-control  @error('leave_type_id') is-invalid @enderror" required="">
                                 <option value=''>{{__('employees.select')}}</option>
                                 @foreach($types as $type)

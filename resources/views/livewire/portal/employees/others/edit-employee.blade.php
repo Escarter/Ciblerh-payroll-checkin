@@ -4,8 +4,8 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-5">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Update Employee')}}</h1>
-                        <p>{{__('Update employee details')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('employees.update_employee')}}</h1>
+                        <p>{{__('employees.update_employee_details')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="update" class="form-modal">
                         <input type='hidden' name='employee_id' value="" id="EmployeeId">
@@ -13,7 +13,7 @@
                             <div class='col-md-6 col-xs-12'>
                                 <label for="company">{{__('companies.company')}}</label>
                                 @if(auth()->user()->hasRole('supervisor'))
-                                    <input type="text" class="form-control" value="{{$employee->company->name ?? __('Unknown Company')}}" disabled>
+                                    <input type="text" class="form-control" value="{{$employee->company->name ?? __('employees.unknown_company')}}" disabled>
                                 @else
                                     <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? '' }}" disabled>
                                 @endif

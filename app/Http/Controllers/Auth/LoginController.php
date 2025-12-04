@@ -47,7 +47,7 @@ class LoginController extends Controller
                 auth()->user(),
                 'user_login',
                 'web',
-                __('Successfully logged in from ip ') . $request->ip()
+                __('audit_logs.login_successful', ['ip' => $request->ip()])
             );
            
 
@@ -61,7 +61,7 @@ class LoginController extends Controller
                         auth()->user(),
                         'user_login',
                         'web',
-                         __('Tried to log in from ip ') . $request->ip() . __(' but contract has expired!')
+                        __('audit_logs.login_contract_expired', ['ip' => $request->ip()])
                     );
                     auth()->logout();
                     flash(__('Sorry your contract has expired kindly contact your supervisor!'))->error()->important();
@@ -78,7 +78,7 @@ class LoginController extends Controller
                 auth()->user(),
                 'user_login',
                 'web',
-                __('Tried to log in from ip ') . $request->ip() .__('but account is banned!')
+                __('audit_logs.login_account_banned', ['ip' => $request->ip()])
             );
             auth()->logout();
             flash(__('Your account is not active'))->error()->important();
@@ -92,7 +92,7 @@ class LoginController extends Controller
             auth()->user(),
             'user_logout',
             'web',
-            __('Successfully logged out from ip ') . $request->ip()
+            __('audit_logs.logout_successful', ['ip' => $request->ip()])
         );
 
         Auth::logout();

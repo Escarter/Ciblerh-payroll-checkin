@@ -18,7 +18,7 @@ class CompanyObserver
             auth()->user(),
             'company_created',
             'web',
-            __('Created company with name ') . $company->name
+            __('audit_logs.created_entity', ['entity' => 'company', 'name' => $company->name])
         );
     }
 
@@ -34,7 +34,7 @@ class CompanyObserver
             auth()->user(),
             'company_updated',
             'web',
-            __('Updated company with name ') . $company->name
+            __('audit_logs.updated_entity', ['entity' => 'company', 'name' => $company->name])
         );
     }
 
@@ -50,7 +50,7 @@ class CompanyObserver
             auth()->user(),
             'company_deleted',
             'web',
-            __('Deleted company with name ') . $company->name
+            __('audit_logs.deleted_entity', ['entity' => 'company', 'name' => $company->name])
         );
     }
 
