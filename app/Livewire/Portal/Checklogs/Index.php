@@ -134,7 +134,7 @@ class Index extends Component
             ]);
         }
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Checkin successfully updated!'), 'EditBulkChecklogModal');
+        $this->closeModalAndFlashMessage(__('employees.checkin_successfully_updated'), 'EditBulkChecklogModal');
     }
 
     public function update()
@@ -162,7 +162,7 @@ class Index extends Component
         }
        
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Checkin successfully updated!'), 'EditChecklogModal');
+        $this->closeModalAndFlashMessage(__('employees.checkin_successfully_updated'), 'EditChecklogModal');
     }
     public function delete()
     {
@@ -175,7 +175,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Checkin successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.checkin_successfully_moved_to_trash'), 'DeleteModal');
     }
 
     public function restore($checklogId)
@@ -187,7 +187,7 @@ class Index extends Component
         $checklog = Ticking::withTrashed()->findOrFail($checklogId);
         $checklog->restore();
 
-        $this->closeModalAndFlashMessage(__('Checkin successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('employees.checkin_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete($checklogId)
@@ -199,7 +199,7 @@ class Index extends Component
         $checklog = Ticking::withTrashed()->findOrFail($checklogId);
         $checklog->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Checkin permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.checkin_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -220,7 +220,7 @@ class Index extends Component
             $this->selectedChecklogsForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected checkin records moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_checkin_records_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -234,7 +234,7 @@ class Index extends Component
             $this->selectedChecklogsForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected checkin records restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_checkin_records_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -248,7 +248,7 @@ class Index extends Component
             $this->selectedChecklogsForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected checkin records permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_checkin_records_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)

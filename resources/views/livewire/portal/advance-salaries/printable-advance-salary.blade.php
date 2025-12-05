@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>{{ __('Products Report for ').now()->IsoFormat('LL')}}</title>
+    <title>{{ __('employees.advance_salaries') . ' ' . now()->IsoFormat('LL')}}</title>
 
     <style type="text/css">
         @page {

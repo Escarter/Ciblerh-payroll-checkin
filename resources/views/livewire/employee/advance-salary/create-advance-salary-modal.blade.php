@@ -12,14 +12,14 @@
                         <hr class="mb-3">
                         <div class="form-group mb-4">
                             <label for="amount">{{__('common.amount')}}</label>
-                            <input wire:model.defer="amount" type="money" class="form-control  @error('amount') is-invalid @enderror" placeholder="{{__('25,000')}}" value="" required="">
+                            <input wire:model.defer="amount" type="money" class="form-control  @error('amount') is-invalid @enderror" placeholder="{{__('employees.amount_placeholder')}}" value="" required="">
                             @error('amount')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
                             <label for="reason">{{__('common.reason')}}</label>
-                            <textarea wire:model.defer="reason" class="form-control  @error('reason') is-invalid @enderror" id='' cols='3' rows="3" placeholder="{{__('To manage an urgent family matter')}}"></textarea>
+                            <textarea wire:model.defer="reason" class="form-control  @error('reason') is-invalid @enderror" id='' cols='3' rows="3" placeholder="{{__('employees.reason_placeholder')}}"></textarea>
                             @error('reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
@@ -43,21 +43,21 @@
                         <hr class="mb-3">
                         <div class="form-group mb-4">
                             <label for="beneficiary_name">{{__('employees.beneficiary_name')}}</label>
-                            <input wire:model.defer="beneficiary_name" type="text" class="form-control  @error('beneficiary_name') is-invalid @enderror" placeholder="{{__('Janette Jaqueline')}}" value="" required="">
+                            <input wire:model.defer="beneficiary_name" type="text" class="form-control  @error('beneficiary_name') is-invalid @enderror" placeholder="{{__('employees.beneficiary_name_placeholder')}}" value="" required="">
                             @error('beneficiary_name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
                             <label for="beneficiary_mobile_money_number">{{__('employees.beneficiary_mobile_money_number')}}</label>
-                            <input wire:model.defer="beneficiary_mobile_money_number" type="text" class="form-control  @error('beneficiary_mobile_money_number') is-invalid @enderror" placeholder="{{__('6XXXXXXXX')}}" value="" required="">
+                            <input wire:model.defer="beneficiary_mobile_money_number" type="text" class="form-control  @error('beneficiary_mobile_money_number') is-invalid @enderror" placeholder="{{__('employees.mobile_money_placeholder')}}" value="" required="">
                             @error('beneficiary_mobile_money_number')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
                             <label for="beneficiary_id_card_number">{{__('employees.beneficiary_id_card_number')}}</label>
-                            <input wire:model.defer="beneficiary_id_card_number" type="text" class="form-control  @error('beneficiary_id_card_number') is-invalid @enderror" placeholder="{{__('12xxxxxxxx')}}" value="" required="">
+                            <input wire:model.defer="beneficiary_id_card_number" type="text" class="form-control  @error('beneficiary_id_card_number') is-invalid @enderror" placeholder="{{__('employees.id_card_placeholder')}}" value="" required="">
                             @error('beneficiary_id_card_number')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

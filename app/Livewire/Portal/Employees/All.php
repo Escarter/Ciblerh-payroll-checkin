@@ -202,7 +202,7 @@ class All extends Component
         event(new EmployeeCreated($user, $this->password));
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Manager created successfully!'), 'CreateManagerModal');
+        $this->closeModalAndFlashMessage(__('employees.manager_created_successfully'), 'CreateManagerModal');
     }
     public function updateManager()
     {
@@ -273,7 +273,7 @@ class All extends Component
         $this->employee->syncRoles($this->selected_roles);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Manager updated successfully!'), 'EditManagerModal');
+        $this->closeModalAndFlashMessage(__('employees.manager_updated_successfully'), 'EditManagerModal');
     }
 
     public function update()
@@ -348,7 +348,7 @@ class All extends Component
         $this->employee->syncRoles($this->selected_roles);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully updated!'), 'EmployeeModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_updated_successfully'), 'EmployeeModal');
     }
 
     public function delete()
@@ -362,19 +362,19 @@ class All extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_successfully_moved_to_trash'), 'DeleteModal');
     }
 
-    public function restore($employeeId)
+    public function restore()
     {
         if (!Gate::allows('employee-delete')) {
             return abort(401);
         }
 
-        $employee = User::withTrashed()->findOrFail($employeeId);
+        $employee = User::withTrashed()->findOrFail($this->employee_id);
         $employee->restore();
 
-        $this->closeModalAndFlashMessage(__('Employee successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete($employeeId)
@@ -395,13 +395,13 @@ class All extends Component
                            $employee->supDepartments()->count() > 0;
         
         if ($hasRelatedRecords) {
-            session()->flash('error', __('Cannot permanently delete employee. It has related records.'));
+            session()->flash('error', __('employees.cannot_permanently_delete_employee'));
             return;
         }
         
         $employee->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Employee permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -415,7 +415,7 @@ class All extends Component
             $this->selectedEmployees = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected employees moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_employees_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -429,7 +429,7 @@ class All extends Component
             $this->selectedEmployees = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected employees restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_employees_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -458,7 +458,7 @@ class All extends Component
             
             if (!empty($employeesWithRelatedRecords)) {
                 $employeeNames = implode(', ', $employeesWithRelatedRecords);
-                session()->flash('error', __('Cannot permanently delete the following employees as they have related records: ') . $employeeNames);
+                session()->flash('error', __('employees.cannot_permanently_delete_employees') . $employeeNames);
                 return;
             }
             
@@ -469,7 +469,7 @@ class All extends Component
             $this->selectedEmployees = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected employees permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_employees_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)
@@ -636,10 +636,10 @@ class All extends Component
             auth()->user(),
             'employee_imported',
             'web',
-            __('Imported excel file for employees for company ') . $this->company->name
+            __('employees.imported_excel_for_employees') . $this->company->name
         );
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully imported, if nothing happened make sure, the email, department, services of employees are rightly mapped.!'), 'importEmployeesModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_import_success_with_note'), 'importEmployeesModal');
     }
 
     public function export()
@@ -648,7 +648,7 @@ class All extends Component
             auth()->user(),
             'employee_exported',
             'web',
-            __('Exported excel file for all employees')
+            __('employees.exported_excel_for_all_employees')
         );
         return (new EmployeeExport($this->company, $this->query))->download('All-Employees-' . Str::random(5) . '.xlsx');
     }

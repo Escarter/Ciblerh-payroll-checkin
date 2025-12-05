@@ -30,6 +30,23 @@ return [
     'exported_excel_for_all_employees' => 'Fichier Excel exporté pour tous les employés',
     'employee_import_success_with_note' => 'Employé importé avec succès, si rien ne s\'est passé, assurez-vous que l\'email, le département, les services des employés sont correctement mappés.!',
     'manager_created_successfully' => 'Manager créé avec succès!',
+    'manager_updated_successfully' => 'Manager mis à jour avec succès!',
+
+    // Additional Success Messages
+    'employee_successfully_moved_to_trash' => 'Employé déplacé vers la corbeille avec succès!',
+    'employee_successfully_restored' => 'Employé restauré avec succès!',
+    'employee_permanently_deleted' => 'Employé supprimé définitivement!',
+
+    // Error Messages
+    'cannot_permanently_delete_employee' => 'Impossible de supprimer définitivement l\'employé. Il a des enregistrements liés.',
+    'cannot_permanently_delete_employees' => 'Impossible de supprimer définitivement les employés suivants car ils ont des enregistrements liés: ',
+    'no_permission_assign_roles' => 'Vous n\'avez pas la permission d\'assigner les rôles suivants: ',
+    'maximum_2_roles_allowed' => 'Un utilisateur peut avoir un maximum de 2 rôles.',
+
+    // Bulk Operations
+    'selected_employees_moved_to_trash' => 'Employés sélectionnés déplacés vers la corbeille!',
+    'selected_employees_restored' => 'Employés sélectionnés restaurés!',
+    'selected_employees_permanently_deleted' => 'Employés sélectionnés supprimés définitivement!',
 
     // Employee fields
     'first_name' => 'Prénom',
@@ -160,6 +177,36 @@ return [
     'advance_salary_recorded' => 'Avance sur salaire enregistrée avec succès!',
     'advance_salary_updated' => 'Avance sur salaire mise à jour avec succès!',
     'advance_salary_deleted' => 'Avance sur salaire supprimée avec succès!',
+    'repayment_period' => 'Période de remboursement',
+
+    // Portail d'avance sur salaire spécifique
+    'advance_salaries' => 'Avances sur salaire',
+    'advance_salaries_management' => 'Gestion des avances sur salaire',
+    'manage_advance_salaries_requests' => 'Gérer les demandes d\'avances sur salaire des employés!',
+    'total_advance_salaries' => 'Total des avances sur salaire',
+    'advance_salary_record' => 'enregistrement d\'avance sur salaire',
+    'update_or_approve_advance_salary' => 'Mettre à jour ou approuver l\'avance sur salaire',
+    'update_or_approve_employee_advance_salary_request' => 'Mettre à jour ou approuver la demande d\'avance sur salaire de l\'employé',
+    'bulk_advance_salary' => 'Avance sur salaire en masse',
+    'employee_advance_salary_bulk' => 'Avance sur salaire en masse des employés',
+
+    // Espaces réservés pour les avances sur salaire
+    'amount_placeholder' => '25,000',
+    'reason_placeholder' => 'Pour gérer une affaire familiale urgente',
+    'beneficiary_name_placeholder' => 'Janette Jaqueline',
+    'mobile_money_placeholder' => '6XXXXXXXX',
+    'id_card_placeholder' => '12xxxxxxxx',
+
+    // Espaces réservés pour le manager
+    'first_name_placeholder' => 'Jean',
+    'last_name_placeholder' => 'Dupont',
+    'matricule_placeholder' => '1134578',
+    'email_placeholder' => 'exemple@entreprise.com',
+    'phone_placeholder' => '2376xxxxxxxxx',
+
+    // Titres des modales de manager
+    'update_manager_details' => 'Mettre à jour les détails du manager',
+    'edit_and_update_manager_details' => 'Modifier et mettre à jour les détails du manager',
 
     // Journaux d'audit spécifiques
     'view_all_activities_audit_logs' => 'Voir tous les journaux d\'audit des activités',
@@ -181,6 +228,29 @@ return [
     'checkins_recorded_success' => 'Pointages enregistrés avec succès - passez une bonne journée 😍!',
     'checkin_updated_success' => 'Pointage mis à jour avec succès!',
     'checkin_deleted_success' => 'Enregistrement de pointage supprimé avec succès!',
+
+    // Messages de succès pour le portail de pointages
+    'checkin_successfully_updated' => 'Pointage mis à jour avec succès!',
+    'checkin_successfully_moved_to_trash' => 'Pointage déplacé vers la corbeille avec succès!',
+    'checkin_successfully_restored' => 'Pointage restauré avec succès!',
+    'checkin_permanently_deleted' => 'Pointage supprimé définitivement!',
+    'selected_checkin_records_moved_to_trash' => 'Enregistrements de pointage sélectionnés déplacés vers la corbeille!',
+    'selected_checkin_records_restored' => 'Enregistrements de pointage sélectionnés restaurés!',
+    'selected_checkin_records_permanently_deleted' => 'Enregistrements de pointage sélectionnés supprimés définitivement!',
+
+    // Portail de pointages spécifiques
+    'manage_employees_checkins' => 'Gérer les pointages des employés vers vous!',
+    'total_checkins' => 'Total des pointages',
+    'recorded_by_employees' => 'enregistrés par les employés',
+    'you_approved' => 'vous avez approuvé!',
+    'you_rejected' => 'vous avez rejeté!',
+    'check_period' => 'Période de pointage',
+    'checkout' => 'Sortie',
+    'time_worked' => 'Temps travaillé',
+    'update_or_approve_checkin' => 'Mettre à jour ou approuver le pointage',
+    'update_or_approve_employee_checkin_record' => 'Mettre à jour ou approuver l\'enregistrement de pointage de l\'employé',
+    'checkin_comment' => 'Commentaire de pointage',
+    'employee_checkin_bulk' => 'Pointage en masse des employés',
 
     // Congés spécifiques
     'leaves_history' => 'Historique des congés',
@@ -309,6 +379,7 @@ return [
     'create_new_employee_for' => 'Créer un nouvel employé pour',
     'department_company' => 'Entreprise du département',
     'select_department' => 'Sélectionner un département',
+    'select_service' => 'Sélectionner un service',
     'update_employee' => 'Mettre à jour l\'employé',
     'update_employee_details' => 'Mettre à jour les détails de l\'employé',
     'unknown_company' => 'Entreprise inconnue',
@@ -330,5 +401,56 @@ return [
     'personal_phone' => 'Numéro de téléphone personnel',
     'manage_roles' => 'Gérer les rôles',
     'restore_employee' => 'Restaurer l\'employé',
-    'permanently_delete' => 'Supprimer définitivement'
+    'permanently_delete' => 'Supprimer définitivement',
+    'na' => 'ND',
+    'department_employees' => 'Employés du département',
+    'manage_employees_in_assigned_departments' => 'Gérer les employés dans vos départements assignés',
+
+    // Bulk Operations
+    'restore_selected_employees' => 'Restaurer les employés sélectionnés',
+    'permanently_delete_selected_employees' => 'Supprimer définitivement les employés sélectionnés',
+
+    // Employee Form Labels
+    'total_leave_days' => 'Total des jours de congé',
+    'monthly_allocations' => 'Allocations mensuelles',
+    'contract_end_date' => 'Date de fin de contrat',
+    'create_employee_password' => 'Créer le mot de passe de l\'employé',
+    'reset_employee_password' => 'Réinitialiser le mot de passe de l\'employé',
+    'add_employee' => 'Ajouter un employé',
+    'add_to' => 'Ajouter à',
+    'banned' => 'Banni',
+    'update_employee' => 'Mettre à jour l\'employé',
+    'create_a_new_employee' => 'Créer un nouvel employé',
+    'import_employee_for_company' => 'Importer :name pour votre entreprise.',
+    'fill_template_auto_add_details' => 'Remplir le modèle avec vos données :name, notez que les détails du département et de l\'entreprise seront ajoutés automatiquement',
+
+    // Gestion des rôles utilisateur
+    'user_roles' => 'Rôles utilisateur',
+    'assigned_roles' => 'Rôles assignés',
+    'no_roles_assigned' => 'Aucun rôle assigné',
+    'manage_roles' => 'Gérer les rôles',
+    'select_roles_max_2' => 'Sélectionner les rôles (Max 2)',
+    'update_roles' => 'Mettre à jour les rôles',
+    'note' => 'Note:',
+    'maximum_2_roles_per_user_allowed' => 'Maximum 2 rôles par utilisateur autorisés',
+    'employee_role_automatically_included' => 'Le rôle employé est automatiquement inclus',
+    'use_ctrl_cmd_click_multiple_selection' => 'Utiliser Ctrl/Cmd + Clic pour la sélection multiple',
+    'are_you_sure_remove_role' => 'Êtes-vous sûr de vouloir supprimer ce rôle?',
+    'cannot_remove' => 'Impossible de supprimer',
+    'employee_role_must_always_be_included' => 'Le rôle employé doit toujours être inclus.',
+    'user_maximum_2_roles_including_employee' => 'Un utilisateur peut avoir un maximum de 2 rôles (incluant le rôle employé).',
+
+    // Création de manager
+    'create_a_new_manager' => 'Créer un nouveau manager',
+
+    // Messages d'erreur
+    'department_access_required_for_supervisors' => 'Accès au département requis pour les superviseurs.',
+    'no_access_to_department' => 'Vous n\'avez pas accès à ce département.',
+    'no_permission_access_company' => 'Vous n\'avez pas la permission d\'accéder à cette entreprise.',
+
+    // Aides de formulaire
+    'leave_empty_to_keep_current_password' => 'Laisser vide pour conserver le mot de passe actuel',
+
+    // Additional keys
+    'employee_info' => 'Informations employé',
 ];

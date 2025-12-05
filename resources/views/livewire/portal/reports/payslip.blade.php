@@ -29,19 +29,19 @@
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
-                        {{__('Generate Report')}}
+                        {{__('common.generate_report')}}
                     </a>
                     <a href="#" wire:click.prevent="downloadBulkPayslips()" class="btn btn-sm btn-primary d-inline-flex align-items-center ms-2 {{$employee_id && $employee_id !== 'all' ? '' : 'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        {{__('Download Payslips')}}
+                        {{__('payslips.download_payslips')}}
                     </a>
                     <a href="/portal/download-jobs" wire:navigate class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center ms-2">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                         </svg>
-                        {{__('View Jobs')}}
+                        {{__('common.view_jobs')}}
                     </a>
                 </div>
                 <div class="text-center" wire:loading wire:target="generateReport">
@@ -65,8 +65,8 @@
         <div class="col">
             <label for="company">{{__('companies.company')}}: </label>
             <select wire:model.live="selectedCompanyId" class="form-select">
-                <option value="" selected>{{__('-- Select Company --')}}</option>
-                <option value="all">{{__('All Companies')}}</option>
+                <option value="" selected>{{__('common.select_company')}}</option>
+                <option value="all">{{__('common.all_companies')}}</option>
                 @foreach ($companies as $company)
                 <option value="{{$company->id}}">{{$company->name}}</option>
                 @endforeach
@@ -76,7 +76,7 @@
         <div class="col">
             <label for="selectedDepartmentId">{{__('departments.department')}}: </label>
             <select wire:model.live="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror">
-                <option value="" selected>{{__('-- Select Department --')}}</option>
+                <option value="" selected>{{__('common.select_department')}}</option>
                 <option value="all">{{__('common.all_name',['name'=>__('departments.departments')])}}</option>
                 @foreach ($departments as $department)
                 <option value="{{$department->id}}">{{$department->name}}</option>
@@ -90,8 +90,8 @@
             <div>
                 <label for="orderBy">{{__('employees.employee')}}: </label>
                 <select wire:model.live="employee_id" class="form-select">
-                    <option value="" selected>{{__('-- Select Employees --')}}</option>
-                    <option value="all">{{__('All Employees')}}</option>
+                    <option value="" selected>{{__('common.select_employees')}}</option>
+                    <option value="all">{{__('employees.all_employees')}}</option>
                     @foreach ($employees as $employee)
                     <option value=" {{$employee->id}}">{{$employee->name}}</option>
                     @endforeach
@@ -102,21 +102,21 @@
     </div>
     <div class='row pb-3'>
         <div class="col">
-            <label for="sms_status">{{__('SMS Status')}}: </label>
+            <label for="sms_status">{{__('common.sms_status')}}: </label>
             <select wire:model.live="sms_status" class="form-select">
-                <option value="">{{__('-- Select Status --')}}</option>
-                <option value="all" selected>{{__('Select All')}}</option>
+                <option value="">{{__('common.select_status')}}</option>
+                <option value="all" selected>{{__('common.select_all')}}</option>
                 <option value="3">{{__('common.pending')}}</option>
                 <option value="4">{{__('common.successful')}}</option>
                 <option value="5">{{__('common.failed')}}</option>
-                <option value="6">{{__('Disabled')}}</option>
+                <option value="6">{{__('common.disabled')}}</option>
             </select>
         </div>
         <div class="col">
-            <label for="email_status">{{__('Email Status')}}: </label>
+            <label for="email_status">{{__('common.email_status')}}: </label>
             <select wire:model.live="email_status" class="form-select">
-                <option value="">{{__('-- Select Status --')}}</option>
-                <option value="all" selected>{{__('Select All')}}</option>
+                <option value="">{{__('common.select_status')}}</option>
+                <option value="all" selected>{{__('common.select_all')}}</option>
                 <option value="0">{{__('common.pending')}}</option>
                 <option value="1">{{__('common.successful')}}</option>
                 <option value="2">{{__('common.failed')}}</option>
@@ -124,11 +124,11 @@
         </div>
 
         <div class="col">
-            <label for="Start Date">{{__('Start Date')}}: </label>
+            <label for="Start Date">{{__('common.start_date')}}: </label>
             <input wire:model.live="start_date" id="StartDate" type="date" class="form-control">
         </div>
         <div class="col">
-            <label for="End Date">{{__('End Date')}}: </label>
+            <label for="End Date">{{__('common.end_date')}}: </label>
             <input wire:model.live="end_date" id="EndDate" type="date" class="form-control">
         </div>
     </div>
@@ -139,11 +139,11 @@
                     <tr>
                         <th class="border-bottom">{{__('common.name')}}</th>
                         <th class="border-bottom">{{__('employees.matricule')}}</th>
-                        <th class="border-bottom">{{__('Contacts')}}</th>
-                        <th class="border-bottom">{{__('Period')}}</th>
-                        <th class="border-bottom">{{__('When')}}</th>
-                        <th class="border-bottom">{{__('Email status')}}</th>
-                        <th class="border-bottom">{{__('SMS status')}}</th>
+                        <th class="border-bottom">{{__('common.contacts')}}</th>
+                        <th class="border-bottom">{{__('common.period')}}</th>
+                        <th class="border-bottom">{{__('common.when')}}</th>
+                        <th class="border-bottom">{{__('reports.email_status')}}</th>
+                        <th class="border-bottom">{{__('common.sms_status')}}</th>
                     </tr>
                 </thead>
                 <tbody>

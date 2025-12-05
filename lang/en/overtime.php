@@ -58,4 +58,25 @@ return [
     'manage_employees_overtimes' => 'Manage Employees Overtimes',
     'update_or_approve_overtime' => 'Update or Approve Overtime',
     'update_or_approve_employee_overtime_record' => 'Update or Approve Employee overtime record',
+
+    // Additional UI Labels
+    'recorded_by_employees' => 'recorded by employees',
+    'you_approved' => 'you approved!',
+    'pending_your_validation' => 'pending your validation',
+    'you_rejected' => 'you rejected!',
+    'work_period' => 'Work Period',
+    'start' => 'Start',
+    'end' => 'End',
+    'time_worked' => 'Time Worked',
+
+    // Bulk Operations
+    'move_selected_overtime_records_to_trash' => 'Move Selected Overtime Records to Trash',
+    'restore_selected_overtime_records' => 'Restore Selected Overtime Records',
+    'permanently_delete_selected_overtime_records' => 'Permanently Delete Selected Overtime Records',
+
+    // Bulk Operations
+    'bulk_overtime' => 'Bulk Overtime',
+    'approval' => 'Approval',
+    'rejection' => 'Rejection',
+    'employee_overtime_bulk' => 'Employee Overtime Bulk',
 ];

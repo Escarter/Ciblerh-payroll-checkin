@@ -68,7 +68,7 @@ class Create extends Component
 
             $this->dispatch('roleCreated');
         } catch (\Throwable $th) {
-            $this->refresh(__('Quelque chose n\'a pas fonctionné !'), 'CreateRoleModal');
+            $this->refresh(__('common.something_went_wrong'), 'CreateRoleModal');
         }
     }
    

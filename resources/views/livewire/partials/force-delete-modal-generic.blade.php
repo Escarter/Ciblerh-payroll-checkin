@@ -20,7 +20,7 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-center">
-                        <button type="button" wire:click="bulkForceDelete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('common.delete_forever')}}</button>
+                        <button type="button" wire:click="forceDelete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('common.delete_forever')}}</button>
                         <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{__('common.cancel')}}</button>
                     </div>
                 </div>

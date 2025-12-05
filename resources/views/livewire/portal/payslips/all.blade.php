@@ -1,8 +1,10 @@
 <div>
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => count($selectedJobs) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => count($selectedJobs) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => __('payslip process')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedJobs, 'itemType' => __('payslips.payslip_process')])
     <x-alert />
     <div class='py-2 pb-2'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-4 align-items-center">
@@ -12,18 +14,18 @@
                         <li class="breadcrumb-item"><a href="#"><svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg></a></li>
-                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{route('portal.payslips.index')}}" wire:navigate>{{__('Process Payslip')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Payslips Processed')}}</li>
+                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{__('dashboard.home')}}</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('portal.payslips.index')}}" wire:navigate>{{__('payslips.payslips_management')}}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('payslips.payslips_processed')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4">
                     <svg class="icon me-1" fill="none" stroke="currentColor" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
                         <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                     </svg>
-                    {{__('All Payslips Processed')}}
+                    {{__('payslips.all_payslips_processed')}}
                 </h1>
-                <p class="mb-0">{{__('View all payslips processed')}}</p>
+                <p class="mb-0">{{__('payslips.view_all_payslips_processed')}}</p>
             </div>
         </div>
     </div>
@@ -41,18 +43,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Processes')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('payslips.total_processes')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($jobs_count ?? 0)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Processes')}}</h2>
+                                    <h2 class="h5">{{__('payslips.total_processes')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($jobs_count ?? 0)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Process'), $jobs_count ?? 0) }} {{__('in the system')}}</div>
-                                </div>
+                              
                             </div>
                         </div>
                     </div>
@@ -69,18 +69,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural('Process', $active_jobs ?? 0)) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.processed') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_jobs ?? 0)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural('Process', $active_jobs ?? 0)) }}</h2>
+                                    <h2 class="h5">{{ __('common.processed') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_jobs ?? 0)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Process'), $active_jobs ?? 0) }} {{__('that are active!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -97,18 +94,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Process'), $deleted_jobs ?? 0) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.deleted') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($deleted_jobs ?? 0)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Process'), $deleted_jobs ?? 0) }}</h2>
+                                    <h2 class="h5">{{ __('common.deleted') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_jobs ?? 0)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Process'), $deleted_jobs ?? 0) }} {{__('that are deleted!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -157,7 +151,7 @@
             @endif
             @else
             @if(count($selectedJobs) > 0)
-            <button type="button" class="btn btn-sm btn-outline-success me-2" data-bs-toggle="modal" data-bs-target="#bulkRestoreModal">
+            <button type="button" class="btn btn-sm btn-outline-success me-2" data-bs-toggle="modal" data-bs-target="#BulkRestoreModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -224,7 +218,7 @@
                                 </div>
                             </a>
                             @else
-                            <p>{{__('Department deleted!')}}</p>
+                            <p>{{__('payslips.department_deleted')}}</p>
                             @endif
                         </td>
                         <td>
@@ -240,15 +234,15 @@
                         <td>
                             <div class="d-flex flex-column">
                                 <div class="mb-1">
-                                    <span class="fw-bold text-primary">{{__('Target')}}:</span>
-                                    <span class="ms-1">{{!is_null($job->department) ? count($job->department->employees) : 0 }} {{__('Employees')}}</span>
+                                    <span class="fw-bold text-primary">{{__('common.target')}}:</span>
+                                    <span class="ms-1">{{!is_null($job->department) ? count($job->department->employees) : 0 }} {{__('common.employees')}}</span>
                                 </div>
                                 <div class="mb-1">
-                                    <span class="fw-bold text-primary">{{__('Period')}}:</span>
+                                    <span class="fw-bold text-primary">{{__('common.period')}}:</span>
                                     <span class="ms-1">{{$job->month}} - {{$job->year}}</span>
                                 </div>
                                 <div>
-                                    <span class="fw-bold text-primary">{{__('Date Created')}}:</span>
+                                    <span class="fw-bold text-primary">{{__('common.date_created')}}:</span>
                                     <span class="ms-1">{{$job->created_at->diffForHumans()}}</span>
                                 </div>
                             </div>
@@ -279,7 +273,7 @@
                             </a>
                             @else
                             <!-- Restore Link -->
-                            <a href='#' wire:click="restore({{$job->id}})" class="text-success me-2" title="{{__('Restore')}}">
+                            <a href='#' wire:click.prevent="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>
@@ -303,7 +297,7 @@
         @else
         <div class='p-5 text-center '>
             <img src="{{asset('img/empty.svg')}}" alt='' class="w-25 h-25">
-            <p class="py-4 h5 text-muted">{{__('Start processing payslip to see the outcome here')}}</p>
+            <p class="py-4 h5 text-muted">{{__('payslips.start_processing_payslip_to_see_the_outcome_here')}}</p>
         </div>
         @endif
     </div>

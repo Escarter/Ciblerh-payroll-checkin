@@ -109,7 +109,7 @@ class Index extends Component
             'approval_reason' => $this->approval_reason,
         ]);
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Overtimes successfully updated!'), 'EditBulkOvertimeModal');
+        $this->closeModalAndFlashMessage(__('overtime.overtime_updated_successfully'), 'EditBulkOvertimeModal');
     }
 
     public function update()
@@ -133,7 +133,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Overtime successfully updated!'), 'EditOvertimeModal');
+        $this->closeModalAndFlashMessage(__('overtime.overtime_updated_successfully'), 'EditOvertimeModal');
     }
     public function delete()
     {
@@ -144,19 +144,19 @@ class Index extends Component
         $this->overtime->delete(); // Already using soft delete
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Overtime successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('overtime.overtime_deleted_successfully'), 'DeleteModal');
     }
 
-    public function restore($overtimeId)
+    public function restore()
     {
         if (!Gate::allows('overtime-delete')) {
             return abort(401);
         }
 
-        $overtime = Overtime::withTrashed()->findOrFail($overtimeId);
+        $overtime = Overtime::withTrashed()->findOrFail($this->overtime_id);
         $overtime->restore();
 
-        $this->closeModalAndFlashMessage(__('Overtime successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('overtime.overtime_restored_successfully'), 'RestoreModal');
     }
 
     public function forceDelete($overtimeId)
@@ -168,7 +168,7 @@ class Index extends Component
         $overtime = Overtime::withTrashed()->findOrFail($overtimeId);
         $overtime->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Overtime permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('overtime.overtime_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -189,7 +189,7 @@ class Index extends Component
             $this->selectedOvertimesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected overtime records moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('overtime.selected_overtimes_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -203,7 +203,7 @@ class Index extends Component
             $this->selectedOvertimesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected overtime records restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('overtime.selected_overtimes_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -217,7 +217,7 @@ class Index extends Component
             $this->selectedOvertimesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected overtime records permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('overtime.selected_overtimes_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)
@@ -275,7 +275,7 @@ class Index extends Component
             auth()->user(),
             'overtime_exported',
             'web',
-            ucfirst(auth()->user()->name) . __(' exported excel file for overtime')
+            ucfirst(auth()->user()->name) . __(' overtime.exported_excel_file_for_overtime')
         );
         return (new OvertimeExport($this->query))->download('Overtime-' . Str::random(5) . '.xlsx');
     }

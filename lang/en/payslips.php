@@ -9,13 +9,18 @@ return [
 
     'payslips' => 'Payslips',
     'payslip' => 'Payslip',
+    'select_department' => 'Select Department',
     'total_payslips' => 'Total Payslips',
     'payslip_process' => 'Payslip Process',
     'payslip_processes' => 'Payslip Processes',
     'total_processes' => 'Total Processes',
     'payslips_management' => 'Payslips Management',
     'send_payslips' => 'Send Payslips',
+    'select_payslip' => 'Select Payslip',
+    'select_payslip_file' => 'Select Payslip File',
+    'select_payslip_file_placeholder' => 'Select Payslip File',
     'select_company' => '--Select Company--',
+    'start_processing' => 'Start Processing',
     'manage_payslips_processes' => 'Create new, update and delete any groups on the platform',
 
     // Payslip actions
@@ -115,4 +120,70 @@ return [
     'no_valid_email_address' => 'No valid email address for User',
     'failed_sending_email_sms' => 'Failed sending Email & SMS',
     'failed_to_resent_email' => 'Failed to resent Email',
+
+    // Employee payslip history specific
+    'payslip_file_not_found' => 'Payslip file not found. Please contact your administrator.',
+    'unable_to_download_payslip' => 'Unable to download payslip. Please contact your administrator.',
+    'payslip_successfully_moved_to_trash' => 'Payslip successfully moved to trash!',
+    'payslip_successfully_restored' => 'Payslip successfully restored!',
+    'payslip_permanently_deleted' => 'Payslip permanently deleted!',
+    'selected_payslips_moved_to_trash' => 'Selected payslips moved to trash!',
+    'selected_payslips_restored' => 'Selected payslips restored!',
+    'selected_payslips_permanently_deleted' => 'Selected payslips permanently deleted!',
+    'failed_to_send_email' => 'Failed to send email',
+    'failed_to_send_email_recipient_retry_scheduled' => 'Failed to send email. Recipient: :email. Automatic retry scheduled',
+
+    // Employee payslip history UI labels
+    'for_this_employee' => 'for this employee',
+    'that_are_active' => 'that are active!',
+    'that_are_deleted' => 'that are deleted!',
+    'payslip_history_for_employee' => ':name Payslips',
+    'view_all_employee_payslip_history' => 'View all :name payslip history',
+
+    // Status labels
+    'not_recorded' => 'Not Recorded',
+    'pending_status' => 'Pending...',
+
+    // Action titles
+    'download_payslip_title' => 'Download Payslip',
+    'resend_email_title' => 'Resend Email',
+    'resend_sms_title' => 'Resend SMS',
+    'delete_title' => 'Delete',
+
+    // Additional UI labels
+    'all_payslips_processed' => 'All Payslips Processed',
+    'payslips_processed' => 'Payslips Processed',
+    'view_all_payslips_processed' => 'View all payslips processed',
+    'resend_all_failed_payslips' => 'Resend All Failed Payslips',
+    'are_you_sure_resend_failed_payslips' => 'Are you sure you want to resend all failed payslips?',
+    'process_details' => 'Process Details',
+    'company_with_departments' => ' - with :count departments',
+    'departments' => 'departments',
+
+    // Missing translation keys
+    'move_selected_payslip_processes_to_trash' => 'Move Selected Payslip Processes to Trash',
+    'department_deleted' => 'Department deleted!',
+    'start_processing_payslip_to_see_the_outcome_here' => 'Start processing payslip to see the outcome here',
+    'view_past_history' => 'View past history',
+    'unknown_error' => 'Unknown error',
+    'employees_whose_payslips_could_not_be_found_in_the_pdf_files' => 'Employees whose payslips could not be found in the PDF files',
+    'phone' => 'Phone',
+    'failure_reason' => 'Failure Reason',
+    'created_at' => 'Created At',
+    'employee_info' => 'Employee Info',
+    'timeline' => 'Timeline',
+    'encryption_status' => 'Encryption status',
+    'email_status' => 'Email status',
+    'sms_status' => 'SMS status',
+    'period' => 'Period',
+    'created' => 'Created',
+    'not_recorded' => 'Not Recorded',
+
+    // Additional missing keys
+    'category' => 'Category',
+    'single' => 'Single',
+    'bulk' => 'Bulk',
+    'permanently_delete_selected_payslips' => 'Permanently Delete Selected Payslips',
+    'restore_selected_payslips' => 'Restore Selected Payslips',
+    'move_selected_payslips_to_trash' => 'Move Selected Payslips to Trash',
 ];

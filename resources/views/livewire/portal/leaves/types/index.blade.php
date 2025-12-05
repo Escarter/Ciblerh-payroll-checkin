@@ -4,6 +4,8 @@
     @include('livewire.portal.leaves.types.partials.edit-type')
     @include('livewire.portal.leaves.types.partials.import-types')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedLeaveTypes, 'itemType' => count($selectedLeaveTypes) === 1 ? __('leaves.leave_type') : __('common.leave_types')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedLeaveTypes, 'itemType' => count($selectedLeaveTypes) === 1 ? __('leaves.leave_type') : __('common.leave_types')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedLeaveTypes, 'itemType' => __('leaves.leave_type')])
@@ -21,14 +23,14 @@
                         </li>
                         <li class="breadcrumb-item"><a href="/" wire:navigate>{{__('dashboard.home')}}</a></li>
                         <li class="breadcrumb-item "><a href="{{route('portal.leaves.index')}}" wire:navigate>{{__('leaves.leaves')}}</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('common.leave_types')}}</li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('leaves.leave_types')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
-                    {{__('common.leave_types')}}
+                    {{__('leaves.leave_types')}}
                 </h1>
                 <p class="mt-n1 mx-2">{{__('leaves.manage_leave_types')}}&#x23F0; </p>
             </div>
@@ -85,18 +87,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total LeaveTypes')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('leaves.total_leavetypes')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($leave_types_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total LeaveTypes')}}</h2>
+                                    <h2 class="h5">{{__('leaves.total_leavetypes')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($leave_types_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ __(\Str::plural(__('LeaveType'), $leave_types_count)) }} {{__('in for this department')}}</div>
-                                </div>
+                              
                             </div>
                         </div>
                     </div>
@@ -113,18 +113,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural('Services', $active_leave_types) }}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.active') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_leave_types)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural('leaves.leave_type', $active_leave_types) }}</h2>
+                                    <h2 class="h5"> {{__('common.active') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_leave_types)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural('leaves.leave_type', $active_leave_types) }} {{__('leaves.active')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -141,18 +138,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural('leaves.leave_type', $inactive_leave_types) }}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.inactive') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($inactive_leave_types)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural('leaves.leave_type', $inactive_leave_types) }}</h2>
+                                    <h2 class="h5"> {{__('common.inactive') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($inactive_leave_types)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural('leaves.leave_type', $inactive_leave_types) }} {{__('leaves.inactive!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -254,7 +248,7 @@
                 @if(count($selectedLeaveTypes) > 0)
                 <div class="d-flex align-items-center gap-2">
                     @can('leave_type-delete')
-                    <button wire:click="bulkRestore"
+                    <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                         class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                         title="{{ __('leaves.restore_selected_leave_types') }}">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -305,7 +299,7 @@
                         </th>
                         <th class="border-bottom">{{__('leaves.leave_type_id')}}</th>
                         <th class="border-bottom">{{__('leaves.leave_type')}}</th>
-                        <th class="border-bottom">{{__('Default Number of Days')}}</th>
+                        <th class="border-bottom">{{__('leaves.default_number_of_days')}}</th>
                         <th class="border-bottom">{{__('common.status')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
                         @canany('leave_type-update','leave_type-delete')
@@ -331,7 +325,7 @@
                             <span class="fw-bolder">{{ucwords($leave_type->name)}}</span>
                         </td>
                         <td>
-                            <span class="fw-normal">{{$leave_type->default_number_of_days}} {{__(' days')}}</span>
+                            <span class="fw-normal">{{$leave_type->default_number_of_days}} {{__('leaves.days')}}</span>
                         </td>
                         <td>
                             <span class="fw-normal badge super-badge badge-lg bg-{{$leave_type->approvalStatusStyle('','boolean')}} rounded">{{$leave_type->approvalStatusText('','boolean')}}</span>
@@ -358,7 +352,7 @@
                                 @endcan
                             @else
                                 @can('leave_type-delete')
-                                <a href="#" wire:click="restore({{ $leave_type->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                <a href="#" wire:click.prevent="$set('leave_type_id', {{ $leave_type->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('common.restore')}}">
                                     <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>
@@ -378,7 +372,7 @@
                         <td colspan="8">
                             <div class="text-center text-gray-800 mt-2">
                                 <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
-                                <p>{{__('No LeaveType Found..!')}}</p>
+                                <p>{{__('leaves.no_leave_type_found')}}</p>
                             </div>
                         </td>
                     </tr>

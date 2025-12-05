@@ -4,12 +4,12 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Update or Approve Absence')}}</h1>
-                        <p>{{__('Upate or Approve Employee absence record')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('absences.update_or_approve_absence')}}</h1>
+                        <p>{{__('absences.update_or_approve_employee_absence_record')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="update">
                         <div class="form-group mb-4">
-                            <label for="absence_date">{{__('Absence')}}</label>
+                            <label for="absence_date">{{__('employees.absence')}}</label>
                             <input wire:model="absence_date" type="date" class="form-control  @error('absence_date') is-invalid @enderror" value="{{now()->format('Y-m-d')}}" required="" name="absence_date">
                             @error('absence_date')
                             <div class="invalid-feedback">{{$message}}</div>

@@ -21,6 +21,35 @@ return [
     'selected_services_restored' => 'Services sélectionnés restaurés!',
     'selected_services_permanently_deleted' => 'Services sélectionnés supprimés définitivement!',
 
+    // Additional Success Messages
+    'service_successfully_moved_to_trash' => 'Service déplacé vers la corbeille avec succès!',
+    'service_successfully_restored' => 'Service restauré avec succès!',
+    'services_successfully_imported' => 'Services importés avec succès!',
+    'imported_excel_file_for_services' => 'Fichier Excel importé pour les services du département ',
+    'exported_excel_file_for_services' => 'Fichier Excel exporté pour les services du département ',
+
+    // Error Messages
+    'cannot_permanently_delete_service' => 'Impossible de supprimer définitivement le service. Il a des enregistrements de pointage liés.',
+
+    // UI Labels
+    'inactive' => 'Inactif',
+    'inactive!' => 'inactifs!',
+    'in_for_this_department' => 'dans ce département',
+    'that_are_deleted' => 'qui sont supprimés!',
+
+    // Table Headers
+    'id' => 'ID',
+
+    // Button Titles
+    'edit_service' => 'Modifier le service',
+    'restore_service' => 'Restaurer le service',
+    'permanently_delete' => 'Supprimer définitivement',
+    'add_service' => 'Ajouter un service',
+
+    // Bulk Operations
+    'restore_selected_services' => 'Restaurer les services sélectionnés',
+    'permanently_delete_selected_services' => 'Supprimer définitivement les services sélectionnés',
+
     // Service fields
     'service_name' => 'Nom du service',
     'service_code' => 'Code service',

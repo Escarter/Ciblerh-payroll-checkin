@@ -7,6 +7,8 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedDepartments, 'itemType' => count($selectedDepartments) === 1 ? __('departments.department') : __('departments.departments')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedDepartments, 'itemType' => count($selectedDepartments) === 1 ? __('departments.department') : __('departments.departments')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedDepartments, 'itemType' => __('departments.department')])
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     <div class='pb-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-0 align-items-center">
             <div class="mb-lg-0">
@@ -107,9 +109,7 @@
                                     <h2 class="h5">{{__('departments.total_departments')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($departments_count ?? 0)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('departments.department'), $departments_count ?? 0) }} {{__('departments.in_this_company')}}</div>
-                                </div>
+                             
                             </div>
                         </div>
                     </div>
@@ -126,18 +126,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural(__('departments.department'), $active_departments ?? 0)) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('common.active') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_departments ?? 0)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural(__('departments.department'), $active_departments ?? 0)) }}</h2>
+                                    <h2 class="h5">{{__('common.active') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_departments ?? 0)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('departments.department'), $active_departments ?? 0) }} {{__('departments.that_are_active')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -154,18 +151,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('departments.department'), $deleted_departments ?? 0) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.inactive')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($deleted_departments ?? 0)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('departments.department'), $deleted_departments ?? 0) }}</h2>
+                                    <h2 class="h5">{{ __('common.inactive')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_departments ?? 0)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('departments.department'), $deleted_departments ?? 0) }} {{__('departments.that_are_deleted')}}</div>
-                                </div>
+                              
                             </div>
                         </div>
                     </div>
@@ -264,7 +259,7 @@
             @endcan
             @else
             @can('department-delete')
-            <button wire:click="bulkRestore"
+            <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                 class="btn btn-sm btn-outline-success d-flex align-items-center"
                 title="{{ __('departments.restore_selected_departments') }}">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -423,7 +418,7 @@
                         @endcan
                         @else
                         @can('department-delete')
-                        <a href="#" wire:click="restore({{$department->id}})" title="{{__('departments.restore_department')}}" onclick="event.stopPropagation();">
+                        <a href="#" wire:click.prevent="$set('department_id', {{$department->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('departments.restore_department')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
@@ -447,7 +442,7 @@
                     <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
                 </div>
                 @can('department-create')
-                <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#DepartmentModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
+                <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#DepartmentModal" class="btn btn-sm btn-primary py-2 mt-1 d-inline-flex align-items-center ">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg> {{__('departments.add_department')}}

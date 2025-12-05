@@ -4,15 +4,15 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-5">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{ $isEditMode ? __('Update Employee') : __('Create a new Employee') }}</h1>
+                        <h1 class="mb-0 h4">{{ $isEditMode ? __('employees.update_employee') : __('employees.create_a_new_employee') }}</h1>
                         <p>
                             @if($isEditMode)
-                                {{__('Update employee details')}} &#128522;
+                                {{__('employees.update_employee_details')}} &#128522;
                             @else
                                 @if(auth()->user()->hasRole('supervisor'))
-                                    {{__('Create a new employee in your department')}} &#128522;
+                                    {{__('employees.create_new_employee_in_department')}} &#128522;
                                 @else
-                                    {{__('Create a new employee for')}} - {{$company->name ?? '' }} &#128522;
+                                    {{__('employees.create_new_employee_for')}} - {{$company->name ?? '' }} &#128522;
                                 @endif
                             @endif
                         </p>
@@ -23,7 +23,7 @@
                             <div class='col-md-6 col-xs-12'>
                                 <label for="company">{{__('companies.company')}}</label>
                                 @if(auth()->user()->hasRole('supervisor'))
-                                    <input type="text" class="form-control" value="{{ $isEditMode ? ($employee->company->name ?? __('Unknown Company')) : __('Department Company') }}" disabled>
+                                    <input type="text" class="form-control" value="{{ $isEditMode ? ($employee->company->name ?? __('employees.unknown_company')) : __('employees.department_company') }}" disabled>
                                 @else
                                     <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? '' }}" disabled>
                                 @endif
@@ -31,7 +31,7 @@
                             <div class='col-md-6 col-xs-12'>
                                 <label for="department">{{__('departments.department')}}</label>
                                 <select wire:model.live="department_id" class="form-select  @error('department_id') is-invalid @enderror">
-                                    <option value="">{{__("Select department")}}</option>
+                                    <option value="">{{__('departments.select_department')}}</option>
                                     @foreach ($departments as $department)
                                     <option value="{{$department->id}}" {{ $isEditMode && $department_id === $department->id ? 'selected' : '' }}>{{$department->name}}</option>
                                     @endforeach
@@ -42,7 +42,7 @@
                         <div class='form-group mb-2'>
                             <label for="service_id">{{__('employees.service')}}</label>
                             <select wire:model.live="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
-                                <option value="">{{__("Select service")}}</option>
+                                <option value="">{{__('services.select_service')}}</option>
                                 @foreach ($services as $service)
                                 <option value="{{$service->id}}" {{ $isEditMode && $service_id === $service->id ? 'selected' : '' }}>{{$service->name}}</option>
                                 @endforeach
@@ -121,27 +121,27 @@
                             <div class="form-check form-switch">
                                 <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}" @if($receive_sms_notifications) checked @endif>
                                 <label class="form-check-label" for="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
-                                    {{__('Receive SMS notifications for payslips')}}
+                                    {{__('employees.receive_sms_notifications')}}
                                 </label>
                             </div>
-                            <small class="text-muted">{{__('employees.enable_sms_notifications')}}</small>
+                            <small class="text-muted">{{__('employees.sms_notifications_description')}}</small>
                         </div>
                         <div class="form-group mb-2">
                             <div class="form-check form-switch">
                                 <input wire:model="receive_email_notifications" class="form-check-input" type="checkbox" id="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}" @if($receive_email_notifications) checked @endif>
                                 <label class="form-check-label" for="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
-                                    {{__('Receive Email notifications for payslips')}}
+                                    {{__('employees.receive_email_notifications')}}
                                 </label>
                             </div>
-                            <small class="text-muted">{{__('Enable or disable Email notifications when payslips are sent to this employee')}}</small>
+                            <small class="text-muted">{{__('employees.email_notifications_description')}}</small>
                         </div>
                         <div class="form-group mb-2">
-                            <label for="alternative_email">{{__('Alternative Email')}}</label>
-                            <input wire:model="alternative_email" type="email" class="form-control @error('alternative_email') is-invalid @enderror" placeholder="{{__('Optional backup email address')}}" name="alternative_email">
+                            <label for="alternative_email">{{__('employees.alternative_email')}}</label>
+                            <input wire:model="alternative_email" type="email" class="form-control @error('alternative_email') is-invalid @enderror" placeholder="{{__('employees.alternative_email_description')}}" name="alternative_email">
                             @error('alternative_email')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
-                            <small class="text-muted">{{__('Optional: Backup email address to use if primary email fails')}}</small>
+                            <small class="text-muted">{{__('employees.alternative_email_note')}}</small>
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
@@ -202,7 +202,7 @@
                             <div class='col-md-6 col-xs-12'>
                                 <label for="status">{{__('common.status')}}</label>
                                 <select wire:model="status" name="status" class="form-select  @error('status') is-invalid @enderror" {{ $isEditMode ? 'required' : '' }}>
-                                    <option value="">{{__("Select status")}}</option>
+                                    <option value="">{{__('departments.select_status')}}</option>
                                     <option value="true" @if($isEditMode && ($status===true || $status==="true")) selected @endif>{{__('common.active')}}</option>
                                     <option value="false" @if($isEditMode && ($status===false || $status==="false")) selected @endif>{{__('Banned')}}</option>
                                 </select>
@@ -211,7 +211,7 @@
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="contract_end">{{__('Contract End Date')}}</label>
+                                <label for="contract_end">{{__('employees.contract_end_date')}}</label>
                                 <input wire:model="contract_end" type="date" class="form-control  @error('contract_end') is-invalid @enderror" autofocus="" name="contract_end">
                                 @error('contract_end')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -219,13 +219,13 @@
                             </div>
                         </div>
                         <div class="form-group mb-{{ $isEditMode ? '3' : '4' }}">
-                            <label for="password">{{ $isEditMode ? __('Reset Employee\'s Password') : __('Create Employee\'s Password') }}</label>
+                            <label for="password">{{ $isEditMode ? __('employees.reset_employee_password') : __('employees.create_employee_password') }}</label>
                             <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password" {{ $isEditMode ? '' : 'required' }}>
                             @error('password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                             @if($isEditMode)
-                            <small class="text-muted">{{__('Leave empty to keep current password')}}</small>
+                            <small class="text-muted">{{__('employees.leave_empty_to_keep_current_password')}}</small>
                             @endif
                         </div>
                         <div class="d-flex justify-content-end">
@@ -237,7 +237,7 @@
                                     @if(auth()->user()->hasRole('supervisor'))
                                         {{__('Add Employee')}}
                                     @else
-                                        {{__('Add to')}} {{$company->name ?? ''}}
+                                        {{__('employees.add_to')}} {{$company->name ?? ''}}
                                     @endif
                                 @endif
                             </button>

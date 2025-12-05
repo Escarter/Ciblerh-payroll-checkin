@@ -173,13 +173,13 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('departments.department_successfully_moved_to_trash'), 'DeleteModal');
     }
 
-    public function restore($departmentId)
+    public function restore()
     {
         if (!Gate::allows('department-delete')) {
             return abort(401);
         }
 
-        $department = Department::withTrashed()->findOrFail($departmentId);
+        $department = Department::withTrashed()->findOrFail($this->department_id);
         $department->restore();
 
         $this->closeModalAndFlashMessage(__('departments.department_successfully_restored'), 'RestoreModal');

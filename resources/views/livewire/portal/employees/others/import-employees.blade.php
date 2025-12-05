@@ -8,7 +8,7 @@
                          <p>{{__('Import new :name',['name'=>__('employees.employee')])}} &#128522;</p>
                      </div>
                      <x-form-items.form wire:submit="import" class="form-modal">
-                         <p>{{__('Import :name for your company.',['name'=>__('employees.employee')])}}</p>
+                         <p>{{__('employees.import_employee_for_company',['name'=>__('employees.employee')])}}</p>
                          <div class='mb-4'>
                             <ol>
                                 <li>{{__('Download sample :name import template',['name'=>__('employees.employee')])}} 
@@ -19,7 +19,7 @@
                                         {{__('common.download_template')}}
                                     </a>
                                 </li>
-                                <li>{{__('Fill template with your :name data, note that department and company details will be auto added',['name'=>__('employees.employee')])}}</li>
+                                <li>{{__('employees.fill_template_auto_add_details',['name'=>__('employees.employee')])}}</li>
                                 <li>{{__('common.upload_filled_template')}}</li>
                             </ol>
                          </div>

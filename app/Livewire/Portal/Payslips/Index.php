@@ -23,6 +23,7 @@ class Index extends Component
     public $companies = [];
     public $departments = [];
     public $company_id, $department_id, $month, $payslip_file;
+    public ?int $job_id = null;
 
     public ?SendPayslipProcess $send_payslip_process;
     
@@ -58,13 +59,13 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('payslips.payslip_process_moved_to_trash'), 'DeleteModal');
     }
 
-    public function restore($processId)
+    public function restore()
     {
         if (!Gate::allows('payslip-delete')) {
             return abort(401);
         }
 
-        $process = SendPayslipProcess::withTrashed()->findOrFail($processId);
+        $process = SendPayslipProcess::withTrashed()->findOrFail($this->job_id);
         $process->restore();
 
         $this->closeModalAndFlashMessage(__('payslips.payslip_process_restored'), 'RestoreModal');

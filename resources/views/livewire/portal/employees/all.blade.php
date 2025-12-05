@@ -4,6 +4,8 @@
     @include('livewire.portal.employees.manager.edit-manager')
     @include('livewire.portal.employees.others.import-employees')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employees.employee')])
@@ -20,7 +22,7 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
+                        <li class="breadcrumb-item"><a href="/" wire:navigate>{{__('dashboard.home')}}</a></li>
                         <li class="breadcrumb-item "><a href="{{route('portal.companies.index')}}" wire:navigate>{{__('companies.companies_management')}}</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{__('employees.employees')}}</li>
                     </ol>
@@ -97,9 +99,7 @@
                                     <h2 class="h5">{{__('employees.total_employees')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($employees_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.employee'), $employees_count) }} {{__('employees.recorded_by_manager')}}</div>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
@@ -116,18 +116,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('employees.employee'), $active_employees) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.active') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_employees)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('employees.employee'), $active_employees) }}</h2>
+                                    <h2 class="h5">{{ __('common.active') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_employees)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.employee'), $active_employees) }} {{__('employees.who_are_active')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -144,18 +141,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('employees.employee'), $banned_employees) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.inactive') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($banned_employees)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('employees.employee'), $banned_employees) }}</h2>
+                                    <h2 class="h5">{{ __('common.inactive') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($banned_employees)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.employee'), $banned_employees) }} {{__('employees.who_are_banned')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -246,9 +240,9 @@
                 @endcan
                 @else
                 @can('employee-delete')
-                <button wire:click="bulkRestore"
+                <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                    title="{{ __('Restore Selected Employees') }}">
+                    title="{{ __('employees.restore_selected_employees') }}">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -258,7 +252,7 @@
 
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Permanently Delete Selected Employees') }}"
+                    title="{{ __('employees.permanently_delete_selected_employees') }}"
                     data-bs-toggle="modal"
                     data-bs-target="#BulkForceDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,21 +322,21 @@
                                     <div class="small text-gray d-flex align-items-end">
                                         <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V7a2 2 0 012-2h2a2 2 0 012 2v0M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2"></path>
-                                        </svg> {{__('Created')}} : {{$employee->created_at->format('Y-m-d')}}
+                                        </svg> {{__('employees.created')}} : {{$employee->created_at->format('Y-m-d')}}
                                     </div>
                                 </div>
                             </a>
                         </td>
                         <td>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('companies.company')}} </span>: {{is_null($employee->company) ? __('NA'): ucfirst($employee->company->name) }}</span> <br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('departments.department')}}</span> : {{is_null($employee->department) ? __('NA'): ucfirst($employee->department->name) }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.service')}}</span> : {{is_null($employee->service) ? __('NA'): ucfirst($employee->service->name) }}</span>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('companies.company')}} </span>: {{is_null($employee->company) ? __('employees.na'): ucfirst($employee->company->name) }}</span> <br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('departments.department')}}</span> : {{is_null($employee->department) ? __('employees.na'): ucfirst($employee->department->name) }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.service')}}</span> : {{is_null($employee->service) ? __('employees.na'): ucfirst($employee->service->name) }}</span>
                         </td>
                         <td>
                             <span class="fs-normal"><span class="fw-bolder">{{__('employees.matricule')}} </span>: {{ $employee->matricule }}</span> <br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('PDF Password')}}</span> : {{ $employee->pdf_password }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Professional Phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Personal Phone')}}</span> : {{ $employee->personal_phone_number }}</span>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.pdf_password')}}</span> : {{ $employee->pdf_password }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.professional_phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.personal_phone')}}</span> : {{ $employee->personal_phone_number }}</span>
                         </td>
                         <td>
                             <div class="mb-2">
@@ -373,7 +367,7 @@
                             @can('employee-view')
                             <button wire:click="$dispatch('showUserRoles', [{{$employee->id}}])"
                                 class="btn btn-sm btn-outline-info me-1"
-                                title="{{ __('Manage Roles') }}">
+                                title="{{ __('employees.manage_roles') }}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
                                 </svg>
@@ -413,8 +407,8 @@
                             @endcan
                             @else
                             @can('employee-delete')
-                            <a href='#' wire:click.prevent="restore({{$employee->id}})"
-                                title="{{ __('Restore Employee') }}">
+                            <a href='#' wire:click.prevent="$set('employee_id', {{$employee->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal"
+                                title="{{ __('employees.restore_employee') }}">
                                 <svg class="icon icon-xs text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>

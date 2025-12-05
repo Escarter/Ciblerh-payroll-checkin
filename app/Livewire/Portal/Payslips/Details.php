@@ -20,7 +20,8 @@ class Details extends Component
 
     public $job;
     public ?Payslip $payslip;
-    
+    public ?int $payslip_id = null;
+
     // Soft delete properties
     public $activeTab = 'active';
     public $selectedPayslips = [];
@@ -46,7 +47,7 @@ class Details extends Component
         $payslip = Payslip::findOrFail($payslip_id);
 
         if (!Storage::disk("modified")->exists($payslip->file)) {
-            $this->dispatch("flash-message-error", message: __("Payslip file not found. Please contact your administrator."));
+            $this->dispatch("flash-message-error", message: __('payslips.payslip_file_not_found'));
             return;
         }
 
@@ -116,7 +117,7 @@ class Details extends Component
 
                         Log::info('mail-sent');
 
-                        $this->closeModalAndFlashMessage(__('Employee Payslip resent successfully'), 'resendPayslipModal');
+                        $this->closeModalAndFlashMessage(__('payslips.employee_payslip_resent_successfully'), 'resendPayslipModal');
                         }
                     } catch (\Swift_TransportException $e) {
 
@@ -166,20 +167,20 @@ class Details extends Component
 
         if (!empty($this->payslip)) {
             $this->payslip->delete(); // Soft delete
-            $this->closeModalAndFlashMessage(__('Payslip successfully moved to trash!'), 'DeleteModal');
+            $this->closeModalAndFlashMessage(__('payslips.payslip_successfully_moved_to_trash'), 'DeleteModal');
         }
     }
 
-    public function restore($payslipId)
+    public function restore()
     {
         if (!Gate::allows('payslip-delete')) {
             return abort(401);
         }
 
-        $payslip = Payslip::withTrashed()->findOrFail($payslipId);
+        $payslip = Payslip::withTrashed()->findOrFail($this->payslip_id);
         $payslip->restore();
 
-        $this->closeModalAndFlashMessage(__('Payslip successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete()
@@ -190,7 +191,7 @@ class Details extends Component
 
         if (!empty($this->payslip)) {
             $this->payslip->forceDelete();
-            $this->closeModalAndFlashMessage(__('Payslip permanently deleted!'), 'ForceDeleteModal');
+            $this->closeModalAndFlashMessage(__('payslips.payslip_permanently_deleted'), 'ForceDeleteModal');
         }
     }
 
@@ -205,7 +206,7 @@ class Details extends Component
             $this->selectedPayslips = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected payslips moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.selected_payslips_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -219,7 +220,7 @@ class Details extends Component
             $this->selectedPayslips = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected payslips restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('payslips.selected_payslips_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -233,7 +234,7 @@ class Details extends Component
             $this->selectedPayslips = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected payslips permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.selected_payslips_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function bulkResendFailed()

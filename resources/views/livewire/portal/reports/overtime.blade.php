@@ -29,13 +29,13 @@
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
-                        {{__('Generate Report')}}
+                        {{__('reports.generate_report')}}
                     </a>
                     <a href="/portal/download-jobs" wire:navigate class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center ms-2">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                         </svg>
-                        {{__('View Reports')}}
+                        {{__('reports.view_reports')}}
                     </a>
                 </div>
                 <div class="text-center" wire:loading wire:target="generateReport">
@@ -55,7 +55,7 @@
         <div class="col">
             <label for="company">{{__('companies.company')}}: </label>
             <select wire:model.live="selectedCompanyId" class="form-select">
-                <option value="all" selected>{{__('Select Company')}}</option>
+                <option value="all" selected>{{__('common.select_company')}}</option>
                 @foreach ($companies as $company)
                 <option value="{{$company->id}}">{{$company->name}}</option>
                 @endforeach
@@ -78,7 +78,7 @@
             <div>
                 <label for="orderBy">{{__('employees.employee')}}: </label>
                 <select wire:model.live="employee_id" class="form-select">
-                    <option value="all" selected>{{__('All Employees')}}</option>
+                    <option value="all" selected>{{__('employees.all_employees')}}</option>
                     @foreach ($employees as $employee)
                     <option value=" {{$employee->id}}">{{$employee->name}}</option>
                     @endforeach
@@ -88,16 +88,16 @@
         <div class="col">
             <label for="status">{{__('common.status')}}: </label>
             <select wire:model.live="status" class="form-select">
-                <option value="all" selected>{{__('Select Status')}}</option>
+                <option value="all" selected>{{__('common.select_status')}}</option>
                 <option value="approved">{{__('common.approved')}}</option>
                 <option value="rejected">{{__('common.rejected')}}</option>
                 <option value="pending">{{__('common.pending')}}</option>
             </select>
         </div>
         <div class="col">
-            <label for="period">{{__('Period')}}: </label>
+            <label for="period">{{__('common.period')}}: </label>
             <select wire:model.live="period" class="form-select  @error('period') is-invalid @enderror">
-                <option value="" selected>{{__('Select Period')}}</option>
+                <option value="" selected>{{__('common.select_period')}}</option>
                 @foreach ($periods as $key => $period)
                 <option value="{{ $period['month_number'] }}">{{__('Week - '). $period['month_number']." - ".$period['year']}}</option>
                 @endforeach

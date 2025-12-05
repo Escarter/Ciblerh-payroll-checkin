@@ -49,7 +49,7 @@
         <div class="col">
             <label for="company">{{__('companies.company')}}: </label>
             <select wire:model.live="selectedCompanyId" class="form-select">
-                <option value="all" selected>{{__('Select Company')}}</option>
+                <option value="all" selected>{{__('reports.select_company')}}</option>
                 @foreach ($companies as $company)
                 <option value="{{$company->id}}">{{$company->name}}</option>
                 @endforeach
@@ -72,7 +72,7 @@
             <div>
                 <label for="orderBy">{{__('employees.employee')}}: </label>
                 <select wire:model.live="employee_id" class="form-select">
-                    <option value="all" selected>{{__('All Employees')}}</option>
+                    <option value="all" selected>{{__('employees.all_employees')}}</option>
                     @foreach ($employees as $employee)
                     <option value=" {{$employee->id}}">{{$employee->name}}</option>
                     @endforeach
@@ -82,16 +82,16 @@
         <div class="col">
             <label for="status">{{__('common.status')}}: </label>
             <select wire:model.live="status" class="form-select">
-                <option value="all" selected>{{__('Select Status')}}</option>
+                <option value="all" selected>{{__('reports.select_status')}}</option>
                 <option value="approved">{{__('common.approved')}}</option>
                 <option value="rejected">{{__('common.rejected')}}</option>
                 <option value="pending">{{__('common.pending')}}</option>
             </select>
         </div>
         <div class="col">
-            <label for="period">{{__('Period')}}: </label>
+            <label for="period">{{__('reports.period')}}: </label>
             <select wire:model.live="period" class="form-select  @error('period') is-invalid @enderror">
-                <option value="" selected>{{__('Select Period')}}</option>
+                <option value="" selected>{{__('reports.select_period')}}</option>
                 @foreach ($periods as $key => $period)
                 <option value="{{$period['year'].'-'.$period['month_number'] }}">{{$period['year'] .' - '. $period['month']}}</option>
                 @endforeach
@@ -108,8 +108,8 @@
                 <thead>
                     <tr>
                         <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('CheckIn Time')}}</th>
-                        <th class="border-bottom">{{__('CheckOut Time')}}</th>
+                        <th class="border-bottom">{{__('employees.checkin_time')}}</th>
+                        <th class="border-bottom">{{__('employees.checkout_time')}}</th>
                         <th class="border-bottom">{{__('overtime.hours_worked')}}</th>
                         <th class="border-bottom">{{__('common.sup_approval')}}</th>
                         <th class="border-bottom">{{__('common.mgr_approval')}}</th>

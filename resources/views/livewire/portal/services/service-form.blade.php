@@ -4,8 +4,8 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{ $isEditMode ? __('Edit Service') : __('Create Service') }}</h1>
-                        <p>{{ $isEditMode ? __('Edit Service details') : __('Create a new Service to manage') }} &#128522;</p>
+                        <h1 class="mb-0 h4">{{ $isEditMode ? __('services.edit_service') : __('services.create_service') }}</h1>
+                        <p>{{ $isEditMode ? __('services.edit_service_details') : __('services.create_new_service_to_manage') }} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="{{ $isEditMode ? 'update' : 'store' }}">
                         <div class='form-group mb-4 row'>
@@ -31,7 +31,7 @@
                             <select wire:model="is_active" name="is_active" class="form-select  @error('is_active') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1" {{ ($is_active == true || $is_active == 1) ? 'selected' : '' }}>{{__('common.active')}}</option>
-                                <option value="0" {{ ($is_active == false || $is_active == 0) ? 'selected' : '' }}>{{__('Inactive')}}</option>
+                                <option value="0" {{ ($is_active == false || $is_active == 0) ? 'selected' : '' }}>{{__('services.inactive')}}</option>
                             </select>
                             @error('is_active')
                             <div class="invalid-feedback">{{$message}}</div>

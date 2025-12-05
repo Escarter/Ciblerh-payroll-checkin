@@ -4,8 +4,8 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Edit LeaveType')}}</h1>
-                        <p>{{__('Edit LeaveType details')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('leaves.edit_leave_type')}}</h1>
+                        <p>{{__('leaves.edit_leave_type_details')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="update">
 
@@ -18,7 +18,7 @@
                                 @enderror
                             </div>
                             <div class="col">
-                                <label for="default_number_of_days">{{__('default_number_of_days')}}</label>
+                                <label for="default_number_of_days">{{__('leaves.default_number_of_days')}}</label>
                                 <input wire:model="default_number_of_days" type="text" class="form-control  @error('default_number_of_days') is-invalid @enderror" required="" name="default_number_of_days">
                                 @error('default_number_of_days')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -39,7 +39,7 @@
                             <select wire:model="is_active" class="form-select  @error('is_active') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.active')}}</option>
-                                <option value="0">{{__('Inactive')}}</option>
+                                <option value="0">{{__('leaves.inactive')}}</option>
                             </select>
                             @error('is_active')
                             <div class="invalid-feedback">{{$message}}</div>

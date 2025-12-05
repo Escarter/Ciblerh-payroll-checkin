@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>{{ __('Checkin Report').now()->IsoFormat('LL')}}</title>
+    <title>{{ __('reports.checkin_report').now()->IsoFormat('LL')}}</title>
 
     <style type="text/css">
         @page {

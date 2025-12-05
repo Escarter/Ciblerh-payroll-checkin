@@ -9,7 +9,7 @@
                         </svg>
 
                         <h1 class="mb-0 h2 fw-bolder">{{__('common.are_you_sure')}}</h1>
-                        <p class="pt-2">{{__('You are about to resend sms with pdf password to employee!')}} &#128522;</p>
+                        <p class="pt-2">{{__('payslips.you_are_about_to_resend_sms_with_pdf_password_to_employee')}} &#128522;</p>
                     </div>
                     <div class="d-flex justify-content-center">
                         <button type="button" wire:click="resendSMS" class="btn btn-primary mx-3" data-dismiss="modal">{{__('common.confirm')}}</button>

@@ -6,6 +6,8 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employees.employee')])
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     @livewire('portal.employees.partial.user-roles')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -105,9 +107,7 @@
                                     <h2 class="h5">{{__('employees.total_employees')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($employees_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.employee'), $employees_count) }} {{__('employees.recorded_by_manager')}}</div>
-                                </div>
+                        
                             </div>
                         </div>
                     </div>
@@ -124,18 +124,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural(__('employees.employee'), $active_employees)) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.active') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_employees)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural(__('employees.employee'), $active_employees)) }}</h2>
+                                    <h2 class="h5">{{ __('common.active') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_employees)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.employee'), $active_employees) }} {{__('employees.who_are_active')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -152,18 +149,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('employees.employee'), $banned_employees) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.deleted') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($banned_employees)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('employees.employee'), $banned_employees) }}</h2>
+                                    <h2 class="h5">{{ __('common.deleted') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($banned_employees)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.employee'), $banned_employees) }} {{__('who are banned!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -256,9 +250,9 @@
                 @endcan
                 @else
                 @can('employee-delete')
-                <button wire:click="bulkRestore"
+                <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                    title="{{ __('Restore Selected Employees') }}">
+                    title="{{ __('employees.restore_selected_employees') }}">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -268,7 +262,7 @@
 
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Permanently Delete Selected Employees') }}"
+                    title="{{ __('employees.permanently_delete_selected_employees') }}"
                     data-bs-toggle="modal" 
                     data-bs-target="#BulkForceDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -304,8 +298,8 @@
                         </th>
                         <th class="border-bottom">{{__('employees.employee')}}</th>
                         <th class="border-bottom">{{__('companies.company')}}</th>
-                        <th class="border-bottom">{{__('Details')}}</th>
-                        <th class="border-bottom">{{__('Roles & Status')}}</th>
+                        <th class="border-bottom">{{__('employees.employee_info')}}</th>
+                        <th class="border-bottom">{{__('common.roles_status')}}</th>
                         @canany('employee-delete','employee-update')
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
@@ -349,9 +343,9 @@
                         </td>
                         <td>
                             <span class="fs-normal"><span class="fw-bolder">{{__('employees.matricule')}} </span>: {{ $employee->matricule }}</span> <br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('PDF Password')}}</span> : {{ $employee->pdf_password }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Professional Phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('Personal Phone')}}</span> : {{ $employee->personal_phone_number }}</span>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('payslips.pdf_password')}}</span> : {{ $employee->pdf_password }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('common.professional_phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('common.personal_phone')}}</span> : {{ $employee->personal_phone_number }}</span>
                         </td>
                         <td>
                             <div class="mb-2">
@@ -382,7 +376,7 @@
                             @can('employee-view')
                             <button wire:click="$dispatch('showUserRoles', [{{$employee->id}}])"
                                 class="btn btn-sm btn-outline-info me-1"
-                                title="{{ __('Manage Roles') }}">
+                                title="{{ __('employees.manage_roles') }}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
                                 </svg>
@@ -422,10 +416,11 @@
                             @endcan
                             @else
                             @can('employee-delete')
-                            <a href="#" 
-                               wire:click.prevent="restore({{$employee->id}})" 
-                               class="icon-btn text-success me-1" 
-                               title="{{ __('Restore Employee') }}">
+                            <a href="#"
+                               wire:click.prevent="$set('employee_id', {{$employee->id}})"
+                               data-bs-toggle="modal" data-bs-target="#RestoreModal"
+                               class="icon-btn text-success me-1"
+                               title="{{ __('employees.restore_employee') }}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>
@@ -435,7 +430,7 @@
                                data-bs-toggle="modal" 
                                data-bs-target="#ForceDeleteModal"
                                class="icon-btn text-danger" 
-                               title="{{ __('Permanently Delete') }}"
+                               title="{{ __('employees.permanently_delete') }}"
                                onclick="event.stopPropagation();">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>

@@ -133,7 +133,7 @@ class Checklog extends Component
     
         return response()->streamDownload(
             fn () => print($pdf->output()),
-            __('Checkins-').$this->period."-". Str::random('10') . ".pdf"
+            __('reports.checkins_filename_prefix').$this->period."-". Str::random('10') . ".pdf"
         );
     }
     public function updatedSelectedDepartmentId($department_id)

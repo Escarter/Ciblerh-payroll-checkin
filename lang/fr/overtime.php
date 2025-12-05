@@ -7,11 +7,11 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'overtimes' => 'Heures supplémentaires',
+    'overtimes' => 'Heures supplémentaire',
     'overtime' => 'Heure supplémentaire',
-    'total_overtimes' => 'Total des heures supplémentaires',
-    'create_overtime' => 'Créer une heure supplémentaire',
-    'edit_overtime' => 'Modifier l\'heure supplémentaire',
+    'total_overtimes' => 'Total des Heures supplémentaire',
+    'create_overtime' => 'Créer une Heure supplémentaire',
+    'edit_overtime' => 'Modifier l\'Heure supplémentaire',
     'overtime_created_successfully' => 'Heure supplémentaire créée avec succès!',
     'overtime_updated_successfully' => 'Heure supplémentaire mise à jour avec succès!',
     'overtime_deleted_successfully' => 'Enregistrement d\'heure supplémentaire supprimé avec succès!',
@@ -49,13 +49,34 @@ return [
     'overtime_requests' => 'Demandes d\'heures supplémentaires',
     'manage_overtime_requests' => 'Gérer les demandes d\'heures supplémentaires et les approbations',
     'pending_overtime_approvals' => 'Approbations d\'heures supplémentaires en attente',
-    'approved_overtimes' => 'Heures supplémentaires approuvées',
+    'approved_overtimes' => 'Heures supplémentaire approuvées',
     'hours_worked' => 'Heures travaillées',
     'work_start_time' => 'Heure de début du travail',
     'work_end_time' => 'Heure de fin du travail',
-    'rejected_overtimes' => 'Heures supplémentaires rejetées',
-    'employees_overtimes' => 'Heures supplémentaires des employés',
-    'manage_employees_overtimes' => 'Gérer les heures supplémentaires des employés',
-    'update_or_approve_overtime' => 'Mettre à jour ou approuver les heures supplémentaires',
-    'update_or_approve_employee_overtime_record' => 'Mettre à jour ou approuver l\'enregistrement des heures supplémentaires de l\'employé',
+    'rejected_overtimes' => 'Heures supplémentaire rejetées',
+    'employees_overtimes' => 'Heures supplémentaire des employés',
+    'manage_employees_overtimes' => 'Gérer les Heures supplémentaire des employés',
+    'update_or_approve_overtime' => 'Mettre à jour ou approuver les Heures Supémentaires',
+    'update_or_approve_employee_overtime_record' => 'Mettre à jour ou approuver l\'enregistrement des Heures Supémentaires de l\'employé',
+
+    // Additional UI Labels
+    'recorded_by_employees' => 'enregistré par les employés',
+    'you_approved' => 'vous avez approuvé!',
+    'pending_your_validation' => 'en attente de votre validation',
+    'you_rejected' => 'vous avez rejeté!',
+    'work_period' => 'Période de travail',
+    'start' => 'Début',
+    'end' => 'Fin',
+    'time_worked' => 'Temps travaillé',
+
+    // Bulk Operations
+    'move_selected_overtime_records_to_trash' => 'Déplacer les enregistrements d\'heures supplémentaires sélectionnés vers la corbeille',
+    'restore_selected_overtime_records' => 'Restaurer les enregistrements d\'heures supplémentaires sélectionnés',
+    'permanently_delete_selected_overtime_records' => 'Supprimer définitivement les enregistrements d\'heures supplémentaires sélectionnés',
+
+    // Bulk Operations
+    'bulk_overtime' => 'Heures supplémentaires en lot',
+    'approval' => 'Approbation',
+    'rejection' => 'Rejet',
+    'employee_overtime_bulk' => 'Heures supplémentaires des employés en lot',
 ];

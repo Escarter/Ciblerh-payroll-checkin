@@ -50,4 +50,30 @@ return [
     'select_permissions' => 'Sélectionner des permissions',
     'available_permissions' => 'Permissions disponibles',
     'assigned_permissions' => 'Permissions assignées',
+
+    // Missing translation keys
+    'role_and_associated_permissions_created_successfully' => 'Rôle et permissions associées créés avec succès!',
+    'role_and_permissions_updated_successfully' => 'Rôle et permissions mis à jour avec succès!',
+    'role_moved_to_trash_successfully' => 'Rôle déplacé vers la corbeille avec succès!',
+    'role_cannot_be_deleted_still_assigned_to_users' => 'Le rôle ne peut pas être supprimé car il est toujours attribué aux utilisateurs!',
+    'role_restored_successfully' => 'Rôle restauré avec succès!',
+    'role_permanently_deleted' => 'Rôle supprimé définitivement!',
+    'selected_roles_moved_to_trash' => 'Rôles sélectionnés déplacés vers la corbeille!',
+    'selected_roles_restored' => 'Rôles sélectionnés restaurés!',
+    'selected_roles_permanently_deleted' => 'Rôles sélectionnés supprimés définitivement!',
+
+    // Additional form labels
+    'enter_role_name' => 'Entrez le nom du rôle',
+    'permissions_of_role' => 'Permissions du rôle',
+    'admin_access' => 'Accès administrateur',
+    'grant_all_permissions' => 'Accorder toutes les permissions',
+    'companies_departments_services_and_employees_permissions' => 'Permissions des entreprises, départements, services et employés',
+    'number_of_users_with_this_role' => 'Nombre d\'utilisateurs avec ce rôle',
+
+    // Permission section headers
+    'overtime_and_payments_permissions' => 'Permissions des heures supplémentaires et paiements',
+    'absences_and_advance_salary_permissions' => 'Permissions des absences et avances sur salaire',
+    'leave_permissions' => 'Permissions des congés',
+    'payslips_processing_permissions' => 'Permissions de traitement des fiches de paie',
+    'roles_and_audit_log_features_permissions' => 'Permissions des rôles et fonctionnalités du journal d\'audit',
 ];

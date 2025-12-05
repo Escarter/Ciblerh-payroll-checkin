@@ -31,7 +31,33 @@
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/medium-editor.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/themes/default.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('css/theme.css')}}" rel="stylesheet">
+    <style>
+             /* Custom sidebar and content layout adjustments */
+        @media (min-width: 768px) {
+            .sidebar {
+                width: 100%;
+                max-width: 320px !important;
+            }
+        }
 
+        @media (min-width: 992px) {
+            .content {
+                margin-left: 320px !important;
+            }
+        }
+
+        /* Ensure sidebar stays within viewport on smaller screens */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                width: 100% !important;
+            }
+
+            main.content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+        }
+    </style>
     @livewireStyles
     
     <!-- Alpine.js Choices Multi-Select Component -->

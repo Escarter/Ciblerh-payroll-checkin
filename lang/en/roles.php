@@ -50,4 +50,30 @@ return [
     'select_permissions' => 'Select Permissions',
     'available_permissions' => 'Available Permissions',
     'assigned_permissions' => 'Assigned Permissions',
+
+    // Missing translation keys
+    'role_and_associated_permissions_created_successfully' => 'Role and associated permissions created successfully!',
+    'role_and_permissions_updated_successfully' => 'Role and permissions updated successfully!',
+    'role_moved_to_trash_successfully' => 'Role moved to trash successfully!',
+    'role_cannot_be_deleted_still_assigned_to_users' => 'The role cannot be deleted because it is still assigned to users!',
+    'role_restored_successfully' => 'Role restored successfully!',
+    'role_permanently_deleted' => 'Role permanently deleted!',
+    'selected_roles_moved_to_trash' => 'Selected roles moved to trash!',
+    'selected_roles_restored' => 'Selected roles restored!',
+    'selected_roles_permanently_deleted' => 'Selected roles permanently deleted!',
+
+    // Additional form labels
+    'enter_role_name' => 'Enter role name',
+    'permissions_of_role' => 'Permissions of Role',
+    'admin_access' => 'Admin Access',
+    'grant_all_permissions' => 'Grant all permissions',
+    'companies_departments_services_and_employees_permissions' => 'Companies, Departments, Services and Employees Permissions',
+    'number_of_users_with_this_role' => 'Number of users with this role',
+
+    // Permission section headers
+    'overtime_and_payments_permissions' => 'Overtime and Payments Permissions',
+    'absences_and_advance_salary_permissions' => 'Absences and Advance Salary Permissions',
+    'leave_permissions' => 'Leave Permissions',
+    'payslips_processing_permissions' => 'Payslips Processing Permissions',
+    'roles_and_audit_log_features_permissions' => 'Roles and Audit Log Features Permissions',
 ];

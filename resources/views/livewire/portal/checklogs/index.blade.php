@@ -2,9 +2,11 @@
     @include('livewire.portal.checklogs.edit-checklog')
     @include('livewire.portal.checklogs.bulk-approval')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedChecklogsForDelete, 'itemType' => count($selectedChecklogsForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedChecklogsForDelete, 'itemType' => count($selectedChecklogsForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedChecklogsForDelete, 'itemType' => __('checkin record')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedChecklogsForDelete, 'itemType' => __('employees.checkin')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -18,16 +20,16 @@
                             </a>
                         </li>
                         <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Employees Checkins')}}</li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('employees.checkins')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                     </svg>
-                    {{__('Employees Checkins')}}
+                    {{__('employees.checkins')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('Manage Employees checkins to you!')}} &#x23F0; </p>
+                <p class="mt-n1 mx-2">{{__('employees.manage_employees_checkins')}} &#x23F0; </p>
             </div>
             <div class="mb-2 mx-3">
                 @can('ticking-export')
@@ -64,18 +66,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Checkins')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('employees.total_checkins')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($checklogs_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Checkins')}}</h2>
+                                    <h2 class="h5">{{__('employees.total_checkins')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($checklogs_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Checkin'), $checklogs_count) }} {{__('recorded by employees')}}</div>
-                                </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -92,18 +92,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Checkin'), $approved_checklogs_count) }} {{__('common.approved')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.approved')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($approved_checklogs_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Checkin'), $approved_checklogs_count) }} {{__('common.approved')}}</h2>
+                                    <h2 class="h5"> {{__('common.approved')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($approved_checklogs_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Checkin'), $approved_checklogs_count) }} {{__('you approved!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -120,18 +117,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Checkin'), $pending_checklogs_count) }} {{__('pending')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.pending')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($pending_checklogs_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Checkin'), $pending_checklogs_count) }} {{__('pending')}}</h2>
+                                    <h2 class="h5"> {{__('common.pending')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($pending_checklogs_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Checkin'), $pending_checklogs_count) }} {{__('pending your approval')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -148,18 +142,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Checkin'), $rejected_checklogs_count) }} {{__('common.rejected')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($rejected_checklogs_count)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Checkin'), $rejected_checklogs_count) }} {{__('common.rejected')}}</h2>
+                                    <h2 class="h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_checklogs_count)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Checkin'), $rejected_checklogs_count) }} {{__('you rejected!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -188,8 +179,8 @@
                 <option value="service_name">{{__('employees.service')}}</option>
                 <option value="start_time">{{__('common.start_time')}}</option>
                 <option value="end_time">{{__('common.end_time')}}</option>
-                <option value="supervisor_approval_status">{{__('Sup Approval status')}}</option>
-                <option value="manager_approval_status">{{__('Mgr Approval status')}}</option>
+                <option value="supervisor_approval_status">{{__('employees.sup_approval_status')}}</option>
+                <option value="manager_approval_status">{{__('employees.mgr_approval_status')}}</option>
                 <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
@@ -275,7 +266,7 @@
                 @can('ticking-delete')
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Move Selected Checkin Records to Trash') }}"
+                    title="{{ __('common.move_to_trash') }}"
                     data-bs-toggle="modal"
                     data-bs-target="#BulkDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -301,9 +292,9 @@
             @if(count($selectedChecklogsForDelete) > 0)
             <div class="d-flex align-items-center gap-2">
                 @can('ticking-delete')
-                <button wire:click="bulkRestore"
+                <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                    title="{{ __('Restore Selected Checkin Records') }}">
+                    title="{{ __('common.restore_selected') }}">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -313,7 +304,7 @@
 
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Permanently Delete Selected Checkin Records') }}"
+                    title="{{ __('common.delete_forever') }}"
                     data-bs-toggle="modal"
                     data-bs-target="#BulkForceDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -357,7 +348,7 @@
                             </div>
                         </th>
                         <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('Check Period')}}</th>
+                        <th class="border-bottom">{{__('employees.check_period')}}</th>
                         <th class="border-bottom">{{__('common.sup_approval')}}</th>
                         <th class="border-bottom">{{__('common.mgr_approval')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
@@ -404,16 +395,16 @@
                             <div class="d-flex flex-column">
                                 <div class="mb-1">
                                     <div class="small">
-                                        <span class="fw-bold">{{__('CheckIn')}}:</span>
+                                        <span class="fw-bold">{{__('employees.checkin')}}:</span>
                                         <span class="fs-normal">{{$checklog->start_time}}</span>
                                     </div>
                                 </div>
                                 <div class="small mb-1">
-                                    <span class="fw-bold">{{__('CheckOut')}}:</span>
+                                    <span class="fw-bold">{{__('employees.checkout')}}:</span>
                                     <span class="fs-normal">{{$checklog->end_time}}</span>
                                 </div>
                                 <div class="small">
-                                    <span class="fw-bold">{{__('Time Worked')}}:</span>
+                                    <span class="fw-bold">{{__('employees.time_worked')}}:</span>
                                     <span class="fw-bolder">{{$checklog->time_worked}} hrs</span>
                                 </div>
                             </div>
@@ -446,7 +437,7 @@
                             @endcan
                             @else
                             @can('ticking-delete')
-                            <a href="#" wire:click="restore({{ $checklog->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                            <a href="#" wire:click.prevent="$set('{{ $checklog->id }}', {{ $checklog->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>

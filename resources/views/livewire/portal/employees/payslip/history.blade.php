@@ -2,9 +2,11 @@
     @include('livewire.portal.employees.payslip.resend-email-modal')
     @include('livewire.portal.employees.payslip.resend-sms-modal')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => __('payslip')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => __('payslips.payslip')])
     <x-alert />
     <div>
         <div class='pt-2'>
@@ -16,17 +18,17 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                     </svg></a></li>
                             <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                            <li class="breadcrumb-item"><a href="{{route('portal.all-employees')}}" wire:navigate>{{__('Groups')}}</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">{{__(ucfirst($employee->name) .' Payslips')}}</li>
+                            <li class="breadcrumb-item"><a href="{{route('portal.all-employees')}}" wire:navigate>{{__('employees.employees')}}</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">{{__('payslips.payslip_history_for_employee',['name'=>ucfirst($employee->name)])}}</li>
                         </ol>
                     </nav>
                     <h1 class="h4">
                         <svg class="icon me-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path> 
                         </svg>
-                        {{__(ucfirst($employee->first_name) .' - Payslips history')}}
+                        {{__(ucfirst($employee->first_name) .' - '.__('payslips.payslip_history_for_employee',['name'=>ucfirst($employee->name)]))}}
                     </h1>
-                    <p class="mb-0">{{__('View all employee payslip history')}}</p>
+                    <p class="mb-0">{{__('payslips.view_all_employee_payslip_history',['name'=>ucfirst($employee->name)])}}</p>
                 </div>
             </div>
         </div>
@@ -44,18 +46,15 @@
                                         </svg>
                                     </div>
                                     <div class="d-sm-none">
-                                        <h2 class="fw-extrabold h5">{{__('Total Payslips')}}</h2>
+                                        <h2 class="fw-extrabold h5">{{__('payslips.total_payslips')}}</h2>
                                         <h3 class="mb-1">{{numberFormat($payslips_count ?? 0)}}</h3>
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
                                     <a href="#" class="d-none d-sm-block">
-                                        <h2 class="h5">{{__('Total Payslips')}}</h2>
+                                        <h2 class="h5">{{__('payslips.total_payslips')}}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($payslips_count ?? 0)}}</h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
-                                        <div>{{ \Str::plural(__('Payslip'), $payslips_count ?? 0) }} {{__('for this employee')}}</div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -72,18 +71,16 @@
                                         </svg>
                                     </div>
                                     <div class="d-sm-none">
-                                        <h2 class="fw-extrabold h5">{{ __(\Str::plural('Payslip', $active_payslips ?? 0)) }}</h2>
+                                        <h2 class="fw-extrabold h5">{{ __('common.active') }}</h2>
                                         <h3 class="mb-1">{{numberFormat($active_payslips ?? 0)}}</h3>
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
                                     <a href="#" class="d-none d-sm-block">
-                                        <h2 class="h5">{{ __(\Str::plural('Payslip', $active_payslips ?? 0)) }}</h2>
+                                        <h2 class="h5">{{ __('common.active') }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($active_payslips ?? 0)}}</h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
-                                        <div>{{ \Str::plural(__('Payslip'), $active_payslips ?? 0) }} {{__('that are active!')}}</div>
-                                    </div>
+                                   
                                 </div>
                             </div>
                         </div>
@@ -100,18 +97,15 @@
                                         </svg>
                                     </div>
                                     <div class="d-sm-none">
-                                        <h2 class="fw-extrabold h5">{{ \Str::plural(__('Payslip'), $deleted_payslips ?? 0) }}</h2>
+                                        <h2 class="fw-extrabold h5">{{ __('common.deleted') }}</h2>
                                         <h3 class="mb-1">{{numberFormat($deleted_payslips ?? 0)}} </h3>
                                     </div>
                                 </div>
                                 <div class="col-12 col-xl-8 px-xl-0">
                                     <a href="#" class="d-none d-sm-block">
-                                        <h2 class="h5">{{ \Str::plural(__('Payslip'), $deleted_payslips ?? 0) }}</h2>
+                                        <h2 class="h5">{{ __('common.deleted') }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_payslips ?? 0)}} </h3>
                                     </a>
-                                    <div class="small d-flex mt-1">
-                                        <div>{{ \Str::plural(__('Payslip'), $deleted_payslips ?? 0) }} {{__('that are deleted!')}}</div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -193,7 +187,7 @@
                             @can('payslip-delete')
                             <button type="button"
                                 class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                                title="{{ __('Move Selected Payslips to Trash') }}"
+                                title="{{ __('payslips.move_selected_payslips_to_trash') }}"
                                 data-bs-toggle="modal" 
                                 data-bs-target="#BulkDeleteModal">
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,9 +212,9 @@
                         @if(count($selectedPayslips) > 0)
                         <div class="d-flex align-items-center gap-2">
                             @can('payslip-delete')
-                            <button wire:click="bulkRestore"
+                            <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                                 class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                                title="{{ __('Restore Selected Payslips') }}">
+                                title="{{ __('payslips.restore_selected_payslips') }}">
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>
@@ -230,7 +224,7 @@
 
                             <button type="button"
                                 class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                                title="{{ __('Permanently Delete Selected Payslips') }}"
+                                title="{{ __('payslips.permanently_delete_selected_payslips') }}"
                                 data-bs-toggle="modal" 
                                 data-bs-target="#BulkForceDeleteModal">
                                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,12 +262,12 @@
                                     </div>
                                 </th>
                                 <th class="border-bottom">{{__('common.name')}}</th>
-                                <th class="border-bottom">{{__('Employee Info')}}</th>
-                                <th class="border-bottom">{{__('Category')}}</th>
-                                <th class="border-bottom">{{__('Timeline')}}</th>
-                                <th class="border-bottom">{{__('Encryption status')}}</th>
-                                <th class="border-bottom">{{__('Email status')}}</th>
-                                <th class="border-bottom">{{__('SMS status')}}</th>
+                                <th class="border-bottom">{{__('employees.employee_info')}}</th>
+                                <th class="border-bottom">{{__('payslips.category')}}</th>
+                                <th class="border-bottom">{{__('payslips.timeline')}}</th>
+                                <th class="border-bottom">{{__('payslips.encryption_status')}}</th>
+                                <th class="border-bottom">{{__('payslips.email_status')}}</th>
+                                <th class="border-bottom">{{__('payslips.sms_status')}}</th>
                                 <th class="border-bottom">{{__('common.action')}}</th>
                             </tr>
                         </thead>
@@ -305,7 +299,7 @@
                                         </div>
                                         @if(!empty($payslip->phone))
                                         <div>
-                                            <span class="fw-bold text-primary">{{__('Phone')}}:</span>
+                                            <span class="fw-bold text-primary">{{__('common.phone')}}:</span>
                                             <a href='tel:{{$payslip->phone}}' class="ms-1 small text-gray">
                                                 <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
@@ -318,19 +312,19 @@
                                 </td>
                                 <td>
                                     @if(empty($payslip->send_payslip_process_id))
-                                    <span class="fw-normal text-gray-600"> {{__('single')}}</span>
+                                    <span class="fw-normal text-gray-600"> {{__('payslips.single')}}</span>
                                     @else
-                                    <span class="fw-normal text-info"> {{__('bulk')}}</span>
+                                    <span class="fw-normal text-info"> {{__('payslips.bulk')}}</span>
                                     @endif
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column">
                                         <div class="mb-1">
-                                            <span class="fw-bold text-primary">{{__('Period')}}:</span>
+                                            <span class="fw-bold text-primary">{{__('payslips.period')}}:</span>
                                             <span class="ms-1 fw-normal">{{$payslip->month}} - {{$payslip->year}}</span>
                                         </div>
                                         <div>
-                                            <span class="fw-bold text-primary">{{__('Created')}}:</span>
+                                            <span class="fw-bold text-primary">{{__('common.created')}}:</span>
                                             <span class="ms-1 fw-normal">{{$payslip->created_at}}</span>
                                         </div>
                                     </div>
@@ -341,7 +335,7 @@
                                     @elseif($payslip->encryption_status == 2 )
                                     <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @else
-                                    <span class="badge badge-lg text-md text-white bg-gray-400">{{__('Not Recorded')}}</span>
+                                    <span class="badge badge-lg text-md text-white bg-gray-400">{{__('payslips.not_recorded')}}</span>
                                     @endif
                                 </td>
                                 <td>
@@ -350,7 +344,7 @@
                                     @elseif($payslip->email_sent_status == 2 )
                                     <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @else
-                                    <span class="badge badge-lg text-md text-gray bg-warning">{{__('Pending...')}}</span>
+                                    <span class="badge badge-lg text-md text-gray bg-warning">{{__('payslips.pending_status')}}</span>
                                     @endif
                                 </td>
                                 <td>
@@ -359,34 +353,34 @@
                                     @elseif($payslip->sms_sent_status == 2)
                                     <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @elseif($payslip->sms_sent_status == 3)
-                                    <span class="badge badge-lg text-md bg-info">{{__('Disabled')}}</span>
+                                    <span class="badge badge-lg text-md bg-info">{{__('common.disabled')}}</span>
                                     @else
-                                    <span class="badge badge-lg text-md text-dark bg-warning">{{__('Pending...')}}</span>
+                                    <span class="badge badge-lg text-md text-dark bg-warning">{{__('common.pending')}}</span>
                                     @endif
                                 </td>
                                 <td>
                                     @if($activeTab === 'active')
                                         <!-- Download Link -->
-                                        <a href="#" wire:click="downloadPayslip({{$payslip->id}})" class="text-primary me-2" title="{{__('Download Payslip')}}">
+                                        <a href="#" wire:click="downloadPayslip({{$payslip->id}})" class="text-primary me-2" title="{{__('payslips.download_payslip_title')}}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                             </svg>
                                         </a>
                                         <!-- Resend Email Link -->
-                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendEmailModal" class="text-info me-2" title="{{__('Resend Email')}}">
+                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendEmailModal" class="text-info me-2" title="{{__('payslips.resend_email_title')}}">
                                             <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                                             </svg>
                                         </a>
                                         <!-- Resend SMS Link -->
-                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendSMSModal" class="text-tertiary me-2" title="{{__('Resend SMS')}}">
+                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendSMSModal" class="text-tertiary me-2" title="{{__('payslips.resend_sms_title')}}">
                                             <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                                             </svg>
                                         </a>
                                         @can('payslip-delete')
                                         <!-- Delete Link -->
-                                        <a href="#" wire:click.prevent="initData({{ $payslip->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal" class="text-danger" title="{{__('Delete')}}">
+                                        <a href="#" wire:click.prevent="initData({{ $payslip->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal" class="text-danger" title="{{__('payslips.delete_title')}}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                             </svg>
@@ -395,7 +389,7 @@
                                     @else
                                         @can('payslip-delete')
                                         <!-- Restore Link -->
-                                        <a href="#" wire:click="restore({{ $payslip->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                        <a href="#" wire:click.prevent="$set('{{ $payslip->id }}', {{ $payslip->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('common.restore')}}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                             </svg>
@@ -412,7 +406,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="8">
+                                <td colspan="10">
                                     <div class="text-center text-gray-800 mt-2">
                                         <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
                                         <p>{{__('common.no_records_found')}}</p>
@@ -456,7 +450,7 @@
 
                         }
                         if (response.status == 'error') {
-                            toastr.warning(response.data, "@lang('Oops Something is not alright')");
+                            toastr.warning(response.data, "{{ __('common.oops_something_is_not_alright') }}");
                         }
                     }
                 });

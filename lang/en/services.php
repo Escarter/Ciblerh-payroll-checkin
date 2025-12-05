@@ -21,6 +21,35 @@ return [
     'selected_services_restored' => 'Selected services restored!',
     'selected_services_permanently_deleted' => 'Selected services permanently deleted!',
 
+    // Additional Success Messages
+    'service_successfully_moved_to_trash' => 'Service successfully moved to trash!',
+    'service_successfully_restored' => 'Service successfully restored!',
+    'services_successfully_imported' => 'Services successfully imported!',
+    'imported_excel_file_for_services' => 'Imported excel file for services for department ',
+    'exported_excel_file_for_services' => 'Exported excel file for services for department ',
+
+    // Error Messages
+    'cannot_permanently_delete_service' => 'Cannot permanently delete service. It has related tickings records.',
+
+    // UI Labels
+    'inactive' => 'Inactive',
+    'inactive!' => 'inactive!',
+    'in_for_this_department' => 'in for this department',
+    'that_are_deleted' => 'that are deleted!',
+
+    // Table Headers
+    'id' => 'ID',
+
+    // Button Titles
+    'edit_service' => 'Edit Service',
+    'restore_service' => 'Restore Service',
+    'permanently_delete' => 'Permanently Delete',
+    'add_service' => 'Add Service',
+
+    // Bulk Operations
+    'restore_selected_services' => 'Restore Selected Services',
+    'permanently_delete_selected_services' => 'Permanently Delete Selected Services',
+
     // Service fields
     'service_name' => 'Service Name',
     'service_code' => 'Service Code',

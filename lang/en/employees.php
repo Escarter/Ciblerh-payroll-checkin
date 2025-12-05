@@ -30,6 +30,23 @@ return [
     'exported_excel_for_all_employees' => 'Exported excel file for all employees',
     'employee_import_success_with_note' => 'Employee successfully imported, if nothing happened make sure, the email, department, services of employees are rightly mapped.!',
     'manager_created_successfully' => 'Manager created successfully!',
+    'manager_updated_successfully' => 'Manager updated successfully!',
+
+    // Additional Success Messages
+    'employee_successfully_moved_to_trash' => 'Employee successfully moved to trash!',
+    'employee_successfully_restored' => 'Employee successfully restored!',
+    'employee_permanently_deleted' => 'Employee permanently deleted!',
+
+    // Error Messages
+    'cannot_permanently_delete_employee' => 'Cannot permanently delete employee. It has related records.',
+    'cannot_permanently_delete_employees' => 'Cannot permanently delete the following employees as they have related records: ',
+    'no_permission_assign_roles' => 'You do not have permission to assign the following roles: ',
+    'maximum_2_roles_allowed' => 'A user can have a maximum of 2 roles.',
+
+    // Bulk Operations
+    'selected_employees_moved_to_trash' => 'Selected employees moved to trash!',
+    'selected_employees_restored' => 'Selected employees restored!',
+    'selected_employees_permanently_deleted' => 'Selected employees permanently deleted!',
 
     // Employee fields
     'first_name' => 'First Name',
@@ -160,6 +177,36 @@ return [
     'advance_salary_recorded' => 'Advance salary recorded successfully!',
     'advance_salary_updated' => 'Advance Salary successfully updated!',
     'advance_salary_deleted' => 'Advance salary successfully deleted!',
+    'repayment_period' => 'Repayment Period',
+
+    // Portal Advance Salary specific
+    'advance_salaries' => 'Advance salaries',
+    'advance_salaries_management' => 'Advance salaries Management',
+    'manage_advance_salaries_requests' => 'Manage Employees Advance salaries requests!',
+    'total_advance_salaries' => 'Total advance salaries',
+    'advance_salary_record' => 'advance salary record',
+    'update_or_approve_advance_salary' => 'Update or Approve Advance Salary',
+    'update_or_approve_employee_advance_salary_request' => 'Update or approve employee advance salary request',
+    'bulk_advance_salary' => 'Bulk Advance Salary',
+    'employee_advance_salary_bulk' => 'Employee advance salary bulk',
+
+    // Advance Salary placeholders
+    'amount_placeholder' => '25,000',
+    'reason_placeholder' => 'To manage an urgent family matter',
+    'beneficiary_name_placeholder' => 'Janette Jaqueline',
+    'mobile_money_placeholder' => '6XXXXXXXX',
+    'id_card_placeholder' => '12xxxxxxxx',
+
+    // Manager placeholders
+    'first_name_placeholder' => 'John',
+    'last_name_placeholder' => 'Doe',
+    'matricule_placeholder' => '1134578',
+    'email_placeholder' => 'example@company.com',
+    'phone_placeholder' => '2376xxxxxxxxx',
+
+    // Manager modal titles
+    'update_manager_details' => 'Update Manager\'s details',
+    'edit_and_update_manager_details' => 'Edit and update Manager details',
 
     // Audit Logs specific
     'view_all_activities_audit_logs' => 'View all activities audit Logs',
@@ -181,6 +228,29 @@ return [
     'checkins_recorded_success' => 'Checkins recorded successfully - have a nice day 😍!',
     'checkin_updated_success' => 'Checkin successfully updated!',
     'checkin_deleted_success' => 'Checkin record successfully deleted!',
+
+    // Portal Checklog success messages
+    'checkin_successfully_updated' => 'Checkin successfully updated!',
+    'checkin_successfully_moved_to_trash' => 'Checkin successfully moved to trash!',
+    'checkin_successfully_restored' => 'Checkin successfully restored!',
+    'checkin_permanently_deleted' => 'Checkin permanently deleted!',
+    'selected_checkin_records_moved_to_trash' => 'Selected checkin records moved to trash!',
+    'selected_checkin_records_restored' => 'Selected checkin records restored!',
+    'selected_checkin_records_permanently_deleted' => 'Selected checkin records permanently deleted!',
+
+    // Portal Checklog specific
+    'manage_employees_checkins' => 'Manage Employees checkins to you!',
+    'total_checkins' => 'Total Checkins',
+    'recorded_by_employees' => 'recorded by employees',
+    'you_approved' => 'you approved!',
+    'you_rejected' => 'you rejected!',
+    'check_period' => 'Check Period',
+    'checkout' => 'CheckOut',
+    'time_worked' => 'Time Worked',
+    'update_or_approve_checkin' => 'Update or Approve Checkin',
+    'update_or_approve_employee_checkin_record' => 'Update or approve employee checkin record',
+    'checkin_comment' => 'Checkin Comment',
+    'employee_checkin_bulk' => 'Employee checkin bulk',
 
     // Leaves specific
     'leaves_history' => 'Leaves History',
@@ -309,6 +379,7 @@ return [
     'create_new_employee_for' => 'Create a new employee for',
     'department_company' => 'Department Company',
     'select_department' => 'Select department',
+    'select_service' => 'Select service',
     'update_employee' => 'Update Employee',
     'update_employee_details' => 'Update employee details',
     'unknown_company' => 'Unknown Company',
@@ -331,4 +402,55 @@ return [
     'manage_roles' => 'Manage Roles',
     'restore_employee' => 'Restore Employee',
     'permanently_delete' => 'Permanently Delete',
+    'na' => 'NA',
+    'department_employees' => 'Department Employees',
+    'manage_employees_in_assigned_departments' => 'Manage employees in your assigned departments',
+
+    // Bulk Operations
+    'restore_selected_employees' => 'Restore Selected Employees',
+    'permanently_delete_selected_employees' => 'Permanently Delete Selected Employees',
+
+    // Employee Form Labels
+    'total_leave_days' => 'Total Leave Days',
+    'monthly_allocations' => 'Monthly Allocations',
+    'contract_end_date' => 'Contract End Date',
+    'create_employee_password' => 'Create Employee\'s Password',
+    'reset_employee_password' => 'Reset Employee\'s Password',
+    'add_employee' => 'Add Employee',
+    'add_to' => 'Add to',
+    'banned' => 'Banned',
+    'update_employee' => 'Update Employee',
+    'create_a_new_employee' => 'Create a new Employee',
+    'import_employee_for_company' => 'Import :name for your company.',
+    'fill_template_auto_add_details' => 'Fill template with your :name data, note that department and company details will be auto added',
+
+    // User Roles Management
+    'user_roles' => 'User Roles',
+    'assigned_roles' => 'Assigned Roles',
+    'no_roles_assigned' => 'No roles assigned',
+    'manage_roles' => 'Manage Roles',
+    'select_roles_max_2' => 'Select Roles (Max 2)',
+    'update_roles' => 'Update Roles',
+    'note' => 'Note:',
+    'maximum_2_roles_per_user_allowed' => 'Maximum 2 roles per user allowed',
+    'employee_role_automatically_included' => 'Employee role is automatically included',
+    'use_ctrl_cmd_click_multiple_selection' => 'Use Ctrl/Cmd + Click for multiple selection',
+    'are_you_sure_remove_role' => 'Are you sure you want to remove this role?',
+    'cannot_remove' => 'Cannot remove',
+    'employee_role_must_always_be_included' => 'Employee role must always be included.',
+    'user_maximum_2_roles_including_employee' => 'A user can have a maximum of 2 roles (including the employee role).',
+
+    // Manager Creation
+    'create_a_new_manager' => 'Create a new Manager',
+
+    // Error Messages
+    'department_access_required_for_supervisors' => 'Department access required for supervisors.',
+    'no_access_to_department' => 'You do not have access to this department.',
+    'no_permission_access_company' => 'You do not have permission to access this company.',
+
+    // Form Helpers
+    'leave_empty_to_keep_current_password' => 'Leave empty to keep current password',
+
+    // Additional keys
+    'employee_info' => 'Employee Info',
 ];

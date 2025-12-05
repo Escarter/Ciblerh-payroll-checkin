@@ -5,6 +5,8 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => count($selectedRoles) === 1 ? __('roles.role') : __('roles.roles')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => count($selectedRoles) === 1 ? __('roles.role') : __('roles.roles')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => __('roles.role')])
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     <x-alert />
     <div class='pb-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-0 align-items-center">
@@ -127,7 +129,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    {{ $selectAll ? __('Deselect All') : __('Select All') }}
+                    {{ $selectAll ? __('common.deselect_all') : __('common.select_all') }}
                 </button>
                 
                 @if(count($selectedRoles) > 0)
@@ -146,9 +148,9 @@
                 @endcan
                 @else
                 @can('role-delete')
-                <button wire:click="bulkRestore"
+                <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                    title="{{ __('Restore Selected Roles') }}">
+                    title="{{ __('common.restore_selected_roles') }}">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -158,7 +160,7 @@
 
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Permanently Delete Selected Roles') }}"
+                    title="{{ __('common.permanently_delete_selected_roles') }}"
                     data-bs-toggle="modal" 
                     data-bs-target="#BulkForceDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,7 +213,7 @@
                         <div class="avatar-md d-flex align-items-center justify-content-center fw-bold fs-5 rounded bg-primary me-3"><span class="text-gray-50">{{ initials($role->name) }}</span></div>
                         <div>
                             <h3 class="h5 mb-0">{{ucfirst($role->name)}}</h3>
-                            <div class="fw-semi-bold text-gray-600 ">{{__('Number of users with this role:')}} {{$role->users_count}}</div>
+                            <div class="fw-semi-bold text-gray-600 ">{{__('roles.number_of_users_with_this_role')}}: {{$role->users_count}}</div>
                         </div>
                     </div>
                 </div>
@@ -228,13 +230,13 @@
                             <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
-                            <div class="d-none d-md-block">{{__('Voir les employés')}}</div>
+                            <div class="d-none d-md-block">{{__('common.view_employees')}}</div>
                         </a> -->
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         @if($activeTab === 'active')
                         @can('role-update')
-                        <a href="#" wire:click.prevent="editRole({{$role->id}})" data-bs-toggle="modal" data-bs-target="#EditRoleModal" draggable="false" onclick="event.stopPropagation();" title="{{ __('Edit Role') }}">
+                        <a href="#" wire:click.prevent="editRole({{$role->id}})" data-bs-toggle="modal" data-bs-target="#EditRoleModal" draggable="false" onclick="event.stopPropagation();" title="{{ __('roles.edit_role') }}">
                             <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
@@ -249,12 +251,12 @@
                         @endcan
                         @else
                         @can('role-delete')
-                        <a href="#" wire:click="restore({{$role->id}})" title="{{ __('Restore Role') }}" onclick="event.stopPropagation();">
+                        <a href="#" wire:click.prevent="$set('role_id', {{$role->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{ __('common.restore') }}" onclick="event.stopPropagation();">
                             <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                         </a>
-                        <a href="#" wire:click.prevent="$set('selectedRoles', [{{$role->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" title="{{ __('Permanently Delete') }}" onclick="event.stopPropagation();">
+                        <a href="#" wire:click.prevent="$set('selectedRoles', [{{$role->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" title="{{ __('common.permanently_delete') }}" onclick="event.stopPropagation();">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -274,10 +276,10 @@
                     <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
                 </div>
                 @can('role-create')
-                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateCompanyModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateRoleModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('Add Role ')}}
+                    </svg> {{__('common.add_role')}}
                 </a>
                 @endcan
             </div>

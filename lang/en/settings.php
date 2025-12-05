@@ -18,6 +18,9 @@ return [
     'integration_settings' => 'Integration Settings',
 
     // SMTP Settings
+    'smtp_provider' => 'SMTP Provider',
+    'smtp' => 'SMTP',
+    'mailgun' => 'MailGun',
     'smtp_host' => 'SMTP Host',
     'smtp_port' => 'SMTP Port',
     'smtp_username' => 'SMTP Username',
@@ -123,4 +126,35 @@ return [
     'setting_for_sms_required' => 'Setting for SMS required!',
     'test_sms_sent_successfully' => 'Test sms was sent successfully!',
     'test_sms_failed' => 'Test Sms Failed!',
+
+    // Email configuration keys
+    'from_email' => 'From Email',
+    'enter_email_address' => 'Enter Email Address',
+    'enter_email_message' => 'Enter Email Message',
+    'save_mail_config' => 'Save Mail Config',
+    'enter_email_content_english' => 'Enter Email Content English',
+    'enter_email_content_french' => 'Enter Email Content French',
+    'save_welcome_email_config' => 'Save Welcome Email Config',
+    'payslips_mail_configuration' => 'Payslips Mail Configuration',
+
+    // Additional missing keys
+    'enter_birthday_sms_french' => 'Enter birthday sms French',
+    'you_can_check_sms_details' => 'You can check the detail of SMS sent on sms management section',
+    'smtp_providers_only_supported' => 'As of now only SMTP providers are supported',
+    'login_to_provider_portal' => 'Login to your providers portal and create an smtp user',
+    'create_smtp_password' => 'Create also password for the given user',
+    'copy_smtp_details' => 'Copy the smtp host and port provider by your provider',
+    'configure_smtp_values' => 'Now put these values in the fields configuration and save',
+    'use_test_form' => 'Use below form to test email configurations.',
+    'enter_email_subject_english' => 'Enter Email subject English',
+    'enter_email_subject_french' => 'Enter Email subject French',
+    'do_not_remove_email_placeholders' => 'Don not remove or change the values of',
+    'email_placeholder_note' => 'as this is used as placeholders',
+    'welcome_email_configuration' => 'Welcome Email configuration',
+    'enter_welcome_email_subject_english' => 'Enter welcome email subject English',
+    'enter_welcome_email_content_english' => 'Enter welcome email content English',
+    'enter_welcome_email_subject_french' => 'Enter welcome email subject French',
+    'enter_welcome_email_content_french' => 'Enter welcome email content French',
+    'do_not_remove_welcome_placeholders' => 'Don not remove or change the values of',
+    'welcome_placeholders_note' => 'as these are used as placeholders',
 ];

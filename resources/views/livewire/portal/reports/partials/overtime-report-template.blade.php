@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>{{ __('Overtime Report').now()->IsoFormat('LL')}}</title>
+    <title>{{ __('reports.overtime_report').now()->IsoFormat('LL')}}</title>
 
     <style type="text/css">
         @page {
@@ -189,10 +189,10 @@
         <table class="table" style="padding-top: 10px;">
             <thead class="bg-primary text-white">
                 <tr>
-                    <th>{{ __('Employee Name') }}</th>
-                    <th>{{ __('Qualification') }}</th>
-                    <th>{{__('T. Hours Worked')}}</th>
-                    <th>{{__('Signature')}}</th>
+                    <th>{{ __('employees.employee_name') }}</th>
+                    <th>{{ __('employees.qualification') }}</th>
+                    <th>{{__('employees.t_hours_worked')}}</th>
+                    <th>{{__('employees.signature')}}</th>
                     <th>{{__('120%')}}</th>
                     <th>{{__('130%')}}</th>
                     <th>{{__('140%')}}</th>

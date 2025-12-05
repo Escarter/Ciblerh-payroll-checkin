@@ -131,7 +131,7 @@ class Overtime extends Component
 
         return response()->streamDownload(
             fn () => print($pdf->output()),
-            __('Overtimes-') . $this->period . "-" . Str::random('10') . ".pdf"
+            __('reports.overtimes_filename_prefix') . $this->period . "-" . Str::random('10') . ".pdf"
         );
     }
 

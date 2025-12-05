@@ -49,7 +49,7 @@ class History extends Component
         
         // Check if the file exists
         if (!Storage::disk('modified')->exists($payslip->file)) {
-            session()->flash('error', __('Payslip file not found. Please contact your administrator.'));
+            session()->flash('error', __('payslips.payslip_file_not_found'));
             return;
         }
         
@@ -60,7 +60,7 @@ class History extends Component
                 ['Content-Type'=> 'application/pdf']
             );
         } catch (\Exception $e) {
-            session()->flash('error', __('Unable to download payslip. Please contact your administrator.'));
+            session()->flash('error', __('payslips.unable_to_download_payslip'));
         }
     }
     public function resendEmail()
@@ -89,7 +89,7 @@ class History extends Component
                                     'email_sent_status' => Payslip::STATUS_FAILED,
                                     'email_retry_count' => 0, // Reset retry count for manual resend
                                     'last_email_retry_at' => null,
-                                    'failure_reason' => __('Failed to send email. Recipient: :email', ['email' => $employee->email])
+                                    'failure_reason' => __('payslips.failed_to_send_email_recipient', ['email' => $employee->email])
                                 ]);
                                 
                                 // Schedule automatic retry if retries are enabled
@@ -101,14 +101,14 @@ class History extends Component
                                     $this->payslip->update([
                                         'email_retry_count' => 1,
                                         'last_email_retry_at' => now(),
-                                        'failure_reason' => __('Failed to send email. Recipient: :email. Automatic retry scheduled', ['email' => $employee->email])
+                                        'failure_reason' => __('payslips.failed_to_send_email_recipient_retry_scheduled', ['email' => $employee->email])
                                     ]);
                                 }
                                 
                                 Log::info('mail-failed: ' . json_encode(Mail::failures()));
                                 $message = $maxRetries > 0 
-                                    ? __('Failed to send email. Automatic retry scheduled.') 
-                                    : __('Failed to send email');
+                                    ? __('payslips.email_automatic_retry_scheduled')
+                                    : __('payslips.failed_to_send_email');
                                 $this->closeModalAndFlashMessage($message, 'resendEmailModal');
                             } else {
                             $this->payslip->update([
@@ -128,7 +128,7 @@ class History extends Component
                                 'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send email to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
                             );
 
-                            $this->closeModalAndFlashMessage(__('Email resent successfully!'), 'resendEmailModal');
+                            $this->closeModalAndFlashMessage(__('payslips.email_resent_successfully'), 'resendEmailModal');
                             }
 
                         } catch (\Swift_TransportException $e) {
@@ -203,12 +203,12 @@ class History extends Component
                     'web',
                     'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send sms to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
                 );
-                $this->closeModalAndFlashMessage(__('SMS to :user successfully sent!', ['user' => $employee->name]), 'resendModal');
+                $this->closeModalAndFlashMessage(__('payslips.sms_sent_successfully', ['user' => $employee->name]), 'resendSMSModal');
     
             }else{
 
                 
-                $this->closeModalAndFlashMessage(__('Insufficient SMS Balance'), 'resendSMSModal');
+                $this->closeModalAndFlashMessage(__('payslips.insufficient_sms_balance'), 'resendSMSModal');
             }
          
         }
@@ -226,12 +226,12 @@ class History extends Component
             
             if (!empty($payslip)) {
                 $payslip->delete(); // Soft delete
-                $this->closeModalAndFlashMessage(__('Payslip successfully moved to trash!'), 'DeleteModal');
+                $this->closeModalAndFlashMessage(__('payslips.payslip_successfully_moved_to_trash'), 'DeleteModal');
             } else {
-                session()->flash('error', __('Payslip not found.'));
+                session()->flash('error', __('payslips.payslip_not_found'));
             }
         } catch (\Exception $e) {
-            session()->flash('error', __('Error deleting payslip: ') . $e->getMessage());
+            session()->flash('error', __('payslips.error_deleting_payslip') . $e->getMessage());
         }
         
         $this->reset(['payslip']);
@@ -246,7 +246,7 @@ class History extends Component
         $payslip = Payslip::withTrashed()->findOrFail($payslipId);
         $payslip->restore();
 
-        $this->closeModalAndFlashMessage(__('Payslip successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete($payslipId = null)
@@ -260,12 +260,12 @@ class History extends Component
             
             if (!empty($payslip)) {
                 $payslip->forceDelete();
-                $this->closeModalAndFlashMessage(__('Payslip permanently deleted!'), 'ForceDeleteModal');
+                $this->closeModalAndFlashMessage(__('payslips.payslip_permanently_deleted'), 'ForceDeleteModal');
             } else {
-                session()->flash('error', __('Payslip not found.'));
+                session()->flash('error', __('payslips.payslip_not_found'));
             }
         } catch (\Exception $e) {
-            session()->flash('error', __('Error deleting payslip: ') . $e->getMessage());
+            session()->flash('error', __('payslips.error_deleting_payslip') . $e->getMessage());
         }
         
         $this->reset(['payslip']);
@@ -282,7 +282,7 @@ class History extends Component
             $this->selectedPayslips = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected payslips moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.selected_payslips_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -296,7 +296,7 @@ class History extends Component
             $this->selectedPayslips = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected payslips restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('payslips.selected_payslips_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -310,7 +310,7 @@ class History extends Component
             $this->selectedPayslips = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected payslips permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.selected_payslips_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)

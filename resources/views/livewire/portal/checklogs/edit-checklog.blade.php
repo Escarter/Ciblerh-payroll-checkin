@@ -4,8 +4,8 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Update or Approve Checkin')}}</h1>
-                        <p>{{__('Upate or Approvel Employee chekin record')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('employees.update_or_approve_checkin')}}</h1>
+                        <p>{{__('employees.update_or_approve_employee_checkin_record')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="update">
                         <div class="form-group mb-4">
@@ -32,7 +32,7 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="checkin_comments">{{__('Checkin Comment')}}</label>
+                            <label for="checkin_comments">{{__('employees.checkin_comment')}}</label>
                             <textarea wire:model="checkin_comments" name="checkin_comments" class="form-control  @error('checkin_comments') is-invalid @enderror" id='' cols='3' rows='3'></textarea>
                             @error('checkin_comments')
                             <div class="invalid-feedback">{{$message}}</div>

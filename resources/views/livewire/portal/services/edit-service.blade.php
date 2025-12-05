@@ -34,7 +34,7 @@
                             <select wire:model="is_active" name="is_active" class="form-select  @error('is_active') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.active')}}</option>
-                                <option value="0">{{__('Inactive')}}</option>
+                                <option value="0">{{__('services.inactive')}}</option>
                             </select>
                             @error('is_active')
                             <div class="invalid-feedback">{{$message}}</div>

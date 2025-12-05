@@ -15,6 +15,7 @@ class Index extends Component
     public $activeTab = 'active';
     public $selectedRoles = [];
     public $selectAll = false;
+    public $role_id = null;
 
     public $listeners = [
         'roleCreated',
@@ -23,13 +24,13 @@ class Index extends Component
 
     public function roleCreated()
     {
-        $this->closeModalAndFlashMessage(__('Rôle et permissions associées créés avec succès!'), 'CreateRoleModal');
+        $this->closeModalAndFlashMessage(__('roles.role_and_associated_permissions_created_successfully'), 'CreateRoleModal');
     }
 
     public function roleUpdated()
     {
         // Display success message using the same pattern as roleCreated
-        session()->flash('message', __('Role and permissions updated successfully!'));
+        session()->flash('message', __('roles.role_and_permissions_updated_successfully'));
     }
 
     //Get & assign selected advance_salary props
@@ -56,23 +57,23 @@ class Index extends Component
             if(count($this->role->users) <= 0) {
                 $this->role->syncPermissions([]);
                 $this->role->delete(); // Soft delete
-                $this->closeModalAndFlashMessage(__('Role moved to trash successfully!'), 'DeleteModal');
+                $this->closeModalAndFlashMessage(__('roles.role_moved_to_trash_successfully'), 'DeleteModal');
             } else {
-                $this->closeModalAndFlashMessage(__('Le rôle ne peut pas être supprimé car il est toujours attribué aux utilisateurs-!'), '');
+                $this->closeModalAndFlashMessage(__('roles.role_cannot_be_deleted_still_assigned_to_users'), '');
             }
         }
     }
 
-    public function restore($roleId)
+    public function restore()
     {
         if (!Gate::allows('role-delete')) {
             return abort(401);
         }
 
-        $role = Role::withTrashed()->findOrFail($roleId);
+        $role = Role::withTrashed()->findOrFail($this->role_id);
         $role->restore();
 
-        $this->closeModalAndFlashMessage(__('Role restored successfully!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('roles.role_restored_successfully'), 'RestoreModal');
     }
 
     public function forceDelete($roleId)
@@ -84,7 +85,7 @@ class Index extends Component
         $role = Role::withTrashed()->findOrFail($roleId);
         $role->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Role permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('roles.role_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -99,7 +100,7 @@ class Index extends Component
             $this->selectAll = false;
         }
 
-        $this->closeModalAndFlashMessage(__('Selected roles moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('roles.selected_roles_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -114,7 +115,7 @@ class Index extends Component
             $this->selectAll = false;
         }
 
-        $this->closeModalAndFlashMessage(__('Selected roles restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('roles.selected_roles_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -129,7 +130,7 @@ class Index extends Component
             $this->selectAll = false;
         }
 
-        $this->closeModalAndFlashMessage(__('Selected roles permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('roles.selected_roles_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)

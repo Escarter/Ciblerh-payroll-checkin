@@ -63,7 +63,7 @@ class Index extends Component
             'author_id' => auth()->user()->id,
         ]);
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('LeaveType created successfully!'), 'CreateLeaveTypeModal');
+        $this->closeModalAndFlashMessage(__('leaves.leavetype_created_successfully'), 'CreateLeaveTypeModal');
     }
 
     public function update()
@@ -82,7 +82,7 @@ class Index extends Component
             ]);
         });
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('LeaveType successfully updated!'), 'EditLeaveTypeModal');
+        $this->closeModalAndFlashMessage(__('leaves.leavetype_successfully_updated'), 'EditLeaveTypeModal');
     }
 
     public function delete()
@@ -96,19 +96,19 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('LeaveType successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('leaves.leavetype_successfully_moved_to_trash'), 'DeleteModal');
     }
 
-    public function restore($leaveTypeId)
+    public function restore()
     {
         if (!Gate::allows('leave_type-delete')) {
             return abort(401);
         }
 
-        $leaveType = LeaveType::withTrashed()->findOrFail($leaveTypeId);
+        $leaveType = LeaveType::withTrashed()->findOrFail($this->leave_type_id);
         $leaveType->restore();
 
-        $this->closeModalAndFlashMessage(__('LeaveType successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('leaves.leavetype_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete($leaveTypeId)
@@ -120,7 +120,7 @@ class Index extends Component
         $leaveType = LeaveType::withTrashed()->findOrFail($leaveTypeId);
         $leaveType->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('LeaveType permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('leaves.leavetype_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -134,7 +134,7 @@ class Index extends Component
             $this->selectedLeaveTypes = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected leave types moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('leaves.selected_leave_types_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -148,7 +148,7 @@ class Index extends Component
             $this->selectedLeaveTypes = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected leave types restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('leaves.selected_leave_types_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -162,7 +162,7 @@ class Index extends Component
             $this->selectedLeaveTypes = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected leave types permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('leaves.selected_leave_types_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)
@@ -216,11 +216,11 @@ class Index extends Component
             auth()->user(),
             'leave_type_imported',
             'web',
-            __('Imported excel file for LeaveType')
+            __('leaves.imported_excel_file_for_leavetype')
         );
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('LeaveType successfully imported!'), 'importLeaveTypesModal');
+        $this->closeModalAndFlashMessage(__('leaves.leavetype_successfully_imported'), 'importLeaveTypesModal');
     }
     public function export()
     {
@@ -228,7 +228,7 @@ class Index extends Component
             auth()->user(),
             'leave_type_exported',
             'web',
-            __('Exported excel file for LeaveType')
+            __('leaves.exported_excel_file_for_leavetype')
         );
         return (new LeaveTypeExport($this->query))->download('leave_types-' . Str::random(5) . '.xlsx');
     }

@@ -2,9 +2,11 @@
     @include('livewire.portal.absences.edit-absence')
     @include('livewire.portal.absences.bulk-approval')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => count($selectedAbsencesForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => count($selectedAbsencesForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => __('absence record')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => __('absences.absence_record')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -18,16 +20,16 @@
                             </a>
                         </li>
                         <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Absences')}}</li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('absences.absences')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    {{__('Absences Management')}}
+                    {{__('absences.absences_management')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('Manage Employees Absences request!')}} &#x23F0; </p>
+                <p class="mt-n1 mx-2">{{__('absences.manage_employees_absences_request')}} &#x23F0; </p>
             </div>
             @can('absence-export')
             <div class="mb-2 mx-3">
@@ -64,18 +66,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Absences')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('absences.total_absences')}}</h2>
                                     <h3 class="mb-1">{{numberFormat(count($absences))}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Absences')}}</h2>
+                                    <h2 class="h5">{{__('absences.total_absences')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat(count($absences))}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Absence'), count($absences)) }} {{__('recorded by employees')}}</div>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
@@ -92,18 +92,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural('Absences', $approved_absences_count)) }} {{__("Approved")}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.approved')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($approved_absences_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural('Absences', $approved_absences_count)) }} {{__("Approved")}}</h2>
+                                    <h2 class="h5"> {{__('common.approved')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($approved_absences_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ __(\Str::plural(__('Absence'), $approved_absences_count)) }} {{__('you approved!')}}</div>
-                                </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -120,18 +118,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural(__('Absence'), $pending_absences_count)) }} {{__("pending")}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.pending')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($pending_absences_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural(__('Absence'), $pending_absences_count)) }} {{__("pending")}}</h2>
+                                    <h2 class="h5"> {{__('common.pending')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($pending_absences_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ __(\Str::plural(__('Absence'), $pending_absences_count)) }} {{__('pending your validation')}}</div>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
@@ -148,18 +144,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural(__('Absence'), $rejected_absences_count)) }} {{__('common.rejected')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($rejected_absences_count)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural(__('Absence'), $rejected_absences_count)) }} {{__('common.rejected')}}</h2>
+                                    <h2 class="h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_absences_count)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ __(\Str::plural(__('Absence'), $rejected_absences_count)) }} {{__('you rejected!')}}</div>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
@@ -177,7 +171,7 @@
         <div class="col-md-3">
             <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="absence_date">{{__('Absence date')}}</option>
+                <option value="absence_date">{{__('employees.absence_date')}}</option>
                 <option value="absence_reason">{{__('common.reason')}}</option>
                 <option value="approval_status">{{__('common.approval_status')}}</option>
                 <option value="created_at">{{__('common.created_date')}}</option>
@@ -265,7 +259,7 @@
                     @can('absence-delete')
                     <button type="button"
                         class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                        title="{{ __('Move Selected Absence Records to Trash') }}"
+                        title="{{ __('absences.move_selected_absence_records_to_trash') }}"
                         data-bs-toggle="modal" 
                         data-bs-target="#BulkDeleteModal">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -291,9 +285,9 @@
                 @if(count($selectedAbsencesForDelete) > 0)
                 <div class="d-flex align-items-center gap-2">
                     @can('absence-delete')
-                    <button wire:click="bulkRestore"
+                    <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                         class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                        title="{{ __('Restore Selected Absence Records') }}">
+                        title="{{ __('absences.restore_selected_absence_records') }}">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
@@ -303,7 +297,7 @@
 
                     <button type="button"
                         class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                        title="{{ __('Permanently Delete Selected Absence Records') }}"
+                        title="{{ __('absences.permanently_delete_selected_absence_records') }}"
                         data-bs-toggle="modal" 
                         data-bs-target="#BulkForceDeleteModal">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,9 +341,9 @@
                             </div>
                         </th>
                         <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('Absence Date')}}</th>
+                        <th class="border-bottom">{{__('employees.absence_date')}}</th>
                         <th class="border-bottom">{{__('common.reason')}}</th>
-                        <th class="border-bottom">{{__('Attachment Link')}}</th>
+                        <th class="border-bottom">{{__('common.attachment_link')}}</th>
                         <th class="border-bottom">{{__('common.status')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
                         @canany('absence-update','absence-delete')
@@ -417,7 +411,7 @@
                                 @endcan
                             @else
                                 @can('absence-delete')
-                                <a href="#" wire:click="restore({{ $absence->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                <a href="#" wire:click.prevent="$set('{{ $absence->id }}', {{ $absence->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}">
                                     <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>

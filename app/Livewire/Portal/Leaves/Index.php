@@ -23,6 +23,7 @@ class Index extends Component
     public ?string $manager_approval_reason = null;
     public ?int $supervisor_approval_status = 1;
     public ?string $supervisor_approval_reason = null;
+    public ?int $leave_id = null;
     public ?string $user = null;
     public ?string $role = null;
     public ?Leave $leave = null;
@@ -130,7 +131,7 @@ class Index extends Component
             ]);
         }
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Leave successfully updated!'), 'EditBulkLeaveModal');
+        $this->closeModalAndFlashMessage(__('leaves.leave_successfully_updated'), 'EditBulkLeaveModal');
     }
 
     public function update()
@@ -164,7 +165,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Leave successfully updated!'), 'EditLeaveModal');
+        $this->closeModalAndFlashMessage(__('leaves.leave_successfully_updated'), 'EditLeaveModal');
     }
     public function delete()
     {
@@ -177,19 +178,19 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Leave successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('leaves.leave_successfully_moved_to_trash'), 'DeleteModal');
     }
 
-    public function restore($leaveId)
+    public function restore()
     {
         if (!Gate::allows('leave-delete')) {
             return abort(401);
         }
 
-        $leave = Leave::withTrashed()->findOrFail($leaveId);
+        $leave = Leave::withTrashed()->findOrFail($this->leave_id);
         $leave->restore();
 
-        $this->closeModalAndFlashMessage(__('Leave successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('leaves.leave_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete($leaveId)
@@ -201,7 +202,7 @@ class Index extends Component
         $leave = Leave::withTrashed()->findOrFail($leaveId);
         $leave->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Leave permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('leaves.leave_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -222,7 +223,7 @@ class Index extends Component
             $this->selectedLeavesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected leave records moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('leaves.selected_leaves_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -236,7 +237,7 @@ class Index extends Component
             $this->selectedLeavesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected leave records restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('leaves.selected_leaves_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -250,7 +251,7 @@ class Index extends Component
             $this->selectedLeavesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected leave records permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('leaves.selected_leaves_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)

@@ -5,6 +5,8 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => count($selectedOvertimesForDelete) === 1 ? __('overtime.overtime') : __('overtime.overtimes')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => count($selectedOvertimesForDelete) === 1 ? __('overtime.overtime') : __('overtime.overtimes')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedOvertimesForDelete, 'itemType' => __('overtime.overtime')])
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     <x-alert />
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -65,18 +67,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Overtimes')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('common.total')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($overtimes_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Overtimes')}}</h2>
+                                    <h2 class="h5">{{__('common.total')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($overtimes_count)}}</h3>
-                                </a>
-                                <div class="small d-flex mt-1">
-                                    <div> {{__('recorded by employees')}}</div>
-                                </div>
+                                </a>        
                             </div>
                         </div>
                     </div>
@@ -93,18 +92,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('common.overtime'), $approved_overtimes_count) }} {{__('common.approved')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.approved')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($approved_overtimes_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Overtimes'), $approved_overtimes_count) }} {{__('common.approved')}}</h2>
+                                    <h2 class="h5"> {{__('common.approved')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($approved_overtimes_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('common.overtime'), $approved_overtimes_count) }} {{__('you approved!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -121,18 +117,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural('Overtime', $pending_overtimes_count) }} {{__('pending')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.pending')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($pending_overtimes_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('common.overtime'), $pending_overtimes_count) }} {{__('pending')}}</h2>
+                                    <h2 class="h5"> {{__('common.pending')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($pending_overtimes_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('common.overtime'), $pending_overtimes_count) }} {{__('pending your validation')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -149,18 +142,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('common.overtime'), $rejected_overtimes_count) }} {{__('common.rejected')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($rejected_overtimes_count)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('common.overtime'), $rejected_overtimes_count) }} {{__('common.rejected')}}</h2>
+                                    <h2 class="h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_overtimes_count)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('common.overtime'), $rejected_overtimes_count) }} {{__('you rejected!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -265,7 +255,7 @@
                 @can('overtime-delete')
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Move Selected Overtime Records to Trash') }}"
+                    title="{{ __('overtime.move_selected_overtime_records_to_trash') }}"
                     data-bs-toggle="modal"
                     data-bs-target="#BulkDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -291,9 +281,9 @@
             @if(count($selectedOvertimesForDelete) > 0)
             <div class="d-flex align-items-center gap-2">
                 @can('overtime-delete')
-                <button wire:click="bulkRestore"
+                <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                    title="{{ __('Restore Selected Overtime Records') }}">
+                    title="{{ __('overtime.restore_selected_overtime_records') }}">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -303,7 +293,7 @@
 
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Permanently Delete Selected Overtime Records') }}"
+                    title="{{ __('overtime.permanently_delete_selected_overtime_records') }}"
                     data-bs-toggle="modal"
                     data-bs-target="#BulkForceDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,8 +337,8 @@
                             </div>
                         </th>
                         <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('Work Period')}}</th>
-                        <th class="border-bottom">{{__('Approval')}}</th>
+                        <th class="border-bottom">{{__('overtime.work_period')}}</th>
+                        <th class="border-bottom">{{__('employees.approval_status')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
                         @canany('overtime-update','overtime-delete')
                         <th class="border-bottom">{{__('common.action')}}</th>
@@ -393,16 +383,16 @@
                             <div class="d-flex flex-column">
                                 <div class="mb-1">
                                     <div class="small">
-                                        <span class="fw-bold">{{__('Start')}}:</span>
+                                        <span class="fw-bold">{{__('overtime.start')}}:</span>
                                         <span class="fs-normal">{{$overtime->start_time}}</span>
                                     </div>
                                 </div>
                                 <div class="small mb-1">
-                                    <span class="fw-bold">{{__('End')}}:</span>
+                                    <span class="fw-bold">{{__('overtime.end')}}:</span>
                                     <span class="fs-normal">{{$overtime->end_time}}</span>
                                 </div>
                                 <div class="small">
-                                    <span class="fw-bold">{{__('Time Worked')}}:</span>
+                                    <span class="fw-bold">{{__('overtime.time_worked')}}:</span>
                                     <span class="fw-bolder">{{$overtime->time_worked}} hrs</span>
                                 </div>
                             </div>
@@ -433,7 +423,7 @@
                             @endcan
                             @else
                             @can('overtime-delete')
-                            <a href="#" wire:click="restore({{ $overtime->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                            <a href="#" wire:click.prevent="$set('overtime_id', {{ $overtime->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('common.restore')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>

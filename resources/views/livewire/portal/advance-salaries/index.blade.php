@@ -2,9 +2,11 @@
     @include('livewire.portal.advance-salaries.edit-advance-salary')
     @include('livewire.portal.advance-salaries.bulk-approval')
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAdvanceSalariesForDelete, 'itemType' => count($selectedAdvanceSalariesForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAdvanceSalariesForDelete, 'itemType' => count($selectedAdvanceSalariesForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
-    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedAdvanceSalariesForDelete, 'itemType' => __('advance salary record')])
+    @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedAdvanceSalariesForDelete, 'itemType' => __('employees.advance_salary_record')])
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -18,16 +20,16 @@
                             </a>
                         </li>
                         <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{__('Advance salaries')}}</li>
+                        <li class="breadcrumb-item active" aria-current="page">{{__('employees.advance_salaries')}}</li>
                     </ol>
                 </nav>
                 <h1 class="h4 mt-n2 d-flex justify-content-start align-items-end">
                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
-                    {{__('Advance salaries Management')}}
+                    {{__('employees.advance_salaries_management')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('Manage Employees Advance salaries requests!')}} &#x23F0; </p>
+                <p class="mt-n1 mx-2">{{__('employees.manage_advance_salaries_requests')}} &#x23F0; </p>
             </div>
             <div class="mb-2 mx-3">
                 @can('advance_salary-export')
@@ -65,18 +67,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total advance salaries')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('common.total')}}</h2>
                                     <h3 class="mb-1">{{numberFormat(count($advance_salaries))}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total advance salaries')}}</h2>
+                                    <h2 class="h5">{{__('common.total')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat(count($advance_salaries))}}</h3>
                                 </a>
-                                <div class="d-flex mt-1" style="font-size:x-small;">
-                                    <div> {{__('recorded by employees')}}</div>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
@@ -102,9 +102,7 @@
                                     <h2 class="h5">{{__('common.approved')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($approved_advance_salaries_count)}}</h3>
                                 </a>
-                                <div class="d-flex mt-1" style="font-size:x-small;">
-                                    <div>{{ \Str::plural(__('Advance salary'), $approved_advance_salaries_count) }} {{__('you approved!')}}</div>
-                                </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -130,9 +128,7 @@
                                     <h2 class="h5">{{__('common.pending')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($pending_advance_salaries_count)}}</h3>
                                 </a>
-                                <div class="d-flex mt-1" style="font-size:x-small;">
-                                    <div> {{ \Str::plural(__('Advance salary'), $pending_advance_salaries_count) }} {{__('pending your validation')}}</div>
-                                </div>
+                             
                             </div>
                         </div>
                     </div>
@@ -158,9 +154,7 @@
                                     <h2 class="h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_advance_salaries_count)}} </h3>
                                 </a>
-                                <div class="d-flex mt-1" style="font-size:x-small;">
-                                    <div>{{ \Str::plural(__('Advance salary'), $rejected_advance_salaries_count) }} {{__('you rejected!')}}</div>
-                                </div>
+                              
                             </div>
                         </div>
                     </div>
@@ -178,7 +172,7 @@
         <div class="col-md-3">
             <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="beneficiary_name">{{__('Beneficairy Name')}}</option>
+                <option value="beneficiary_name">{{__('employees.beneficiary_name')}}</option>
                 <option value="amount">{{__('common.amount')}}</option>
                 <option value="approval_status">{{__('common.approval_status')}}</option>
                 <option value="created_at">{{__('common.created_date')}}</option>
@@ -266,7 +260,7 @@
                     @can('advance_salary-delete')
                     <button type="button"
                         class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                        title="{{ __('Move Selected Advance Salary Records to Trash') }}"
+                        title="{{ __('common.move_to_trash') }}"
                         data-bs-toggle="modal" 
                         data-bs-target="#BulkDeleteModal">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,9 +286,9 @@
                 @if(count($selectedAdvanceSalariesForDelete) > 0)
                 <div class="d-flex align-items-center gap-2">
                     @can('advance_salary-delete')
-                    <button wire:click="bulkRestore"
+                    <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                         class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                        title="{{ __('Restore Selected Advance Salary Records') }}">
+                        title="{{ __('common.restore_selected') }}"
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
@@ -304,7 +298,7 @@
 
                     <button type="button"
                         class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                        title="{{ __('Permanently Delete Selected Advance Salary Records') }}"
+                        title="{{ __('common.delete_forever') }}"
                         data-bs-toggle="modal" 
                         data-bs-target="#BulkForceDeleteModal">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -350,7 +344,7 @@
                         <th class="border-bottom">{{__('employees.employee')}}</th>
                         <th class="border-bottom">{{__('common.amount')}}</th>
                         <th class="border-bottom">{{__('Beneficiary')}}</th>
-                        <th class="border-bottom">{{__('Repayment Period')}}</th>
+                        <th class="border-bottom">{{__('employees.repayment_period')}}</th>
                         <th class="border-bottom">{{__('common.status')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
                         @canany('advance_salary-update','advance_salary-delete')
@@ -448,7 +442,7 @@
                                 @endcan
                             @else
                                 @can('advance_salary-delete')
-                                <a href="#" wire:click="restore({{ $advance_salary->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                <a href="#" wire:click.prevent="$set('{{ $advance_salary->id }}', {{ $advance_salary->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}">
                                     <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>

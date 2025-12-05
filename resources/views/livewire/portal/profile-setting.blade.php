@@ -31,7 +31,7 @@
         <div class='row'>
             <div class='col-md-7'>
                 <div class='card p-3 text-gray-700'>
-                    <h5 class="pb-3">{{__('Personal Details')}}</h5>
+                    <h5 class="pb-3">{{__('common.personal_details')}}</h5>
                     <x-form-items.form wire:submit="updateProfile" nctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
@@ -83,11 +83,11 @@
                             </div>
                         </div>
                         <div class='form-group mb-4'>
-                            <label for="preferred_language">{{__('Select Preferred Notification language')}}</label>
+                            <label for="preferred_language">{{__('common.select_preferred_notification_language')}}</label>
                             <select wire:model="preferred_language" name="preferred_language" class="form-select  @error('preferred_language') is-invalid @enderror" required="">
                                 <option value="">{{__('common.select_status')}}</option>
-                                <option value="en">{{__('English')}}</option>
-                                <option value="fr">{{__('French')}}</option>
+                                <option value="en">{{__('common.english')}}</option>
+                                <option value="fr">{{__('common.french')}}</option>
                             </select>
                             @error('preferred_language')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -101,8 +101,8 @@
             </div>
             <div class='col-md-5'>
                 <div class='card p-3 text-gray-700'>
-                    <h5 class="pb-3">{{__('Signature Upload')}} <br>
-                        <small class="text-muted fw-light fs-6 fst-italic">{{__('Upload transparent/white background signature')}} <a href='https://www.signwell.com/online-signature/draw/' target="_blank">{{__("check here!")}}</a> </small>
+                    <h5 class="pb-3">{{__('common.signature_upload')}} <br>
+                        <small class="text-muted fw-light fs-6 fst-italic">{{__('common.upload_transparent_white_background_signature')}} <a href='https://www.signwell.com/online-signature/draw/' target="_blank">{{__("common.check_here")}}</a> </small>
                     </h5>
 
                     <x-form-items.form wire:submit="saveSignature" nctype="multipart/form-data" class="form-modal">
@@ -119,16 +119,16 @@
                             </div>
                             @endif
                             <div>
-                                <button type="submit" wire:click.prevent="saveSignature" class="btn btn-gray-300 text-gray-500 btn-loading">{{__('Upload signature')}} </button>
+                                    <button type="submit" wire:click.prevent="saveSignature" class="btn btn-gray-300 text-gray-500 btn-loading">{{__('common.upload_signature')}} </button>
                             </div>
                         </div>
                     </x-form-items.form>
                 </div>
                 <div class='card p-3 text-gray-700 mt-3'>
-                    <h5 class="pb-3">{{__('Password Reset')}}</h5>
+                        <h5 class="pb-3">{{__('common.password_reset')}}</h5>
                     <x-form-items.form wire:submit="passwordReset" nctype="multipart/form-data" class="form-modal">
                         <div class='form-group mb-4'>
-                            <label for="current_password">{{__('Current Password')}}</label>
+                            <label for="current_password">{{__('common.current_password')}}</label>
                             <input wire:model="current_password" type="text" class="form-control  @error('current_password') is-invalid @enderror">
                             @error('current_password')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -136,14 +136,14 @@
                         </div>
                         <div class='form-group row mb-4'>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="password">{{__('New Password')}}</label>
+                                <label for="password">{{__('common.new_password')}}</label>
                                 <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror">
                                 @error('password')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="password_confirmation">{{__('Confirm password')}}</label>
+                                <label for="password_confirmation">{{__('common.confirm_password')}}</label>
                                 <input wire:model="password_confirmation" type="text" class="form-control  @error('password_confirmation') is-invalid @enderror">
                                 @error('password_confirmation')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -152,7 +152,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <button type="submit" wire:click.prevent="passwordReset" class="btn btn-gray-300 text-gray-500 btn-loading">{{__('Reset Password')}} </button>
+                            <button type="submit" wire:click.prevent="passwordReset" class="btn btn-gray-300 text-gray-500 btn-loading">{{__('common.reset_password')}} </button>
                         </div>
                     </x-form-items.form>
                 </div>

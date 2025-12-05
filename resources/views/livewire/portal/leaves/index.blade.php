@@ -5,6 +5,8 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => count($selectedLeavesForDelete) === 1 ? __('leaves.leave') : __('leaves.leaves')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => count($selectedLeavesForDelete) === 1 ? __('leaves.leave') : __('leaves.leaves')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedLeavesForDelete, 'itemType' => __('leaves.leave')])
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -64,18 +66,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Leaves')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('leaves.total_leaves')}}</h2>
                                     <h3 class="mb-1">{{numberFormat(count($leaves))}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Leaves')}}</h2>
+                                    <h2 class="h5">{{__('leaves.total_leaves')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat(count($leaves))}}</h3>
                                 </a>
-                                <div class="d-flex mt-1" style="font-size:x-small;">
-                                    <div>{{ \Str::plural(__('Leave'), count($leaves)) }} {{__('recorded by employees')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -92,18 +91,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural('Leave', $approved_leaves_count)) }} {{__("Approved")}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.approved')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($approved_leaves_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural('Leave', $approved_leaves_count)) }} {{__("Approved")}}</h2>
+                                    <h2 class="h5"> {{__('common.approved')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($approved_leaves_count)}}</h3>
                                 </a>
-                                <div class="d-flex mt-1" style="font-size:x-small;">
-                                    <div>{{ __(\Str::plural(__('Leave'), $approved_leaves_count)) }} {{__('you approved!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -120,18 +116,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural(__('Leave'), $pending_leaves_count)) }} {{__("pending")}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.pending_approval')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($pending_leaves_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural(__('Leave'), $pending_leaves_count)) }} {{__("pending")}}</h2>
+                                    <h2 class="h5"> {{__('common.pending_approval')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($pending_leaves_count)}}</h3>
                                 </a>
-                                <div class="d-flex mt-1" style="font-size:x-small;">
-                                    <div>{{ __(\Str::plural(__('Leave'), $pending_leaves_count)) }} {{__('pending your validation')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -148,18 +141,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural(__('Leave'), $rejected_leaves_count)) }} {{__('common.rejected')}}</h2>
+                                    <h2 class="fw-extrabold h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($rejected_leaves_count)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural(__('Leave'), $rejected_leaves_count)) }} {{__('common.rejected')}}</h2>
+                                    <h2 class="h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_leaves_count)}} </h3>
                                 </a>
-                                <div class="d-flex mt-1" style="font-size:x-small;">
-                                    <div>{{ __(\Str::plural(__('Leave'), $rejected_leaves_count)) }} {{__('you rejected!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -177,8 +167,8 @@
         <div class="col-md-3">
             <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="start_date">{{__('Start date')}}</option>
-                <option value="end_date">{{__('End date')}}</option>
+                <option value="start_date">{{__('leaves.start_date')}}</option>
+                <option value="end_date">{{__('leaves.end_date')}}</option>
                 <option value="leave_reason">{{__('common.reason')}}</option>
                 <option value="approval_status">{{__('common.approval_status')}}</option>
                 <option value="created_at">{{__('common.created_date')}}</option>
@@ -266,7 +256,7 @@
                     @can('leave-delete')
                     <button type="button"
                         class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                        title="{{ __('Move Selected Leave Records to Trash') }}"
+                        title="{{ __('leaves.move_selected_leave_records_to_trash') }}"
                         data-bs-toggle="modal" 
                         data-bs-target="#BulkDeleteModal">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,9 +282,9 @@
                 @if(count($selectedLeavesForDelete) > 0)
                 <div class="d-flex align-items-center gap-2">
                     @can('leave-delete')
-                    <button wire:click="bulkRestore"
+                    <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                         class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                        title="{{ __('Restore Selected Leave Records') }}">
+                        title="{{ __('leaves.restore_selected_leave_records') }}">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
@@ -304,7 +294,7 @@
 
                     <button type="button"
                         class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                        title="{{ __('Permanently Delete Selected Leave Records') }}"
+                        title="{{ __('leaves.permanently_delete_selected_leave_records') }}"
                         data-bs-toggle="modal" 
                         data-bs-target="#BulkForceDeleteModal">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -349,7 +339,7 @@
                         </th>
                         <th class="border-bottom">{{__('employees.employee')}}</th>
                         <th class="border-bottom">{{__('leaves.leave_type')}}</th>
-                        <th class="border-bottom">{{__('Period')}}</th>
+                        <th class="border-bottom">{{__('leaves.period')}}</th>
                         <th class="border-bottom">{{__('employees.leave_reason')}}</th>
                         <th class="border-bottom">{{__('common.sup_approval')}}</th>
                         <th class="border-bottom">{{__('common.mgr_approval')}}</th>
@@ -397,9 +387,9 @@
                             <span class="fw-normal">{{!empty($leave->leaveType) ? $leave->leaveType->name : ''}}</span>
                         </td>
                         <td>
-                            <span class="fw-bold">{{__('Start Date')}}</span>: <span class="fw-normal">{{$leave->start_date->ISOFormat('LL')}}</span><br>
-                            <span class="fw-bold">{{__('End Date')}}</span>: <span class="fw-normal">{{$leave->end_date->ISOFormat('LL')}}</span><br>
-                            <span class="fw-bold">{{__('Number of Days')}}</span>: <span class="fw-normal">{{$leave->period}}</span><br>
+                            <span class="fw-bold">{{__('leaves.start_date')}}</span>: <span class="fw-normal">{{$leave->start_date->ISOFormat('LL')}}</span><br>
+                            <span class="fw-bold">{{__('leaves.end_date')}}</span>: <span class="fw-normal">{{$leave->end_date->ISOFormat('LL')}}</span><br>
+                            <span class="fw-bold">{{__('leaves.number_of_days')}}</span>: <span class="fw-normal">{{$leave->period}}</span><br>
                         </td>
                         <td>
                             <span class="fw-bold">{{$leave->leave_reason}}</span>
@@ -432,7 +422,7 @@
                                 @endcan
                             @else
                                 @can('leave-delete')
-                                <a href="#" wire:click="restore({{ $leave->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                <a href="#" wire:click.prevent="$set('leave_id', {{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('leaves.restore')}}">
                                     <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>

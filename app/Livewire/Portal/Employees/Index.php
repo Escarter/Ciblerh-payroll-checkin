@@ -90,7 +90,7 @@ class Index extends Component
         if ($this->auth_role === 'supervisor') {
             // For supervisors, get department context
             if (!$department_uuid) {
-                abort(403, 'Department access required for supervisors.');
+                abort(403, __('employees.department_access_required_for_supervisors'));
             }
             $department = Department::where('uuid', $department_uuid)->firstOrFail();
             
@@ -100,7 +100,7 @@ class Index extends Component
                 ->exists();
                 
             if (!$hasAccess) {
-                abort(403, 'You do not have access to this department.');
+                abort(403, __('employees.no_access_to_department'));
             }
             
             $this->company = $department->company;
@@ -112,7 +112,7 @@ class Index extends Component
             // Security check: Ensure managers can only access companies they manage
             if (auth()->user()->hasRole('manager')) {
                 if (!auth()->user()->managerCompanies->contains($this->company)) {
-                    abort(403, 'You do not have permission to access this company.');
+                    abort(403, __('employees.no_permission_access_company'));
                 }
             }
             
@@ -184,13 +184,13 @@ class Index extends Component
         
         // Validate that employee role is always included
         if (!in_array('employee', $this->selected_roles)) {
-            $this->addError('selected_roles', 'Employee role must always be included.');
+            $this->addError('selected_roles', __('employees.employee_role_must_always_be_included'));
             return;
         }
 
         // Validate maximum 2 roles (including employee)
         if (count($this->selected_roles) > 2) {
-            $this->addError('selected_roles', 'A user can have a maximum of 2 roles (including the employee role).');
+            $this->addError('selected_roles', __('employees.user_maximum_2_roles_including_employee'));
             return;
         }
 
@@ -240,7 +240,7 @@ class Index extends Component
         event(new EmployeeCreated($user, $this->password));
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee created successfully!'), 'EmployeeModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_created_successfully'), 'EmployeeModal');
     }
 
     public function update()
@@ -294,13 +294,13 @@ class Index extends Component
 
         // Validate that employee role is always included
         if (!in_array('employee', $this->selected_roles)) {
-            $this->addError('selected_roles', 'Employee role must always be included.');
+            $this->addError('selected_roles', __('employees.employee_role_must_always_be_included'));
             return;
         }
 
         // Validate maximum 2 roles (including employee)
         if (count($this->selected_roles) > 2) {
-            $this->addError('selected_roles', 'A user can have a maximum of 2 roles (including the employee role).');
+            $this->addError('selected_roles', __('employees.user_maximum_2_roles_including_employee'));
             return;
         }
 
@@ -318,7 +318,7 @@ class Index extends Component
         $this->employee->syncRoles($this->selected_roles);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully updated!'), 'EmployeeModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_updated_successfully'), 'EmployeeModal');
     }
 
     public function delete()
@@ -332,19 +332,19 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_successfully_moved_to_trash'), 'DeleteModal');
     }
 
-    public function restore($employeeId)
+    public function restore()
     {
         if (!Gate::allows('employee-delete')) {
             return abort(401);
         }
 
-        $employee = User::withTrashed()->findOrFail($employeeId);
+        $employee = User::withTrashed()->findOrFail($this->employee_id);
         $employee->restore();
 
-        $this->closeModalAndFlashMessage(__('Employee successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete($employeeId)
@@ -365,13 +365,13 @@ class Index extends Component
                            $employee->supDepartments()->count() > 0;
         
         if ($hasRelatedRecords) {
-            session()->flash('error', __('Cannot permanently delete employee. It has related records.'));
+            session()->flash('error', __('employees.cannot_permanently_delete_employee'));
             return;
         }
         
         $employee->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Employee permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -384,7 +384,7 @@ class Index extends Component
             User::whereIn('id', $this->selectedEmployees)->delete(); // Soft delete
             $this->selectedEmployees = [];
             $this->selectAll = false;
-            $this->closeModalAndFlashMessage(__('Selected employees moved to trash!'), 'BulkDeleteModal');
+            $this->closeModalAndFlashMessage(__('employees.selected_employees_moved_to_trash'), 'BulkDeleteModal');
         }
     }
 
@@ -398,7 +398,7 @@ class Index extends Component
             User::withTrashed()->whereIn('id', $this->selectedEmployees)->restore();
             $this->selectedEmployees = [];
             $this->selectAll = false;
-            $this->closeModalAndFlashMessage(__('Selected employees restored!'), 'BulkRestoreModal');
+            $this->closeModalAndFlashMessage(__('employees.selected_employees_restored'), 'BulkRestoreModal');
         }
     }
 
@@ -428,7 +428,7 @@ class Index extends Component
             
             if (!empty($employeesWithRelatedRecords)) {
                 $employeeNames = implode(', ', $employeesWithRelatedRecords);
-                session()->flash('error', __('Cannot permanently delete the following employees as they have related records: ') . $employeeNames);
+                session()->flash('error', __('employees.cannot_permanently_delete_employees') . $employeeNames);
                 return;
             }
             
@@ -440,7 +440,7 @@ class Index extends Component
             $this->selectAll = false;
         }
 
-        $this->closeModalAndFlashMessage(__('Selected employees permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_employees_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)
@@ -621,14 +621,14 @@ class Index extends Component
         };
         
         if (!in_array($this->role_name, $allowedRoles)) {
-            session()->flash('error', __('You do not have permission to assign the ') . $this->role_name . __(' role.'));
+            session()->flash('error', __('employees.no_permission_assign_roles') . $this->role_name);
             return;
         }
         
         $this->employee->assignRole($this->role_name);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Manager updated successfully!'), 'EditManagerModal');
+        $this->closeModalAndFlashMessage(__('employees.manager_updated_successfully'), 'EditManagerModal');
     }
     public function import()
     {
@@ -643,7 +643,7 @@ class Index extends Component
             __('Imported excel file for employees for company ') . $this->company->name
         );
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Employee successfully imported!'), 'importEmployeesModal');
+        $this->closeModalAndFlashMessage(__('employees.employee_imported_successfully'), 'importEmployeesModal');
     }
 
     public function export()

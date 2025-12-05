@@ -11,7 +11,7 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a href="/" wire:navigate>Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{__('dashboard.home')}}</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{__('common.audit_logs')}}</li>
                     </ol>
                 </nav>
@@ -21,7 +21,7 @@
                     </svg>
                     {{__('common.audit_logs')}}
                 </h1>
-                <p class="mt-n1 mx-2">{{__('View all activities performed within your space')}} &#x23F0; </p>
+                <p class="mt-n1 mx-2">{{__('common.view_all_activities_performed_within_your_space')}} &#x23F0; </p>
             </div>
             <div class="mb-2 mx-3">
 
@@ -41,18 +41,16 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{__('Total Audit Logs')}}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('common.total_audit_logs')}}</h2>
                                     <h3 class="mb-1">{{numberFormat(count($logs))}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{__('Total Audit Logs')}}</h2>
+                                    <h2 class="h5">{{__('common.total_audit_logs')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat(count($logs))}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Audit Log'), count($logs)) }} {{__('recorded')}}</div>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
@@ -69,18 +67,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Creation Logs'), $creation_log_count) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('common.creation_logs')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($creation_log_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Creation Logs'), $creation_log_count) }}</h2>
+                                    <h2 class="h5">{{__('common.creation_logs')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($creation_log_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Creation Logs'), $creation_log_count) }} {{__('recorded')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -97,18 +92,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Update Log'), $update_log_count) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('common.update_logs')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($update_log_count)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Update Log'), $update_log_count) }}</h2>
+                                    <h2 class="h5">{{__('common.update_logs')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($update_log_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Update Log'), $update_log_count) }} {{__('recorded')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -125,18 +117,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('Deletion Log'), $deletion_log_count) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('common.deletion_logs')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($deletion_log_count)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('Deletion Log'), $deletion_log_count) }}</h2>
+                                    <h2 class="h5">{{__('common.deletion_logs')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deletion_log_count)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('Deletion Log'), $deletion_log_count) }} {{__('recorded!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -146,6 +135,8 @@
     </div>
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAuditLogs, 'itemType' => count($selectedAuditLogs) === 1 ? __('employees.employee') : __('employees.employees')])
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     
     <!-- Individual Delete Confirmation Modal -->
     <div wire:ignore.self class="modal fade" id="DeleteAuditLogModal" tabindex="-1" role="dialog" aria-labelledby="deleteAuditLogModal" aria-hidden="true">
@@ -158,15 +149,15 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <h1 class="mb-0 h2 fw-bolder">{{__('common.are_you_sure')}}</h1>
-                            <p class="pt-2">{{__('You are about to move this audit log to trash. This action can be undone later.')}}</p>
+                            <p class="pt-2">{{__('common.you_are_about_to_move_this_audit_log_to_trash_this_action_can_be_undone_later')}}</p>
                         </div>
                         @if($audit_log)
                         <div class="alert alert-light mb-3">
-                            <strong>{{__('Audit Log Details:')}}</strong><br>
+                            <strong>{{__('common.audit_log_details')}}:</strong><br>
                             <small class="text-muted">
-                                {{__('User')}}: {{$audit_log->user}}<br>
+                                {{__('common.user')}}: {{$audit_log->user}}<br>
                                 {{__('common.action')}}: {{$audit_log->translated_action_type}}<br>
-                                {{__('Date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
+                                {{__('common.date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
                             </small>
                         </div>
                         @endif
@@ -191,16 +182,16 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
                             </svg>
                             <h1 class="mb-0 h2 fw-bolder">{{__('common.permanent_deletion')}}</h1>
-                            <p class="pt-2">{{__('You are about to permanently delete this audit log from the system.')}}</p>
+                            <p class="pt-2">{{__('common.you_are_about_to_permanently_delete_this_audit_log_from_the_system')}}</p>
                             <p class="text-danger fw-bold">{{__('common.this_action_cannot_be_undone')}}</p>
                         </div>
                         @if($audit_log)
                         <div class="alert alert-danger mb-3">
-                            <strong>{{__('Audit Log Details:')}}</strong><br>
+                            <strong>{{__('common.audit_log_details')}}:</strong><br>
                             <small>
-                                {{__('User')}}: {{$audit_log->user}}<br>
+                                {{__('common.user')}}: {{$audit_log->user}}<br>
                                 {{__('common.action')}}: {{$audit_log->translated_action_type}}<br>
-                                {{__('Date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
+                                {{__('common.date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
                             </small>
                         </div>
                         @endif
@@ -225,8 +216,8 @@
         <div class="col-md-3">
             <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="user">{{__('User')}}</option>
-                <option value="action_type">{{__('Action Type')}}</option>
+                <option value="user">{{__('common.user')}}</option>
+                <option value="action_type">{{__('common.action_type')}}</option>
                 <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
@@ -285,7 +276,7 @@
             <div class="d-flex align-items-center gap-2">
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Move Selected Audit Logs to Trash') }}"
+                    title="{{ __('common.move_selected_audit_logs_to_trash') }}"
                     data-bs-toggle="modal"
                     data-bs-target="#BulkDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,9 +299,9 @@
             <!-- Deleted Tab Bulk Actions -->
             @if(count($selectedAuditLogs) > 0)
             <div class="d-flex align-items-center gap-2">
-                <button wire:click="bulkRestore"
+                <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                    title="{{ __('Restore Selected Audit Logs') }}">
+                    title="{{ __('common.restore_selected_audit_logs') }}">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
@@ -320,7 +311,7 @@
 
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    title="{{ __('Permanently Delete Selected Audit Logs') }}"
+                    title="{{ __('common.permanently_delete_selected_audit_logs') }}"
                     data-bs-toggle="modal"
                     data-bs-target="#BulkForceDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,9 +347,9 @@
                                     wire:click="toggleSelectAll">
                             </div>
                         </th>
-                        <th class="border-bottom">{{__('Logger')}}</th>
-                        <th class="border-bottom">{{__('Task ')}}</th>
-                        <th class="border-bottom">{{__('Task Performed & Date')}}</th>
+                        <th class="border-bottom">{{__('common.logger')}}</th>
+                        <th class="border-bottom">{{__('common.task')}}</th>
+                        <th class="border-bottom">{{__('common.task_performed_and_date')}}</th>
                         <th class="border-bottom">{{__('common.action')}}</th>
                     </tr>
                 </thead>
@@ -411,13 +402,13 @@
                         </td>
                         <td>
                             @if($activeTab === 'active')
-                            <a href="#" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#DeleteAuditLogModal" class="text-danger" title="{{__('Delete')}}">
+                            <a href="#" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#DeleteAuditLogModal" class="text-danger" title="{{__('common.delete')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
                             </a>
                             @else
-                            <a href="#" wire:click="restore({{ $log->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                            <a href="#" wire:click.prevent="$set('{{ $log->id }}', {{ $log->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('common.restore')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                 </svg>

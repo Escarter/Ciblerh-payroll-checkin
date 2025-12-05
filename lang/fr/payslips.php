@@ -9,13 +9,18 @@ return [
 
     'payslips' => 'Fiches de paie',
     'payslip' => 'Fiche de paie',
+    'select_department' => 'Sélectionner un département',
     'total_payslips' => 'Total des fiches de paie',
     'payslip_process' => 'Processus de fiche de paie',
     'payslip_processes' => 'Processus de fiches de paie',
     'total_processes' => 'Total des processus',
     'payslips_management' => 'Gestion des fiches de paie',
     'send_payslips' => 'Envoyer les fiches de paie',
-    'select_company' => '--Sélectionner une entreprise--',
+    'select_payslip' => 'Sélectionner la fiche de paie',
+    'select_payslip_file' => 'Sélectionner le fichier de fiche de paie',
+    'select_payslip_file_placeholder' => 'Sélectionner le fichier de fiche de paie',
+    'start_processing' => 'Commencer le traitement',
+    'select_company' => '--Sélectionner une société--',
     'manage_payslips_processes' => 'Créer nouveau, mettre à jour et supprimer tout groupe sur la plateforme',
 
     // Payslip actions
@@ -115,4 +120,70 @@ return [
     'no_valid_email_address' => 'Aucune adresse email valide pour l\'utilisateur',
     'failed_sending_email_sms' => 'Échec d\'envoi d\'email et SMS',
     'failed_to_resent_email' => 'Échec de renvoi d\'email',
+
+    // Historique des fiches de paie employé spécifiques
+    'payslip_file_not_found' => 'Fichier de fiche de paie introuvable. Veuillez contacter votre administrateur.',
+    'unable_to_download_payslip' => 'Impossible de télécharger la fiche de paie. Veuillez contacter votre administrateur.',
+    'payslip_successfully_moved_to_trash' => 'Fiche de paie déplacée vers la corbeille avec succès!',
+    'payslip_successfully_restored' => 'Fiche de paie restaurée avec succès!',
+    'payslip_permanently_deleted' => 'Fiche de paie supprimée définitivement!',
+    'selected_payslips_moved_to_trash' => 'Fiches de paie sélectionnées déplacées vers la corbeille!',
+    'selected_payslips_restored' => 'Fiches de paie sélectionnées restaurées!',
+    'selected_payslips_permanently_deleted' => 'Fiches de paie sélectionnées supprimées définitivement!',
+    'failed_to_send_email' => 'Échec d\'envoi d\'email',
+    'failed_to_send_email_recipient_retry_scheduled' => 'Échec d\'envoi d\'email. Destinataire: :email. Nouvelle tentative automatique programmée',
+
+    // Employee payslip history UI labels
+    'for_this_employee' => 'pour cet employé',
+    'that_are_active' => 'qui sont actives!',
+    'that_are_deleted' => 'qui sont supprimées!',
+    'payslip_history_for_employee' => 'Bulletins de salaire de :name',
+    'view_all_employee_payslip_history' => 'Voir tout l\'historique des bulletins de salaire de :name',
+
+    // Status labels
+    'not_recorded' => 'Non enregistré',
+    'pending_status' => 'En attente...',
+
+    // Action titles
+    'download_payslip_title' => 'Télécharger le bulletin de salaire',
+    'resend_email_title' => 'Renvoyer l\'email',
+    'resend_sms_title' => 'Renvoyer le SMS',
+    'delete_title' => 'Supprimer',
+
+    // Additional UI labels
+    'all_payslips_processed' => 'Toutes les fiches de paie traitées',
+    'payslips_processed' => 'Fiches de paie traitées',
+    'view_all_payslips_processed' => 'Voir toutes les fiches de paie traitées',
+    'resend_all_failed_payslips' => 'Renvoyer toutes les fiches de paie échouées',
+    'are_you_sure_resend_failed_payslips' => 'Êtes-vous sûr de vouloir renvoyer toutes les fiches de paie échouées?',
+    'process_details' => 'Détails du processus',
+    'company_with_departments' => ' - avec :count départements',
+    'departments' => 'départements',
+
+    // Missing translation keys
+    'move_selected_payslip_processes_to_trash' => 'Déplacer les processus de fiches de paie sélectionnés vers la corbeille',
+    'department_deleted' => 'Département supprimé!',
+    'start_processing_payslip_to_see_the_outcome_here' => 'Commencer le traitement des fiches de paie pour voir le résultat ici',
+    'view_past_history' => 'Voir l\'historique passé',
+    'unknown_error' => 'Erreur inconnue',
+    'employees_whose_payslips_could_not_be_found_in_the_pdf_files' => 'Employés dont les fiches de paie n\'ont pas pu être trouvées dans les fichiers PDF',
+    'phone' => 'Téléphone',
+    'failure_reason' => 'Raison de l\'échec',
+    'created_at' => 'Créé le',
+    'employee_info' => 'Informations employé',
+    'timeline' => 'Chronologie',
+    'encryption_status' => 'Statut de cryptage',
+    'email_status' => 'Statut email',
+    'sms_status' => 'Statut SMS',
+    'period' => 'Période',
+    'created' => 'Créé',
+    'not_recorded' => 'Non enregistré',
+
+    // Additional missing keys
+    'category' => 'Catégorie',
+    'single' => 'Individuel',
+    'bulk' => 'En masse',
+    'permanently_delete_selected_payslips' => 'Supprimer définitivement les fiches de paie sélectionnées',
+    'restore_selected_payslips' => 'Restaurer les fiches de paie sélectionnées',
+    'move_selected_payslips_to_trash' => 'Déplacer les fiches de paie sélectionnées vers la corbeille',
 ];

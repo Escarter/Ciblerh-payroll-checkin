@@ -130,4 +130,19 @@ return [
     'cannot_create_zip_file' => 'Impossible de créer le fichier zip',
     'report_generate_for_payslips' => 'Rapport généré pour les fiches de paie',
     'please_select_specific_employee' => 'Veuillez sélectionner un employé spécifique pour le téléchargement en masse.',
+
+    // Rapport de pointages spécifique
+    'select_company' => 'Sélectionner une société',
+    'select_status' => 'Sélectionner le statut',
+    'select_period' => 'Sélectionner la période',
+
+    // Missing translation keys
+    'generate_report' => 'Générer un rapport',
+    'view_reports' => 'Voir les rapports',
+    'overtime_report' => 'Rapport d\'heures supplémentaires',
+    'checkin_report' => 'Rapport de pointage',
+    'email_status' => 'Statut email',
+    'overtimes_filename_prefix' => 'Heures-supplémentaires-',
+    'checkins_filename_prefix' => 'Pointages-',
+    'journal_d_audit' => 'Journal d\'audit',
 ];

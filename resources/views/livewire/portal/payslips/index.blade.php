@@ -1,5 +1,7 @@
 <div>
     @include('livewire.partials.delete-modal')
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedSendPayslipProcesses, 'itemType' => count($selectedSendPayslipProcesses) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedSendPayslipProcesses, 'itemType' => count($selectedSendPayslipProcesses) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     <x-alert />
@@ -38,7 +40,7 @@
                         <select wire:model.live="company_id" class="form-select @error('company_id') is-invalid @enderror" id="company">
                             <option value=''>{{__('payslips.select_company')}}</option>
                             @foreach ($companies as $company)
-                            <option value='{{$company->id}}' wire:key="company-{{ $company->id }}">{{$company->name ." - with ". count($company->departments) ." departments"}}</option>
+                            <option value='{{$company->id}}' wire:key="company-{{ $company->id }}">{{$company->name . __('payslips.company_with_departments', ['count' => count($company->departments)])}}</option>
                             @endforeach
                         </select>
                         <div>
@@ -52,7 +54,7 @@
                     <div class="form-group mb-4">
                         <label for="department">{{__('departments.department')}}</label>
                         <select wire:model.live="department_id" class="form-select @error('department_id') is-invalid @enderror" id="department">
-                            <option value=''>{{__('--Select Department--')}}</option>
+                            <option value=''>{{__('payslips.select_department')}}</option>
                             @foreach ($departments as $department)
                             <option value='{{$department->id}}' wire:key="department-{{ $department->id }}">{{$department->name ." - with ". count($department->employees) ." employees"}}</option>
                             @endforeach
@@ -64,21 +66,21 @@
                         </div>
                     </div>
                     <div class='form-group mb-4'>
-                        <label for="month">{{__('Month')}}</label>
+                        <label for="month">{{__('common.month')}}</label>
                         <select wire:model.live="month" class="form-select @error('month') is-invalid @enderror">
-                            <option value=''>{{__('--Select--')}}</option>
-                            <option value='January'>{{__('January')}}</option>
-                            <option value='February'>{{__('February')}}</option>
-                            <option value='March'>{{__('March')}}</option>
-                            <option value='April'>{{__('April')}}</option>
-                            <option value='May'>{{__('May')}}</option>
-                            <option value='June'>{{__('June')}}</option>
-                            <option value='July'>{{__('July')}}</option>
-                            <option value='August'>{{__('August')}}</option>
-                            <option value='September'>{{__('September')}}</option>
-                            <option value='October'>{{__('October')}}</option>
-                            <option value='November'>{{__('November')}}</option>
-                            <option value='December'>{{__('December')}}</option>
+                            <option value=''>{{__('common.--select_month--')}}</option>
+                            <option value='January'>{{__('common.january')}}</option>
+                            <option value='February'>{{__('common.february')}}</option>
+                            <option value='March'>{{__('common.march')}}</option>
+                            <option value='April'>{{__('common.april')}}</option>
+                            <option value='May'>{{__('common.may')}}</option>
+                            <option value='June'>{{__('common.june')}}</option>
+                            <option value='July'>{{__('common.july')}}</option>
+                            <option value='August'>{{__('common.august')}}</option>
+                            <option value='September'>{{__('common.september')}}</option>
+                            <option value='October'>{{__('common.october')}}</option>
+                            <option value='November'>{{__('common.november')}}</option>
+                            <option value='December'>{{__('common.december')}}</option>
                         </select>
                         <div>
                             @error('month')
@@ -87,7 +89,7 @@
                         </div>
                     </div>
                     <div class="form-group mb-4">
-                        <label for="payslip_file" class="form-label">{{__('Select Payslip')}}</label>
+                        <label for="payslip_file" class="form-label">{{__('payslips.select_payslip')}}</label>
 
                         <div x-data="{ uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true" x-on:livewire-upload-finish="uploading = false" x-on:livewire-upload-error="uploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress">
                             <!-- File Input -->
@@ -105,7 +107,7 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-end">
-                        <button type="submit" wire:click.prevent="send" wire:loading.attr="disabled" class="btn btn-gray-800" {{empty($payslip_file) ? "disabled" : '' }}>{{__('Start Processing')}}</button>
+                        <button type="submit" wire:click.prevent="send" wire:loading.attr="disabled" class="btn btn-gray-800" {{empty($payslip_file) ? "disabled" : '' }}>{{__('payslips.start_processing')}}</button>
                     </div>
                 </x-form-items.form>
             </div>
@@ -147,7 +149,7 @@
                         @can('payslip-delete')
                         <button type="button"
                             class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                            title="{{ __('Move Selected Payslip Processes to Trash') }}"
+                            title="{{ __('payslips.move_selected_payslip_processes_to_trash') }}"
                             data-bs-toggle="modal"
                             data-bs-target="#BulkDeleteModal">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,9 +174,9 @@
                     @if(count($selectedSendPayslipProcesses) > 0)
                     <div class="d-flex align-items-center gap-2">
                         @can('payslip-delete')
-                        <button wire:click="bulkRestore"
+                        <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                             class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                            title="{{ __('Restore Selected Payslip Processes') }}">
+                            title="{{ __('payslips.restore_selected_payslip_processes') }}">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
@@ -184,7 +186,7 @@
 
                         <button type="button"
                             class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                            title="{{ __('Permanently Delete Selected Payslip Processes') }}"
+                            title="{{ __('payslips.permanently_delete_selected_payslip_processes') }}"
                             data-bs-toggle="modal"
                             data-bs-target="#BulkForceDeleteModal">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,9 +225,9 @@
                                     </div>
                                 </th>
                                 <th class="border-bottom">{{__('departments.department')}}</th>
-                                <th class="border-bottom">{{__('Details')}}</th>
+                                <th class="border-bottom">{{__('common.details')}}</th>
                                 <th class="border-bottom">{{__('common.status')}}</th>
-                                <th class="border-bottom">{{__('Delete')}}</th>
+                                <th class="border-bottom">{{__('common.action')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -257,21 +259,21 @@
                                         </div>
                                     </a>
                                     @else
-                                    <p>{{__('Department deleted!')}}</p>
+                                    <p>{{__('payslips.department_deleted')}}</p>
                                     @endif
                                 </td>
                                 <td>
                                     <div class="d-flex flex-column">
                                         <div class="mb-1">
-                                            <span class="fw-bold text-primary">{{__('Target')}}:</span>
-                                            <span class="ms-1">{{!is_null($job->department) ? count($job->department->employees) : 0 }} {{__('Employees')}}</span>
+                                            <span class="fw-bold text-primary">{{__('payslips.target')}}:</span>
+                                            <span class="ms-1">{{!is_null($job->department) ? count($job->department->employees) : 0 }} {{__('common.employees')}}</span>
                                         </div>
                                         <div class="mb-1">
-                                            <span class="fw-bold text-primary">{{__('Period')}}:</span>
+                                            <span class="fw-bold text-primary">{{__('common.period')}}:</span>
                                             <span class="ms-1">{{$job->month}} - {{$job->year}}</span>
                                         </div>
                                         <div>
-                                            <span class="fw-bold text-primary">{{__('Date Created')}}:</span>
+                                            <span class="fw-bold text-primary">{{__('common.date_created')}}:</span>
                                             <span class="ms-1">{{$job->created_at->diffForHumans()}}</span>
                                         </div>
                                         <div>
@@ -286,7 +288,7 @@
                                     @elseif($job->status == 'failed')
                                     <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @else
-                                    <span class="badge badge-lg text-md bg-warning">{{__('Processing...')}}</span>
+                                    <span class="badge badge-lg text-md bg-warning">{{__('common.processing')}}</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -298,7 +300,7 @@
                                     </a>
                                     @else
                                     @can('payslip-delete')
-                                    <a href="#" wire:click="restore({{ $job->id }})" class="text-success me-2" title="{{__('Restore')}}">
+                                    <a href="#" wire:click.prevent="$set('job_id', {{ $job->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>
@@ -317,12 +319,12 @@
                     </table>
                 </div>
                 <div class='mb-4 text-center'>
-                    <a href="{{route('portal.payslips.history')}}" class="btn btn-secondary text-dark">{{__('View past history')}}</a>
+                    <a href="{{route('portal.payslips.history')}}" class="btn btn-secondary text-dark">{{__('payslips.view_past_history')}}</a>
                 </div>
                 @else
                 <div class='p-5 text-center '>
                     <img src="{{asset('img/empty.svg')}}" alt='' class="w-25 h-25">
-                    <p class="py-4 h5 text-muted">{{__('Start processing payslip to see the outcome here')}}</p>
+                    <p class="py-4 h5 text-muted">{{__('payslips.start_processing_payslip_to_see_the_outcome_here')}}</p>
                 </div>
                 @endif
             </div>

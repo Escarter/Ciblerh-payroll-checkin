@@ -130,4 +130,19 @@ return [
     'cannot_create_zip_file' => 'Cannot create zip file',
     'report_generate_for_payslips' => 'Report generate for payslips',
     'please_select_specific_employee' => 'Please select a specific employee for bulk download.',
+
+    // Checklog report specific
+    'select_company' => 'Select Company',
+    'select_status' => 'Select Status',
+    'select_period' => 'Select Period',
+
+    // Missing translation keys
+    'generate_report' => 'Generate Report',
+    'view_reports' => 'View Reports',
+    'overtime_report' => 'Overtime Report',
+    'checkin_report' => 'Checkin Report',
+    'email_status' => 'Email Status',
+    'overtimes_filename_prefix' => 'Overtimes-',
+    'checkins_filename_prefix' => 'Checkins-',
+    'journal_d_audit' => 'Audit Journal',
 ];

@@ -46,7 +46,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold mb-0">{{number_format($approved_advance_salary)}} {{ __(Str::plural('Advance salary', $approved_advance_salary)) }}</h5>
+                                    <h5 class="text-gray-700 fw-bold mb-0">{{number_format($approved_advance_salary)}} {{ __(Str::plural(__('employees.advance_salary'), $approved_advance_salary)) }}</h5>
                                     <div class=" text-gray-500 ">{{__('common.approved')}} &#128516;</div>
                                 </div>
                             </div>
@@ -61,7 +61,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold mb-0">{{number_format($pending_advance_salary)}} {{ __(\Str::plural('Advance salary', $pending_advance_salary))}} </h5>
+                                    <h5 class="text-gray-700 fw-bold mb-0">{{number_format($pending_advance_salary)}} {{ __(\Str::plural(__('employees.advance_salary'), $pending_advance_salary))}} </h5>
                                     <div class=" text-gray-500 ">{{__('common.pending_approval')}} &#128516;</div>
                                 </div>
                             </div>
@@ -76,7 +76,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold mb-0">{{number_format($rejected_advance_salary)}} {{ __(\Str::plural('Advance salary', $rejected_advance_salary)) }}</h5>
+                                    <h5 class="text-gray-700 fw-bold mb-0">{{number_format($rejected_advance_salary)}} {{ __(\Str::plural(__('employees.advance_salary'), $rejected_advance_salary)) }}</h5>
                                     <div class="text-gray-500 ">{{__('common.rejected')}} &#128560;</div>
                                 </div>
                             </div>
@@ -192,7 +192,7 @@
         </div>
         @else
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
-            <img src="{{asset('/img/empty.svg')}}" alt='{{__("Empty")}}' class="text-center  w-25 h-25">
+            <img src="{{asset('/img/empty.svg')}}" alt='{{__("common.nothing_here")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
                 <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
                 <p>{{__('employees.request_advance_salary_message')}}</p>

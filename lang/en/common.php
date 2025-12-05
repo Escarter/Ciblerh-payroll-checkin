@@ -11,6 +11,10 @@ return [
     'create' => 'Create',
     'new' => 'New',
     'update' => 'Update',
+    'pending' => 'Pending',
+    'total' => 'Total',
+    'recorded_by_employees' => 'Recorded by employees',
+    'processed' => 'Processed',
     'edit' => 'Edit',
     'delete' => 'Delete',
     'deleted' => 'Deleted',
@@ -109,6 +113,7 @@ return [
     // Empty states
     'nothing_here' => 'Nothing here',
     'oops_nothing_here' => 'Oops nothing here',
+    'oops_something_is_not_alright' => 'Oops something is not alright',
     'empty_set' => 'Empty set.',
     'no_record_found' => 'No Record Found..!',
     'empty_state_message' => 'Your generated reports will appear here',
@@ -135,6 +140,17 @@ return [
     'restore_selected' => 'Restore Selected',
     'move_to_trash' => 'Move to Trash',
     'delete_forever' => 'Delete Forever',
+
+    // Restore modal translations
+    'restore_item' => 'Restore Item',
+    'restore_confirmation_message' => 'Are you sure you want to restore this item? This action will make it active again.',
+    'confirm_restore' => 'Confirm Restore',
+    'bulk_restore_items' => 'Bulk Restore Items',
+    'bulk_restore_confirmation_message' => 'Are you sure you want to restore',
+    'confirm_bulk_restore' => 'Confirm Bulk Restore',
+    'restore' => 'Restore',
+    'permanently_delete' => 'Permanently Delete',
+    'from_trash' => 'from trash?',
     'bulk_reject' => 'Bulk Reject',
     'bulk_approve' => 'Bulk Approve',
 
@@ -252,6 +268,11 @@ return [
     'roles_updated_successfully' => 'Roles updated successfully!',
     'something_went_wrong' => 'Something went wrong: ',
 
+    // Additional common labels
+    'target' => 'Target',
+    'period' => 'Period',
+    'date_created' => 'Date Created',
+
     // Bulk delete modal
     'you_are_about_to_move' => 'You are about to move',
     'to_trash_this_action_can_be_undone_later' => 'to trash, this action can be undone later.',
@@ -264,4 +285,37 @@ return [
     'no_performance_data_found' => 'No performance data found for the selected period.',
     'opps_nothing_here' => 'Oops! Nothing here',
     'date_creation' => 'Date Creation',
+
+    // Audit logs specific keys
+    'view_all_activities_performed_within_your_space' => 'View all activities performed within your space',
+    'total_audit_logs' => 'Total Audit Logs',
+    'creation_logs' => 'Creation Logs',
+    'update_logs' => 'Update Logs',
+    'deletion_logs' => 'Deletion Logs',
+    'you_are_about_to_move_this_audit_log_to_trash_this_action_can_be_undone_later' => 'You are about to move this audit log to trash. This action can be undone later.',
+    'audit_log_details' => 'Audit Log Details',
+    'move_selected_audit_logs_to_trash' => 'Move Selected Audit Logs to Trash',
+    'restore_selected_audit_logs' => 'Restore Selected Audit Logs',
+    'permanently_delete_selected_audit_logs' => 'Permanently Delete Selected Audit Logs',
+    'logger' => 'Logger',
+    'task' => 'Task',
+    'task_performed_and_date' => 'Task Performed and Date',
+    'you_are_about_to_permanently_delete_this_audit_log_from_the_system' => 'You are about to permanently delete this audit log from the system.',
+
+    //Months
+    '--select_month--' => '--Select Month--',
+    'month' => 'Month',
+    'january' => 'January',
+    'february' => 'February',
+    'march' => 'March',
+    'april' => 'April',
+    'may' => 'May',
+    'june' => 'June',
+    'july' => 'July',
+    'august' => 'August',
+    'september' => 'September',
+    'october' => 'October',
+    'november' => 'November',
+    'december' => 'December',
+
 ];

@@ -21,7 +21,7 @@
                             <div class='col-md-6 col-xs-12'>
                                 <label for="department">{{__('departments.department')}}</label>
                                 <select wire:model.live="department_id" class="form-select  @error('department_id') is-invalid @enderror">
-                                    <option value="">{{__("Select department")}}</option>
+                                    <option value="">{{__('departments.select_department')}}</option>
                                     @foreach ($departments as $department)
                                     <option value="{{$department->id}}">{{$department->name}}</option>
                                     @endforeach
@@ -31,7 +31,7 @@
                         <div class='form-group mb-2'>
                             <label for="service_id">{{__('employees.service')}}</label>
                             <select wire:model.live="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
-                                <option value="">{{__("Select service")}}</option>
+                                <option value="">{{__('services.select_service')}}</option>
                                 @foreach ($services as $service)
                                 <option value="{{$service->id}}" {{$service_id === $service->id? 'selected':''}}>{{$service->name}}</option>
                                 @endforeach
@@ -111,21 +111,21 @@
                             <div class="form-check form-switch">
                                 <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_edit" @if($receive_sms_notifications) checked @endif>
                                 <label class="form-check-label" for="receive_sms_notifications_edit">
-                                    {{__('Receive SMS notifications for payslips')}}
+                                    {{__('employees.receive_sms_notifications')}}
                                 </label>
                             </div>
                             <small class="text-muted">{{__('employees.enable_sms_notifications')}}</small>
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="remaining_leave_days">{{__('Total Leave Days')}}</label>
+                                <label for="remaining_leave_days">{{__('employees.total_leave_days')}}</label>
                                 <input wire:model="remaining_leave_days" type="number" class="form-control  @error('remaining_leave_days') is-invalid @enderror" placeholder="18" name="remaining_leave_days">
                                 @error('remaining_leave_days')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="monthly_leave_allocation">{{__('Monthly Allocations')}}</label>
+                                <label for="monthly_leave_allocation">{{__('employees.monthly_allocations')}}</label>
                                 <input wire:model="monthly_leave_allocation" type="number" class="form-control  @error('monthly_leave_allocation') is-invalid @enderror" placeholder="1.5" name="monthly_leave_allocation">
                                 @error('monthly_leave_allocation')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -177,7 +177,7 @@
                                 <select wire:model="status" name="status" class="form-select  @error('status') is-invalid @enderror" required>
                                     <option value="">{{__('common.select_status')}}</option>
                                     <option value="true" @if($status===true || $status==="true" ) selected @endif>{{__('common.active')}}</option>
-                                    <option value="false" @if($status===false || $status==="false" ) selected @endif>{{__('Banned')}}</option>
+                                    <option value="false" @if($status===false || $status==="false" ) selected @endif>{{__('employees.banned')}}</option>
                                 </select>
                                 @error('status')
                                 <div class=" invalid-feedback">{{$message}}
@@ -185,7 +185,7 @@
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="contract_end">{{__('Contract End Date')}}</label>
+                                <label for="contract_end">{{__('employees.contract_end_date')}}</label>
                                 <input wire:model="contract_end" type="date" class="form-control  @error('contract_end') is-invalid @enderror" autofocus="" name="contract_end">
                                 @error('contract_end')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -193,7 +193,7 @@
                             </div>
                         </div>
                         <div class="form-group mb-3">
-                            <label for="password">{{__('Reset Employee\'s Password')}}</label>
+                            <label for="password">{{__('employees.reset_employee_password')}}</label>
                             <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password">
                             @error('password')
                             <div class="invalid-feedback">{{$message}}</div>

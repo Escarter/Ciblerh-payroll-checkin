@@ -18,6 +18,9 @@ return [
     'integration_settings' => 'Paramètres d\'intégration',
 
     // SMTP Settings
+    'smtp_provider' => 'Fournisseur SMTP',
+    'smtp' => 'SMTP',
+    'mailgun' => 'MailGun',
     'smtp_host' => 'Hôte SMTP',
     'smtp_port' => 'Port SMTP',
     'smtp_username' => 'Nom d\'utilisateur SMTP',
@@ -123,4 +126,35 @@ return [
     'setting_for_sms_required' => 'Paramètre SMS requis!',
     'test_sms_sent_successfully' => 'SMS de test envoyé avec succès!',
     'test_sms_failed' => 'Échec de l\'envoi du SMS de test!',
+
+    // Email configuration keys
+    'from_email' => 'Email expéditeur',
+    'enter_email_address' => 'Saisir l\'adresse email',
+    'enter_email_message' => 'Saisir le message email',
+    'save_mail_config' => 'Sauvegarder la configuration email',
+    'enter_email_content_english' => 'Saisir le contenu de l\'email en anglais',
+    'enter_email_content_french' => 'Saisir le contenu de l\'email en français',
+    'save_welcome_email_config' => 'Sauvegarder la configuration de l\'email de bienvenue',
+    'payslips_mail_configuration' => 'Configuration de l\'email des fiches de paie',
+
+    // Additional missing keys
+    'enter_birthday_sms_french' => 'Saisir le SMS d\'anniversaire en français',
+    'you_can_check_sms_details' => 'Vous pouvez vérifier les détails des SMS envoyés dans la section de gestion des SMS',
+    'smtp_providers_only_supported' => 'Pour l\'instant, seuls les fournisseurs SMTP sont pris en charge',
+    'login_to_provider_portal' => 'Connectez-vous au portail de votre fournisseur et créez un utilisateur SMTP',
+    'create_smtp_password' => 'Créez également un mot de passe pour l\'utilisateur donné',
+    'copy_smtp_details' => 'Copiez l\'hôte SMTP et le port fourni par votre fournisseur',
+    'configure_smtp_values' => 'Maintenant, mettez ces valeurs dans la configuration des champs et sauvegardez',
+    'use_test_form' => 'Utilisez le formulaire ci-dessous pour tester les configurations email.',
+    'enter_email_subject_english' => 'Saisir le sujet de l\'email en anglais',
+    'enter_email_subject_french' => 'Saisir le sujet de l\'email en français',
+    'do_not_remove_email_placeholders' => 'Ne pas supprimer ou modifier les valeurs de',
+    'email_placeholder_note' => 'car ceci est utilisé comme espaces réservés',
+    'welcome_email_configuration' => 'Configuration de l\'email de bienvenue',
+    'enter_welcome_email_subject_english' => 'Saisir le sujet de l\'email de bienvenue en anglais',
+    'enter_welcome_email_content_english' => 'Saisir le contenu de l\'email de bienvenue en anglais',
+    'enter_welcome_email_subject_french' => 'Saisir le sujet de l\'email de bienvenue en français',
+    'enter_welcome_email_content_french' => 'Saisir le contenu de l\'email de bienvenue en français',
+    'do_not_remove_welcome_placeholders' => 'Ne pas supprimer ou modifier les valeurs de',
+    'welcome_placeholders_note' => 'car ceux-ci sont utilisés comme espaces réservés',
 ];

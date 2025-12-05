@@ -45,10 +45,7 @@
                                 <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{__('reports.active_reports')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{$stats['pending'] + $stats['processing']}}</h3>
-                                </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{$stats['pending']}} {{__('common.pending')}}, {{$stats['processing']}} {{__('download_jobs.processing')}}</div>
-                                </div>
+                                </a> 
                             </div>
                         </div>
                     </div>
@@ -74,9 +71,7 @@
                                     <h2 class="h5">{{__('download_jobs.completed')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{$stats['completed']}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{round(($stats['completed'] / max($stats['total'], 1)) * 100, 1)}}% {{__('download_jobs.success_rate')}}</div>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -102,9 +97,7 @@
                                     <h2 class="h5">{{__('common.failed')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{$stats['failed']}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{round(($stats['failed'] / max($stats['total'], 1)) * 100, 1)}}% {{__('download_jobs.failure_rate')}}</div>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -130,9 +123,7 @@
                                     <h2 class="h5">{{__('download_jobs.total_reports')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{$stats['total']}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{__('download_jobs.all_time')}}</div>
-                                </div>
+
                             </div>
                         </div>
                     </div>

@@ -1,22 +1,22 @@
 <div>
     <x-alert />
     @if (session()->has('message'))
-        <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
-            {{ session('message') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+    <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+        {{ session('message') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
     @endif
-<script>
-    window.addEventListener('close-assign-manager-modal', function () {
-        var modal = document.getElementById('AssignManagerModal');
-        if (modal) {
-            var bsModal = bootstrap.Modal.getInstance(modal);
-            if (bsModal) {
-                bsModal.hide();
+    <script>
+        window.addEventListener('close-assign-manager-modal', function() {
+            var modal = document.getElementById('AssignManagerModal');
+            if (modal) {
+                var bsModal = bootstrap.Modal.getInstance(modal);
+                if (bsModal) {
+                    bsModal.hide();
+                }
             }
-        }
-    });
-</script>
+        });
+    </script>
     @include('livewire.portal.companies.company-form')
     @include('livewire.portal.companies.import-companies')
     @livewire('portal.companies.assign-manager')
@@ -24,6 +24,8 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedCompanies, 'itemType' => count($selectedCompanies) === 1 ? __('companies.company') : __('companies.companies')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedCompanies, 'itemType' => count($selectedCompanies) === 1 ? __('companies.company') : __('companies.companies')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedCompanies, 'itemType' => __('companies.company')])
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     <div class='pb-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap mb-0 align-items-center">
             <div class="mb-lg-0">
@@ -89,7 +91,7 @@
                 @endcan
             </div>
         </div>
-      
+
     </div>
 
     <div class='mb-3 mt-0'>
@@ -114,10 +116,8 @@
                                     <h2 class="h5">{{__('companies.total_companies')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($companies_count ?? 0)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('companies.company'), $companies_count ?? 0) }} {{__('companies.in_the_system')}}</div>
-                                </div>
-                </div>
+
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -130,21 +130,18 @@
                                 <div class="icon-shape icon-shape-success rounded me-2 me-sm-0">
                                     <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-                        </svg>
+                                    </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                        <h2 class="fw-extrabold h5">{{ __(\Str::plural('companies.company', $active_companies ?? 0)) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.active') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_companies ?? 0)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural('companies.company', $active_companies ?? 0)) }}</h2>
+                                    <h2 class="h5">{{ __('common.active') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_companies ?? 0)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('companies.company'), $active_companies ?? 0) }} {{__('companies.that_are_active')}}</div>
-                    </div>
                             </div>
                         </div>
                     </div>
@@ -158,23 +155,21 @@
                                 <div class="icon-shape icon-shape-danger rounded me-2 me-sm-0">
                                     <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
+                                    </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ __(\Str::plural('companies.company', $deleted_companies ?? 0)) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{__('common.inactive')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($deleted_companies ?? 0)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ __(\Str::plural('companies.company', $deleted_companies ?? 0)) }}</h2>
+                                    <h2 class="h5">{{ __('common.inactive') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_companies ?? 0)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('companies.company'), $deleted_companies ?? 0) }} {{__('companies.that_are_deleted')}}</div>
-                                </div>
-                    </div>
-                    </div>
+
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -249,21 +244,21 @@
             @if(count($companies) > 0)
             <div class="d-flex align-items-center gap-2">
                 <!-- Select All Toggle -->
-                <button wire:click="toggleSelectAll" 
-                        class="btn btn-sm {{ $selectAll ? 'btn-primary' : 'btn-outline-primary' }} d-flex align-items-center">
+                <button wire:click="toggleSelectAll"
+                    class="btn btn-sm {{ $selectAll ? 'btn-primary' : 'btn-outline-primary' }} d-flex align-items-center">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     {{ $selectAll ? __('companies.deselect_all') : __('companies.select_all') }}
                 </button>
-                
+
                 @if(count($selectedCompanies) > 0)
 
                 @if($activeTab === 'active')
                 @can('company-delete')
                 <button type="button"
                     class="btn btn-sm btn-danger d-flex align-items-center"
-                    data-bs-toggle="modal" 
+                    data-bs-toggle="modal"
                     data-bs-target="#BulkDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -274,7 +269,7 @@
                 @endcan
                 @else
                 @can('company-delete')
-                <button wire:click="bulkRestore"
+                <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('companies.restore_selected_companies') }}">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -287,7 +282,7 @@
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
                     title="{{ __('companies.permanently_delete_selected_companies') }}"
-                    data-bs-toggle="modal" 
+                    data-bs-toggle="modal"
                     data-bs-target="#BulkForceDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -314,12 +309,12 @@
     <div class='row row-cols-1 @if(count($companies) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>
         @forelse ($companies as $company)
         <div class='col-md-6 col-xl-4'>
-            <div class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($company->id, $selectedCompanies) ? 'border-primary border-3' : 'border-0' }}" 
-                 draggable="false" 
-                 wire:click="toggleCompanySelection({{ $company->id }})"
-                 style="cursor: pointer; transition: all 0.3s ease; min-height: 400px; border-radius: 12px;"
-                 onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
-                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
+            <div class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($company->id, $selectedCompanies) ? 'border-primary border-3' : 'border-0' }}"
+                draggable="false"
+                wire:click="toggleCompanySelection({{ $company->id }})"
+                style="cursor: pointer; transition: all 0.3s ease; min-height: 400px; border-radius: 12px;"
+                onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
                 <!-- Selection indicator -->
                 @if(in_array($company->id, $selectedCompanies))
                 <div class="position-absolute top-0 end-0 p-2">
@@ -330,7 +325,7 @@
                     </div>
                 </div>
                 @endif
-                
+
                 <div class="card-header border-0 p-0 mb-3 d-flex justify-content-start align-items-start">
                     <div class="d-flex justify-content-start align-items-start w-100">
                         <div class="avatar avatar-lg d-flex align-items-center justify-content-center fw-bold fs-5 rounded-3 bg-primary me-3 shadow-sm">
@@ -365,7 +360,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card-body p-0">
                     <div class="mb-4">
                         <div class="row g-2">
@@ -395,7 +390,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     @if($company->managers->count() > 0)
                     <div class="mb-4">
                         <div class="d-flex align-items-center mb-2">
@@ -406,23 +401,23 @@
                         </div>
                         <div class="d-flex flex-wrap gap-2">
                             @foreach($company->managers->take(3) as $manager)
-                                <div class="d-flex align-items-center bg-light rounded-pill px-2 py-1">
-                                    <div class="avatar rounded-circle d-flex align-items-center justify-content-center fw-bold bg-primary me-2" style="width: 24px; height: 24px;">
-                                        <span class="text-white" style="font-size: 10px;">{{initials($manager->first_name . ' ' . $manager->last_name)}}</span>
-                                    </div>
-                                    <span class="small text-gray-700 fw-medium">{{ $manager->first_name }}</span>
+                            <div class="d-flex align-items-center bg-light rounded-pill px-2 py-1">
+                                <div class="avatar rounded-circle d-flex align-items-center justify-content-center fw-bold bg-primary me-2" style="width: 24px; height: 24px;">
+                                    <span class="text-white" style="font-size: 10px;">{{initials($manager->first_name . ' ' . $manager->last_name)}}</span>
                                 </div>
+                                <span class="small text-gray-700 fw-medium">{{ $manager->first_name }}</span>
+                            </div>
                             @endforeach
                             @if($company->managers->count() > 3)
-                                <div class="d-flex align-items-center bg-light rounded-pill px-2 py-1">
-                                    <span class="small text-gray-500">+{{$company->managers->count() - 3}} more</span>
-                                </div>
+                            <div class="d-flex align-items-center bg-light rounded-pill px-2 py-1">
+                                <span class="small text-gray-500">+{{$company->managers->count() - 3}} more</span>
+                            </div>
                             @endif
                         </div>
                     </div>
                     @endif
                 </div>
-                
+
                 <div class='d-flex align-items-center justify-content-between pt-3 border-top'>
                     <div class="d-flex align-items-center gap-2">
                         <a href="{{route('portal.departments.index',['company_uuid'=>$company->uuid])}}" wire:navigate class="btn btn-sm btn-outline-primary d-flex align-items-center" title="{{__('companies.view_departments')}}" onclick="event.stopPropagation();">
@@ -456,7 +451,7 @@
                         @endcan
                         @else
                         @can('company-delete')
-                        <a href="#" wire:click="restore({{$company->id}})" title="{{__('companies.restore_company')}}" onclick="event.stopPropagation();">
+                        <a href="#" wire:click.prevent="$set('company_id', {{$company->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('companies.restore_company')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>

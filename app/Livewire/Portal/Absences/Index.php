@@ -107,7 +107,7 @@ class Index extends Component
             'approval_reason' => $this->approval_reason,
         ]);
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Absences successfully updated!'), 'EditBulkAbsenceModal');
+        $this->closeModalAndFlashMessage(__('absences.absences_successfully_updated'), 'EditBulkAbsenceModal');
     }
 
     public function update()
@@ -123,7 +123,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Absence successfully updated!'), 'EditAbsenceModal');
+        $this->closeModalAndFlashMessage(__('absences.absence_successfully_updated'), 'EditAbsenceModal');
     }
     public function delete()
     {
@@ -136,7 +136,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Absence successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('absences.absence_successfully_moved_to_trash'), 'DeleteModal');
     }
 
     public function restore($absenceId)
@@ -148,7 +148,7 @@ class Index extends Component
         $absence = Absence::withTrashed()->findOrFail($absenceId);
         $absence->restore();
 
-        $this->closeModalAndFlashMessage(__('Absence successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('absences.absence_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete($absenceId)
@@ -160,7 +160,7 @@ class Index extends Component
         $absence = Absence::withTrashed()->findOrFail($absenceId);
         $absence->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Absence permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('absences.absence_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -181,7 +181,7 @@ class Index extends Component
             $this->selectedAbsencesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected absence records moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('absences.selected_absence_records_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -195,7 +195,7 @@ class Index extends Component
             $this->selectedAbsencesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected absence records restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('absences.selected_absence_records_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -209,7 +209,7 @@ class Index extends Component
             $this->selectedAbsencesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected absence records permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('absences.selected_absence_records_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)

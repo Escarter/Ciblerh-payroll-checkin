@@ -94,7 +94,7 @@
             <div class="col-md-3 mb-2">
                 <label for="orderBy">{{__('common.order_by')}}: </label>
                 <select wire:model="orderBy" id="orderBy" class="form-select">
-                    <option value="absence_date">{{__('Date')}}</option>
+                    <option value="absence_date">{{__('common.date')}}</option>
                     <option value="absence_reason">{{__('common.reason')}}</option>
                     <option value="approval_status">{{__('common.approval_status')}}</option>
                     <option value="created_at">{{__('common.created_date')}}</option>

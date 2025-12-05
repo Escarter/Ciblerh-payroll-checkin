@@ -14,6 +14,7 @@ class All extends Component
     use WithDataTable;
 
    public ?SendPayslipProcess $send_payslip_process;
+   public ?int $job_id = null;
 
    // Soft delete properties
    public $activeTab = 'active';
@@ -30,7 +31,7 @@ class All extends Component
         
         // Check if the file exists
         if (!Storage::disk('modified')->exists($payslip->file)) {
-            session()->flash('error', __('Payslip file not found. Please contact your administrator.'));
+            session()->flash('error', __('payslips.payslip_file_not_found'));
             return;
         }
         
@@ -41,7 +42,7 @@ class All extends Component
                 ['Content-Type'=> 'application/pdf']
             );
         } catch (\Exception $e) {
-            session()->flash('error', __('Unable to download payslip. Please contact your administrator.'));
+            session()->flash('error', __('payslips.unable_to_download_payslip'));
         }
     }
 
@@ -68,13 +69,13 @@ class All extends Component
         $this->closeModalAndFlashMessage(__('Payslip Process successfully moved to trash!'), 'DeleteModal');
     }
 
-    public function restore($jobId)
+    public function restore()
     {
         if (!Gate::allows('payslip-delete')) {
             return abort(401);
         }
 
-        $job = SendPayslipProcess::withTrashed()->findOrFail($jobId);
+        $job = SendPayslipProcess::withTrashed()->findOrFail($this->job_id);
         $job->restore();
 
         $this->closeModalAndFlashMessage(__('Payslip Process successfully restored!'), 'RestoreModal');

@@ -22,6 +22,7 @@ class Index extends Component
     //
     public ?Department $department;
     public ?Service $service = null;
+    public ?int $service_id = null;
     public ?int $department_id = null;
     public ?string $name = null;
     public ?bool $is_active = null;
@@ -75,7 +76,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Service created successfully!'), 'ServiceModal');
+        $this->closeModalAndFlashMessage(__('services.service_created_successfully'), 'ServiceModal');
     }
 
     public function update()
@@ -91,7 +92,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Service successfully updated!'), 'ServiceModal');
+        $this->closeModalAndFlashMessage(__('services.service_updated_successfully'), 'ServiceModal');
     }
 
     public function delete()
@@ -105,19 +106,19 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Service successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('services.service_successfully_moved_to_trash'), 'DeleteModal');
     }
 
-    public function restore($serviceId)
+    public function restore()
     {
         if (!Gate::allows('service-delete')) {
             return abort(401);
         }
 
-        $service = Service::withTrashed()->findOrFail($serviceId);
+        $service = Service::withTrashed()->findOrFail($this->service_id);
         $service->restore();
 
-        $this->closeModalAndFlashMessage(__('Service successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('services.service_successfully_restored'), 'RestoreModal');
     }
 
     public function forceDelete($serviceId)
@@ -130,13 +131,13 @@ class Index extends Component
         
         // Check if service has related tickings
         if ($service->tickings()->count() > 0) {
-            session()->flash('error', __('Cannot permanently delete service. It has related tickings records.'));
+            session()->flash('error', __('services.cannot_permanently_delete_service'));
             return;
         }
         
         $service->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Service permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('services.service_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -150,7 +151,7 @@ class Index extends Component
             $this->selectedServices = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected services moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('services.selected_services_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -164,7 +165,7 @@ class Index extends Component
             $this->selectedServices = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected services restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('services.selected_services_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -185,7 +186,7 @@ class Index extends Component
             
             if (!empty($servicesWithTickings)) {
                 $serviceNames = implode(', ', $servicesWithTickings);
-                session()->flash('error', __('Cannot permanently delete the following services as they have related tickings records: ') . $serviceNames);
+                session()->flash('error', __('services.cannot_permanently_delete_services') . $serviceNames);
                 return;
             }
             
@@ -193,7 +194,7 @@ class Index extends Component
             $this->selectedServices = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected services permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('services.selected_services_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)
@@ -249,10 +250,10 @@ class Index extends Component
             auth()->user(),
             'service_imported',
             'web',
-            __('Imported excel file for services for department '). $this->department->name
+            __('services.imported_excel_file_for_services') . $this->department->name
         );
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Services successfully imported!'), 'importServicesModal');
+        $this->closeModalAndFlashMessage(__('services.services_successfully_imported'), 'importServicesModal');
     }
 
     public function export()
@@ -261,7 +262,7 @@ class Index extends Component
             auth()->user(),
             'service_exported',
             'web',
-            __('Exported excel file for services for department ') . $this->department->name
+            __('services.exported_excel_file_for_services') . $this->department->name
         );
         return (new ServiceExport($this->department, $this->query))->download(ucfirst($this->department->name) . '-Services-' . Str::random(5) . '.xlsx');
     }

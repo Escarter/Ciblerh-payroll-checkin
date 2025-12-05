@@ -152,13 +152,13 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('companies.company_deleted_successfully'), 'DeleteModal');
     }
 
-    public function restore($companyId)
+    public function restore()
     {
         if (!Gate::allows('company-delete')) {
             return abort(401);
         }
 
-        $company = Company::withTrashed()->findOrFail($companyId);
+        $company = Company::withTrashed()->findOrFail($this->company_id);
         $company->restore();
 
         $this->closeModalAndFlashMessage(__('companies.company_restored_successfully'), 'RestoreModal');

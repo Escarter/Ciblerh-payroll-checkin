@@ -29,7 +29,7 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="reason">{{__('Checkin Comment')}}</label>
+                            <label for="reason">{{__('common.reason')}}</label>
                             <textarea wire:model="reason" name="reason" class="form-control  @error('reason') is-invalid @enderror" id='' cols='3' rows='3'></textarea>
                             @error('reason')
                             <div class="invalid-feedback">{{$message}}</div>

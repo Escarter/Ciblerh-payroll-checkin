@@ -6,6 +6,8 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('services.service') : __('services.services')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('services.service') : __('services.services')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => __('services.service')])
+    @include('livewire.partials.restore-modal')
+    @include('livewire.partials.bulk-restore-modal')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
             <div class="mb-lg-0">
@@ -93,9 +95,6 @@
                                     <h2 class="h5">{{__('services.total_services')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($services_count)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ __(\Str::plural(__('services.service'), $services_count)) }} {{__('services.in_for_this_department')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -112,18 +111,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural('Services', $active_services) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.active')}}</h2>
                                     <h3 class="mb-1">{{numberFormat($active_services)}}</h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural('Services', $active_services) }}</h2>
+                                    <h2 class="h5">{{ __('common.active')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($active_services)}}</h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.service'), $active_services) }} {{__('active')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -140,18 +136,15 @@
                                     </svg>
                                 </div>
                                 <div class="d-sm-none">
-                                    <h2 class="fw-extrabold h5">{{ \Str::plural(__('employees.service'), $inactive_services) }}</h2>
+                                    <h2 class="fw-extrabold h5">{{ __('common.inactive') }}</h2>
                                     <h3 class="mb-1">{{numberFormat($inactive_services)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
-                                    <h2 class="h5">{{ \Str::plural(__('employees.service'), $inactive_services) }}</h2>
+                                    <h2 class="h5">{{ __('common.inactive') }}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($inactive_services)}} </h3>
                                 </a>
-                                <div class="small d-flex mt-1">
-                                    <div>{{ \Str::plural(__('employees.service'), $inactive_services) }} {{__('inactive!')}}</div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -227,7 +220,7 @@
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                {{ $selectAll ? __('Deselect All') : __('Select All') }}
+                {{ $selectAll ? __('departments.deselect_all') : __('departments.select_all') }}
             </button>
             @endif
 
@@ -248,9 +241,9 @@
             @endcan
             @else
             @can('service-delete')
-            <button wire:click="bulkRestore"
+            <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                 class="btn btn-sm btn-outline-success d-flex align-items-center"
-                title="{{ __('Restore Selected Services') }}">
+                title="{{ __('services.restore_selected_services') }}">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -260,7 +253,7 @@
 
             <button type="button"
                 class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                title="{{ __('Permanently Delete Selected Services') }}"
+                title="{{ __('services.permanently_delete_selected_services') }}"
                 data-bs-toggle="modal" 
                 data-bs-target="#BulkForceDeleteModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,7 +306,7 @@
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <h5 class="fw-bold text-gray-800 mb-0">{{ucwords($service->name)}}</h5>
                                 <span class="badge {{$service->is_active ? 'bg-success' : 'bg-danger'}} px-2 py-1 rounded-pill small">
-                                    {{$service->is_active ? __('common.active') : __('Inactive')}}
+                                    {{$service->is_active ? __('common.active') : __('services.inactive')}}
                                 </span>
                             </div>
                             @if(!empty($service->department))
@@ -342,7 +335,7 @@
                             <div class="col-6">
                                 <div class="text-center p-2 bg-light rounded-3">
                                     <div class="fw-bold fs-5 text-primary">{{$service->id}}</div>
-                                    <div class="small text-gray-600">{{__('ID')}}</div>
+                                    <div class="small text-gray-600">{{__('services.id')}}</div>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -359,7 +352,7 @@
                     <div class="d-flex align-items-center gap-2">
                         @if($activeTab === 'active')
                         @can('service-update')
-                        <a href="#" wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#ServiceModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Service')}}">
+                        <a href="#" wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#ServiceModal" draggable="false" onclick="event.stopPropagation();" title="{{__('services.edit_service')}}">
                             <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
@@ -374,12 +367,12 @@
                         @endcan
                         @else
                         @can('service-delete')
-                        <a href="#" wire:click="restore({{$service->id}})" title="{{__('Restore Service')}}" onclick="event.stopPropagation();">
+                        <a href="#" wire:click.prevent="$set('service_id', {{$service->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('services.restore_service')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                         </a>
-                        <a href="#" wire:click.prevent="$set('selectedServices', [{{$service->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Permanently Delete')}}">
+                        <a href="#" wire:click.prevent="$set('selectedServices', [{{$service->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('services.permanently_delete')}}">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -398,10 +391,10 @@
                     <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
                 </div>
                 @can('service-create')
-                <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#ServiceModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
+                <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#ServiceModal" class="btn btn-sm btn-primary py-2 mt-1 d-inline-flex align-items-center ">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('Add Service ')}}
+                        </svg> {{__('services.add_service')}}
                 </a>
                 @endcan
             </div>

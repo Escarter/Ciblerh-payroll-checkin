@@ -4,8 +4,8 @@
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
-                        <h1 class="mb-0 h4">{{__('Create LeaveType')}}</h1>
-                        <p>{{__('Create a new LeaveType to manage')}} &#128522;</p>
+                        <h1 class="mb-0 h4">{{__('leaves.create_leave_type')}}</h1>
+                        <p>{{__('leaves.create_new_leave_type_to_manage')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="store">
                         <div class='row form-group mb-2'>
@@ -17,7 +17,7 @@
                                 @enderror
                             </div>
                             <div class="col">
-                                <label for="default_number_of_days">{{__('default_number_of_days')}}</label>
+                                <label for="default_number_of_days">{{__('leaves.default_number_of_days')}}</label>
                                 <input wire:model="default_number_of_days" type="text" class="form-control  @error('default_number_of_days') is-invalid @enderror" required="" name="default_number_of_days">
                                 @error('default_number_of_days')
                                 <div class="invalid-feedback">{{$message}}</div>

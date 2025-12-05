@@ -26,14 +26,14 @@
                         </div>
                         <div class="form-group row mb-4">
                             <div class='col-md-6'>
-                                <label for="start_date">{{__('Start date')}}</label>
+                                <label for="start_date">{{__('employees.start_date')}}</label>
                                 <input wire:model="start_date" type="date" class="form-control  @error('start_date') is-invalid @enderror" required="" name="start_date">
                                 @error('start_date')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6'>
-                                <label for="end_date">{{__('End date')}}</label>
+                                <label for="end_date">{{__('employees.end_date')}}</label>
                                 <input wire:model="end_date" type="date" class="form-control  @error('end_date') is-invalid @enderror" required="" name="end_date">
                                 @error('end_date')
                                 <div class="invalid-feedback">{{$message}}</div>

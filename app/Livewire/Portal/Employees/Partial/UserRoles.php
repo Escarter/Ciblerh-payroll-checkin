@@ -72,13 +72,14 @@ class UserRoles extends Component
 
         // Validate maximum 2 roles
         if (count($this->selectedRoles) > 2) {
-            $this->addError('selectedRoles', __('employees.maximum_2_roles_allowed'));
+            $this->addError('selectedRoles', __('employees.user_maximum_2_roles_including_employee'));
             return;
         }
 
         // Ensure employee role is always included
         if (!in_array('employee', $this->selectedRoles)) {
-            $this->selectedRoles[] = 'employee';
+            $this->addError('selectedRoles', __('employees.employee_role_must_always_be_included'));
+            return;
         }
 
         // Sync roles (this will remove old roles and assign new ones)
