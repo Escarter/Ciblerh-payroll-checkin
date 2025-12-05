@@ -18,7 +18,7 @@
                     @hasanyrole('manager|admin')
                     <div class="col">
                         <label for="company">{{__('employees.company')}}: </label>
-                        <select wire:model.live="selectedCompanyId" class="form-select">
+                        <select wire:model.live="selectedCompanyId" id="selectedCompanyId" class="form-select">
                             <option value="all" selected>{{__('companies.all_companies')}}</option>
                             @foreach ($companies as $company)
                             <option value="{{$company->id}}">{{$company->name}}</option>
@@ -28,7 +28,7 @@
                     @endhasanyrole
                     <div class="col">
                         <label for="selectedDepartmentId">{{__('employees.department')}}: </label>
-                        <select wire:model.live="selectedDepartmentId" class="form-select">
+                        <select wire:model.live="selectedDepartmentId" id="selectedDepartmentId" class="form-select">
                             <option value="all" selected>{{__('dashboard.all_departments')}}</option>
                             @foreach ($departments as $department)
                             <option value="{{$department->id}}">{{$department->name}}</option>
@@ -37,7 +37,7 @@
                     </div>
                     <div class="col">
                         <label for="period">{{__('dashboard.period')}}: </label>
-                        <select wire:model.live="period" class="form-select  @error('period') is-invalid @enderror">
+                        <select wire:model.live="period" id="period" class="form-select  @error('period') is-invalid @enderror">
                             <option value="all_time" selected>{{__('dashboard.all_time')}}</option>
                             <option value="last_15_days">{{__('dashboard.last_15_days')}}</option>
                             <option value="last_month">{{__('dashboard.last_month')}}</option>

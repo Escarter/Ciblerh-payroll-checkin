@@ -24,7 +24,7 @@
                         </div>
                         <div class='form-group mb-4'>
                             <label for="approval_status">{{__('employees.approval_status')}}</label>
-                            <select wire:model="approval_status" name="approval_status" class="form-select  @error('approval_status') is-invalid @enderror" required="">
+                            <select wire:model="approval_status" id="approval_status" name="approval_status" class="form-select  @error('approval_status') is-invalid @enderror" required="">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.approve')}}</option>
                                 <option value="2">{{__('common.reject')}}</option>
@@ -35,14 +35,14 @@
                         </div>
                         <div class="form-group mb-4">
                             <label for="approval_reason">{{__('common.approval_rejection_reason')}}</label>
-                            <textarea wire:model="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" id='' cols='2' rows="2"></textarea>
+                            <textarea wire:model="approval_reason" id="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='2' rows="2"></textarea>
                             @error('approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
-                            <button type="submit" wire:click.prevent="update" class="btn btn-secondary " wire:loading.attr="disabled">{{__('common.confirm')}}</button>
+                            <button type="submit" id="absence-confirm-btn" wire:click.prevent="update" class="btn btn-secondary " wire:loading.attr="disabled">{{__('common.confirm')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

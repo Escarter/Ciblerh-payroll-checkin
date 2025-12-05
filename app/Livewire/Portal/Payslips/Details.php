@@ -171,28 +171,30 @@ class Details extends Component
         }
     }
 
-    public function restore()
+    public function restore($payslip_id = null)
     {
         if (!Gate::allows('payslip-delete')) {
             return abort(401);
         }
 
-        $payslip = Payslip::withTrashed()->findOrFail($this->payslip_id);
+        $payslip_id = $payslip_id ?? $this->payslip_id;
+        $payslip = Payslip::withTrashed()->findOrFail($payslip_id);
         $payslip->restore();
 
         $this->closeModalAndFlashMessage(__('payslips.payslip_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete()
+    public function forceDelete($payslip_id = null)
     {
         if (!Gate::allows('payslip-delete')) {
             return abort(401);
         }
 
-        if (!empty($this->payslip)) {
-            $this->payslip->forceDelete();
-            $this->closeModalAndFlashMessage(__('payslips.payslip_permanently_deleted'), 'ForceDeleteModal');
-        }
+        $payslip_id = $payslip_id ?? $this->payslip_id;
+        $payslip = Payslip::withTrashed()->findOrFail($payslip_id);
+        $payslip->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('payslips.payslip_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()

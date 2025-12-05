@@ -53,7 +53,7 @@ test('user can view absence details', function () {
         ]);
         
         $browser->visit('/portal/absences')
-            ->click("button[wire\\:click='initData({$absence->id})']")
+            ->click("#edit-absence-{$absence->id}")
             ->pause(500)
             ->assertSee($employee->name);
     });
@@ -73,13 +73,13 @@ test('user can approve absence', function () {
         ]);
         
         $browser->visit('/portal/absences')
-            ->click("button[wire\\:click='initData({$absence->id})']")
+            ->click("#edit-absence-{$absence->id}")
             ->pause(500)
             ->select('#approval_status', '1')
             ->type('#approval_reason', 'Approved')
-            ->click('button:contains("Update")')
+            ->click('#absence-confirm-btn')
             ->pause(1000)
-            ->assertSee('updated');
+            ->assertSee('Absence successfully updated');
     });
 });
 
@@ -97,13 +97,13 @@ test('user can reject absence', function () {
         ]);
         
         $browser->visit('/portal/absences')
-            ->click("button[wire\\:click='initData({$absence->id})']")
+            ->click("#edit-absence-{$absence->id}")
             ->pause(500)
             ->select('#approval_status', '2')
             ->type('#approval_reason', 'Rejected')
-            ->click('button:contains("Update")')
+            ->click('#absence-confirm-btn')
             ->pause(1000)
-            ->assertSee('updated');
+            ->assertSee('Absence successfully updated');
     });
 });
 
@@ -124,10 +124,12 @@ test('user can bulk approve absences', function () {
             ->check("input[type='checkbox'][value='{$absences[0]->id}']")
             ->check("input[type='checkbox'][value='{$absences[1]->id}']")
             ->pause(500)
-            ->select('#bulk_approval_status', '1')
-            ->click('button:contains("Bulk Approve")')
+            ->click('#bulk-approve-absences-btn')
+            ->pause(500)
+            ->type('#bulk_approval_reason', 'Bulk approved for testing')
+            ->click('#bulk-absence-confirm-btn')
             ->pause(1000)
-            ->assertSee('approved');
+            ->assertSee('Absences successfully updated');
     });
 });
 
@@ -144,16 +146,14 @@ test('user can delete an absence', function () {
         ]);
         
         $browser->visit('/portal/absences')
-            ->click("button[wire\\:click='initData({$absence->id})']")
-            ->pause(500)
-            ->click('button:contains("Delete")')
+            ->click("#delete-absence-{$absence->id}")
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('Confirm');
             })
             ->pause(1000)
-            ->assertSee('moved to trash');
+            ->assertSee('Absence successfully moved to trash');
     });
 });
 
@@ -171,7 +171,7 @@ test('user can switch between active and deleted tabs', function () {
         $absence->delete();
         
         $browser->visit('/portal/absences')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-absences-tab')
             ->pause(500)
             ->assertSee('Deleted');
     });
@@ -191,16 +191,17 @@ test('user can restore a deleted absence', function () {
         $absence->delete();
         
         $browser->visit('/portal/absences')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-absences-tab')
             ->pause(500)
-            ->click("button[wire\\:click='restore({$absence->id})']")
+            ->click("#restore-absence-{$absence->id}")
             ->pause(500)
-            ->waitFor('#RestoreModal', 5)
+            ->waitFor('#RestoreModal', 10)
+            ->pause(1000)
             ->within('#RestoreModal', function ($modal) {
-                $modal->press('Restore');
+                $modal->press('Confirm Restore');
             })
             ->pause(1000)
-            ->assertSee('restored');
+            ->assertSee('Absence successfully restored');
     });
 });
 

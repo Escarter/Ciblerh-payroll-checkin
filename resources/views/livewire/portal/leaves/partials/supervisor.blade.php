@@ -6,7 +6,7 @@
 
     <div class="form-group mb-4">
         <label for="supervisor_approval_reason">{{$bulk_approval_status? __('common.approve') : __('common.reject')}} {{__('common.reason')}}</label>
-        <textarea wire:model="supervisor_approval_reason" name="supervisor_approval_reason" class="form-control  @error('supervisor_approval_reason') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
+        <textarea wire:model="supervisor_approval_reason" id="bulk_supervisor_approval_reason" name="supervisor_approval_reason" class="form-control  @error('supervisor_approval_reason') is-invalid @enderror" cols='3' rows="3"></textarea>
         @error('manager_approval_reason')
         <div class="invalid-feedback">{{$message}}</div>
         @enderror

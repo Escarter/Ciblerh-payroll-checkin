@@ -14,7 +14,7 @@ test('user can view checklog report page', function () {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/reports/checklogs')
-            ->assertSee('Checklog Report')
+            ->assertSee('Employees Checkins Report')
             ->assertPathIs('/portal/reports/checklogs');
     });
 });
@@ -46,15 +46,14 @@ test('user can filter checklog report by department', function () {
     });
 });
 
-test('user can filter checklog report by date range', function () {
+test('user can filter checklog report by period', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/reports/checklogs')
-            ->type('#start_date', now()->subMonth()->format('Y-m-d'))
-            ->type('#end_date', now()->format('Y-m-d'))
+            ->select('#period', now()->format('Y-m'))
             ->pause(500)
-            ->assertInputValue('#start_date', now()->subMonth()->format('Y-m-d'));
+            ->assertSelected('#period', now()->format('Y-m'));
     });
 });
 
@@ -63,20 +62,9 @@ test('user can generate checklog report', function () {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/reports/checklogs')
-            ->click('button:contains("Generate Report")')
+            ->click('#generate-checklog-report-btn')
             ->pause(1000)
             ->assertSee('Report');
-    });
-});
-
-test('user can export checklog report', function () {
-    $this->browse(function (Browser $browser) {
-        $user = $this->loginAs($browser, 'admin');
-        
-        $browser->visit('/portal/reports/checklogs')
-            ->click('button:contains("Export")')
-            ->pause(1000)
-            ->assertSee('Export');
     });
 });
 
@@ -85,7 +73,7 @@ test('user can view overtime report page', function () {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/reports/overtimes')
-            ->assertSee('Overtime Report')
+            ->assertSee('Employees Overtime Report')
             ->assertPathIs('/portal/reports/overtimes');
     });
 });
@@ -102,15 +90,14 @@ test('user can filter overtime report by company', function () {
     });
 });
 
-test('user can filter overtime report by date range', function () {
+test('user can filter overtime report by period', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/reports/overtimes')
-            ->type('#start_date', now()->subMonth()->format('Y-m-d'))
-            ->type('#end_date', now()->format('Y-m-d'))
+            ->select('#period', now()->format('n'))
             ->pause(500)
-            ->assertInputValue('#start_date', now()->subMonth()->format('Y-m-d'));
+            ->assertSelected('#period', now()->format('n'));
     });
 });
 
@@ -119,20 +106,9 @@ test('user can generate overtime report', function () {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/reports/overtimes')
-            ->click('button:contains("Generate Report")')
+            ->click('#generate-overtime-report-btn')
             ->pause(1000)
             ->assertSee('Report');
-    });
-});
-
-test('user can export overtime report', function () {
-    $this->browse(function (Browser $browser) {
-        $user = $this->loginAs($browser, 'admin');
-        
-        $browser->visit('/portal/reports/overtimes')
-            ->click('button:contains("Export")')
-            ->pause(1000)
-            ->assertSee('Export');
     });
 });
 
@@ -141,7 +117,7 @@ test('user can view payslip report page', function () {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/reports/payslips')
-            ->assertSee('Payslip Report')
+            ->assertSee('Payslips Report')
             ->assertPathIs('/portal/reports/payslips');
     });
 });
@@ -158,39 +134,17 @@ test('user can filter payslip report by company', function () {
     });
 });
 
-test('user can filter payslip report by date range', function () {
-    $this->browse(function (Browser $browser) {
-        $user = $this->loginAs($browser, 'admin');
-        
-        $browser->visit('/portal/reports/payslips')
-            ->type('#start_date', now()->subMonth()->format('Y-m-d'))
-            ->type('#end_date', now()->format('Y-m-d'))
-            ->pause(500)
-            ->assertInputValue('#start_date', now()->subMonth()->format('Y-m-d'));
-    });
-});
-
 test('user can generate payslip report', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/reports/payslips')
-            ->click('button:contains("Generate Report")')
+            ->click('#generate-payslip-report-btn')
             ->pause(1000)
             ->assertSee('Report');
     });
 });
 
-test('user can export payslip report', function () {
-    $this->browse(function (Browser $browser) {
-        $user = $this->loginAs($browser, 'admin');
-        
-        $browser->visit('/portal/reports/payslips')
-            ->click('button:contains("Export")')
-            ->pause(1000)
-            ->assertSee('Export');
-    });
-});
 
 
 

@@ -50,14 +50,14 @@ test('user can create a company', function () {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/companies')
-            ->click('button:contains("Create Company")')
+            ->click('#create-company-btn')
             ->pause(500)
             ->waitFor('#CompanyModal', 5)
             ->within('#CompanyModal', function ($modal) {
-                $modal->type('#name', 'New Company')
-                    ->type('#sector', 'Technology')
-                    ->type('#description', 'Test description')
-                    ->press('Save');
+                $modal->type('#company-name', 'New Company')
+                    ->type('#company-sector', 'Technology')
+                    ->type('#company-description', 'Test description')
+                    ->press('Create');
             })
             ->pause(1000)
             ->assertSee('New Company');
@@ -70,11 +70,11 @@ test('user can edit a company', function () {
         $company = Company::factory()->create(['name' => 'Original Name']);
         
         $browser->visit('/portal/companies')
-            ->click("button[wire\\:click='initData({$company->id})']")
+            ->click("#edit-company-{$company->id}")
             ->pause(500)
             ->waitFor('#CompanyModal', 5)
             ->within('#CompanyModal', function ($modal) {
-                $modal->type('#name', 'Updated Name')
+                $modal->type('#company-name', 'Updated Name')
                     ->press('Update');
             })
             ->pause(1000)
@@ -88,16 +88,14 @@ test('user can delete a company', function () {
         $company = Company::factory()->create();
         
         $browser->visit('/portal/companies')
-            ->click("button[wire\\:click='initData({$company->id})']")
-            ->pause(500)
-            ->click('button:contains("Delete")')
+            ->click("#delete-company-{$company->id}")
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('Confirm');
             })
             ->pause(1000)
-            ->assertSee('moved to trash');
+            ->assertSee('Company deleted successfully');
     });
 });
 
@@ -108,7 +106,7 @@ test('user can switch to deleted tab', function () {
         $company->delete();
         
         $browser->visit('/portal/companies')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-companies-tab')
             ->pause(500)
             ->assertSee('Deleted');
     });
@@ -121,13 +119,13 @@ test('user can restore a deleted company', function () {
         $company->delete();
         
         $browser->visit('/portal/companies')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-companies-tab')
             ->pause(500)
-            ->click("button[wire\\:click='restore({$company->id})']")
+            ->click("#restore-company-{$company->id}")
             ->pause(500)
             ->waitFor('#RestoreModal', 5)
             ->within('#RestoreModal', function ($modal) {
-                $modal->press('Restore');
+                $modal->press('Confirm Restore');
             })
             ->pause(1000)
             ->assertSee('restored');
@@ -140,9 +138,9 @@ test('user can select all companies', function () {
         Company::factory()->count(3)->create();
         
         $browser->visit('/portal/companies')
-            ->check('input[type="checkbox"][wire\\:model="selectAll"]')
+            ->click('#select-all-companies-btn')
             ->pause(500)
-            ->assertChecked('input[type="checkbox"][wire\\:model="selectAll"]');
+            ->assertSee('Deselect All');
     });
 });
 
@@ -152,17 +150,17 @@ test('user can bulk delete companies', function () {
         $companies = Company::factory()->count(2)->create();
         
         $browser->visit('/portal/companies')
-            ->check("input[type='checkbox'][value='{$companies[0]->id}']")
-            ->check("input[type='checkbox'][value='{$companies[1]->id}']")
+            ->click("#company-card-{$companies[0]->id}")
+            ->click("#company-card-{$companies[1]->id}")
             ->pause(500)
-            ->click('button:contains("Bulk Delete")')
+            ->click('#bulk-delete-companies-btn')
             ->pause(500)
             ->waitFor('#BulkDeleteModal', 5)
             ->within('#BulkDeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('Move to Trash');
             })
             ->pause(1000)
-            ->assertSee('moved to trash');
+            ->assertSee('Selected companies moved to trash');
     });
 });
 
@@ -194,13 +192,16 @@ test('user sees validation errors when creating company without required fields'
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/companies')
-            ->click('button:contains("Create Company")')
-            ->pause(500)
-            ->waitFor('#CompanyModal', 5)
+            ->click('#create-company-btn')
+            ->pause(2000)
+            ->waitFor('#CompanyModal', 15)
             ->within('#CompanyModal', function ($modal) {
-                $modal->press('Save');
+                $modal->clear('#company-name')
+                    ->clear('#company-code')
+                    ->clear('#company-sector')
+                    ->press('Create');
             })
-            ->pause(500)
+            ->pause(1000)
             ->assertSee('required'); // Validation error message
     });
 });

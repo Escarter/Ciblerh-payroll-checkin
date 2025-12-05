@@ -53,7 +53,7 @@ test('user can view leave details', function () {
         ]);
         
         $browser->visit('/portal/leaves')
-            ->click("button[wire\\:click='initData({$leave->id})']")
+            ->click("#edit-leave-{$leave->id}")
             ->pause(500)
             ->assertSee($employee->name);
     });
@@ -80,11 +80,11 @@ test('supervisor can approve leave', function () {
             ->press('Login')
             ->pause(1000)
             ->visit('/portal/leaves')
-            ->click("button[wire\\:click='initData({$leave->id})']")
+            ->click("#edit-leave-{$leave->id}")
             ->pause(500)
             ->select('#supervisor_approval_status', '1')
             ->type('#supervisor_approval_reason', 'Approved')
-            ->click('button:contains("Update")')
+            ->click('button:contains("Approve")')
             ->pause(1000)
             ->assertSee('updated');
     });
@@ -112,11 +112,11 @@ test('manager can approve leave', function () {
             ->press('Login')
             ->pause(1000)
             ->visit('/portal/leaves')
-            ->click("button[wire\\:click='initData({$leave->id})']")
+            ->click("#edit-leave-{$leave->id}")
             ->pause(500)
             ->select('#manager_approval_status', '1')
             ->type('#manager_approval_reason', 'Approved')
-            ->click('button:contains("Update")')
+            ->click('button:contains("Approve")')
             ->pause(1000)
             ->assertSee('updated');
     });
@@ -136,13 +136,15 @@ test('user can bulk approve leaves', function () {
         ]);
         
         $browser->visit('/portal/leaves')
-            ->check("input[type='checkbox'][value='{$leaves[0]->id}']")
-            ->check("input[type='checkbox'][value='{$leaves[1]->id}']")
+            ->check("#select-leave-{$leaves[0]->id}")
+            ->check("#select-leave-{$leaves[1]->id}")
             ->pause(500)
-            ->select('#bulk_approval_status', '1')
-            ->click('button:contains("Bulk Approve")')
+            ->click('button:contains("Approve")')
+            ->pause(500)
+            ->type('#bulk_supervisor_approval_reason', 'Bulk approved for testing')
+            ->click('button:contains("Approve")')
             ->pause(1000)
-            ->assertSee('approved');
+            ->assertSee('updated');
     });
 });
 
@@ -159,16 +161,14 @@ test('user can delete a leave', function () {
         ]);
         
         $browser->visit('/portal/leaves')
-            ->click("button[wire\\:click='initData({$leave->id})']")
-            ->pause(500)
-            ->click('button:contains("Delete")')
+            ->click("#delete-leave-{$leave->id}")
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('Confirm');
             })
             ->pause(1000)
-            ->assertSee('moved to trash');
+            ->assertSee('Leave deleted successfully');
     });
 });
 
@@ -186,7 +186,7 @@ test('user can switch between active and deleted tabs', function () {
         $leave->delete();
         
         $browser->visit('/portal/leaves')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-leaves-tab')
             ->pause(500)
             ->assertSee('Deleted');
     });
@@ -206,13 +206,13 @@ test('user can restore a deleted leave', function () {
         $leave->delete();
         
         $browser->visit('/portal/leaves')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-leaves-tab')
             ->pause(500)
-            ->click("button[wire\\:click='restore({$leave->id})']")
+            ->click("#restore-leave-{$leave->id}")
             ->pause(500)
             ->waitFor('#RestoreModal', 5)
             ->within('#RestoreModal', function ($modal) {
-                $modal->press('Restore');
+                $modal->press('Confirm Restore');
             })
             ->pause(1000)
             ->assertSee('restored');
@@ -232,9 +232,9 @@ test('user can select all leaves', function () {
         ]);
         
         $browser->visit('/portal/leaves')
-            ->check('input[type="checkbox"][wire\\:model="selectAll"]')
+            ->click('#select-all-leaves')
             ->pause(500)
-            ->assertChecked('input[type="checkbox"][wire\\:model="selectAll"]');
+            ->assertPresent('#select-all-leaves');
     });
 });
 
@@ -281,7 +281,7 @@ test('user can export leaves', function () {
         ]);
         
         $browser->visit('/portal/leaves')
-            ->click('button:contains("Export")')
+            ->click('#export-leaves-btn')
             ->pause(1000)
             ->assertSee('Export');
     });

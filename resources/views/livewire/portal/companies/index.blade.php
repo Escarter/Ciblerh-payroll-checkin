@@ -51,7 +51,7 @@
             </div>
             <div class="d-flex justify-content-between mb-2">
                 @can('company-create')
-                <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#CompanyModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
+                <a href="#" id="create-company-btn" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#CompanyModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg> {{__('common.new')}}
@@ -218,7 +218,7 @@
 
         <!-- Tab Buttons (Right) -->
         <div class="d-flex gap-2">
-            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+            <button id="active-companies-tab" class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,7 +228,7 @@
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_companies ?? 0 }}</span>
             </button>
 
-            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+            <button id="deleted-companies-tab" class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
                 wire:click="switchTab('deleted')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +244,7 @@
             @if(count($companies) > 0)
             <div class="d-flex align-items-center gap-2">
                 <!-- Select All Toggle -->
-                <button wire:click="toggleSelectAll"
+                <button id="select-all-companies-btn" wire:click="toggleSelectAll"
                     class="btn btn-sm {{ $selectAll ? 'btn-primary' : 'btn-outline-primary' }} d-flex align-items-center">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -256,7 +256,7 @@
 
                 @if($activeTab === 'active')
                 @can('company-delete')
-                <button type="button"
+                <button id="bulk-delete-companies-btn" type="button"
                     class="btn btn-sm btn-danger d-flex align-items-center"
                     data-bs-toggle="modal"
                     data-bs-target="#BulkDeleteModal">
@@ -309,7 +309,7 @@
     <div class='row row-cols-1 @if(count($companies) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>
         @forelse ($companies as $company)
         <div class='col-md-6 col-xl-4'>
-            <div class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($company->id, $selectedCompanies) ? 'border-primary border-3' : 'border-0' }}"
+            <div id="company-card-{{$company->id}}" class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($company->id, $selectedCompanies) ? 'border-primary border-3' : 'border-0' }}"
                 draggable="false"
                 wire:click="toggleCompanySelection({{ $company->id }})"
                 style="cursor: pointer; transition: all 0.3s ease; min-height: 400px; border-radius: 12px;"
@@ -436,14 +436,14 @@
                     <div class="d-flex align-items-center gap-2">
                         @if($activeTab === 'active')
                         @can('company-update')
-                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#CompanyModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Company')}}">
+                        <a href="#" id="edit-company-{{$company->id}}" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#CompanyModal" draggable="false" onclick="event.stopPropagation();" title="{{__('Edit Company')}}">
                             <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                         </a>
                         @endcan
                         @can('company-delete')
-                        <a href="#" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('common.move_to_trash')}}">
+                        <a href="#" id="delete-company-{{$company->id}}" wire:click.prevent="initData({{$company->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('common.move_to_trash')}}">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -451,7 +451,7 @@
                         @endcan
                         @else
                         @can('company-delete')
-                        <a href="#" wire:click.prevent="$set('company_id', {{$company->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('companies.restore_company')}}" onclick="event.stopPropagation();">
+                        <a href="#" id="restore-company-{{$company->id}}" wire:click.prevent="$set('company_id', {{$company->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('companies.restore_company')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
@@ -475,7 +475,7 @@
                     <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
                     <p class="fw-light">{{__('companies.no_record_found_here')}}</p>
                     @can('company-create')
-                    <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#CompanyModal" class="btn btn-sm btn-primary py-2 mt-3 d-inline-flex align-items-center">
+                    <a href="#" id="create-company-btn-2" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#CompanyModal" class="btn btn-sm btn-primary py-2 mt-3 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg> {{__('companies.add_company')}}

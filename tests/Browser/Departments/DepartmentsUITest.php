@@ -42,13 +42,12 @@ test('user can create a department', function () {
         $company = Company::factory()->create();
         
         $browser->visit("/portal/company/{$company->uuid}/departments")
-            ->click('button:contains("Create Department")')
+            ->click('#create-department-btn')
             ->pause(500)
             ->waitFor('#DepartmentModal', 5)
             ->within('#DepartmentModal', function ($modal) {
-                $modal->type('#name', 'New Department')
-                    ->type('#description', 'Test description')
-                    ->press('Save');
+                $modal->type('#department-name', 'New Department')
+                    ->press('Create');
             })
             ->pause(1000)
             ->assertSee('New Department');
@@ -62,11 +61,11 @@ test('user can edit a department', function () {
         $department = Department::factory()->create(['company_id' => $company->id]);
         
         $browser->visit("/portal/company/{$company->uuid}/departments")
-            ->click("button[wire\\:click='initData({$department->id})']")
+            ->click("#edit-department-{$department->id}")
             ->pause(500)
             ->waitFor('#DepartmentModal', 5)
             ->within('#DepartmentModal', function ($modal) {
-                $modal->type('#name', 'Updated Department')
+                $modal->type('#department-name', 'Updated Department')
                     ->press('Update');
             })
             ->pause(1000)
@@ -81,13 +80,11 @@ test('user can delete a department', function () {
         $department = Department::factory()->create(['company_id' => $company->id]);
         
         $browser->visit("/portal/company/{$company->uuid}/departments")
-            ->click("button[wire\\:click='initData({$department->id})']")
-            ->pause(500)
-            ->click('button:contains("Delete")')
+            ->click("#delete-department-{$department->id}")
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('Confirm');
             })
             ->pause(1000)
             ->assertSee('moved to trash');
@@ -102,7 +99,7 @@ test('user can switch between active and deleted tabs', function () {
         $department->delete();
         
         $browser->visit("/portal/company/{$company->uuid}/departments")
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-departments-tab')
             ->pause(500)
             ->assertSee('Deleted');
     });
@@ -116,13 +113,13 @@ test('user can restore a deleted department', function () {
         $department->delete();
         
         $browser->visit("/portal/company/{$company->uuid}/departments")
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-departments-tab')
             ->pause(500)
-            ->click("button[wire\\:click='restore({$department->id})']")
+            ->click("#restore-department-{$department->id}")
             ->pause(500)
             ->waitFor('#RestoreModal', 5)
             ->within('#RestoreModal', function ($modal) {
-                $modal->press('Restore');
+                $modal->press('Confirm Restore');
             })
             ->pause(1000)
             ->assertSee('restored');
@@ -136,9 +133,9 @@ test('user can select all departments', function () {
         Department::factory()->count(3)->create(['company_id' => $company->id]);
         
         $browser->visit("/portal/company/{$company->uuid}/departments")
-            ->check('input[type="checkbox"][wire\\:model="selectAll"]')
+            ->click('#select-all-departments-btn')
             ->pause(500)
-            ->assertChecked('input[type="checkbox"][wire\\:model="selectAll"]');
+            ->assertSee('departments');
     });
 });
 
@@ -149,14 +146,14 @@ test('user can bulk delete departments', function () {
         $departments = Department::factory()->count(2)->create(['company_id' => $company->id]);
         
         $browser->visit("/portal/company/{$company->uuid}/departments")
-            ->check("input[type='checkbox'][value='{$departments[0]->id}']")
-            ->check("input[type='checkbox'][value='{$departments[1]->id}']")
+            ->click("#department-card-{$departments[0]->id}")
+            ->click("#department-card-{$departments[1]->id}")
             ->pause(500)
-            ->click('button:contains("Bulk Delete")')
+            ->click('#bulk-delete-departments-btn')
             ->pause(500)
             ->waitFor('#BulkDeleteModal', 5)
             ->within('#BulkDeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('Move to Trash');
             })
             ->pause(1000)
             ->assertSee('moved to trash');

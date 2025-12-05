@@ -147,13 +147,23 @@ class Index extends Component
                 fn($q) => $q->where('department_id', $this->selectedDepartmentId)
             );
 
+        $connection = DB::getDriverName();
+
         if ($groupBy === 'week') {
-            return $query->selectRaw('WEEK(created_at) as period, email_sent_status, COUNT(*) as data')
+            $periodFunction = $connection === 'sqlite'
+                ? "strftime('%W', created_at)"
+                : 'WEEK(created_at)';
+
+            return $query->selectRaw("{$periodFunction} as period, email_sent_status, COUNT(*) as data")
                 ->groupBy('period', 'email_sent_status')
                 ->orderBy('period')
                 ->get();
         } else {
-            return $query->selectRaw('DAY(created_at) as period, email_sent_status, COUNT(*) as data')
+            $periodFunction = $connection === 'sqlite'
+                ? "strftime('%d', created_at)"
+                : 'DAY(created_at)';
+
+            return $query->selectRaw("{$periodFunction} as period, email_sent_status, COUNT(*) as data")
                 ->groupBy('period', 'email_sent_status')
                 ->orderBy('period')
                 ->get();

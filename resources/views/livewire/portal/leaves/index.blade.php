@@ -34,7 +34,7 @@
             @can('leave-export')
             <div class="mb-2 mx-3">
                 <div class="btn-toolbar" wire:loading.remove>
-                    <a wire:click="export" class="btn btn-sm btn-gray-500 d-inline-flex align-items-center">
+                    <a id="export-leaves-btn" wire:click="export" class="btn btn-sm btn-gray-500 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
@@ -200,7 +200,7 @@
 
         <!-- Tab Buttons (Right) -->
         <div class="d-flex gap-2">
-            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+            <button id="active-leaves-tab" class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,7 +210,7 @@
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_leaves ?? 0 }}</span>
             </button>
 
-            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+            <button id="deleted-leaves-tab" class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
                 wire:click="switchTab('deleted')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,7 +327,7 @@
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 @if($activeTab === 'active')
                                     <!-- For active tab, use existing bulk approval selection -->
-                                    <input class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
+                                    <input id="select-all-leaves" class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
                                 @else
                                     <!-- For deleted tab, use soft delete selection -->
                                     <input class="form-check-input p-2" 
@@ -357,7 +357,7 @@
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 @if($activeTab === 'active')
                                     <!-- For active tab, use existing bulk approval selection -->
-                                    <input class="form-check-input" wire:model.live="selectedLeaves" value="{{$leave->id}}" type="checkbox">
+                                    <input id="select-leave-{{$leave->id}}" class="form-check-input" wire:model.live="selectedLeaves" value="{{$leave->id}}" type="checkbox">
                                 @else
                                     <!-- For deleted tab, use soft delete selection -->
                                     <input class="form-check-input" 
@@ -407,14 +407,14 @@
                         <td>
                             @if($activeTab === 'active')
                                 @can('leave-update')
-                                <a href="#" wire:click="initData({{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#EditLeaveModal">
+                                <a href="#" id="edit-leave-{{$leave->id}}" wire:click="initData({{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#EditLeaveModal">
                                     <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                     </svg>
                                 </a>
                                 @endcan
                                 @can('leave-delete')
-                                <a href="#" wire:click="initData({{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                                <a href="#" id="delete-leave-{{$leave->id}}" wire:click="initData({{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
                                     <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                     </svg>
@@ -422,7 +422,7 @@
                                 @endcan
                             @else
                                 @can('leave-delete')
-                                <a href="#" wire:click.prevent="$set('leave_id', {{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('leaves.restore')}}">
+                                <a href="#" id="restore-leave-{{$leave->id}}" wire:click.prevent="$set('leave_id', {{ $leave->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('leaves.restore')}}">
                                     <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>

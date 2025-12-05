@@ -20,9 +20,10 @@ abstract class DuskTestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Run migrations for Dusk tests
-        $this->artisan('migrate:fresh', ['--seed' => false]);
+
+        // Run migrations and seed essential data for Dusk tests
+        $this->artisan('migrate:fresh');
+        $this->artisan('db:seed', ['--class' => 'RolesAndPermissionsSeeder']);
     }
 
     /**

@@ -44,7 +44,7 @@ test('user can view overtime details', function () {
         $overtime = Overtime::factory()->create(['user_id' => $employee->id]);
         
         $browser->visit('/portal/overtimes')
-            ->click("button[wire\\:click='initData({$overtime->id})']")
+            ->click("#edit-overtime-{$overtime->id}")
             ->pause(500)
             ->assertSee($employee->name);
     });
@@ -62,7 +62,7 @@ test('user can approve overtime', function () {
         ]);
         
         $browser->visit('/portal/overtimes')
-            ->click("button[wire\\:click='initData({$overtime->id})']")
+            ->click("#edit-overtime-{$overtime->id}")
             ->pause(500)
             ->select('#approval_status', '1')
             ->type('#approval_reason', 'Approved')
@@ -84,7 +84,7 @@ test('user can reject overtime', function () {
         ]);
         
         $browser->visit('/portal/overtimes')
-            ->click("button[wire\\:click='initData({$overtime->id})']")
+            ->click("#edit-overtime-{$overtime->id}")
             ->pause(500)
             ->select('#approval_status', '2')
             ->type('#approval_reason', 'Rejected')
@@ -109,8 +109,10 @@ test('user can bulk approve overtimes', function () {
             ->check("input[type='checkbox'][value='{$overtimes[0]->id}']")
             ->check("input[type='checkbox'][value='{$overtimes[1]->id}']")
             ->pause(500)
-            ->select('#bulk_approval_status', '1')
-            ->click('button:contains("Bulk Approve")')
+            ->click('#bulk-approve-overtimes-btn')
+            ->pause(500)
+            ->type('#bulk_approval_reason', 'Bulk approved for testing')
+            ->press(__('common.approve'))
             ->pause(1000)
             ->assertSee('approved');
     });
@@ -125,13 +127,11 @@ test('user can delete an overtime', function () {
         $overtime = Overtime::factory()->create(['user_id' => $employee->id]);
         
         $browser->visit('/portal/overtimes')
-            ->click("button[wire\\:click='initData({$overtime->id})']")
-            ->pause(500)
-            ->click('button:contains("Delete")')
+            ->click("#delete-overtime-{$overtime->id}")
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('Confirm');
             })
             ->pause(1000)
             ->assertSee('moved to trash');
@@ -148,7 +148,7 @@ test('user can switch between active and deleted tabs', function () {
         $overtime->delete();
         
         $browser->visit('/portal/overtimes')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-overtimes-tab')
             ->pause(500)
             ->assertSee('Deleted');
     });
@@ -164,13 +164,13 @@ test('user can restore a deleted overtime', function () {
         $overtime->delete();
         
         $browser->visit('/portal/overtimes')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-overtimes-tab')
             ->pause(500)
-            ->click("button[wire\\:click='restore({$overtime->id})']")
+            ->click("#restore-overtime-{$overtime->id}")
             ->pause(500)
             ->waitFor('#RestoreModal', 5)
             ->within('#RestoreModal', function ($modal) {
-                $modal->press('Restore');
+                $modal->press('Confirm Restore');
             })
             ->pause(1000)
             ->assertSee('restored');
@@ -186,7 +186,7 @@ test('user can export overtimes', function () {
         Overtime::factory()->count(5)->create(['user_id' => $employee->id]);
         
         $browser->visit('/portal/overtimes')
-            ->click('button:contains("Export")')
+            ->click('#export-overtimes-btn')
             ->pause(1000)
             ->assertSee('Export');
     });

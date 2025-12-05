@@ -25,7 +25,7 @@
             </div>
             <div class="mb-2 mx-3">
                 <div class="btn-toolbar " wire:loading.remove>
-                    <a href="#" wire:click.prevent="generateReport()" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center  {{count($overtimes) > 0 ? '' :'disabled'}}">
+                    <a href="#" id="generate-overtime-report-btn" wire:click.prevent="generateReport()" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center  {{count($overtimes) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
@@ -54,7 +54,7 @@
         @hasanyrole('manager|admin')
         <div class="col">
             <label for="company">{{__('companies.company')}}: </label>
-            <select wire:model.live="selectedCompanyId" class="form-select">
+            <select wire:model.live="selectedCompanyId" id="selectedCompanyId" class="form-select">
                 <option value="all" selected>{{__('common.select_company')}}</option>
                 @foreach ($companies as $company)
                 <option value="{{$company->id}}">{{$company->name}}</option>
@@ -64,7 +64,7 @@
         @endhasanyrole
         <div class="col">
             <label for="selectedDepartmentId">{{__('departments.department')}}: </label>
-            <select wire:model.live="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror">
+            <select wire:model.live="selectedDepartmentId" id="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror">
                 <option value="" selected>{{__('common.select')}} {{__('departments.departments')}}</option>
                 @foreach ($departments as $department)
                 <option value="{{$department->id}}">{{$department->name}}</option>
@@ -96,7 +96,7 @@
         </div>
         <div class="col">
             <label for="period">{{__('common.period')}}: </label>
-            <select wire:model.live="period" class="form-select  @error('period') is-invalid @enderror">
+            <select wire:model.live="period" id="period" class="form-select  @error('period') is-invalid @enderror">
                 <option value="" selected>{{__('common.select_period')}}</option>
                 @foreach ($periods as $key => $period)
                 <option value="{{ $period['month_number'] }}">{{__('Week - '). $period['month_number']." - ".$period['year']}}</option>

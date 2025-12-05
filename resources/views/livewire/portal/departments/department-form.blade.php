@@ -33,7 +33,7 @@
                         </div>
                         <div class="form-group mb-4">
                             <label for="name">{{__('common.name')}}</label>
-                            <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
+                            <input wire:model="name" id="department-name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
                             @error('name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

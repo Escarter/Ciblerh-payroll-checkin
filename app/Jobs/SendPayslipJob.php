@@ -215,7 +215,7 @@ class SendPayslipJob implements ShouldQueue
                         $record->update([
                             'email_sent_status' => Payslip::STATUS_FAILED,
                             'sms_sent_status' => Payslip::STATUS_FAILED,
-                            'failure_reason' => __('{{__('payslips.no_valid_email_address')}}')
+                            'failure_reason' => __('payslips.no_valid_email_address')
                         ]);
                         return;
                     }

@@ -15,14 +15,14 @@
                         <div class="form-group row mb-4">
                             <div class='col-md-6'>
                                 <label for="start_time">{{__('common.start_time')}}</label>
-                                <input wire:model="start_time" type="datetime-local" class="form-control  @error('start_time') is-invalid @enderror" required="" name="start_time">
+                                <input wire:model="start_time" id="start_time" type="datetime-local" class="form-control  @error('start_time') is-invalid @enderror" required="" name="start_time">
                                 @error('start_time')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6'>
                                 <label for="end_time">{{__('common.end_time')}}</label>
-                                <input wire:model="end_time" type="datetime-local" class="form-control  @error('end_time') is-invalid @enderror" required="" name="end_time">
+                                <input wire:model="end_time" id="end_time" type="datetime-local" class="form-control  @error('end_time') is-invalid @enderror" required="" name="end_time">
                                 @error('end_time')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -30,7 +30,7 @@
                         </div>
                         <div class="form-group mb-4">
                             <label for="reason">{{__('common.reason')}}</label>
-                            <textarea wire:model="reason" name="reason" class="form-control  @error('reason') is-invalid @enderror" id='' cols='3' rows='3'></textarea>
+                            <textarea wire:model="reason" id="reason" name="reason" class="form-control  @error('reason') is-invalid @enderror" cols='3' rows='3'></textarea>
                             @error('reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
@@ -39,7 +39,7 @@
                         <hr>
                         <div class='form-group mb-4'>
                             <label for="approval_status">{{__('employees.approval_status')}}</label>
-                            <select wire:model="approval_status" name="approval_status" class="form-select  @error('approval_status') is-invalid @enderror" required>
+                            <select wire:model="approval_status" id="approval_status" name="approval_status" class="form-select  @error('approval_status') is-invalid @enderror" required>
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.approve')}}</option>
                                 <option value="2">{{__('common.reject')}}</option>
@@ -50,7 +50,7 @@
                         </div>
                         <div class="form-group mb-4">
                             <label for="approval_reason">{{__('common.approval_rejection_reason')}}</label>
-                            <textarea wire:model="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
+                            <textarea wire:model="approval_reason" id="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='3' rows="3"></textarea>
                             @error('approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

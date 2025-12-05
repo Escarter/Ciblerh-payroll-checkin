@@ -25,7 +25,7 @@
             </div>
             <div class="mb-2 mx-3">
                 <div class="btn-toolbar " wire:loading.remove>
-                    <a href="#" wire:click.prevent="generateReport()" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center  {{count($payslips) > 0 ? '' :'disabled'}}">
+                    <a href="#" id="generate-payslip-report-btn" wire:click.prevent="generateReport()" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center  {{count($payslips) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg>
@@ -64,7 +64,7 @@
         @hasanyrole('manager|admin')
         <div class="col">
             <label for="company">{{__('companies.company')}}: </label>
-            <select wire:model.live="selectedCompanyId" class="form-select">
+            <select wire:model.live="selectedCompanyId" id="selectedCompanyId" class="form-select">
                 <option value="" selected>{{__('common.select_company')}}</option>
                 <option value="all">{{__('common.all_companies')}}</option>
                 @foreach ($companies as $company)

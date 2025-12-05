@@ -44,7 +44,7 @@
             </div>
             <div class="d-flex justify-content-between mb-2">
                 @can('department-create')
-                <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#DepartmentModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center ">
+                <a href="#" id="create-department-btn" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#DepartmentModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center ">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg> {{__('common.new')}}
@@ -208,7 +208,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <!-- Tab Buttons (Left) -->
         <div class="d-flex gap-2">
-            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+            <button id="active-departments-tab" class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,7 +218,7 @@
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_departments ?? 0 }}</span>
             </button>
 
-            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+            <button id="deleted-departments-tab" class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
                 wire:click="switchTab('deleted')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,7 +233,7 @@
         <div class="d-flex align-items-center gap-2">
             <!-- Select All Button -->
             @if(count($departments) > 0)
-            <button wire:click="toggleSelectAll" 
+            <button id="select-all-departments-btn" wire:click="toggleSelectAll"
                     class="btn btn-sm {{ $selectAll ? 'btn-primary' : 'btn-outline-primary' }} d-flex align-items-center">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -246,9 +246,9 @@
             @if(count($selectedDepartments) > 0)
             @if($activeTab === 'active')
             @can('department-delete')
-            <button type="button"
+            <button id="bulk-delete-departments-btn" type="button"
                 class="btn btn-sm btn-danger d-flex align-items-center"
-                data-bs-toggle="modal" 
+                data-bs-toggle="modal"
                 data-bs-target="#BulkDeleteModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -297,8 +297,8 @@
     <div class='row row-cols-1 @if(count($departments) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>
         @forelse ($departments as $department)
         <div class='col-md-6 col-xl-4'>
-            <div class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($department->id, $selectedDepartments) ? 'border-primary border-3' : 'border-0' }}" 
-                 draggable="false" 
+            <div id="department-card-{{$department->id}}" class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($department->id, $selectedDepartments) ? 'border-primary border-3' : 'border-0' }}"
+                 draggable="false"
                  wire:click="toggleDepartmentSelection({{ $department->id }})"
                  style="cursor: pointer; transition: all 0.3s ease; min-height: 200px; border-radius: 12px;"
                  onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
@@ -403,14 +403,14 @@
                     <div class="d-flex align-items-center gap-2">
                         @if($activeTab === 'active')
                         @can('department-update')
-                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DepartmentModal" draggable="false" onclick="event.stopPropagation();" title="{{__('departments.edit_department')}}">
+                        <a href="#" id="edit-department-{{$department->id}}" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DepartmentModal" draggable="false" onclick="event.stopPropagation();" title="{{__('departments.edit_department')}}">
                             <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                         </a>
                         @endcan
                         @can('department-delete')
-                        <a href="#" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('common.move_to_trash')}}">
+                        <a href="#" id="delete-department-{{$department->id}}" wire:click.prevent="initData({{$department->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('common.move_to_trash')}}">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -418,7 +418,7 @@
                         @endcan
                         @else
                         @can('department-delete')
-                        <a href="#" wire:click.prevent="$set('department_id', {{$department->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('departments.restore_department')}}" onclick="event.stopPropagation();">
+                        <a href="#" id="restore-department-{{$department->id}}" wire:click.prevent="$set('department_id', {{$department->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('departments.restore_department')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>

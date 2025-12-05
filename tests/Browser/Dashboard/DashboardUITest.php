@@ -89,9 +89,9 @@ test('user can change period filter', function () {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/dashboard')
-            ->select('#period', 'this_month')
+            ->select('#period', 'last_month')
             ->pause(500)
-            ->assertSelected('#period', 'this_month');
+            ->assertSelected('#period', 'last_month');
     });
 });
 
@@ -100,8 +100,8 @@ test('dashboard displays statistics', function () {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/dashboard')
-            ->assertSee('Statistics')
-            ->assertPresent('.card'); // Assuming stats are in cards
+            ->assertPresent('.card') // Dashboard should have cards
+            ->assertPresent('canvas'); // Should have charts
     });
 });
 

@@ -18,7 +18,7 @@ trait BrowserTestHelpers
     {
         // Ensure role exists
         $this->ensureRoleExists($role);
-        
+
         $user = User::factory()->create(array_merge([
             'email' => "{$role}@example.com",
             'password' => bcrypt('password'),
@@ -31,10 +31,26 @@ trait BrowserTestHelpers
             $user->assignRole($role);
         }
 
-        // Use Laravel's loginAs method for browser tests (more reliable)
+        // Use Laravel's authentication in the test context AND browser login
+        $this->actingAs($user);
+
+        // Also use browser login for session synchronization
         $browser->loginAs($user);
 
         return $user;
+    }
+
+    /**
+     * Manually login through the UI with proper CSRF handling
+     */
+    protected function manualLoginAs(Browser $browser, User $user): void
+    {
+        $browser->visit('/login')
+            ->waitFor('#email', 10)
+            ->type('#email', $user->email)
+            ->type('#password', 'password')
+            ->press('Login')
+            ->pause(2000); // Wait for redirect
     }
 
     /**

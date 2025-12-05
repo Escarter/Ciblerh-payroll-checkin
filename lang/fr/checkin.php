@@ -63,3 +63,4 @@ return [
     'employees_checkins_report' => 'Rapport des pointages des employés',
     'generate_monthly_employees_checkin_reports' => 'Générer des rapports mensuels de pointage des employés!',
 ];
+

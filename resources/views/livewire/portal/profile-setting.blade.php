@@ -36,14 +36,14 @@
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="first_name">{{__('employees.first_name')}}</label>
-                                <input wire:model="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" value="{{auth()->user()->first_name}}" required="" name="first_name">
+                                <input wire:model="first_name" id="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" value="{{auth()->user()->first_name}}" required="" name="first_name">
                                 @error('first_name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="last_name">{{__('employees.last_name')}}</label>
-                                <input wire:model="last_name" type="text" class="form-control  @error('last_name') is-invalid @enderror" value="{{auth()->user()->last_name}}" required="" name="last_name">
+                                <input wire:model="last_name" id="last_name" type="text" class="form-control  @error('last_name') is-invalid @enderror" value="{{auth()->user()->last_name}}" required="" name="last_name">
                                 @error('last_name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -52,14 +52,14 @@
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="matricule">{{__('employees.matricule')}}</label>
-                                <input wire:model="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" value="{{auth()->user()->matricule}}" required="" name="matricule">
+                                <input wire:model="matricule" id="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" value="{{auth()->user()->matricule}}" required="" name="matricule">
                                 @error('matricule')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="email">{{__('employees.email')}}</label>
-                                <input wire:model="email" type="email" class="form-control @error('email') is-invalid @enderror" value="{{auth()->user()->email}}" required="" name="email">
+                                <input wire:model="email" id="email" type="email" class="form-control @error('email') is-invalid @enderror" value="{{auth()->user()->email}}" required="" name="email">
                                 @error('email')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -69,22 +69,31 @@
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="phone_number">{{__('Phone Number')}}</label>
-                                <input wire:model="phone_number" type="text" class="form-control  @error('phone_number') is-invalid @enderror" value="{{auth()->user()->phone}}" name="phone_number">
+                                <input wire:model="phone_number" id="phone_number" type="text" class="form-control  @error('phone_number') is-invalid @enderror" value="{{auth()->user()->phone}}" name="phone_number">
                                 @error('phone_number')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="position">{{__('common.position')}}</label>
-                                <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position">
+                                <input wire:model="position" id="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position">
                                 @error('position')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="form-group mb-4 row">
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="date_of_birth">{{__('common.date_of_birth')}}</label>
+                                <input wire:model="date_of_birth" id="date_of_birth" type="date" class="form-control  @error('date_of_birth') is-invalid @enderror" value="{{auth()->user()->date_of_birth}}" name="date_of_birth">
+                                @error('date_of_birth')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                         </div>
                         <div class='form-group mb-4'>
                             <label for="preferred_language">{{__('common.select_preferred_notification_language')}}</label>
-                            <select wire:model="preferred_language" name="preferred_language" class="form-select  @error('preferred_language') is-invalid @enderror" required="">
+                            <select wire:model="preferred_language" id="preferred_language" name="preferred_language" class="form-select  @error('preferred_language') is-invalid @enderror" required="">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="en">{{__('common.english')}}</option>
                                 <option value="fr">{{__('common.french')}}</option>
@@ -94,7 +103,7 @@
                             @enderror
                         </div>
                         <div class="d-flex justify-content-end">
-                            <button type="submit" wire:click.prevent="updateProfile" class="btn btn-secondary btn-loading">{{__('common.update')}} </button>
+                            <button type="submit" id="update-profile-btn" wire:click.prevent="updateProfile" class="btn btn-secondary btn-loading">{{__('common.update')}} </button>
                         </div>
                     </x-form-items.form>
                 </div>
@@ -107,7 +116,7 @@
 
                     <x-form-items.form wire:submit="saveSignature" nctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-4">
-                            <input type="file" wire:model="signature" class="form-control  @error('signature') is-invalid @enderror" />
+                            <input type="file" id="signature" wire:model="signature" class="form-control  @error('signature') is-invalid @enderror" />
                             @error('signature')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
@@ -119,7 +128,7 @@
                             </div>
                             @endif
                             <div>
-                                    <button type="submit" wire:click.prevent="saveSignature" class="btn btn-gray-300 text-gray-500 btn-loading">{{__('common.upload_signature')}} </button>
+                                    <button type="submit" id="upload-signature-btn" wire:click.prevent="saveSignature" class="btn btn-gray-300 text-gray-500 btn-loading">{{__('common.upload_signature')}} </button>
                             </div>
                         </div>
                     </x-form-items.form>
@@ -129,7 +138,7 @@
                     <x-form-items.form wire:submit="passwordReset" nctype="multipart/form-data" class="form-modal">
                         <div class='form-group mb-4'>
                             <label for="current_password">{{__('common.current_password')}}</label>
-                            <input wire:model="current_password" type="text" class="form-control  @error('current_password') is-invalid @enderror">
+                            <input wire:model="current_password" id="current_password" type="text" class="form-control  @error('current_password') is-invalid @enderror">
                             @error('current_password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
@@ -137,14 +146,14 @@
                         <div class='form-group row mb-4'>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="password">{{__('common.new_password')}}</label>
-                                <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror">
+                                <input wire:model="password" id="password" type="text" class="form-control  @error('password') is-invalid @enderror">
                                 @error('password')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="password_confirmation">{{__('common.confirm_password')}}</label>
-                                <input wire:model="password_confirmation" type="text" class="form-control  @error('password_confirmation') is-invalid @enderror">
+                                <input wire:model="password_confirmation" id="password_confirmation" type="text" class="form-control  @error('password_confirmation') is-invalid @enderror">
                                 @error('password_confirmation')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -152,7 +161,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <button type="submit" wire:click.prevent="passwordReset" class="btn btn-gray-300 text-gray-500 btn-loading">{{__('common.reset_password')}} </button>
+                            <button type="submit" id="reset-password-btn" wire:click.prevent="passwordReset" class="btn btn-gray-300 text-gray-500 btn-loading">{{__('common.reset_password')}} </button>
                         </div>
                     </x-form-items.form>
                 </div>
