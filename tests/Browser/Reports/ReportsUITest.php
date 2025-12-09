@@ -12,9 +12,9 @@ beforeEach(function () {
 test('user can view checklog report page', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
-        
-        $browser->visit('/portal/reports/checklogs')
-            ->assertSee('Employees Checkins Report')
+
+        $this->visitAndWait($browser, '/portal/reports/checklogs');
+        $browser->assertSee('Employees Checkins Report')
             ->assertPathIs('/portal/reports/checklogs');
     });
 });
@@ -23,10 +23,10 @@ test('user can filter checklog report by company', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         $company = Company::factory()->create();
-        
-        $browser->visit('/portal/reports/checklogs')
-            ->select('#selectedCompanyId', (string)$company->id)
-            ->pause(500)
+
+        $this->visitAndWait($browser, '/portal/reports/checklogs');
+        $browser->select('#selectedCompanyId', (string)$company->id)
+            ->pause(1000)
             ->assertSelected('#selectedCompanyId', (string)$company->id);
     });
 });
@@ -60,10 +60,10 @@ test('user can filter checklog report by period', function () {
 test('user can generate checklog report', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
-        
-        $browser->visit('/portal/reports/checklogs')
-            ->click('#generate-checklog-report-btn')
-            ->pause(1000)
+
+        $this->visitAndWait($browser, '/portal/reports/checklogs');
+        $browser->click('#generate-checklog-report-btn')
+            ->pause(2000)
             ->assertSee('Report');
     });
 });

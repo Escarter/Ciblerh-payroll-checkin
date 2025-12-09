@@ -21,6 +21,8 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
     use Importable, SkipsErrors, SkipsFailures;
 
     public $department;
+    public $company;
+    public $autoCreateEntities = false; // Whether to auto-create missing departments/companies
 
     /**
      * @return int
@@ -31,9 +33,11 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
     }
 
 
-    public function __construct(Department $department)
+    public function __construct(Department $department = null, bool $autoCreateEntities = false)
     {
         $this->department = $department;
+        $this->company = $department ? $department->company : null;
+        $this->autoCreateEntities = $autoCreateEntities;
     }
     /**
      * @param array $row
@@ -42,27 +46,79 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
      */
     public function model(array $row)
     {
-        // Validate that department exists and has a valid company
-        if (!$this->department || !$this->department->id) {
-            throw new \Exception('Department is required for service import');
+        // Handle department lookup (by existing context or name)
+        $departmentResult = $this->findDepartment($row[1] ?? ''); // Assuming department name is in column 1
+        if (!$departmentResult['found']) {
+            throw new \Exception('Department validation failed: ' . $departmentResult['error']);
         }
 
-        if (!$this->department->company_id) {
-            throw new \Exception('Department must belong to a company for service import');
-        }
+        $department = $departmentResult['department'];
 
-        $code_exist = Service::where('department_id', $this->department->id)->where('name', $row[0])->first();
-        if (!$code_exist ) {
+        $code_exist = Service::where('department_id', $department->id)->where('name', $row[0])->first();
+        if (!$code_exist) {
 
             return new Service([
                 'name' => $row[0],
-                'company_id' => $this->department->company_id,
-                'department_id' => $this->department->id,
+                'company_id' => $department->company_id,
+                'department_id' => $department->id,
                 'author_id' => auth()->user()->id,
             ]);
 
         }
+
+        return null;
     }
+
+    /**
+     * Find department by ID or name
+     */
+    private function findDepartment($departmentValue): array
+    {
+        if (empty($departmentValue)) {
+            return [
+                'found' => false,
+                'department' => null,
+                'error' => __('Department is required')
+            ];
+        }
+
+        // If we have a department context from constructor, use that
+        if ($this->department && $this->department->id) {
+            return [
+                'found' => true,
+                'department' => $this->department,
+                'error' => null
+            ];
+        }
+
+        // Try to find by ID first (if it's numeric)
+        if (is_numeric($departmentValue)) {
+            $department = Department::where('id', $departmentValue)
+                ->where('company_id', $this->company->id ?? null)
+                ->first();
+
+            if ($department) {
+                return [
+                    'found' => true,
+                    'department' => $department,
+                    'error' => null
+                ];
+            }
+        }
+
+        // Try to find by name (using the helper function)
+        if (!$this->company) {
+            return [
+                'found' => false,
+                'department' => null,
+                'error' => __('Company context is required for department lookup')
+            ];
+        }
+        $result = findOrCreateDepartment($departmentValue, $this->company->id, $this->autoCreateEntities);
+
+        return $result;
+    }
+
     public function rules(): array
     {
         return [

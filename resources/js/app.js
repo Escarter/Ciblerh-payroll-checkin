@@ -15,6 +15,7 @@ document.addEventListener('alpine:init', () => {
                     removeItemButton: true,
                     noResultsText: 'No results found',
                     noChoicesText: 'No options available',
+                    allowHTML: true,
                 });
 
                 // Set initial selected values if any
@@ -100,6 +101,7 @@ document.addEventListener('alpine:init', () => {
                         shouldSort: true,
                         placeholder: true,
                         placeholderValue: placeholder || '--Select--',
+                        allowHTML: true,
                     });
 
                     // Set initial value if exists

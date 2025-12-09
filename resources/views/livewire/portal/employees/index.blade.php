@@ -1,7 +1,6 @@
 <div>
     @include('livewire.portal.employees.others.employee-form')
     @include('livewire.portal.employees.manager.edit-manager')
-    @include('livewire.portal.employees.others.import-employees')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
@@ -15,7 +14,7 @@
                 <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
                     <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
                         <li class="breadcrumb-item">
-                            <a href="#">
+                            <a href="{{ route('portal.dashboard') }}">
                                 <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg>
@@ -49,14 +48,14 @@
                 <!-- Action Buttons (Left) -->
                 <div class="d-flex gap-2">
                     @can('employee-create')
-                    <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#EmployeeModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center">
+                    <a href="#" id="create-employee-btn" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#EmployeeModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg> {{__('common.new')}}
                     </a>
                     @endcan
                     @can('employee-import')
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#importEmployeesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
+                    <a href="{{ route('portal.import-jobs.index') }}" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg> {{__('common.import')}}
@@ -170,12 +169,12 @@
     <div class="row pt-2 pb-3">
         <div class="col-md-3">
             <label for="search">{{__('common.search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
+            <input wire:model.live="query" id="employee-search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
             <label for="orderBy">{{__('common.order_by')}}: </label>
-            <select wire:model.live="orderBy" id="orderBy" class="form-select">
+            <select wire:model.live="orderBy" id="employee-order-by" class="form-select">
                 <option value="first_name">{{__('employees.first_name')}}</option>
                 <option value="last_name">{{__('employees.last_name')}}</option>
                 <option value="created_at">{{__('common.created_date')}}</option>
@@ -192,7 +191,7 @@
 
         <div class="col-md-3">
             <label for="perPage">{{__('common.items_per_page')}}: </label>
-            <select wire:model.live="perPage" id="perPage" class="form-select">
+            <select wire:model.live="perPage" id="employee-per-page" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="15">15</option>
@@ -209,7 +208,7 @@
 
         <!-- Tab Buttons (Right) -->
         <div class="d-flex gap-2">
-            <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+            <button id="active-employees-tab" class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,14 +218,14 @@
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_employees ?? 0 }}</span>
             </button>
 
-            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+            <button id="deleted-employees-tab" class="btn {{ $activeTab === 'deleted' ? 'btn-danger' : 'btn-outline-danger' }}"
                 wire:click="switchTab('deleted')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
                 {{__('common.deleted')}}
-                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_employees ?? 0 }}</span>
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-danger text-white' }} ms-1">{{ $deleted_employees ?? 0 }}</span>
             </button>
         </div>
 
@@ -238,6 +237,7 @@
                 @if($activeTab === 'active')
                 @can('employee-delete')
                 <button type="button"
+                    id="bulk-delete-employees-btn"
                     class="btn btn-sm btn-danger d-flex align-items-center"
                     data-bs-toggle="modal" 
                     data-bs-target="#BulkDeleteModal">
@@ -292,6 +292,7 @@
                     <tr>
                         <th class="border-bottom">
                             <input type="checkbox"
+                                id="select-all-employees"
                                 wire:model="selectAll"
                                 wire:change="toggleSelectAll"
                                 class="form-check-input">
@@ -310,6 +311,7 @@
                     <tr>
                         <td>
                             <input type="checkbox"
+                                id="employee-checkbox-{{ $employee->id }}"
                                 wire:click="toggleEmployeeSelection({{ $employee->id }})"
                                 {{ in_array($employee->id, $selectedEmployees) ? 'checked' : '' }}
                                 class="form-check-input">
@@ -385,13 +387,13 @@
 
                             @can('employee-update')
                             @if($employee->hasAnyRole(['manager', 'admin', 'supervisor']) || $employee->roles->count() > 1)
-                            <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditManagerModal">
+                            <a href='#' id="edit-manager-btn-{{ $employee->id }}" wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditManagerModal">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
                             </a>
                             @elseif($employee->roles->count() === 1 && $employee->hasRole('employee'))
-                            <a href='#' wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EmployeeModal">
+                            <a href='#' id="edit-employee-btn-{{ $employee->id }}" wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EmployeeModal">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
@@ -401,13 +403,13 @@
 
                             @can('employee-delete')
                             @if(($employee->roles->count() > 1 && ($employee->hasAnyRole(['manager', 'supervisor']))))
-                            <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                            <a href='#' id="delete-manager-btn-{{ $employee->id }}" wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
                                 <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
                             </a>
                             @elseif($employee->roles->count() === 1 && $employee->hasRole('employee'))
-                            <a href='#' wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                            <a href='#' id="delete-employee-btn-{{ $employee->id }}" wire:click.prevent="initData({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
                                 <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>

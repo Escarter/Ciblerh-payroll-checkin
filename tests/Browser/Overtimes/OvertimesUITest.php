@@ -14,8 +14,8 @@ test('user can view overtimes page', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         
-        $browser->visit('/portal/overtimes')
-            ->assertSee('Overtimes')
+        $this->visitAndWait($browser, '/portal/overtimes');
+        $browser->assertSee('Overtimes')
             ->assertPathIs('/portal/overtimes');
     });
 });
@@ -28,9 +28,9 @@ test('user can search for overtimes', function () {
         $employee = User::factory()->create(['department_id' => $department->id]);
         $overtime = Overtime::factory()->create(['user_id' => $employee->id]);
         
-        $browser->visit('/portal/overtimes')
-            ->type('#search', $employee->first_name)
-            ->pause(1000)
+        $this->visitAndWait($browser, '/portal/overtimes');
+        $browser->type('#overtimes-search', $employee->first_name)
+            ->pause(2000)
             ->assertSee($employee->first_name);
     });
 });
@@ -64,9 +64,12 @@ test('user can approve overtime', function () {
         $browser->visit('/portal/overtimes')
             ->click("#edit-overtime-{$overtime->id}")
             ->pause(500)
-            ->select('#approval_status', '1')
-            ->type('#approval_reason', 'Approved')
-            ->click('button:contains("Update")')
+            ->waitFor('#EditOvertimeModal', 5)
+            ->within('#EditOvertimeModal', function ($modal) {
+                $modal->select('#approval_status', '1')
+                    ->type('#approval_reason', 'Approved')
+                    ->press('#confirm-overtime-btn');
+            })
             ->pause(1000)
             ->assertSee('updated');
     });
@@ -86,9 +89,12 @@ test('user can reject overtime', function () {
         $browser->visit('/portal/overtimes')
             ->click("#edit-overtime-{$overtime->id}")
             ->pause(500)
-            ->select('#approval_status', '2')
-            ->type('#approval_reason', 'Rejected')
-            ->click('button:contains("Update")')
+            ->waitFor('#EditOvertimeModal', 5)
+            ->within('#EditOvertimeModal', function ($modal) {
+                $modal->select('#approval_status', '2')
+                    ->type('#approval_reason', 'Rejected')
+                    ->press('#confirm-overtime-btn');
+            })
             ->pause(1000)
             ->assertSee('updated');
     });
@@ -106,15 +112,17 @@ test('user can bulk approve overtimes', function () {
         ]);
         
         $browser->visit('/portal/overtimes')
-            ->check("input[type='checkbox'][value='{$overtimes[0]->id}']")
-            ->check("input[type='checkbox'][value='{$overtimes[1]->id}']")
+            ->click('.card')  // Click first overtime card to select it
             ->pause(500)
             ->click('#bulk-approve-overtimes-btn')
             ->pause(500)
-            ->type('#bulk_approval_reason', 'Bulk approved for testing')
-            ->press(__('common.approve'))
+            ->waitFor('#EditBulkOvertimeModal', 5)
+            ->within('#EditBulkOvertimeModal', function ($modal) {
+                $modal->type('#bulk_approval_reason', 'Bulk approved for testing')
+                    ->press('#bulk-overtime-confirm-btn');
+            })
             ->pause(1000)
-            ->assertSee('approved');
+            ->assertSee('updated');
     });
 });
 
@@ -131,7 +139,7 @@ test('user can delete an overtime', function () {
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Confirm');
+                $modal->press('#confirm-delete-btn');
             })
             ->pause(1000)
             ->assertSee('moved to trash');
@@ -170,7 +178,7 @@ test('user can restore a deleted overtime', function () {
             ->pause(500)
             ->waitFor('#RestoreModal', 5)
             ->within('#RestoreModal', function ($modal) {
-                $modal->press('Confirm Restore');
+                $modal->press('#confirm-restore-btn');
             })
             ->pause(1000)
             ->assertSee('restored');

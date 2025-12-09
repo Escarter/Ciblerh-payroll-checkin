@@ -13,10 +13,9 @@ beforeEach(function () {
 test('user can view absences page', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
-        
-        $browser->visit('/portal/absences')
-            ->pause(3000) // Wait for Livewire to load
-            ->assertPathIs('/portal/absences');
+
+        $this->visitAndWait($browser, '/portal/absences');
+        $browser->assertPathIs('/portal/absences');
         // Just verify page loaded - don't check for specific text as it might be translated
     });
 });
@@ -33,9 +32,9 @@ test('user can search for absences', function () {
             'department_id' => $department->id,
         ]);
         
-        $browser->visit('/portal/absences')
-            ->type('#search', $employee->first_name)
-            ->pause(1000)
+        $this->visitAndWait($browser, '/portal/absences');
+        $browser->type('#absences-search', $employee->first_name)
+            ->pause(2000)
             ->assertSee($employee->first_name);
     });
 });

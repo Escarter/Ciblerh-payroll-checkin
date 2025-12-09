@@ -2,16 +2,27 @@
 
 namespace App\Livewire\Portal\Leaves\Types;
 
-use Livewire\Component;
+use App\Livewire\BaseImportComponent;
 use App\Models\LeaveType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Livewire\Traits\WithDataTable;
+use App\Imports\LeaveTypeImport;
+use App\Exports\LeaveTypeExport;
+use Illuminate\Support\Str;
+use Livewire\WithFileUploads;
 
-class Index extends Component
+class Index extends BaseImportComponent
 {
-    use WithDataTable;
+    use WithDataTable, WithFileUploads;
+
+    protected $importType = 'leave_types';
+    protected $importPermission = 'leave_type-create';
+
+    // Cache for existing leave type names to avoid N+1 queries
+    protected $existingLeaveTypeNames;
+
     //
     public ?LeaveType $leave_type = null;
     public ?int $leave_type_id = null;
@@ -31,7 +42,20 @@ class Index extends Component
         'name' => 'required',
     ];
 
-  
+    /**
+     * Handle leave type file upload
+     */
+    public function updatedLeaveTypeFile()
+    {
+        // Validate the uploaded file
+        $this->validate([
+            'leave_type_file' => 'sometimes|nullable|mimes:xlsx,xls,csv,txt|max:' . ($this->maxFileSize * 1024)
+        ]);
+
+        // Clear previous preview when new file is uploaded
+        $this->clearPreview();
+    }
+
     public function mount()
     {
         $this->role = auth()->user()->getRoleNames()->first();
@@ -208,22 +232,15 @@ class Index extends Component
 
     public function import()
     {
-        $this->validate([
-            'leave_type_file' => 'sometimes|nullable|mimes:xlsx,csv|max:500',
-        ]);
-        Excel::import(new LeaveTypeImport(), $this->leave_type_file);
-        auditLog(
-            auth()->user(),
-            'leave_type_imported',
-            'web',
-            __('leaves.imported_excel_file_for_leavetype')
-        );
-
-        $this->clearFields();
-        $this->closeModalAndFlashMessage(__('leaves.leavetype_successfully_imported'), 'importLeaveTypesModal');
+        // Use the parent import method from BaseImportComponent
+        parent::import();
     }
     public function export()
     {
+        if (!Gate::allows('leave_type-read')) {
+            return abort(401);
+        }
+
         auditLog(
             auth()->user(),
             'leave_type_exported',
@@ -234,14 +251,6 @@ class Index extends Component
     }
 
 
-    public function clearFields()
-    {
-        $this->reset([
-            'name',
-            'default_number_of_days',
-            'description',
-        ]);
-    }
 
     public function render()
     {
@@ -263,6 +272,145 @@ class Index extends Component
             'inactive_leave_types' => $inactive_leave_types,
             'deleted_leave_types' => $deleted_leave_types,
         ])->layout('components.layouts.dashboard');
+    }
+
+    /**
+     * Get import columns for leave type preview
+     */
+    protected function getImportColumns(): array
+    {
+        return [
+            0 => __('leaves.leave_type'),
+            1 => __('common.description'),
+            2 => __('leaves.default_number_of_days'),
+            3 => __('common.status'),
+        ];
+    }
+
+    /**
+     * Get column definitions for preview
+     */
+    public function getPreviewColumns(): array
+    {
+        return $this->getImportColumns();
+    }
+
+    /**
+     * Override to return correct file property for this component
+     */
+    protected function getFileProperty()
+    {
+        return $this->leave_type_file ?? null;
+    }
+
+    /**
+     * Get company ID (not needed for leave types)
+     */
+    protected function getCompanyId(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Get department ID (not needed for leave types)
+     */
+    protected function getDepartmentId(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Validate a single leave type preview row
+     */
+    protected function validatePreviewRow(array $rowData, int $rowNumber): array
+    {
+        $errors = [];
+        $warnings = [];
+
+        try {
+            // Validate leave type name
+            if (empty($rowData[0] ?? '')) {
+                $errors[] = __('leaves.leave_type_name_required');
+            } elseif ($this->isLeaveTypeNameExists($rowData[0])) {
+                $warnings[] = __('leaves.leave_type_already_exists');
+            }
+
+            // Validate default number of days
+            if (!empty($rowData[2] ?? '')) {
+                $days = $rowData[2];
+                if (!is_numeric($days) || $days < 0) {
+                    $errors[] = __('leaves.default_number_of_days_must_be_positive_number');
+                }
+            }
+
+            // Validate status
+            if (!empty($rowData[3] ?? '')) {
+                $status = strtolower($rowData[3]);
+                if (!in_array($status, ['true', 'false', '1', '0', 'yes', 'no'])) {
+                    $errors[] = __('common.status_must_be_boolean');
+                }
+            }
+
+        } catch (\Exception $e) {
+            $errors[] = __('common.row_validation_error', ['error' => $e->getMessage()]);
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => $warnings
+        ];
+    }
+
+    /**
+     * Preload validation data to optimize performance
+     */
+    protected function preloadValidationData(): void
+    {
+        // Cache existing leave type names to avoid N+1 queries during validation
+        // Limit results to prevent timeouts
+        if (!isset($this->existingLeaveTypeNames)) {
+            $this->existingLeaveTypeNames = LeaveType::limit(1000) // Reasonable limit for leave types
+                ->pluck('name')
+                ->map(function($name) {
+                    return strtolower(trim($name));
+                })
+                ->toArray();
+        }
+    }
+
+    /**
+     * Check if leave type name exists (optimized to avoid N+1 queries)
+     */
+    protected function isLeaveTypeNameExists(string $name): bool
+    {
+        return in_array(strtolower(trim($name)), $this->existingLeaveTypeNames ?? []);
+    }
+
+    /**
+     * Perform the actual leave type import
+     */
+    protected function performImport()
+    {
+        Excel::import(new LeaveTypeImport(), $this->leave_type_file);
+
+        return [
+            'imported_count' => 'unknown', // Excel import doesn't return count easily
+        ];
+    }
+
+    /**
+     * Clear leave type-specific fields
+     */
+    public function clearFields()
+    {
+        parent::clearFields();
+        $this->leave_type_file = null;
+        $this->reset([
+            'name',
+            'default_number_of_days',
+            'description',
+        ]);
     }
 
 

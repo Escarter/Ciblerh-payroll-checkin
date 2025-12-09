@@ -13,7 +13,7 @@
                 <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
                     <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
                         <li class="breadcrumb-item">
-                            <a href="#">
+                            <a href="{{ route('portal.dashboard') }}">
                                 <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg>
@@ -161,12 +161,12 @@
     <div class="row py-3">
         <div class="col-md-3">
             <label for="search">{{__('common.search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
+            <input wire:model.live="query" id="leaves-search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
             <label for="orderBy">{{__('common.order_by')}}: </label>
-            <select wire:model.live="orderBy" id="orderBy" class="form-select">
+            <select wire:model.live="orderBy" id="leaves-order-by" class="form-select">
                 <option value="start_date">{{__('leaves.start_date')}}</option>
                 <option value="end_date">{{__('leaves.end_date')}}</option>
                 <option value="leave_reason">{{__('common.reason')}}</option>
@@ -185,7 +185,7 @@
 
         <div class="col-md-3">
             <label for="perPage">{{__('common.items_per_page')}}: </label>
-            <select wire:model.live="perPage" id="perPage" class="form-select">
+            <select wire:model.live="perPage" id="leaves-per-page" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="15">15</option>
@@ -210,14 +210,14 @@
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_leaves ?? 0 }}</span>
             </button>
 
-            <button id="deleted-leaves-tab" class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+            <button id="deleted-leaves-tab" class="btn {{ $activeTab === 'deleted' ? 'btn-danger' : 'btn-outline-danger' }}"
                 wire:click="switchTab('deleted')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
                 {{__('common.deleted')}}
-                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_leaves ?? 0 }}</span>
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-danger text-white' }} ms-1">{{ $deleted_leaves ?? 0 }}</span>
             </button>
         </div>
 

@@ -2,13 +2,13 @@
  <div class="d-flex align-items-center">
      {{-- Language Switcher --}}
      <div class="d-flex align-items-center text-gray-500 me-2 me-md-3">
-         <a class="btn btn-sm {{ \App::isLocale('fr') ? 'btn-outline-secondary' : 'btn-outline-light' }} rounded-start border-0 px-1 px-md-2"
+         <a class="btn btn-sm {{ \App::isLocale('fr') ? 'btn-secondary' : '' }}  "
              href="{{route('language-switcher',['locale'=>'fr'])}}" wire:navigate
              title="Français">
              <span class="d-inline d-md-none">🇫🇷</span>
              <span class="d-none d-md-inline">FR</span>
          </a>
-         <a class="btn btn-sm {{ \App::isLocale('en') ? 'btn-outline-secondary' : 'btn-outline-light' }} rounded-end border-0 px-1 px-md-2"
+         <a class="btn btn-sm {{ \App::isLocale('en') ? 'btn-secondary' : '' }} rounded-end border-0 px-1 px-md-2"
              href="{{route('language-switcher',['locale'=>'en'])}}" wire:navigate
              title="English">
              <span class="d-inline d-md-none">🇺🇸</span>

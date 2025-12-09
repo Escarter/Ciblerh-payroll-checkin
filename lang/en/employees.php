@@ -12,7 +12,7 @@ return [
     'employees_management' => 'Employees Management',
     'employee' => 'Employee',
     'create_manager' => 'Create Manager',
-    'total_employees' => 'Total Employees',
+    'total_employees' => 'Employees',
     'create_employee' => 'Create Employee',
     'edit_employee' => 'Edit Employee',
     'employee_created_successfully' => 'Employee created successfully!',
@@ -65,7 +65,10 @@ return [
 
     // Import/Export
     'company_required_for_import' => 'Company is required for employee import',
+    'select_company_for_import' => 'Select the company where employees will be imported',
     'company_context_required' => 'Company context is required for employee import',
+    'role_must_be_valid' => 'Role must be one of: employee, supervisor, manager',
+    'import_completed' => 'Import completed successfully',
 
     // SMS/Email notifications
     'receive_sms_notifications' => 'Receive SMS notifications for payslips',
@@ -158,7 +161,6 @@ return [
     'view_all_absences_recorded' => 'View all your absences recorded so far',
     'request_absence' => 'Request Absence',
     'absence_date' => 'Absence Date',
-    'attachment_link' => 'Attachment Link',
     'view_attachment' => 'view attachment',
     'recorded_absence_message' => 'Recorded absence to see them here!',
     'absence_request_submitted' => 'Absence request successfully submitted - nice 😍!',
@@ -183,7 +185,7 @@ return [
     'advance_salaries' => 'Advance salaries',
     'advance_salaries_management' => 'Advance salaries Management',
     'manage_advance_salaries_requests' => 'Manage Employees Advance salaries requests!',
-    'total_advance_salaries' => 'Total advance salaries',
+    'total_advance_salaries' => 'Advance Salaries',
     'advance_salary_record' => 'advance salary record',
     'update_or_approve_advance_salary' => 'Update or Approve Advance Salary',
     'update_or_approve_employee_advance_salary_request' => 'Update or approve employee advance salary request',
@@ -240,7 +242,7 @@ return [
 
     // Portal Checklog specific
     'manage_employees_checkins' => 'Manage Employees checkins to you!',
-    'total_checkins' => 'Total Checkins',
+    'total_checkins' => 'Checkins',
     'recorded_by_employees' => 'recorded by employees',
     'you_approved' => 'you approved!',
     'you_rejected' => 'you rejected!',
@@ -392,7 +394,7 @@ return [
     'all_employees' => 'All Employees',
     'all_employees_under_my_supervision' => 'All employees under my supervision',
     'new_manager' => 'New Manager',
-    'total_employees' => 'Total Employees',
+    'total_employees' => 'Employees',
     'who_are_banned' => 'who are banned!',
     'details' => 'Details',
     'created' => 'Created',
@@ -411,7 +413,7 @@ return [
     'permanently_delete_selected_employees' => 'Permanently Delete Selected Employees',
 
     // Employee Form Labels
-    'total_leave_days' => 'Total Leave Days',
+    'total_leave_days' => 'Leave Days',
     'monthly_allocations' => 'Monthly Allocations',
     'contract_end_date' => 'Contract End Date',
     'create_employee_password' => 'Create Employee\'s Password',
@@ -453,4 +455,25 @@ return [
 
     // Additional keys
     'employee_info' => 'Employee Info',
+
+    // Import validation keys
+    'first_name_required' => 'First name is required',
+    'last_name_required' => 'Last name is required',
+    'email_required' => 'Email is required',
+    'email_already_exists' => 'Email already exists',
+    'professional_phone_required' => 'Professional phone number is required',
+    'matricule_required' => 'Matricule is required',
+    'matricule_already_exists' => 'Matricule already exists',
+    'position_required' => 'Position is required',
+    'net_salary_required_numeric' => 'Net salary is required and must be numeric',
+    'salary_grade_required' => 'Salary grade is required',
+    'department_required' => 'Department is required',
+    'service_required' => 'Service is required',
+    'role_required' => 'Role is required',
+    'role_invalid' => 'Role is invalid. Must be employee, supervisor, or manager',
+    'work_start_time_invalid_format' => 'Work start time must be in HH:MM format',
+    'work_end_time_invalid_format' => 'Work end time must be in HH:MM format',
+    'work_start_time_must_be_before_end' => 'Work start time must be before work end time',
+    'personal_phone_invalid' => 'Personal phone number is invalid',
+    'alternative_email_invalid' => 'Alternative email is invalid',
 ];

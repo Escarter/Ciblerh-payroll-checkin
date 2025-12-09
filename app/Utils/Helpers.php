@@ -424,6 +424,340 @@ if (!function_exists('detectCountryCodeFromPhone')) {
     }
 }
 
+if (!function_exists('findOrCreateDepartment')) {
+    /**
+     * Find department by name or create if allowed
+     *
+     * @param string $departmentName Department name to find/create
+     * @param int $companyId Company ID
+     * @param bool $autoCreate Whether to auto-create if not found
+     * @return array ['found' => bool, 'department' => Department|null, 'error' => string|null]
+     */
+    function findOrCreateDepartment(string $departmentName, int $companyId, bool $autoCreate = false): array
+    {
+        if (empty(trim($departmentName))) {
+            return [
+                'found' => false,
+                'department' => null,
+                'error' => __('Department name cannot be empty')
+            ];
+        }
+
+        $department = \App\Models\Department::where('company_id', $companyId)
+            ->where('name', trim($departmentName))
+            ->first();
+
+        if ($department) {
+            return [
+                'found' => true,
+                'department' => $department,
+                'error' => null
+            ];
+        }
+
+        if (!$autoCreate) {
+            return [
+                'found' => false,
+                'department' => null,
+                'error' => __('Department ":name" not found in company. Available departments: :departments', [
+                    'name' => $departmentName,
+                    'departments' => \App\Models\Department::where('company_id', $companyId)->pluck('name')->join(', ')
+                ])
+            ];
+        }
+
+        try {
+            $department = \App\Models\Department::create([
+                'name' => trim($departmentName),
+                'company_id' => $companyId,
+                'author_id' => auth()->id(),
+            ]);
+
+            return [
+                'found' => true,
+                'department' => $department,
+                'error' => null
+            ];
+        } catch (\Exception $e) {
+            return [
+                'found' => false,
+                'department' => null,
+                'error' => __('Failed to create department ":name": :error', [
+                    'name' => $departmentName,
+                    'error' => $e->getMessage()
+                ])
+            ];
+        }
+    }
+}
+
+if (!function_exists('findOrCreateService')) {
+    /**
+     * Find service by name or create if allowed
+     *
+     * @param string $serviceName Service name to find/create
+     * @param int $departmentId Department ID
+     * @param int $companyId Company ID
+     * @param bool $autoCreate Whether to auto-create if not found
+     * @return array ['found' => bool, 'service' => Service|null, 'error' => string|null]
+     */
+    function findOrCreateService(string $serviceName, int $departmentId, int $companyId, bool $autoCreate = false): array
+    {
+        if (empty(trim($serviceName))) {
+            return [
+                'found' => false,
+                'service' => null,
+                'error' => __('Service name cannot be empty')
+            ];
+        }
+
+        $service = \App\Models\Service::where('department_id', $departmentId)
+            ->where('name', trim($serviceName))
+            ->first();
+
+        if ($service) {
+            return [
+                'found' => true,
+                'service' => $service,
+                'error' => null
+            ];
+        }
+
+        if (!$autoCreate) {
+            return [
+                'found' => false,
+                'service' => null,
+                'error' => __('Service ":name" not found in department. Available services: :services', [
+                    'name' => $serviceName,
+                    'services' => \App\Models\Service::where('department_id', $departmentId)->pluck('name')->join(', ')
+                ])
+            ];
+        }
+
+        try {
+            $service = \App\Models\Service::create([
+                'name' => trim($serviceName),
+                'department_id' => $departmentId,
+                'company_id' => $companyId,
+                'author_id' => auth()->id(),
+            ]);
+
+            return [
+                'found' => true,
+                'service' => $service,
+                'error' => null
+            ];
+        } catch (\Exception $e) {
+            return [
+                'found' => false,
+                'service' => null,
+                'error' => __('Failed to create service ":name": :error', [
+                    'name' => $serviceName,
+                    'error' => $e->getMessage()
+                ])
+            ];
+        }
+    }
+}
+
+if (!function_exists('findOrCreateCompany')) {
+    /**
+     * Find company by name or create if allowed
+     *
+     * @param string $companyName Company name to find/create
+     * @param bool $autoCreate Whether to auto-create if not found
+     * @return array ['found' => bool, 'company' => Company|null, 'error' => string|null]
+     */
+    function findOrCreateCompany(string $companyName, bool $autoCreate = false): array
+    {
+        if (empty(trim($companyName))) {
+            return [
+                'found' => false,
+                'company' => null,
+                'error' => __('Company name cannot be empty')
+            ];
+        }
+
+        $company = \App\Models\Company::where('name', trim($companyName))->first();
+
+        if ($company) {
+            return [
+                'found' => true,
+                'company' => $company,
+                'error' => null
+            ];
+        }
+
+        if (!$autoCreate) {
+            return [
+                'found' => false,
+                'company' => null,
+                'error' => __('Company ":name" not found. Available companies: :companies', [
+                    'name' => $companyName,
+                    'companies' => \App\Models\Company::pluck('name')->join(', ')
+                ])
+            ];
+        }
+
+        try {
+            $company = \App\Models\Company::create([
+                'name' => trim($companyName),
+                'author_id' => auth()->id(),
+            ]);
+
+            return [
+                'found' => true,
+                'company' => $company,
+                'error' => null
+            ];
+        } catch (\Exception $e) {
+            return [
+                'found' => false,
+                'company' => null,
+                'error' => __('Failed to create company ":name": :error', [
+                    'name' => $companyName,
+                    'error' => $e->getMessage()
+                ])
+            ];
+        }
+    }
+}
+
+if (!function_exists('findDepartmentByName')) {
+    /**
+     * Find department by name with fuzzy matching
+     *
+     * @param string $departmentName Department name to find
+     * @param int $companyId Company ID
+     * @return array ['found' => bool, 'department' => Department|null, 'suggestions' => array, 'error' => string|null]
+     */
+    function findDepartmentByName(string $departmentName, int $companyId): array
+    {
+        if (empty(trim($departmentName))) {
+            return [
+                'found' => false,
+                'department' => null,
+                'suggestions' => [],
+                'error' => __('Department name cannot be empty')
+            ];
+        }
+
+        $departments = \App\Models\Department::where('company_id', $companyId)->get();
+
+        // Exact match
+        $exactMatch = $departments->first(fn($dept) => strcasecmp($dept->name, trim($departmentName)) === 0);
+        if ($exactMatch) {
+            return [
+                'found' => true,
+                'department' => $exactMatch,
+                'suggestions' => [],
+                'error' => null
+            ];
+        }
+
+        // Fuzzy matching
+        $suggestions = [];
+        $searchName = strtolower(trim($departmentName));
+
+        foreach ($departments as $dept) {
+            $deptName = strtolower($dept->name);
+            $similarity = 0;
+
+            // Calculate similarity
+            similar_text($searchName, $deptName, $similarity);
+
+            if ($similarity >= 60) { // 60% similarity threshold
+                $suggestions[] = [
+                    'name' => $dept->name,
+                    'similarity' => round($similarity, 1)
+                ];
+            }
+        }
+
+        // Sort suggestions by similarity
+        usort($suggestions, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
+
+        return [
+            'found' => false,
+            'department' => null,
+            'suggestions' => array_slice($suggestions, 0, 3), // Top 3 suggestions
+            'error' => __('Department ":name" not found. :suggestions', [
+                'name' => $departmentName,
+                'suggestions' => !empty($suggestions)
+                    ? __('Did you mean: :names?', ['names' => collect($suggestions)->pluck('name')->join(', ')])
+                    : __('Available departments: :names', ['names' => $departments->pluck('name')->join(', ')])
+            ])
+        ];
+    }
+}
+
+if (!function_exists('findServiceByName')) {
+    /**
+     * Find service by name with fuzzy matching
+     *
+     * @param string $serviceName Service name to find
+     * @param int $departmentId Department ID
+     * @return array ['found' => bool, 'service' => Service|null, 'suggestions' => array, 'error' => string|null]
+     */
+    function findServiceByName(string $serviceName, int $departmentId): array
+    {
+        if (empty(trim($serviceName))) {
+            return [
+                'found' => false,
+                'service' => null,
+                'suggestions' => [],
+                'error' => __('Service name cannot be empty')
+            ];
+        }
+
+        $services = \App\Models\Service::where('department_id', $departmentId)->get();
+
+        // Exact match
+        $exactMatch = $services->first(fn($svc) => strcasecmp($svc->name, trim($serviceName)) === 0);
+        if ($exactMatch) {
+            return [
+                'found' => true,
+                'service' => $exactMatch,
+                'suggestions' => [],
+                'error' => null
+            ];
+        }
+
+        // Fuzzy matching
+        $suggestions = [];
+        $searchName = strtolower(trim($serviceName));
+
+        foreach ($services as $svc) {
+            $svcName = strtolower($svc->name);
+            $similarity = 0;
+
+            similar_text($searchName, $svcName, $similarity);
+
+            if ($similarity >= 60) { // 60% similarity threshold
+                $suggestions[] = [
+                    'name' => $svc->name,
+                    'similarity' => round($similarity, 1)
+                ];
+            }
+        }
+
+        // Sort suggestions by similarity
+        usort($suggestions, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
+
+        return [
+            'found' => false,
+            'service' => null,
+            'suggestions' => array_slice($suggestions, 0, 3), // Top 3 suggestions
+            'error' => __('Service ":name" not found. :suggestions', [
+                'name' => $serviceName,
+                'suggestions' => !empty($suggestions)
+                    ? __('Did you mean: :names?', ['names' => collect($suggestions)->pluck('name')->join(', ')])
+                    : __('Available services: :names', ['names' => $services->pluck('name')->join(', ')])
+            ])
+        ];
+    }
+}
+
 if (!function_exists('validateEmail')) {
     /**
      * Validate email address with comprehensive checks

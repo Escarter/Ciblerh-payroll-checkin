@@ -14,8 +14,8 @@ test('user can view checklogs page', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         
-        $browser->visit('/portal/checklogs')
-            ->assertSee('Checklogs')
+        $this->visitAndWait($browser, '/portal/checklogs');
+        $browser->assertSee('Checkins')
             ->assertPathIs('/portal/checklogs');
     });
 });
@@ -28,9 +28,9 @@ test('user can search for checklogs', function () {
         $employee = User::factory()->create(['department_id' => $department->id]);
         $checklog = Ticking::factory()->create(['user_id' => $employee->id]);
         
-        $browser->visit('/portal/checklogs')
-            ->type('#search', $employee->first_name)
-            ->pause(1000)
+        $this->visitAndWait($browser, '/portal/checklogs');
+        $browser->type('#checklogs-search', $employee->first_name)
+            ->pause(2000)
             ->assertSee($employee->first_name);
     });
 });
@@ -43,9 +43,9 @@ test('user can view checklog details', function () {
         $employee = User::factory()->create(['department_id' => $department->id]);
         $checklog = Ticking::factory()->create(['user_id' => $employee->id]);
         
-        $browser->visit('/portal/checklogs')
-            ->click("button[wire\\:click='initData({$checklog->id})']")
-            ->pause(500)
+        $this->visitAndWait($browser, '/portal/checklogs');
+        $browser->click("#view-checklog-btn-{$checklog->id}")
+            ->pause(1000)
             ->assertSee($employee->name);
     });
 });

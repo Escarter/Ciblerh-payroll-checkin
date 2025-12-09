@@ -10,12 +10,16 @@
 
     <meta name="theme-color" content="#1F2937">
 
+    <link rel="icon" href="{{ asset('img/fav.jpg') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ asset('img/fav.jpg') }}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{ asset('img/fav.jpg') }}">
+
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap" rel="stylesheet">
 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>{{env('APP_NAME') ?? 'WiMa HR'}}</title>
+    <title>{{env('APP_NAME') ?? __('app.ciblerh')}}</title>
 
 
     <meta name="msapplication-TileColor" content="#1F2937">
@@ -32,7 +36,11 @@
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/themes/default.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('css/theme.css')}}" rel="stylesheet">
     <style>
-             /* Custom sidebar and content layout adjustments */
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Custom sidebar and content layout adjustments */
         @media (min-width: 768px) {
             .sidebar {
                 width: 100%;
@@ -59,7 +67,7 @@
         }
     </style>
     @livewireStyles
-    
+
     <!-- Alpine.js Choices Multi-Select Component -->
     <script>
         document.addEventListener('alpine:init', () => {
@@ -112,7 +120,10 @@
                                 for (const [value, label] of Object.entries(event.detail.options)) {
                                     uniqueOptionsMap[value] = label;
                                 }
-                                const uniqueChoices = Object.entries(uniqueOptionsMap).map(([value, label]) => ({ value, label }));
+                                const uniqueChoices = Object.entries(uniqueOptionsMap).map(([value, label]) => ({
+                                    value,
+                                    label
+                                }));
 
                                 // Replace all choices with new unique choices
                                 this.selectInstance.setChoices(uniqueChoices, 'value', 'label', true);
@@ -121,7 +132,7 @@
                                 this.selectInstance.removeActiveItems();
                                 this.selectInstance.setValue([]);
                                 this.$wire.set(wireModel, []);
-                                
+
                                 // Set selected values if provided in the event
                                 if (event.detail.selected && Array.isArray(event.detail.selected)) {
                                     this.selectInstance.setChoiceByValue(event.detail.selected);
@@ -165,14 +176,14 @@
                     filteredOptions: [],
                     init() {
                         this.loadOptions();
-                        
+
                         // Set initial value
                         const initialValue = this.$wire.get(wireModel);
                         if (initialValue) {
                             this.selectedValue = initialValue;
                             this.updateSelectedLabel();
                         }
-                        
+
                         // Watch for Livewire updates
                         this.$wire.$watch(wireModel, (value) => {
                             if (value !== this.selectedValue) {
@@ -180,7 +191,7 @@
                                 this.updateSelectedLabel();
                             }
                         });
-                        
+
                         // Listen for departments-updated if this is department field
                         if (selectId === 'departmentSelect') {
                             window.addEventListener('departments-updated', () => {
@@ -192,17 +203,20 @@
                                 }, 150);
                             });
                         }
-                        
+
                         // Watch for option changes in the select (for Livewire updates)
                         const observer = new MutationObserver(() => {
                             this.loadOptions();
                         });
-                        
+
                         const select = this.$refs[selectId];
                         if (select) {
-                            observer.observe(select, { childList: true, subtree: true });
+                            observer.observe(select, {
+                                childList: true,
+                                subtree: true
+                            });
                         }
-                        
+
                         // Close on outside click
                         this.$watch('open', (value) => {
                             if (value) {
@@ -215,7 +229,7 @@
                     loadOptions() {
                         const select = this.$refs[selectId];
                         if (!select) return;
-                        
+
                         this.options = Array.from(select.options).map(opt => ({
                             value: opt.value,
                             label: opt.text,
@@ -233,9 +247,9 @@
                             this.filteredOptions = this.options;
                             return;
                         }
-                        
+
                         const searchLower = this.search.toLowerCase();
-                        this.filteredOptions = this.options.filter(opt => 
+                        this.filteredOptions = this.options.filter(opt =>
                             opt.searchText.includes(searchLower)
                         );
                     },
@@ -263,7 +277,7 @@
             });
         });
     </script>
-    
+
     <style>
         * {
             font-family: 'Poppins', sans-serif;
@@ -318,7 +332,7 @@
                 const modal = document.getElementById(modalId);
 
                 modalEl = bootstrap.Modal.getInstance(modal)
-                if (modalEl){
+                if (modalEl) {
                     modalEl.hide()
                 }
 

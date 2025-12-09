@@ -12,7 +12,7 @@ return [
     'employees_management' => 'Gestion des Employés',
     'employee' => 'Employé',
     'create_manager' => 'Créer un manager',
-    'total_employees' => 'Total des employés',
+    'total_employees' => 'Employés',
     'create_employee' => 'Créer un employé',
     'edit_employee' => 'Modifier l\'employé',
     'employee_created_successfully' => 'Employé créé avec succès!',
@@ -65,7 +65,10 @@ return [
 
     // Import/Export
     'company_required_for_import' => 'La société est requise pour l\'import d\'employés',
+    'select_company_for_import' => 'Sélectionnez la société où les employés seront importés',
     'company_context_required' => 'Le contexte de la société est requis pour l\'import d\'employés',
+    'role_must_be_valid' => 'Le rôle doit être l\'un des suivants : employee, supervisor, manager',
+    'import_completed' => 'Importation terminée avec succès',
 
     // SMS/Email notifications
     'receive_sms_notifications' => 'Recevoir les notifications SMS pour les fiches de paie',
@@ -158,7 +161,6 @@ return [
     'view_all_absences_recorded' => 'Voir toutes vos absences enregistrées jusqu\'à présent',
     'request_absence' => 'Demander une absence',
     'absence_date' => 'Date d\'absence',
-    'attachment_link' => 'Lien de pièce jointe',
     'view_attachment' => 'voir la pièce jointe',
     'recorded_absence_message' => 'Enregistrez une absence pour les voir ici!',
     'absence_request_submitted' => 'Demande d\'absence soumise avec succès - sympa 😍!',
@@ -240,7 +242,7 @@ return [
 
     // Portail de pointages spécifiques
     'manage_employees_checkins' => 'Gérer les pointages des employés vers vous!',
-    'total_checkins' => 'Total des pointages',
+    'total_checkins' => 'Pointages',
     'recorded_by_employees' => 'enregistrés par les employés',
     'you_approved' => 'vous avez approuvé!',
     'you_rejected' => 'vous avez rejeté!',
@@ -392,7 +394,7 @@ return [
     'all_employees' => 'Tous les employés',
     'all_employees_under_my_supervision' => 'Tous les employés sous ma supervision',
     'new_manager' => 'Nouveau manager',
-    'total_employees' => 'Total des employés',
+    'total_employees' => 'Employés',
     'who_are_banned' => 'qui sont bannis!',
     'details' => 'Détails',
     'created' => 'Créé',
@@ -453,4 +455,25 @@ return [
 
     // Additional keys
     'employee_info' => 'Informations employé',
+
+    // Import validation keys
+    'first_name_required' => 'Le prénom est requis',
+    'last_name_required' => 'Le nom de famille est requis',
+    'email_required' => 'L\'email est requis',
+    'email_already_exists' => 'L\'email existe déjà',
+    'professional_phone_required' => 'Le numéro de téléphone professionnel est requis',
+    'matricule_required' => 'Le matricule est requis',
+    'matricule_already_exists' => 'Le matricule existe déjà',
+    'position_required' => 'Le poste est requis',
+    'net_salary_required_numeric' => 'Le salaire net est requis et doit être numérique',
+    'salary_grade_required' => 'Le grade salarial est requis',
+    'department_required' => 'Le département est requis',
+    'service_required' => 'Le service est requis',
+    'role_required' => 'Le rôle est requis',
+    'role_invalid' => 'Le rôle est invalide. Doit être employé, superviseur, ou manager',
+    'work_start_time_invalid_format' => 'L\'heure de début de travail doit être au format HH:MM',
+    'work_end_time_invalid_format' => 'L\'heure de fin de travail doit être au format HH:MM',
+    'work_start_time_must_be_before_end' => 'L\'heure de début de travail doit être avant l\'heure de fin',
+    'personal_phone_invalid' => 'Le numéro de téléphone personnel est invalide',
+    'alternative_email_invalid' => 'L\'email alternatif est invalide',
 ];

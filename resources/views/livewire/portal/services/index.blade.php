@@ -1,7 +1,6 @@
 <div>
     <x-alert />
     @include('livewire.portal.services.service-form')
-    @include('livewire.portal.services.import-services')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('services.service') : __('services.services')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedServices, 'itemType' => count($selectedServices) === 1 ? __('services.service') : __('services.services')])
@@ -14,7 +13,7 @@
                 <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
                     <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
                         <li class="breadcrumb-item">
-                            <a href="#">
+                            <a href="{{ route('portal.dashboard') }}">
                                 <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg>
@@ -37,14 +36,14 @@
             <div>
                 <div class="d-flex justify-content-between">
                     @can('service-create')
-                    <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#ServiceModal" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
+                    <a href="#" wire:click.prevent="openCreateModal" data-bs-toggle="modal" data-bs-target="#ServiceModal" id="create-service-btn" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg> {{__('common.new')}}
                     </a>
                     @endcan
                     @can('service-import')
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#importServicesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
+                    <a href="{{ route('portal.import-jobs.index') }}" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg> {{__('common.import')}}
@@ -192,7 +191,8 @@
         <div class="d-flex gap-2">
             <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
-                type="button">
+                type="button"
+                id="active-services-tab">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
@@ -200,14 +200,15 @@
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_services ?? 0 }}</span>
             </button>
 
-            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+            <button class="btn {{ $activeTab === 'deleted' ? 'btn-danger' : 'btn-outline-danger' }}"
                 wire:click="switchTab('deleted')"
-                type="button">
+                type="button"
+                id="deleted-services-tab">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
                 {{__('common.deleted')}}
-                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_services ?? 0 }}</span>
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-danger text-white' }} ms-1">{{ $deleted_services ?? 0 }}</span>
             </button>
         </div>
 
@@ -215,7 +216,8 @@
         <div class="d-flex align-items-center gap-2">
             <!-- Select All Button -->
             @if(count($services) > 0)
-            <button wire:click="toggleSelectAll" 
+            <button wire:click="toggleSelectAll"
+                    id="select-all-services-checkbox"
                     class="btn btn-sm {{ $selectAll ? 'btn-primary' : 'btn-outline-primary' }} d-flex align-items-center">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -229,8 +231,9 @@
             @if($activeTab === 'active')
             @can('service-delete')
             <button type="button"
+                id="bulk-delete-services-btn"
                 class="btn btn-sm btn-danger d-flex align-items-center"
-                data-bs-toggle="modal" 
+                data-bs-toggle="modal"
                 data-bs-target="#BulkDeleteModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -352,14 +355,14 @@
                     <div class="d-flex align-items-center gap-2">
                         @if($activeTab === 'active')
                         @can('service-update')
-                        <a href="#" wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#ServiceModal" draggable="false" onclick="event.stopPropagation();" title="{{__('services.edit_service')}}">
+                        <a href="#" wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#ServiceModal" draggable="false" onclick="event.stopPropagation();" title="{{__('services.edit_service')}}" id="edit-service-{{$service->id}}">
                             <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                         </a>
                         @endcan
                         @can('service-delete')
-                        <a href="#" wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('common.move_to_trash')}}">
+                        <a href="#" wire:click.prevent="initData({{$service->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{__('common.move_to_trash')}}" id="delete-service-{{$service->id}}">
                             <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -367,7 +370,7 @@
                         @endcan
                         @else
                         @can('service-delete')
-                        <a href="#" wire:click.prevent="$set('service_id', {{$service->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('services.restore_service')}}" onclick="event.stopPropagation();">
+                        <a href="#" wire:click.prevent="$set('service_id', {{$service->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('services.restore_service')}}" onclick="event.stopPropagation();" id="restore-service-{{$service->id}}">
                             <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>

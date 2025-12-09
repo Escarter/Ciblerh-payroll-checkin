@@ -37,9 +37,9 @@ test('user can search for download jobs', function () {
             'file_name' => 'test-report.xlsx',
         ]);
         
-        $browser->visit('/portal/download-jobs')
-            ->type('#searchQuery', 'test-report')
-            ->pause(1000)
+        $this->visitAndWait($browser, '/portal/download-jobs');
+        $browser->type('#download-jobs-search', 'test-report')
+            ->pause(2000)
             ->assertSee('test-report');
     });
 });

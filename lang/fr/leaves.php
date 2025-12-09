@@ -42,6 +42,7 @@ return [
     'selected_leave_types_permanently_deleted' => 'Types de congé sélectionnés supprimés définitivement!',
     'leavetype_successfully_imported' => 'Type de congé importé avec succès!',
     'imported_excel_file_for_leavetype' => 'Fichier Excel importé pour Type de congé',
+    'import_completed' => 'Importation terminée avec succès',
     'exported_excel_file_for_leavetype' => 'Fichier Excel exporté pour Type de congé',
 
     // Leave fields
@@ -113,6 +114,9 @@ return [
     'edit_leave_type' => 'Modifier le type de congé',
     'edit_leave_type_details' => 'Modifier les détails du type de congé',
     'no_leave_type_found' => 'Aucun type de congé trouvé..!',
+    'leave_type_name_required' => 'Le nom du type de congé est requis',
+    'leave_type_already_exists' => 'Le type de congé existe déjà',
+    'default_number_of_days_must_be_positive_number' => 'Le nombre de jours par défaut doit être un nombre positif',
 
     // Bulk Operations
     'move_selected_leave_records_to_trash' => 'Déplacer les enregistrements de congé sélectionnés vers la corbeille',

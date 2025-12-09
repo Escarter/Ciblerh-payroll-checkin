@@ -75,6 +75,7 @@ return [
     'department_required_for_service_import' => 'Le département est requis pour l\'import de service',
     'department_must_belong_to_company' => 'Le département doit appartenir à une société pour l\'import de service',
     'department_context_required' => 'Le contexte du département est requis pour l\'import de service',
+    'import_completed' => 'Importation terminée avec succès',
 
     // Permissions
     'cannot_permanently_delete_service' => 'Impossible de supprimer définitivement le service. Il a des enregistrements de pointage liés.',
@@ -87,4 +88,8 @@ return [
     'in_for_this_department' => 'pour ce département',
     'for_these_departments' => 'pour ces départements',
     'new' => 'Nouveau',
+
+    // Import validation messages
+    'name_required' => 'Le nom du service est requis',
+    'name_already_exists' => 'Le nom du service existe déjà dans ce département',
 ];

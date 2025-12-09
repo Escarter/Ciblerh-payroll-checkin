@@ -233,7 +233,7 @@
                                         {{__('settings.do_not_remove_email_placeholders')}} <strong class="fw-bolder"> :name: </strong>,{{__('settings.email_placeholder_note')}}
                                     </div>
                                     <div class="mt-4 mb-0 form-group d-flex justify-content-end">
-                                        <button type="submit" wire:click.prevent="saveSmtpConfig" class="btn btn-primary" wire:loading.attr="disabled">
+                                        <button type="submit" id="save-birthday-email-config-btn" wire:click.prevent="saveSmtpConfig" class="btn btn-primary" wire:loading.attr="disabled">
                                             {{ __('settings.save_mail_config') }}
                                         </button>
                                     </div>

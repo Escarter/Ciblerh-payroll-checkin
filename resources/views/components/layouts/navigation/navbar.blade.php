@@ -13,13 +13,13 @@
             <div class="d-flex align-items-center mb-3">
                 {{-- Language Switcher --}}
                 <div class="d-flex align-items-center text-gray-500 me-2 me-md-3">
-                    <a class="btn btn-sm {{ \App::isLocale('fr') ? 'btn-outline-secondary' : 'btn-outline-light' }} rounded-start border-0 px-1 px-md-2"
+                    <a class="btn btn-sm {{ \App::isLocale('fr') ? 'btn-secondary' : '' }} "
                         href="{{route('language-switcher',['locale'=>'fr'])}}" wire:navigate
                         title="Français">
                         <span class="d-inline d-md-none">🇫🇷</span>
                         <span class="d-none d-md-inline">FR</span>
                     </a>
-                    <a class="btn btn-sm {{ \App::isLocale('en') ? 'btn-outline-secondary' : 'btn-outline-light' }} rounded-end border-0 px-1 px-md-2"
+                    <a class="btn btn-sm {{ \App::isLocale('en') ? 'btn-secondary' : '' }} "
                         href="{{route('language-switcher',['locale'=>'en'])}}" wire:navigate
                         title="English">
                         <span class="d-inline d-md-none">🇺🇸</span>
@@ -34,7 +34,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
-                    <span class="d-none d-lg-inline">Search</span>
+                    <span class="d-none d-lg-inline">{{ __('common.search') }}</span>
                     <kbd class="badge bg-light bg-opacity-25 text-light ms-2 d-none d-xl-inline">⌘K</kbd>
                 </button>
 

@@ -42,8 +42,8 @@ class LeaveTypeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVali
             return new LeaveType([
                 'name' => $row[0],
                 'description' => $row[1] ?? '',
-                'max_days' => $row[2] ?? 0,
-                'is_paid' => $row[3] ?? false,
+                'default_number_of_days' => $row[2] ?? 0,
+                'is_active' => $row[3] ?? true,
                 'author_id' => auth()->user()->id,
             ]);
         }

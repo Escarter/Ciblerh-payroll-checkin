@@ -41,6 +41,11 @@ return [
     'company_required_for_department_import' => 'La société est requise pour l\'import de département',
     'supervisor_email_not_found' => 'Email du superviseur introuvable',
     'company_context_required_for_department_import' => 'Le contexte de la société est requis pour l\'import de département',
+    'supervisor_email_empty' => 'L\'email du superviseur est vide',
+    'supervisor_not_found' => 'Superviseur avec l\'email ":email" non trouvé',
+    'you_can_now_specify_supervisor_emails_and_company_names_directly_in_your_import_file' => 'Vous pouvez maintenant spécifier les emails des superviseurs et les noms des sociétés directement dans votre fichier d\'importation.',
+    'preview_your_data_before_importing_to_ensure_accuracy' => 'Prévisualisez vos données avant l\'importation pour assurer leur exactitude.',
+    'import_completed' => 'Importation terminée avec succès',
 
     // Permissions
     'cannot_permanently_delete_department' => 'Impossible de supprimer définitivement le département. Il a des enregistrements liés.',
@@ -123,4 +128,13 @@ return [
     // Bulk Operations
     'restore_selected_departments' => 'Restaurer les départements sélectionnés',
     'permanently_delete_selected_departments' => 'Supprimer définitivement les départements sélectionnés',
+
+    // Import validation keys
+    'department_required' => 'Le département est requis',
+    'name_required' => 'Le nom du département est requis',
+    'name_already_exists' => 'Le nom du département existe déjà dans cette société',
+    'supervisor_email_required' => 'L\'email du superviseur est requis lors de l\'assignation d\'un superviseur',
+    'supervisor_not_found' => 'Superviseur non trouvé avec l\'email fourni',
+    'supervisor_wrong_company' => 'Le superviseur n\'appartient pas à la même société',
+    'supervisor_wrong_role' => 'L\'utilisateur doit avoir le rôle de superviseur pour être assigné comme superviseur de département',
 ];

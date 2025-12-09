@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\Service;
-use Livewire\Component;
+use App\Livewire\BaseImportComponent;
 use App\Models\Department;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
@@ -22,9 +22,16 @@ use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\Eloquent\Collection;
 
-class All extends Component
+class All extends BaseImportComponent
 {
     use WithDataTable;
+
+    protected $importType = 'employees';
+    protected $importPermission = 'employee-import';
+
+    // Cache for existing employee data to avoid N+1 queries
+    protected $existingEmployeeEmails;
+    protected $existingEmployeeMatricules;
 
     //
     public $services = [];
@@ -55,8 +62,8 @@ class All extends Component
     public $employee_file = null;
     public $role = null;
     public $auth_role = null;
-    public $receive_sms_notifications = true;
-    public $receive_email_notifications = true;
+    public bool $receive_sms_notifications = true;
+    public bool $receive_email_notifications = true;
     public $alternative_email = null;
     public $isEditMode = false;
     
@@ -73,13 +80,14 @@ class All extends Component
         'personal_phone_number' => 'required',
         'email' => 'required|email',
         'selected_roles' => 'required|array|max:2',
+        'selectedCompanyId' => 'required_if:!company,null',
     ];
 
     public function mount()
     {
+        $this->initializePreview();
 
         $this->roles = auth()->user()->hasRole('admin') ? Role::orderBy('name', 'desc')->get() : Role::whereNotIn('name', ['admin'])->orderBy('name', 'desc')->get();
-        $this->password = Str::random(15);
         $this->work_start_time = Carbon::parse('08:00')->format('H:i');
         $this->work_end_time = Carbon::parse('17:30')->format('H:i');
 
@@ -90,6 +98,42 @@ class All extends Component
         if (!is_null($department_id)) {
             $this->services = Service::where('department_id', $department_id)->get();
         }
+    }
+
+    /**
+     * Validate company selection for import
+     */
+    protected function validateCompanySelection(): bool
+    {
+        if (!$this->company && !$this->selectedCompanyId) {
+            $this->addError('selectedCompanyId', __('employees.company_required_for_import'));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Override goToPreview to validate company selection first
+     */
+    public function goToPreview(): void
+    {
+        if (!$this->validateCompanySelection()) {
+            return;
+        }
+
+        parent::goToPreview();
+    }
+
+    /**
+     * Override import to validate company selection
+     */
+    public function import()
+    {
+        if (!$this->validateCompanySelection()) {
+            return;
+        }
+
+        parent::import();
     }
 
     public function toggleRole($roleName)
@@ -604,7 +648,8 @@ class All extends Component
         $this->date_of_birth = $employee->date_of_birth;
         $this->selectedDepartmentId = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
-        $this->receive_sms_notifications = $employee->receive_sms_notifications ?? true;
+        $this->receive_sms_notifications = (bool) ($employee->receive_sms_notifications ?? true);
+        $this->receive_email_notifications = (bool) ($employee->receive_email_notifications ?? true);
         
         // Get the employee's actual roles and reset selected_roles
         $this->selected_roles = $employee->getRoleNames()->toArray();
@@ -625,22 +670,6 @@ class All extends Component
        $this->isEditMode = false;
    }
 
-    public function import()
-    {
-        $this->validate([
-            'employee_file' => 'sometimes|nullable|mimes:xlsx,csv|max:500',
-        ]);
-        
-        Excel::import(new EmployeeImport($this->company), $this->employee_file);
-        auditLog(
-            auth()->user(),
-            'employee_imported',
-            'web',
-            __('employees.imported_excel_for_employees') . $this->company->name
-        );
-        $this->clearFields();
-        $this->closeModalAndFlashMessage(__('employees.employee_import_success_with_note'), 'importEmployeesModal');
-    }
 
     public function export()
     {
@@ -660,9 +689,12 @@ class All extends Component
 
     public function clearFields()
     {
+        parent::clearFields();
         $this->isEditMode = false;
         $this->employee_id = null;
         $this->employee = null;
+        $this->employee_file = null;
+        $this->selectedCompanyId = null;
         $this->reset([
             'first_name',
             'last_name',
@@ -687,11 +719,239 @@ class All extends Component
         ]);
         // Reset to default roles (only employee role)
         $this->selected_roles = ['employee'];
-        $this->receive_sms_notifications = true;
-        $this->receive_email_notifications = true;
+        $this->receive_sms_notifications = (bool) true;
+        $this->receive_email_notifications = (bool) true;
         $this->alternative_email = null;
-        $this->receive_email_notifications = true;
-        $this->alternative_email = null;
+        $this->password = Str::random(15);
+    }
+
+    /**
+     * Get import columns for preview display
+     */
+    protected function getImportColumns(): array
+    {
+        return [
+            0 => __('employees.first_name'),
+            1 => __('employees.last_name'),
+            2 => __('employees.email'),
+            3 => __('employees.professional_phone'),
+            4 => __('employees.matricule'),
+            5 => __('employees.position'),
+            6 => __('employees.net_salary'),
+            7 => __('employees.salary_grade'),
+            9 => __('departments.department'),
+            10 => __('employees.service'),
+            11 => __('common.role'),
+            17 => __('employees.personal_phone'),
+            18 => __('employees.work_start_time'),
+            19 => __('employees.work_end_time'),
+            21 => __('employees.alternative_email'),
+        ];
+    }
+
+    /**
+     * Preload validation data to optimize performance
+     * For quick validation, we only load a sample of existing data to avoid timeouts
+     */
+    protected function preloadValidationData(): void
+    {
+        // For quick validation, only load recent/active users to avoid loading entire user table
+        // This prevents timeouts while still catching most duplicates
+        if (!isset($this->existingEmployeeEmails)) {
+            $this->existingEmployeeEmails = User::whereNotNull('email')
+                ->where('created_at', '>', now()->subMonths(12)) // Only check last 12 months
+                ->orWhere(function($query) {
+                    $query->whereNotNull('email')
+                          ->where('status', true); // Include active users regardless of creation date
+                })
+                ->limit(5000) // Limit to prevent memory issues
+                ->pluck('email')
+                ->map(function($email) {
+                    return strtolower(trim($email));
+                })
+                ->toArray();
+        }
+
+        if (!isset($this->existingEmployeeMatricules)) {
+            $this->existingEmployeeMatricules = User::whereNotNull('matricule')
+                ->where('created_at', '>', now()->subMonths(12)) // Only check last 12 months
+                ->orWhere(function($query) {
+                    $query->whereNotNull('matricule')
+                          ->where('status', true); // Include active users regardless of creation date
+                })
+                ->limit(5000) // Limit to prevent memory issues
+                ->pluck('matricule')
+                ->map(function($matricule) {
+                    return strtolower(trim($matricule));
+                })
+                ->toArray();
+        }
+    }
+
+    /**
+     * Check if employee email exists (optimized to avoid N+1 queries)
+     */
+    protected function isEmployeeEmailExists(string $email): bool
+    {
+        return in_array(strtolower(trim($email)), $this->existingEmployeeEmails ?? []);
+    }
+
+    /**
+     * Check if employee matricule exists (optimized to avoid N+1 queries)
+     */
+    protected function isEmployeeMatriculeExists(string $matricule): bool
+    {
+        return in_array(strtolower(trim($matricule)), $this->existingEmployeeMatricules ?? []);
+    }
+
+    /**
+     * Validate a single employee preview row
+     */
+    protected function validatePreviewRow(array $rowData, int $rowNumber): array
+    {
+        $errors = [];
+        $warnings = [];
+        $parsedData = [];
+
+        try {
+            // Validate required fields
+            if (empty($rowData[0] ?? '')) {
+                $errors[] = __('employees.first_name_required');
+            }
+
+            if (empty($rowData[1] ?? '')) {
+                $errors[] = __('employees.last_name_required');
+            }
+
+            // Validate email
+            if (empty($rowData[2] ?? '')) {
+                $errors[] = __('employees.email_required');
+            } else {
+                $emailValidation = validateEmail($rowData[2]);
+                if (!$emailValidation['valid']) {
+                    $errors[] = $emailValidation['error'];
+                } else {
+                    // Check for duplicate email (optimized to avoid N+1 queries)
+                    if ($this->isEmployeeEmailExists($rowData[2])) {
+                        $errors[] = __('employees.email_already_exists');
+                    }
+                }
+            }
+
+            // Validate professional phone number
+            if (empty($rowData[3] ?? '')) {
+                $errors[] = __('employees.professional_phone_required');
+            } else {
+                $phoneValidation = validatePhoneNumber($rowData[3]);
+                if (!$phoneValidation['valid']) {
+                    $errors[] = $phoneValidation['error'];
+                }
+            }
+
+            // Validate matricule
+            if (empty($rowData[4] ?? '')) {
+                $errors[] = __('employees.matricule_required');
+            } else {
+                // Check for duplicate matricule (optimized to avoid N+1 queries)
+                if ($this->isEmployeeMatriculeExists($rowData[4])) {
+                    $warnings[] = __('employees.matricule_already_exists');
+                }
+            }
+
+            // Validate department
+            if (empty($rowData[9] ?? '')) {
+                $errors[] = __('departments.department_required');
+            } else {
+                // Check if company is set before validating department
+                $companyId = $this->getCompanyId();
+                if (!$companyId) {
+                    $errors[] = __('employees.company_required_for_import');
+                } else {
+                    $departmentResult = findOrCreateDepartment($rowData[9], $companyId, $this->autoCreateEntities);
+                    if (!$departmentResult['found']) {
+                        $errors[] = $departmentResult['error'];
+                    } else {
+                        $parsedData[9] = $departmentResult['department']->name;
+                    }
+                }
+            }
+
+            // Validate service (requires valid department)
+            if (empty($rowData[10] ?? '')) {
+                $errors[] = __('employees.service_required');
+            } elseif (!isset($departmentResult) || !$departmentResult['found']) {
+                $errors[] = __('departments.department_required_for_service_import');
+            } else {
+                $companyId = $this->getCompanyId();
+                $serviceResult = findOrCreateService($rowData[10], $departmentResult['department']->id, $companyId, $this->autoCreateEntities);
+                if (!$serviceResult['found']) {
+                    $errors[] = $serviceResult['error'];
+                } else {
+                    $parsedData[10] = $serviceResult['service']->name;
+                }
+            }
+
+            // Validate role
+            if (empty($rowData[11] ?? '')) {
+                $errors[] = __('employees.role_required');
+            } else {
+                $validRoles = ['employee', 'supervisor', 'manager'];
+                if (!in_array(strtolower($rowData[11]), $validRoles)) {
+                    $errors[] = __('employees.invalid_role');
+                }
+            }
+
+            // Validate personal phone number if provided
+            if (!empty($rowData[17] ?? '')) {
+                $personalPhoneValidation = validatePhoneNumber($rowData[17]);
+                if (!$personalPhoneValidation['valid']) {
+                    $errors[] = __('employees.personal_phone_invalid') . ': ' . $personalPhoneValidation['error'];
+                }
+            }
+
+            // Validate work times
+            if (!empty($rowData[18] ?? '') && !preg_match('/^\d{2}:\d{2}$/', $rowData[18])) {
+                $errors[] = __('employees.invalid_work_start_time');
+            }
+
+            if (!empty($rowData[19] ?? '') && !preg_match('/^\d{2}:\d{2}$/', $rowData[19])) {
+                $errors[] = __('employees.invalid_work_end_time');
+            }
+
+            // Validate alternative email if provided
+            if (!empty($rowData[21] ?? '')) {
+                $altEmailValidation = validateEmail($rowData[21]);
+                if (!$altEmailValidation['valid']) {
+                    $errors[] = __('employees.alternative_email_invalid') . ': ' . $altEmailValidation['error'];
+                }
+            }
+
+        } catch (\Exception $e) {
+            $errors[] = __('common.row_validation_error', ['error' => $e->getMessage()]);
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'parsed_data' => $parsedData
+        ];
+    }
+
+    /**
+     * Perform the actual employee import
+     */
+    protected function performImport()
+    {
+        $companyId = $this->getCompanyId();
+        $company = $companyId ? \App\Models\Company::find($companyId) : null;
+
+        Excel::import(new EmployeeImport($company, $this->autoCreateEntities), $this->employee_file);
+
+        return [
+            'imported_count' => 'unknown', // Could be improved to return actual count
+            'company_name' => $company ? $company->name : 'multiple'
+        ];
     }
     public function render()
     {
@@ -751,5 +1011,43 @@ class All extends Component
             'deleted_employees' => $deleted_employees,
             'banned_employees' => $banned_employees,
         ])->layout('components.layouts.dashboard');
+    }
+
+    /**
+     * Get column definitions for preview
+     */
+    public function getPreviewColumns(): array
+    {
+        return $this->getImportColumns();
+    }
+
+    /**
+     * Handle employee file upload
+     */
+    public function updatedEmployeeFile()
+    {
+        // Validate the uploaded file
+        $this->validate([
+            'employee_file' => 'sometimes|nullable|mimes:xlsx,xls,csv,txt|max:' . ($this->maxFileSize * 1024)
+        ]);
+
+        // Clear previous preview when new file is uploaded
+        $this->clearPreview();
+    }
+
+    /**
+     * Get company ID for import
+     */
+    protected function getCompanyId(): ?int
+    {
+        return $this->company ? $this->company->id : null;
+    }
+
+    /**
+     * Get department ID (not needed for employee import)
+     */
+    protected function getDepartmentId(): ?int
+    {
+        return null;
     }
 }

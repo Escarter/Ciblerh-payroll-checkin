@@ -10,7 +10,7 @@
             <div class="mb-lg-0">
                 <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
                     <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
-                        <li class="breadcrumb-item"><a href="#"><svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <li class="breadcrumb-item"><a href="{{ route('portal.dashboard') }}"><svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg></a></li>
                         <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{__('dashboard.home')}}</a></li>
@@ -119,7 +119,7 @@
 
                 <!-- Tab Buttons (Right) -->
                 <div class="d-flex gap-2">
-                    <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
+                    <button id="active-payslips-tab" class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                         wire:click="switchTab('active')"
                         type="button">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,14 +129,14 @@
                         <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ $active_processes ?? 0 }}</span>
                     </button>
 
-                    <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+                    <button id="deleted-payslips-tab" class="btn {{ $activeTab === 'deleted' ? 'btn-danger' : 'btn-outline-danger' }}"
                         wire:click="switchTab('deleted')"
                         type="button">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
                         {{__('common.deleted')}}
-                        <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_processes ?? 0 }}</span>
+                        <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-danger text-white' }} ms-1">{{ $deleted_processes ?? 0 }}</span>
                     </button>
                 </div>
 
@@ -148,6 +148,7 @@
                     <div class="d-flex align-items-center gap-2">
                         @can('payslip-delete')
                         <button type="button"
+                            id="bulk-delete-payslips-btn"
                             class="btn btn-sm btn-outline-danger d-flex align-items-center"
                             title="{{ __('payslips.move_selected_payslip_processes_to_trash') }}"
                             data-bs-toggle="modal"
@@ -218,7 +219,8 @@
                             <tr>
                                 <th class="border-bottom">
                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                        <input class="form-check-input p-2"
+                                        <input id="select-all-payslips"
+                                            class="form-check-input p-2"
                                             wire:model.live="selectAll"
                                             type="checkbox"
                                             wire:click="toggleSelectAll">
@@ -293,14 +295,14 @@
                                 </td>
                                 <td class="text-center">
                                     @if($activeTab === 'active')
-                                    <a href='#' wire:click.prevent="initData({{$job->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">
+                                    <a href='#' wire:click.prevent="initData({{$job->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" id="delete-payslip-{{$job->id}}">
                                         <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </a>
                                     @else
                                     @can('payslip-delete')
-                                    <a href="#" wire:click.prevent="$set('job_id', {{ $job->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}">
+                                    <a href="#" wire:click.prevent="$set('job_id', {{ $job->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}" id="restore-payslip-{{$job->id}}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>

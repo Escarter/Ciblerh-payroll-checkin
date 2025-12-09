@@ -30,6 +30,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     use Importable, SkipsErrors, SkipsFailures;
 
     public $company;
+    public $autoCreateEntities = false; // Whether to auto-create missing departments/services
 
     /**
      * @return int
@@ -40,9 +41,10 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     }
 
 
-    public function __construct(Company $company)
+    public function __construct(Company $company, bool $autoCreateEntities = false)
     {
         $this->company = $company;
+        $this->autoCreateEntities = $autoCreateEntities;
     }
 
     /**
@@ -58,8 +60,6 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
         }
 
         $code_exist = User::where('email', $row[2])->first();
-        $department_exist = Department::where('id', $row[9])->first();
-        $service_exist = Service::where('id', $row[10])->first();
 
         // Validate email
         $emailValidation = validateEmail($row[2] ?? '');
@@ -89,8 +89,31 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             $personalPhoneNumber = $personalPhoneValidation['formatted'];
         }
 
-        if (!$code_exist) {
-            if ($department_exist && $service_exist) {
+        // Validate work times if provided
+        $workStartTime = $this->parseTime($row[18] ?? null, '08:00');
+        $workEndTime = $this->parseTime($row[19] ?? null, '17:30');
+
+        if ($workStartTime && $workEndTime && $workStartTime >= $workEndTime) {
+            throw new \Exception('Work start time must be before work end time');
+        }
+
+        // Skip if employee already exists
+        if ($code_exist) {
+            return null;
+        }
+
+        // Handle department lookup (by ID or name)
+        $departmentResult = $this->findDepartment($row[9] ?? '');
+        if (!$departmentResult['found']) {
+            throw new \Exception('Department validation failed: ' . $departmentResult['error']);
+        }
+
+        // Handle service lookup (by ID or name)
+        $serviceResult = $this->findService($row[10] ?? '', $departmentResult['department']->id);
+        if (!$serviceResult['found']) {
+            throw new \Exception('Service validation failed: ' . $serviceResult['error']);
+        }
+
                 $user = User::create([
                     'first_name' => $row[0],
                     'last_name' => $row[1],
@@ -103,13 +126,18 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     'salary_grade' => $row[7],
                     'contract_end' => $this->transformDate($row[8]),
                     'company_id' => $this->company->id,
-                    'department_id' => $row[9],
-                    'service_id' => $row[10],
+                    'department_id' => $departmentResult['department']->id,
+                    'service_id' => $serviceResult['service']->id,
                     'status' => $row[12],
                     'password' => bcrypt($row[13]),
                     'remaining_leave_days' => $row[14],
                     'monthly_leave_allocation' => $row[15],
                     'receive_sms_notifications' => isset($row[16]) ? (bool)$row[16] : true,
+                    'receive_email_notifications' => isset($row[20]) ? (bool)$row[20] : true,
+                    'alternative_email' => $row[21] ?? null,
+                    'date_of_birth' => $this->transformDate($row[22] ?? null),
+                    'work_start_time' => $workStartTime,
+                    'work_end_time' => $workEndTime,
                     'author_id' => auth()->user()->id,
                     'pdf_password' => Str::random(10),
                 ]);
@@ -119,12 +147,105 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                 event(new EmployeeCreated($user, $row[13]));
 
                 return $user;
+    }
+
+    /**
+     * Find department by ID or name
+     */
+    private function findDepartment($departmentValue): array
+    {
+        if (empty($departmentValue)) {
+            return [
+                'found' => false,
+                'department' => null,
+                'error' => __('Department is required')
+            ];
+        }
+
+        // Try to find by ID first (if it's numeric)
+        if (is_numeric($departmentValue)) {
+            $department = Department::where('id', $departmentValue)
+                ->where('company_id', $this->company->id)
+                ->first();
+
+            if ($department) {
+                return [
+                    'found' => true,
+                    'department' => $department,
+                    'error' => null
+                ];
+            }
+        }
+
+        // Try to find by name (using the helper function)
+        $result = findOrCreateDepartment($departmentValue, $this->company->id, $this->autoCreateEntities);
+
+        return $result;
+    }
+
+    /**
+     * Find service by ID or name
+     */
+    private function findService($serviceValue, $departmentId): array
+    {
+        if (empty($serviceValue)) {
+            return [
+                'found' => false,
+                'service' => null,
+                'error' => __('Service is required')
+            ];
+        }
+
+        // Try to find by ID first (if it's numeric)
+        if (is_numeric($serviceValue)) {
+            $service = Service::where('id', $serviceValue)
+                ->where('department_id', $departmentId)
+                ->first();
+
+            if ($service) {
+                return [
+                    'found' => true,
+                    'service' => $service,
+                    'error' => null
+                ];
+            }
+        }
+
+        // Try to find by name (using the helper function)
+        $result = findOrCreateService($serviceValue, $departmentId, $this->company->id, $this->autoCreateEntities);
+
+        return $result;
+    }
+
+    /**
+     * Parse time from Excel format or string
+     */
+    private function parseTime($value, $default = null)
+    {
+        if (empty($value)) {
+            return $default;
+        }
+
+        try {
+            // Try to parse as Excel time
+            $dateTime = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
+            return $dateTime->format('H:i');
+        } catch (\Exception $e) {
+            // Try to parse as time string
+            try {
+                return \Carbon\Carbon::createFromFormat('H:i', $value)->format('H:i');
+            } catch (\Exception $e) {
+                return $default;
             }
         }
     }
 
     public function transformDate($value, $format = 'Y-m-d')
     {
+        if (empty($value)) {
+            return null;
+        }
+
         try {
             return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
         } catch (\ErrorException $e) {
@@ -140,12 +261,20 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '2' => ['required', new ValidEmail(), 'unique:users,email'], // email
             '3' => ['required', new PhoneNumber()], // professional_phone_number
             '4' => 'required|string', // matricule
+            '5' => 'required|string', // position
+            '6' => 'required|numeric', // net_salary
+            '7' => 'required|string', // salary_grade
+            '9' => 'required', // department (can be ID or name)
+            '10' => 'required', // service (can be ID or name)
             '11' => function ($attribute, $value, $onFailure) {
                 $array = ['employee', 'supervisor', 'manager'];
-                if (!in_array($value, $array)) {
+                if (!in_array(strtolower($value), $array)) {
                     $onFailure(__('Role must be one of: employee, supervisor, manager'));
                 }
             },
+            '18' => 'nullable|date_format:H:i', // work_start_time
+            '19' => 'nullable|date_format:H:i', // work_end_time
+            '21' => 'nullable|email', // alternative_email
             // Validate company context
             '*' => function ($attribute, $value, $onFailure) {
                 if (!$this->company || !$this->company->id) {

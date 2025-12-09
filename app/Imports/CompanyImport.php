@@ -30,9 +30,11 @@ class CompanyImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
     }
 
 
-    public function __construct()
+    protected $userId;
+
+    public function __construct(int $userId = null)
     {
-        
+        $this->userId = $userId ?? auth()->id() ?? 1;
     }
     /**
      * @param array $row
@@ -41,16 +43,23 @@ class CompanyImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
      */
     public function model(array $row)
     {
+        // Map columns from template: Name, Code, Address, City, Country, Phone, Email, Website, Is Active
+        $name = $row[0] ?? '';
+        $code = $row[1] ?? '';
+        $address = $row[2] ?? '';
+        $city = $row[3] ?? '';
+        $country = $row[4] ?? '';
 
-        $code_exist = Company::where('code', $row[0])->first();
-        if (!$code_exist ) {
+        // Check if company with this code already exists
+        $code_exist = Company::where('code', $code)->first();
+        if (!$code_exist && !empty($name)) {
 
             $company =  Company::create([
-                'code' => $row[0] == '' ? Str::upper(Str::random(12)) : $row[0],
-                'name' => $row[1],
-                'description' => $row[2],
-                'sector' => $row[3],
-                'author_id' => auth()->user()->id,
+                'code' => $code == '' ? Str::upper(Str::random(12)) : $code,
+                'name' => $name,
+                'description' => trim(($address ? $address . ', ' : '') . ($city ? $city . ', ' : '') . $country, ', '),
+                'sector' => $country, // Use country as sector for now, or could be left empty
+                'author_id' => $this->userId,
             ]);
             return $company;
         }
@@ -58,8 +67,8 @@ class CompanyImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
     public function rules(): array
     {
         return [
-            '0' => 'nullable|string',
-            '1' => 'required|string',
+            '0' => 'required|string', // Name (required)
+            '1' => 'nullable|string', // Code (nullable)
         ];
     }
 }

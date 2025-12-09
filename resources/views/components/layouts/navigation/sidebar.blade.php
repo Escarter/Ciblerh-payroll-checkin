@@ -270,6 +270,21 @@
                                     </div>
                                 </li>
                                 @endcanany
+
+                                @can('importjob-read')
+                                <li class="nav-item {{ $request->routeIs('portal.import-jobs.*') ? 'active' : '' }}">
+                                    <a href="{{route('portal.import-jobs.index')}}" class="nav-link d-flex align-items-center justify-content-between">
+                                        <span>
+                                            <span class="sidebar-icon">
+                                                <svg class="icon icon-sm me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                                </svg>
+                                            </span>
+                                            <span class="sidebar-text">{{__('common.import_jobs')}}</span>
+                                        </span>
+                                    </a>
+                                </li>
+                                @endcan
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('role-read')
                                 <li class="nav-item {{ $request->routeIs('portal.roles.*') ? 'active' : '' }}">

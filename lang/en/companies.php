@@ -78,6 +78,7 @@ return [
     // Import/Export messages
     'companies_successfully_imported' => 'Companies successfully imported!',
     'imported_excel_file_for_companies' => 'Imported excel file for companies',
+    'import_completed' => 'Import completed successfully',
     'exported_excel_file_for_companies' => 'Exported excel file for companies',
 
     // Manager assignment messages
@@ -108,4 +109,10 @@ return [
 
     // Services
     'services' => 'Services',
+
+    // Import validation messages
+    'name_required' => 'Company name is required',
+    'sector_required' => 'Company sector is required',
+    'code_already_exists' => 'Company code already exists',
+    'name_already_exists' => 'Company name already exists',
 ];

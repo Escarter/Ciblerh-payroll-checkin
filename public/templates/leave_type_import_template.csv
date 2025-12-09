@@ -1,0 +1,5 @@
+Leave Type Name,Description,Default Number of Days,Is Active
+Annual Leave,Yearly vacation leave,30,true
+Sick Leave,Medical leave for illness,10,true
+Maternity Leave,Leave for new mothers,90,true
+Personal Leave,Personal time off,5,true

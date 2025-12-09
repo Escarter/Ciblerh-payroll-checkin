@@ -41,6 +41,11 @@ return [
     'company_required_for_department_import' => 'Company is required for department import',
     'supervisor_email_not_found' => 'Supervisor email not found',
     'company_context_required_for_department_import' => 'Company context is required for department import',
+    'supervisor_email_empty' => 'Supervisor email is empty',
+    'supervisor_not_found' => 'Supervisor with email ":email" not found',
+    'you_can_now_specify_supervisor_emails_and_company_names_directly_in_your_import_file' => 'You can now specify supervisor emails and company names directly in your import file.',
+    'preview_your_data_before_importing_to_ensure_accuracy' => 'Preview your data before importing to ensure accuracy.',
+    'import_completed' => 'Import completed successfully',
 
     // Permissions
     'cannot_permanently_delete_department' => 'Cannot permanently delete department. It has related records.',
@@ -123,4 +128,13 @@ return [
     // Bulk Operations
     'restore_selected_departments' => 'Restore Selected Departments',
     'permanently_delete_selected_departments' => 'Permanently Delete Selected Departments',
+
+    // Import validation keys
+    'department_required' => 'Department is required',
+    'name_required' => 'Department name is required',
+    'name_already_exists' => 'Department name already exists in this company',
+    'supervisor_email_required' => 'Supervisor email is required when assigning a supervisor',
+    'supervisor_not_found' => 'Supervisor not found with the provided email',
+    'supervisor_wrong_company' => 'Supervisor does not belong to the same company',
+    'supervisor_wrong_role' => 'User must have supervisor role to be assigned as department supervisor',
 ];

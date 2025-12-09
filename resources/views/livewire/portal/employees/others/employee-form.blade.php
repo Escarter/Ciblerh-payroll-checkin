@@ -30,10 +30,10 @@
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="department">{{__('departments.department')}}</label>
-                                <select wire:model.live="department_id" class="form-select  @error('department_id') is-invalid @enderror">
+                                <select wire:model.live="selectedDepartmentId" class="form-select  @error('selectedDepartmentId') is-invalid @enderror">
                                     <option value="">{{__('departments.select_department')}}</option>
                                     @foreach ($departments as $department)
-                                    <option value="{{$department->id}}" {{ $isEditMode && $department_id === $department->id ? 'selected' : '' }}>{{$department->name}}</option>
+                                    <option value="{{$department->id}}" {{ $isEditMode && $selectedDepartmentId === $department->id ? 'selected' : '' }}>{{$department->name}}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -119,7 +119,7 @@
                         </div>
                         <div class="form-group mb-2">
                             <div class="form-check form-switch">
-                                <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}" @if($receive_sms_notifications) checked @endif>
+                                <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
                                 <label class="form-check-label" for="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
                                     {{__('employees.receive_sms_notifications')}}
                                 </label>
@@ -128,7 +128,7 @@
                         </div>
                         <div class="form-group mb-2">
                             <div class="form-check form-switch">
-                                <input wire:model="receive_email_notifications" class="form-check-input" type="checkbox" id="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}" @if($receive_email_notifications) checked @endif>
+                                <input wire:model.live="receive_email_notifications" class="form-check-input" type="checkbox" id="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
                                 <label class="form-check-label" for="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
                                     {{__('employees.receive_email_notifications')}}
                                 </label>

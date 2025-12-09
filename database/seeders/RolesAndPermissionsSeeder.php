@@ -123,7 +123,14 @@ class RolesAndPermissionsSeeder extends Seeder
             ['name' => 'leave_type-delete'],
             ['name' => 'leave_type-export'],
             ['name' => 'leave_type-import'],
-            
+
+            ['name' => 'importjob-read'],
+            ['name' => 'importjob-create'],
+            ['name' => 'importjob-update'],
+            ['name' => 'importjob-delete'],
+            ['name' => 'importjob-import'],
+            ['name' => 'importjob-export'],
+
             ['name' => 'setting-read'],
             ['name' => 'setting-save'],
             ['name' => 'setting-sms'],
@@ -182,6 +189,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'leave_type-read', 'leave_type-create', 'leave_type-update', 'leave_type-delete',
             'leave-read', 'leave-create', 'leave-update', 'leave-delete',
             'role-read', 'role-create', 'role-update', 'role-delete',
+            'importjob-read', 'importjob-create', 'importjob-update', 'importjob-delete', 'importjob-import', 'importjob-export',
             'setting-read', 'setting-save', 'setting-sms', 'setting-smtp',
         ]);
 

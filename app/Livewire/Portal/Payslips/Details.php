@@ -84,7 +84,7 @@ class Details extends Component
                                 'email_sent_status' => Payslip::STATUS_FAILED,
                                 'email_retry_count' => 0, // Reset retry count for manual resend
                                 'last_email_retry_at' => null,
-                                'failure_reason' => __('Failed to send email. Recipient: :email', ['email' => $employee->email])
+                                'failure_reason' => __('payslips.failed_to_send_email_recipient', ['email' => $employee->email])
                             ]);
                             
                             // Schedule automatic retry if retries are enabled
@@ -96,14 +96,14 @@ class Details extends Component
                                 $this->payslip->update([
                                     'email_retry_count' => 1,
                                     'last_email_retry_at' => now(),
-                                    'failure_reason' => __('Failed to send email. Recipient: :email. Automatic retry scheduled', ['email' => $employee->email])
+                                    'failure_reason' => __('payslips.failed_to_send_email_recipient_retry_scheduled', ['email' => $employee->email])
                                 ]);
                             }
                             
                             Log::info('mail-failed: ' . json_encode(Mail::failures()));
-                            $message = $maxRetries > 0 
-                                ? __('Failed to send email. Automatic retry scheduled.') 
-                                : __('Failed to send email');
+                            $message = $maxRetries > 0
+                                ? __('payslips.email_automatic_retry_scheduled')
+                                : __('payslips.failed_to_send_email');
                             $this->closeModalAndFlashMessage($message, 'resendPayslipModal');
                         } else {
                         $this->payslip->update([
@@ -253,7 +253,7 @@ class Details extends Component
             ->get();
 
         if ($failedPayslips->isEmpty()) {
-            $this->closeModalAndFlashMessage(__('No failed payslips found to resend.'), 'BulkResendFailedModal');
+            $this->closeModalAndFlashMessage(__('payslips.no_failed_payslips_found_to_resend'), 'BulkResendFailedModal');
             return;
         }
 
@@ -310,7 +310,7 @@ class Details extends Component
             }
         }
 
-        $message = __('Bulk resend completed: :resend successful, :skipped skipped', [
+        $message = __('payslips.bulk_resend_completed', [
             'resend' => $resendCount,
             'skipped' => $skippedCount
         ]);

@@ -3,7 +3,22 @@
 return [
     /*
     |--------------------------------------------------------------------------
-    | Authentication & Password Reset Language Lines
+    | Authentication Language Lines
+    |--------------------------------------------------------------------------
+    |
+    | The following language lines are used during authentication for various
+    | messages that we need to display to the user. You are free to modify
+    | these language lines according to your application's requirements.
+    |
+    */
+
+    'failed' => 'Ces identifiants ne correspondent pas à nos enregistrements.',
+    'password' => 'Le mot de passe fourni est incorrect.',
+    'throttle' => 'Trop de tentatives de connexion. Veuillez réessayer dans :seconds secondes.',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Authentication & Password Reset Language Lines
     |--------------------------------------------------------------------------
     */
 
@@ -15,7 +30,6 @@ return [
     'reset_password' => 'Réinitialiser le mot de passe',
     'your_new_password' => 'Votre nouveau mot de passe',
     'confirm_new_password' => 'Confirmez le mot de passe',
-    'password' => 'Mot de passe',
 
     // Profile settings
     'change_password' => 'Changer le mot de passe',
@@ -30,7 +44,7 @@ return [
 
     // Login form
     'login' => 'Se connecter',
-    'remember_me' => 'Rappelez-vous de moi',
+    'remember_me' => 'Se souvenir de moi',
     'lost_password' => 'Mot de passe perdu?',
     'showing' => 'Montrant',
     'to' => 'à',
@@ -38,13 +52,10 @@ return [
     'entries' => 'entrées',
     'search' => 'Recherche...',
 
-    // Login form
+    // Branding
     'ciberh' => 'CibeRH',
     'hr' => 'RH',
     'e_mail_address' => 'Adresse e-mail',
-    'remember_me' => 'Se souvenir de moi',
-    'lost_password' => 'Mot de passe perdu?',
-    'login' => 'Se connecter',
     'language' => 'Langue',
     'fr' => 'FR',
     'en' => 'EN',

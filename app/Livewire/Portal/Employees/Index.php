@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\Service;
-use Livewire\Component;
+use App\Livewire\BaseImportComponent;
 use App\Models\Department;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
@@ -15,15 +15,22 @@ use App\Events\EmployeeCreated;
 use App\Exports\EmployeeExport;
 use App\Imports\EmployeeImport;
 use App\Livewire\Traits\WithDataTable;
+use App\Livewire\Traits\WithImportPreview;
 use Illuminate\Validation\Rule;
 use App\Models\Role;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\Eloquent\Collection;
 
-class Index extends Component
+class Index extends BaseImportComponent
 {
     use WithDataTable;
+
+    protected $importType = 'employees';
+    protected $importPermission = 'employee-create';
+
+    // Cache for existing employee data to avoid N+1 queries
+    protected $existingEmployeeEmails;
     
     //
     public $services = [];
@@ -62,6 +69,7 @@ class Index extends Component
     public $receive_email_notifications = true;
     public $alternative_email = null;
     public $isEditMode = false;
+    public $autoCreateEntities = false;
 
     //Update & Store Rules
     protected array $rules = [
@@ -129,6 +137,9 @@ class Index extends Component
         $this->password = Str::random(15);
         $this->work_start_time = Carbon::parse('08:00')->format('H:i');
         $this->work_end_time = Carbon::parse('17:30')->format('H:i');
+
+        // Initialize preview functionality
+        $this->initializePreview();
     }
 
     public function updatedDepartmentId($department_id)
@@ -630,20 +641,36 @@ class Index extends Component
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.manager_updated_successfully'), 'EditManagerModal');
     }
+    /**
+     * Perform the actual employee import
+     */
+    protected function performImport()
+    {
+        Excel::import(new EmployeeImport($this->company, $this->autoCreateEntities), $this->employee_file);
+
+        return [
+            'imported_count' => 'unknown', // Could be enhanced to return actual count
+            'company_name' => $this->company->name,
+            'auto_create_enabled' => $this->autoCreateEntities
+        ];
+    }
+
+    /**
+     * Override import method to reset step after successful import
+     */
     public function import()
     {
-        $this->validate([
-            'employee_file' => 'sometimes|nullable|mimes:xlsx,csv|max:500',
-        ]);
-        Excel::import(new EmployeeImport($this->company), $this->employee_file);
-        auditLog(
-            auth()->user(),
-            'employee_imported',
-            'web',
-            __('Imported excel file for employees for company ') . $this->company->name
-        );
-        $this->clearFields();
-        $this->closeModalAndFlashMessage(__('employees.employee_imported_successfully'), 'importEmployeesModal');
+        try {
+            // Call parent import method
+            parent::import();
+
+            // Reset to upload step after successful import
+            $this->resetToUpload();
+
+        } catch (\Exception $e) {
+            // Re-throw the exception to maintain error handling
+            throw $e;
+        }
     }
 
     public function export()
@@ -661,6 +688,273 @@ class Index extends Component
     public function close()
     {
         $this->clearFields();
+    }
+
+    /**
+     * Get unique context ID for caching
+     */
+    protected function getImportContextId()
+    {
+        return 'employees_' . ($this->company ? $this->company->id : 'global') . '_' . auth()->id();
+    }
+
+    /**
+     * Preload validation data to optimize performance
+     * For quick validation, we only load a sample of existing data to avoid timeouts
+     */
+    protected function preloadValidationData(): void
+    {
+        // For quick validation, only load recent/active users to avoid loading entire user table
+        // This prevents timeouts while still catching most duplicates
+        if (!isset($this->existingEmployeeEmails)) {
+            $this->existingEmployeeEmails = User::whereNotNull('email')
+                ->where('created_at', '>', now()->subMonths(12)) // Only check last 12 months
+                ->orWhere(function($query) {
+                    $query->whereNotNull('email')
+                          ->where('status', true); // Include active users regardless of creation date
+                })
+                ->limit(5000) // Limit to prevent memory issues
+                ->pluck('email')
+                ->map(function($email) {
+                    return strtolower(trim($email));
+                })
+                ->toArray();
+        }
+    }
+
+    /**
+     * Check if employee email exists (optimized to avoid N+1 queries)
+     */
+    protected function isEmployeeEmailExists(string $email): bool
+    {
+        return in_array(strtolower(trim($email)), $this->existingEmployeeEmails ?? []);
+    }
+
+    /**
+     * Validate a single preview row for employees
+     */
+    protected function validatePreviewRow(array $rowData, int $rowNumber): array
+    {
+        $errors = [];
+        $warnings = [];
+        $parsedData = [];
+
+        try {
+            // Validate required fields
+            if (empty($rowData[0] ?? '')) {
+                $errors[] = __('employees.first_name_required');
+            }
+            if (empty($rowData[1] ?? '')) {
+                $errors[] = __('employees.last_name_required');
+            }
+            if (empty($rowData[2] ?? '')) {
+                $errors[] = __('employees.email_required');
+            } elseif (!validateEmail($rowData[2])['valid']) {
+                $errors[] = __('employees.email_invalid');
+            }
+
+            // Validate professional phone number
+            $phoneNumber = preg_replace('/\s+/', '', $rowData[3] ?? '');
+            if (empty($phoneNumber)) {
+                $errors[] = __('employees.professional_phone_required');
+            } else {
+                $phoneValidation = validatePhoneNumber($phoneNumber);
+                if (!$phoneValidation['valid']) {
+                    $errors[] = __('employees.professional_phone_invalid');
+                }
+            }
+
+            // Validate matricule
+            if (empty($rowData[4] ?? '')) {
+                $errors[] = __('employees.matricule_required');
+            }
+
+            // Validate position
+            if (empty($rowData[5] ?? '')) {
+                $errors[] = __('employees.position_required');
+            }
+
+            // Validate net salary
+            if (empty($rowData[6] ?? '') || !is_numeric($rowData[6])) {
+                $errors[] = __('employees.net_salary_required_numeric');
+            }
+
+            // Validate salary grade
+            if (empty($rowData[7] ?? '')) {
+                $errors[] = __('employees.salary_grade_required');
+            }
+
+            // Validate department (by name)
+            $departmentName = $rowData[9] ?? '';
+            if (empty($departmentName)) {
+                $errors[] = __('employees.department_required');
+            } else {
+                // Check if company is set before validating department
+                if (!$this->company) {
+                    $errors[] = __('employees.company_required_for_import');
+                } else {
+                    $departmentResult = findDepartmentByName($departmentName, $this->company->id);
+                    if (!$departmentResult['found']) {
+                        $errors[] = $departmentResult['error'];
+                    } else {
+                        $parsedData[9] = $departmentResult['department']->name;
+                    }
+                }
+            }
+
+            // Validate service (by name, requires valid department)
+            $serviceName = $rowData[10] ?? '';
+            if (empty($serviceName)) {
+                $errors[] = __('employees.service_required');
+            } elseif (isset($departmentResult) && $departmentResult['found']) {
+                $serviceResult = findServiceByName($serviceName, $departmentResult['department']->id);
+                if (!$serviceResult['found']) {
+                    $errors[] = $serviceResult['error'];
+                } else {
+                    $parsedData[10] = $serviceResult['service']->name;
+                }
+            }
+
+            // Validate role
+            $role = strtolower($rowData[11] ?? '');
+            $validRoles = ['employee', 'supervisor', 'manager'];
+            if (empty($role) || !in_array($role, $validRoles)) {
+                $errors[] = __('employees.role_invalid');
+            }
+
+            // Validate work times if provided
+            $workStartTime = $rowData[18] ?? null;
+            $workEndTime = $rowData[19] ?? null;
+
+            if ($workStartTime && !preg_match('/^\d{2}:\d{2}$/', $workStartTime)) {
+                $errors[] = __('employees.work_start_time_invalid_format');
+            }
+            if ($workEndTime && !preg_match('/^\d{2}:\d{2}$/', $workEndTime)) {
+                $errors[] = __('employees.work_end_time_invalid_format');
+            }
+            if ($workStartTime && $workEndTime && $workStartTime >= $workEndTime) {
+                $errors[] = __('employees.work_start_time_must_be_before_end');
+            }
+
+            // Validate alternative email if provided
+            $alternativeEmail = $rowData[21] ?? '';
+            if (!empty($alternativeEmail) && !filter_var($alternativeEmail, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = __('employees.alternative_email_invalid');
+            }
+
+            // Validate personal phone number if provided
+            $personalPhone = $rowData[17] ?? '';
+            if (!empty($personalPhone)) {
+                $personalPhoneClean = preg_replace('/\s+/', '', $personalPhone);
+                $personalPhoneValidation = validatePhoneNumber($personalPhoneClean);
+                if (!$personalPhoneValidation['valid']) {
+                    $errors[] = __('employees.personal_phone_invalid');
+                }
+            }
+
+            // Check for duplicate email (optimized to avoid N+1 queries)
+            if (!empty($rowData[2]) && $this->isEmployeeEmailExists($rowData[2])) {
+                $warnings[] = __('employees.email_already_exists');
+            }
+
+        } catch (\Exception $e) {
+            $errors[] = __('common.row_validation_error', ['error' => $e->getMessage()]);
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'parsed_data' => $parsedData
+        ];
+    }
+
+    /**
+     * Get column definitions for preview
+     */
+    public function getPreviewColumns(): array
+    {
+        return [
+            0 => __('employees.first_name'),
+            1 => __('employees.last_name'),
+            2 => __('employees.email'),
+            3 => __('common.prof_phone_number'),
+            4 => __('employees.matricule'),
+            5 => __('common.position'),
+            6 => __('employees.net_salary'),
+            7 => __('employees.salary_grade'),
+            8 => __('employees.contract_end_date'),
+            9 => __('departments.departments'),
+            10 => __('services.services'),
+            11 => __('employees.role'),
+            12 => __('common.status'),
+            13 => __('common.password'),
+            14 => __('employees.remaining_leave_days'),
+            15 => __('employees.monthly_leave_allocation'),
+            16 => __('employees.receive_sms_notifications'),
+            17 => __('common.personal_phone_number'),
+            18 => __('employees.work_start_time'),
+            19 => __('employees.work_end_time'),
+            20 => __('employees.receive_email_notifications'),
+            21 => __('employees.alternative_email'),
+            22 => __('employees.date_of_birth'),
+        ];
+    }
+
+    /**
+     * Get import columns for department preview
+     */
+    protected function getImportColumns(): array
+    {
+        return $this->getPreviewColumns();
+    }
+
+    /**
+     * Get company ID for import
+     */
+    protected function getCompanyId(): ?int
+    {
+        return $this->company ? $this->company->id : null;
+    }
+
+    /**
+     * Get department ID (not needed for employee import)
+     */
+    protected function getDepartmentId(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Get expected columns for field validation
+     */
+    protected function getExpectedColumns(): array
+    {
+        return [
+            'first name',
+            'last name',
+            'email',
+            'professional phone number',
+            'matricule',
+            'position',
+            'net salary',
+            'salary grade',
+            'contract end date',
+            'department',
+            'service',
+            'role',
+            'status',
+            'password',
+            'remaining leave days',
+            'monthly leave allocation',
+            'receive sms notifications',
+            'personal phone number',
+            'work start time',
+            'work end time',
+            'receive email notifications',
+            'alternative email',
+            'date of birth'
+        ];
     }
 
     public function clearFields()
@@ -691,12 +985,15 @@ class Index extends Component
             'receive_sms_notifications',
             'receive_email_notifications',
             'alternative_email',
+            'autoCreateEntities',
+            'selectedCompanyId',
         ]);
         // Reset to default roles
         $this->selected_roles = ['employee'];
         $this->receive_sms_notifications = true;
         $this->receive_email_notifications = true;
         $this->alternative_email = null;
+        $this->autoCreateEntities = false;
     }
     
     public function openCreateModal()
@@ -757,5 +1054,35 @@ class Index extends Component
             'banned_employees' => $banned_employees,
             'deleted_employees' => $deleted_employees,
         ])->layout('components.layouts.dashboard');
+    }
+
+    /**
+     * Handle employee file upload
+     */
+    public function updatedEmployeeFile()
+    {
+        // Validate the uploaded file
+        $this->validate([
+            'employee_file' => 'sometimes|nullable|mimes:xlsx,xls,csv,txt|max:' . ($this->maxFileSize * 1024)
+        ]);
+
+        // Clear previous preview when new file is uploaded
+        $this->clearPreview();
+    }
+
+    /**
+     * Override to return correct file property name for this component
+     */
+    protected function getFilePropertyName()
+    {
+        return 'employee_file';
+    }
+
+    /**
+     * Override base updatedFile method to prevent conflicts
+     */
+    public function updatedFile()
+    {
+        // Do nothing - we handle file validation in updatedEmployeeFile
     }
 }

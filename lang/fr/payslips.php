@@ -132,6 +132,8 @@ return [
     'selected_payslips_permanently_deleted' => 'Fiches de paie sélectionnées supprimées définitivement!',
     'failed_to_send_email' => 'Échec d\'envoi d\'email',
     'failed_to_send_email_recipient_retry_scheduled' => 'Échec d\'envoi d\'email. Destinataire: :email. Nouvelle tentative automatique programmée',
+    'no_failed_payslips_found_to_resend' => 'Aucune fiche de paie en échec trouvée à renvoyer.',
+    'bulk_resend_completed' => 'Renvoi en masse terminé : :resend réussis, :skipped ignorés',
 
     // Employee payslip history UI labels
     'for_this_employee' => 'pour cet employé',
@@ -185,5 +187,11 @@ return [
     'bulk' => 'En masse',
     'permanently_delete_selected_payslips' => 'Supprimer définitivement les fiches de paie sélectionnées',
     'restore_selected_payslips' => 'Restaurer les fiches de paie sélectionnées',
+
+    // Messages du journal d'audit pour les processus de fiches de paie
+    'delete_payslip_process_for' => 'Supprimer le processus de fiche de paie pour :month-:year @ :datetime',
+    'permanently_delete_payslip_process_for' => 'Supprimer définitivement le processus de fiche de paie pour :month-:year @ :datetime',
+    'bulk_delete_payslip_process_for' => 'Suppression en masse du processus de fiche de paie pour :month-:year @ :datetime',
+    'bulk_permanently_delete_payslip_process_for' => 'Suppression définitive en masse du processus de fiche de paie pour :month-:year @ :datetime',
     'move_selected_payslips_to_trash' => 'Déplacer les fiches de paie sélectionnées vers la corbeille',
 ];

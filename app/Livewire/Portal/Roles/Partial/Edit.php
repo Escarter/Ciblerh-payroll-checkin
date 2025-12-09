@@ -15,11 +15,12 @@ use App\Livewire\Portal\Roles\Partial\WithAdvanceSalAndAbsencesPermissions;
 use App\Livewire\Portal\Roles\Partial\WithSettingPermissions;
 use App\Livewire\Portal\Roles\Partial\WithPaySlipAndEmployeePermissions;
 use App\Livewire\Portal\Roles\Partial\WithReportPermissions;
+use App\Livewire\Portal\Roles\Partial\WithImportJobPermissions;
 
 class Edit extends Component
 {
     use WithComDeptServPermissions, WithRolePermissions, WithAuditLogPermissions, WithTickOvertimePermissions,
-        WithAdvanceSalAndAbsencesPermissions, WithLeaveAndLeaveTypePermissions, WithSettingPermissions, WithPaySlipAndEmployeePermissions, WithReportPermissions;
+        WithAdvanceSalAndAbsencesPermissions, WithLeaveAndLeaveTypePermissions, WithSettingPermissions, WithPaySlipAndEmployeePermissions, WithReportPermissions, WithImportJobPermissions;
 
     public $name;
     public $role;
@@ -120,7 +121,11 @@ class Edit extends Component
         // Load Report permissions
         $this->selectedReportPermissions = array_values(array_intersect($rolePermissions, array_values($this->ReportPermissions)));
         $this->selectAllReportPermissions = count($this->selectedReportPermissions) === count($this->ReportPermissions);
-        
+
+        // Load Import Job permissions
+        $this->selectedImportJobPermissions = array_values(array_intersect($rolePermissions, array_values($this->ImportJobPermissions)));
+        $this->selectAllImportJobPermissions = count($this->selectedImportJobPermissions) === count($this->ImportJobPermissions);
+
         // Debug: Log some loaded permissions for testing
         // \Log::info('Loaded Company Permissions', $this->selectedCompanyPermissions);
         // \Log::info('Loaded Role Permissions', $this->selectedRolePermissions);
@@ -183,6 +188,7 @@ class Edit extends Component
         $this->settingPermissionClearFields();
         $this->payslipAndEmployeePermissionClearFields();
         $this->reportPermissionClearFields();
+        $this->importJobPermissionClearFields();
         $this->makeAdmin = false;
     }
 
@@ -271,7 +277,8 @@ class Edit extends Component
             $this->selectedAdvanceSalaryPermissions ?? [],
             $this->selectedAbsencePermissions ?? [],
             $this->selectedSettingPermissions ?? [],
-            $this->selectedReportPermissions ?? []
+            $this->selectedReportPermissions ?? [],
+            $this->selectedImportJobPermissions ?? []
         ));
 
         // Remove duplicates and empty values

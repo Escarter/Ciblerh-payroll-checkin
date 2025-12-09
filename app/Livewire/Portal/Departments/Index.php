@@ -4,7 +4,7 @@ namespace App\Livewire\Portal\Departments;
 
 use App\Models\User;
 use App\Models\Company;
-use Livewire\Component;
+use App\Livewire\BaseImportComponent;
 use App\Models\Department;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
@@ -17,9 +17,15 @@ use App\Models\SupervisorDepartment;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 
-class Index extends Component
+class Index extends BaseImportComponent
 {
     use WithDataTable;
+
+    protected $importType = 'departments';
+    protected $importPermission = 'department-create';
+
+    // Cache for existing department data to avoid N+1 queries
+    protected $existingDepartmentNames;
 
     //
     public ?Company $company;
@@ -324,18 +330,8 @@ class Index extends Component
 
     public function import()
     {
-        $this->validate([
-            'department_file' => 'sometimes|nullable|mimes:xlsx,csv|max:500',
-        ]);
-        Excel::import(new DepartmentImport($this->company), $this->department_file);
-        auditLog(
-            auth()->user(),
-            'department_imported',
-            'web',
-            __('departments.imported_excel_file_for_departments') . $this->company->name
-        );
-        $this->clearFields();
-        $this->closeModalAndFlashMessage(__('departments.departments_successfully_uploaded'), 'importDepartmentsModal');
+        // Redirect to centralized import system
+        return redirect()->route('portal.import-jobs.index')->with('message', __('common.redirected_to_centralized_import'));
     }
 
     public function export()
@@ -349,17 +345,6 @@ class Index extends Component
         return (new DepartmentExport($this->company, $this->query))->download(ucfirst($this->company->name) . '-Department-' . Str::random(5) . '.xlsx');
     }
 
-    public function clearFields()
-    {
-        $this->isEditMode = false;
-        $this->department = null;
-        $this->reset([
-            'name',
-            'is_active',
-            'department_id',
-            'supervisor_id',
-        ]);
-    }
     public function render()
     {
         if (!Gate::allows('department-read')) {
@@ -390,5 +375,217 @@ class Index extends Component
             'active_departments' => $active_departments,
             'deleted_departments' => $deleted_departments,
         ])->layout('components.layouts.dashboard');
+    }
+
+    /**
+     * Get import columns for department preview
+     */
+    protected function getImportColumns(): array
+    {
+        return [
+            0 => __('departments.name'),
+            1 => __('departments.supervisor'),
+            2 => __('companies.company'),
+        ];
+    }
+
+    /**
+     * Get column definitions for preview
+     */
+    public function getPreviewColumns(): array
+    {
+        return $this->getImportColumns();
+    }
+
+    /**
+     * Get expected columns for field validation
+     */
+    protected function getExpectedColumns(): array
+    {
+        return [
+            'name',
+            'supervisor',
+            'company'
+        ];
+    }
+
+    /**
+     * Preload validation data to optimize performance
+     */
+    protected function preloadValidationData(): void
+    {
+        // Cache existing department names per company to avoid N+1 queries during validation
+        if (!isset($this->existingDepartmentNames)) {
+            $this->existingDepartmentNames = [];
+
+            // Only load departments for the current company to avoid loading everything
+            $companyId = $this->company ? $this->company->id : null;
+
+            if ($companyId) {
+                $departments = Department::select('name', 'company_id')
+                    ->where('company_id', $companyId)
+                    ->get()
+                    ->groupBy('company_id');
+
+                foreach ($departments as $deptCompanyId => $companyDepartments) {
+                    $this->existingDepartmentNames[$deptCompanyId] = $companyDepartments
+                        ->pluck('name')
+                        ->map(function($name) {
+                            return strtolower(trim($name));
+                        })
+                        ->toArray();
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if department name exists for a company (optimized to avoid N+1 queries)
+     */
+    protected function isDepartmentNameExists(string $name, int $companyId): bool
+    {
+        return isset($this->existingDepartmentNames[$companyId]) &&
+               in_array(strtolower(trim($name)), $this->existingDepartmentNames[$companyId]);
+    }
+
+    /**
+     * Get company ID for import
+     */
+    protected function getCompanyId(): ?int
+    {
+        return $this->company ? $this->company->id : null;
+    }
+
+    /**
+     * Get department ID (not needed for department import)
+     */
+    protected function getDepartmentId(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Validate a single department preview row
+     */
+    protected function validatePreviewRow(array $rowData, int $rowNumber): array
+    {
+        $errors = [];
+        $warnings = [];
+        $parsedData = [];
+
+        try {
+            // Validate department name
+            if (empty($rowData[0] ?? '')) {
+                $errors[] = __('departments.name_required');
+            }
+
+            // Validate supervisor email if provided
+            if (!empty($rowData[1] ?? '')) {
+                $supervisorResult = $this->findSupervisor($rowData[1], $this->company ? $this->company->id : null);
+                if (!$supervisorResult['found']) {
+                    $errors[] = $supervisorResult['error'];
+                } else {
+                    $parsedData[1] = $supervisorResult['supervisor']->name;
+                }
+            }
+
+            // Validate company name if provided (when not in company context)
+            if (!empty($rowData[2] ?? '') && !$this->company) {
+                $companyResult = findOrCreateCompany($rowData[2], $this->autoCreateEntities);
+                if (!$companyResult['found']) {
+                    $errors[] = $companyResult['error'];
+                } else {
+                    $parsedData[2] = $companyResult['company']->name;
+                }
+            }
+
+            // Check for duplicate department name (optimized to avoid N+1 queries)
+            if (!empty($rowData[0]) && !empty($rowData[2] ?? '')) {
+                $companyId = $this->company ? $this->company->id : ($companyResult['company']->id ?? null);
+                if ($companyId && $this->isDepartmentNameExists($rowData[0], $companyId)) {
+                    $warnings[] = __('departments.name_already_exists');
+                }
+            }
+
+        } catch (\Exception $e) {
+            $errors[] = __('common.row_validation_error', ['error' => $e->getMessage()]);
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'parsed_data' => $parsedData
+        ];
+    }
+
+    /**
+     * Find supervisor by email with validation
+     */
+    private function findSupervisor($email, $companyId): array
+    {
+        if (empty($email)) {
+            return [
+                'found' => false,
+                'supervisor' => null,
+                'error' => __('departments.supervisor_email_required')
+            ];
+        }
+
+        $supervisor = User::where('email', $email)->first();
+
+        if (!$supervisor) {
+            return [
+                'found' => false,
+                'supervisor' => null,
+                'error' => __('departments.supervisor_not_found')
+            ];
+        }
+
+        // Check if supervisor belongs to the same company
+        if ($companyId && $supervisor->company_id !== $companyId) {
+            return [
+                'found' => false,
+                'supervisor' => null,
+                'error' => __('departments.supervisor_wrong_company')
+            ];
+        }
+
+        // Check if user has supervisor or manager role
+        if (!$supervisor->hasRole(['supervisor', 'manager'])) {
+            return [
+                'found' => false,
+                'supervisor' => null,
+                'error' => __('departments.supervisor_wrong_role')
+            ];
+        }
+
+        return [
+            'found' => true,
+            'supervisor' => $supervisor,
+            'error' => null
+        ];
+    }
+
+    /**
+     * Perform the actual department import
+     */
+    protected function performImport()
+    {
+        Excel::import(new DepartmentImport($this->company, $this->autoCreateEntities), $this->department_file);
+
+        return [
+            'imported_count' => 'unknown',
+            'company_name' => $this->company ? $this->company->name : 'multiple'
+        ];
+    }
+
+    /**
+     * Clear department-specific fields
+     */
+    public function clearFields()
+    {
+        parent::clearFields();
+        $this->department_file = null;
     }
 }

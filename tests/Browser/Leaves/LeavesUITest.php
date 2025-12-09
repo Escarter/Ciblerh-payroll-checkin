@@ -15,8 +15,8 @@ test('user can view leaves page', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         
-        $browser->visit('/portal/leaves')
-            ->assertSee('Leaves')
+        $this->visitAndWait($browser, '/portal/leaves');
+        $browser->assertSee('Leaves')
             ->assertPathIs('/portal/leaves');
     });
 });
@@ -33,9 +33,9 @@ test('user can search for leaves', function () {
             'leave_type_id' => $leaveType->id,
         ]);
         
-        $browser->visit('/portal/leaves')
-            ->type('#search', $employee->first_name)
-            ->pause(1000)
+        $this->visitAndWait($browser, '/portal/leaves');
+        $browser->type('#leaves-search', $employee->first_name)
+            ->pause(2000)
             ->assertSee($employee->first_name);
     });
 });
@@ -74,17 +74,16 @@ test('supervisor can approve leave', function () {
             'supervisor_approval_status' => 0,
         ]);
         
-        $browser->visit('/login')
-            ->type('#email', $supervisor->email)
-            ->type('#password', 'password')
-            ->press('Login')
-            ->pause(1000)
-            ->visit('/portal/leaves')
+        $supervisor = $this->loginAs($browser, 'supervisor');
+        $browser->visit('/portal/leaves')
             ->click("#edit-leave-{$leave->id}")
             ->pause(500)
-            ->select('#supervisor_approval_status', '1')
-            ->type('#supervisor_approval_reason', 'Approved')
-            ->click('button:contains("Approve")')
+            ->waitFor('#EditLeaveModal', 5)
+            ->within('#EditLeaveModal', function ($modal) {
+                $modal->select('#supervisor_approval_status', '1')
+                    ->type('#supervisor_approval_reason', 'Approved')
+                    ->press('Confirm');
+            })
             ->pause(1000)
             ->assertSee('updated');
     });
@@ -106,17 +105,16 @@ test('manager can approve leave', function () {
             'manager_approval_status' => 0,
         ]);
         
-        $browser->visit('/login')
-            ->type('#email', $manager->email)
-            ->type('#password', 'password')
-            ->press('Login')
-            ->pause(1000)
-            ->visit('/portal/leaves')
+        $manager = $this->loginAs($browser, 'manager');
+        $browser->visit('/portal/leaves')
             ->click("#edit-leave-{$leave->id}")
             ->pause(500)
-            ->select('#manager_approval_status', '1')
-            ->type('#manager_approval_reason', 'Approved')
-            ->click('button:contains("Approve")')
+            ->waitFor('#EditLeaveModal', 5)
+            ->within('#EditLeaveModal', function ($modal) {
+                $modal->select('#manager_approval_status', '1')
+                    ->type('#manager_approval_reason', 'Approved')
+                    ->press('Confirm');
+            })
             ->pause(1000)
             ->assertSee('updated');
     });
@@ -124,7 +122,7 @@ test('manager can approve leave', function () {
 
 test('user can bulk approve leaves', function () {
     $this->browse(function (Browser $browser) {
-        $user = $this->loginAs($browser, 'admin');
+        $user = $this->loginAs($browser, 'supervisor');
         $company = Company::factory()->create();
         $department = Department::factory()->create(['company_id' => $company->id]);
         $employee = User::factory()->create(['department_id' => $department->id]);
@@ -139,10 +137,13 @@ test('user can bulk approve leaves', function () {
             ->check("#select-leave-{$leaves[0]->id}")
             ->check("#select-leave-{$leaves[1]->id}")
             ->pause(500)
-            ->click('button:contains("Approve")')
+            ->click('#bulk-approve-leaves-btn')
             ->pause(500)
-            ->type('#bulk_supervisor_approval_reason', 'Bulk approved for testing')
-            ->click('button:contains("Approve")')
+            ->waitFor('#EditBulkLeaveModal', 5)
+            ->within('#EditBulkLeaveModal', function ($modal) {
+                $modal->type('#bulk_supervisor_approval_reason', 'Bulk approved for testing')
+                    ->press('#bulk-supervisor-approve-btn');
+            })
             ->pause(1000)
             ->assertSee('updated');
     });
@@ -168,7 +169,7 @@ test('user can delete a leave', function () {
                 $modal->press('Confirm');
             })
             ->pause(1000)
-            ->assertSee('Leave deleted successfully');
+            ->assertSee('moved to trash');
     });
 });
 

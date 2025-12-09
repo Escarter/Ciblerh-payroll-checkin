@@ -2,7 +2,6 @@
     <x-alert />
     @include('livewire.portal.leaves.types.partials.create-type')
     @include('livewire.portal.leaves.types.partials.edit-type')
-    @include('livewire.portal.leaves.types.partials.import-types')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.restore-modal')
     @include('livewire.partials.bulk-restore-modal')
@@ -15,7 +14,7 @@
                 <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
                     <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
                         <li class="breadcrumb-item">
-                            <a href="#">
+                            <a href="{{ route('portal.dashboard') }}">
                                 <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg>
@@ -43,8 +42,8 @@
                         </svg> {{__('common.new')}}
                     </a>
                     @endcan
-                  {{--  @can('leave_type-import')
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#importLeaveTypesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
+                    @can('leave_type-import')
+                    <a href="{{ route('portal.import-jobs.index') }}" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                         </svg> {{__('common.import')}}
@@ -68,7 +67,7 @@
                         </div>
                     </div>
                     @endcan
-                    --}}
+                    
                 </div>
             </div>
         </div>
@@ -203,14 +202,14 @@
                 <span class="badge {{ $activeTab === 'active' ? 'bg-light text-white' : 'bg-primary text-white' }} ms-1">{{ ($active_leave_types + $inactive_leave_types) ?? 0 }}</span>
             </button>
 
-            <button class="btn {{ $activeTab === 'deleted' ? 'btn-tertiary' : 'btn-outline-tertiary' }}"
+            <button class="btn {{ $activeTab === 'deleted' ? 'btn-danger' : 'btn-outline-danger' }}"
                 wire:click="switchTab('deleted')"
                 type="button">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
                 {{__('common.deleted')}}
-                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-tertiary text-white' }} ms-1">{{ $deleted_leave_types ?? 0 }}</span>
+                <span class="badge {{ $activeTab === 'deleted' ? 'bg-light text-white' : 'bg-danger text-white' }} ms-1">{{ $deleted_leave_types ?? 0 }}</span>
             </button>
         </div>
 

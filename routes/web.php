@@ -180,6 +180,16 @@ Route::group(
         //Download Jobs
         Route::get('/download-jobs', App\Livewire\Portal\DownloadJobs\Index::class)->name('portal.download-jobs.index');
 
+        //Import Jobs
+        Route::get('/import-jobs', App\Livewire\Portal\ImportJobs\Index::class)->name('portal.import-jobs.index');
+        Route::get('/download-template/{filename}', function($filename) {
+            $path = public_path('templates/' . $filename);
+            if (!file_exists($path)) {
+                abort(404);
+            }
+            return response()->download($path);
+        })->name('portal.download-template');
+
         Route::get('/checkin-report-template',function(){
             $month = '2022-03';
             $start = Carbon::parse($month)->startOfMonth();

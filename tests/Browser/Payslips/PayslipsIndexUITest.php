@@ -50,7 +50,7 @@ test('user can switch between active and deleted tabs', function () {
         $process->delete();
         
         $browser->visit('/portal/payslips')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-payslips-tab')
             ->pause(500)
             ->assertSee('Deleted');
     });
@@ -62,13 +62,11 @@ test('user can delete a payslip process', function () {
         $process = SendPayslipProcess::factory()->create();
         
         $browser->visit('/portal/payslips')
-            ->click("button[wire\\:click='initData({$process->id})']")
-            ->pause(500)
-            ->click('button:contains("Delete")')
+            ->click("#delete-payslip-{$process->id}")
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('#confirm-delete-btn');
             })
             ->pause(1000)
             ->assertSee('moved to trash');
@@ -82,13 +80,13 @@ test('user can restore a deleted payslip process', function () {
         $process->delete();
         
         $browser->visit('/portal/payslips')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-payslips-tab')
             ->pause(500)
-            ->click("button[wire\\:click='restore({$process->id})']")
+            ->click("#restore-payslip-{$process->id}")
             ->pause(500)
             ->waitFor('#RestoreModal', 5)
             ->within('#RestoreModal', function ($modal) {
-                $modal->press('Restore');
+                $modal->press('#confirm-restore-btn');
             })
             ->pause(1000)
             ->assertSee('restored');
@@ -101,9 +99,9 @@ test('user can select all payslip processes', function () {
         SendPayslipProcess::factory()->count(3)->create();
         
         $browser->visit('/portal/payslips')
-            ->check('input[type="checkbox"][wire\\:model="selectAll"]')
+            ->check('#select-all-payslips')
             ->pause(500)
-            ->assertChecked('input[type="checkbox"][wire\\:model="selectAll"]');
+            ->assertChecked('#select-all-payslips');
     });
 });
 
@@ -113,16 +111,16 @@ test('user can bulk delete payslip processes', function () {
         $processes = SendPayslipProcess::factory()->count(2)->create();
         
         $browser->visit('/portal/payslips')
-            ->check("input[type='checkbox'][value='{$processes[0]->id}']")
-            ->check("input[type='checkbox'][value='{$processes[1]->id}']")
-            ->pause(500)
-            ->click('button:contains("Bulk Delete")')
-            ->pause(500)
-            ->waitFor('#BulkDeleteModal', 5)
+            ->check('#select-all-payslips')
+            ->pause(2000)
+            ->assertPresent('#bulk-delete-payslips-btn')
+            ->click('#bulk-delete-payslips-btn')
+            ->pause(2000)
+            ->waitFor('#BulkDeleteModal', 10)
             ->within('#BulkDeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('Move to Trash');
             })
-            ->pause(1000)
+            ->pause(2000)
             ->assertSee('moved to trash');
     });
 });
@@ -132,7 +130,7 @@ test('user sees empty state when no processes exist', function () {
         $user = $this->loginAs($browser, 'admin');
         
         $browser->visit('/portal/payslips')
-            ->assertSee('No payslip processes found');
+            ->assertSee('Start processing payslip');
     });
 });
 

@@ -91,11 +91,95 @@ border: 1px dashed #384f80;}.border-prim{background: rgba(242, 244, 246, 0.4);bo
 
 
 .side-layout-modal.fade .modal-dialog {
-    -webkit-transform: translate(25%, 0);
-    transform: translate(25%, 0);
+    -webkit-transform: translate(100%, 0);
+    transform: translate(100%, 0);
 }
 
 .side-layout-modal.show .modal-dialog {
     -webkit-transform: translate(0, 0);
     transform: translate(0, 0);
+}
+/* Progress Steps for Import Modal */
+.progress-steps {
+    margin: 0;
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+
+        &:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 14px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 1;
+        }
+
+        &.completed::after {
+            background: #28a745;
+        }
+    }
+
+    .step-number {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 3px;
+        position: relative;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+
+    .step.active .step-number {
+        background: #1F2937;
+        color: white;
+        transform: scale(1.1);
+    }
+
+    .step.completed .step-number {
+        background: #28a745;
+        color: white;
+    }
+
+    .step-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-align: center;
+    }
+
+    .step.active .step-label {
+        color: #1F2937;
+        font-weight: 500;
+    }
+
+    .step.completed .step-label {
+        color: #28a745;
+        font-weight: 500;
+    }
+}
+
+/* Smooth transitions for modal content */
+.modal-body [x-show] {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.modal-body [x-show="false"] {
+    opacity: 0;
+    transform: translateX(-10px);
+}
+
+.modal-body [x-show="true"] {
+    opacity: 1;
+    transform: translateX(0);
 }

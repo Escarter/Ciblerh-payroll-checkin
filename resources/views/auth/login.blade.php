@@ -34,7 +34,7 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="form-group mb-4">
-                                        <label for="password">{{ __('auth.password') }}</label>
+                                        <label for="password">{{ __('auth.password_placeholder') }}</label>
                                         <div class="input-group">
                                             <span class="input-group-text" id="basic-addon2">
                                                 <!-- <span class="fas fa-unlock-alt"></span> -->
@@ -71,8 +71,8 @@
                             </x-form-items.form>
                             <div class='d-flex justify-content-center my-3'>
                                 <!-- {{__('auth.language')}} <br> -->
-                                <a class="{{ \App::isLocale('fr') ? ' text-secondary' : ''}} mx-2" href="{{route('language-switcher',['locale'=>'fr'])}}" >{{__('auth.fr')}}</a> |
-                                <a class="{{ \App::isLocale('en') ? ' text-secondary' : ''}} mx-2" href="{{route('language-switcher',['locale'=>'en'])}}" >{{__('auth.en')}}</a>
+                                <a class="{{ \App::isLocale('fr') ? ' btn btn-secondary btn-sm' : 'btn btn-sm me-0'}} mx-1" href="{{route('language-switcher',['locale'=>'fr'])}}" >{{__('auth.fr')}}</a> 
+                                <a class="{{ \App::isLocale('en') ? ' btn btn-secondary btn-sm' : 'btn btn-sm me-0'}} mx-1" href="{{route('language-switcher',['locale'=>'en'])}}" >{{__('auth.en')}}</a>
                             </div>
                         </div>
                     </div>

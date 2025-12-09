@@ -39,18 +39,14 @@ test('manager can see only their companies', function () {
     $this->browse(function (Browser $browser) {
         $manager = User::factory()->create();
         $manager->assignRole('manager');
-        
+
         $company = Company::factory()->create();
         $company->managers()->attach($manager->id);
-        
+
         $otherCompany = Company::factory()->create();
-        
-        $browser->visit('/login')
-            ->type('#email', $manager->email)
-            ->type('#password', 'password')
-            ->press('Login')
-            ->pause(1000)
-            ->visit('/portal/dashboard')
+
+        $manager = $this->loginAs($browser, 'manager');
+        $browser->visit('/portal/dashboard')
             ->assertSee($company->name)
             ->assertDontSee($otherCompany->name);
     });

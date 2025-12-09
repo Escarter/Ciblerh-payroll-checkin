@@ -4,7 +4,7 @@ namespace App\Livewire\Portal\Services;
 
 use App\Models\Company;
 use App\Models\Service;
-use Livewire\Component;
+use App\Livewire\BaseImportComponent;
 use App\Models\Department;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
@@ -15,9 +15,15 @@ use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 
-class Index extends Component
+class Index extends BaseImportComponent
 {
     use WithDataTable;
+
+    protected $importType = 'services';
+    protected $importPermission = 'service-create';
+
+    // Cache for existing service data to avoid N+1 queries
+    protected $existingServiceNames;
 
     //
     public ?Department $department;
@@ -238,23 +244,6 @@ class Index extends Component
         return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
-    public function import()
-    {
-        $this->validate([
-            'service_file' => 'sometimes|nullable|mimes:xlsx,csv|max:500',
-        ]);
-
-        Excel::import(new ServiceImport($this->department), $this->service_file);
-
-        auditLog(
-            auth()->user(),
-            'service_imported',
-            'web',
-            __('services.imported_excel_file_for_services') . $this->department->name
-        );
-        $this->clearFields();
-        $this->closeModalAndFlashMessage(__('services.services_successfully_imported'), 'importServicesModal');
-    }
 
     public function export()
     {
@@ -299,4 +288,146 @@ class Index extends Component
         ])->layout('components.layouts.dashboard');
     }
 
+    /**
+     * Get import columns for service preview
+     */
+    protected function getImportColumns(): array
+    {
+        return $this->getPreviewColumns();
+    }
+
+    /**
+     * Perform the actual service import
+     */
+    protected function performImport()
+    {
+        Excel::import(new ServiceImport($this->department, $this->autoCreateEntities), $this->service_file);
+
+        return [
+            'imported_count' => 'unknown', // Could be enhanced to return actual count
+            'department_name' => $this->department->name,
+            'auto_create_enabled' => $this->autoCreateEntities
+        ];
+    }
+
+    /**
+     * Preload validation data to optimize performance
+     */
+    protected function preloadValidationData(): void
+    {
+        // Cache existing service names per department to avoid N+1 queries during validation
+        if (!isset($this->existingServiceNames)) {
+            $this->existingServiceNames = [];
+
+            // Only load services for the current department to avoid loading everything
+            $departmentId = $this->department ? $this->department->id : null;
+
+            if ($departmentId) {
+                $services = Service::select('name', 'department_id')
+                    ->where('department_id', $departmentId)
+                    ->get()
+                    ->groupBy('department_id');
+
+                foreach ($services as $deptId => $departmentServices) {
+                    $this->existingServiceNames[$deptId] = $departmentServices
+                        ->pluck('name')
+                        ->map(function($name) {
+                            return strtolower(trim($name));
+                        })
+                        ->toArray();
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if service name exists for a department (optimized to avoid N+1 queries)
+     */
+    protected function isServiceNameExists(string $name, int $departmentId): bool
+    {
+        return isset($this->existingServiceNames[$departmentId]) &&
+               in_array(strtolower(trim($name)), $this->existingServiceNames[$departmentId]);
+    }
+
+    /**
+     * Get company ID (not needed for service import)
+     */
+    protected function getCompanyId(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Get department ID for import
+     */
+    protected function getDepartmentId(): ?int
+    {
+        return $this->department ? $this->department->id : null;
+    }
+
+    /**
+     * Validate a single preview row for services
+     */
+    protected function validatePreviewRow(array $rowData, int $rowNumber): array
+    {
+        $errors = [];
+        $warnings = [];
+        $parsedData = [];
+
+        try {
+            // Validate required fields
+            if (empty($rowData[0] ?? '')) {
+                $errors[] = __('services.name_required');
+            }
+
+            // Check for duplicate service name in department (optimized to avoid N+1 queries)
+            if (!empty($rowData[0]) && $this->isServiceNameExists($rowData[0], $this->department->id)) {
+                $warnings[] = __('services.name_already_exists');
+            }
+
+        } catch (\Exception $e) {
+            $errors[] = __('common.row_validation_error', ['error' => $e->getMessage()]);
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'parsed_data' => $parsedData
+        ];
+    }
+
+    public function import()
+    {
+        // Redirect to centralized import system
+        return redirect()->route('portal.import-jobs.index')->with('message', __('common.redirected_to_centralized_import'));
+    }
+
+    /**
+     * Get column definitions for preview
+     */
+    public function getPreviewColumns(): array
+    {
+        return [
+            0 => __('services.name'),
+        ];
+    }
+
+    /**
+     * Get expected columns for field validation
+     */
+    protected function getExpectedColumns(): array
+    {
+        return [
+            'name'
+        ];
+    }
+
+    /**
+     * Override to return correct file property for this component
+     */
+    protected function getFileProperty()
+    {
+        return $this->service_file ?? null;
+    }
 }

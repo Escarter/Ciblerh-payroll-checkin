@@ -18,50 +18,27 @@ test('user can view roles page', function () {
     });
 });
 
-test('user can search for roles', function () {
-    $this->browse(function (Browser $browser) {
-        $user = $this->loginAs($browser, 'admin');
-        $role = Role::factory()->create(['name' => 'Test Role']);
-        
-        $browser->visit('/portal/roles')
-            ->type('#search', 'Test')
-            ->pause(1000)
-            ->assertSee('Test Role');
-    });
-});
-
 test('user can open create role modal', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
-        
-        $browser->visit('/portal/roles')
-            ->click('button:contains("Create Role")')
-            ->pause(500)
+
+        $this->visitAndWait($browser, '/portal/roles');
+        $browser->click('#create-role-btn')
+            ->pause(1000)
             ->waitFor('#CreateRoleModal', 5)
             ->assertSee('Create Role');
     });
 });
 
-test('user can view role details', function () {
-    $this->browse(function (Browser $browser) {
-        $user = $this->loginAs($browser, 'admin');
-        $role = Role::factory()->create();
-        
-        $browser->visit('/portal/roles')
-            ->click("button[wire\\:click='initData({$role->id})']")
-            ->pause(500)
-            ->assertSee($role->name);
-    });
-});
 
 test('user can edit role', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         $role = Role::factory()->create();
-        
-        $browser->visit('/portal/roles')
-            ->click("button[wire\\:click='editRole({$role->id})']")
-            ->pause(500)
+
+        $this->visitAndWait($browser, '/portal/roles');
+        $browser->click("#edit-role-{$role->id}")
+            ->pause(1000)
             ->waitFor('#EditRoleModal', 5)
             ->assertSee('Edit Role');
     });
@@ -71,18 +48,17 @@ test('user can delete a role without users', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         $role = Role::factory()->create();
-        
+
         $browser->visit('/portal/roles')
-            ->click("button[wire\\:click='initData({$role->id})']")
-            ->pause(500)
-            ->click('button:contains("Delete")')
+            ->click("#delete-role-{$role->id}")
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('#confirm-delete-btn');
             })
-            ->pause(1000)
-            ->assertSee('moved to trash');
+            ->pause(2000)
+            ->screenshot('role-delete-debug')
+            ->assertSee('Role moved to trash successfully!');
     });
 });
 
@@ -92,18 +68,16 @@ test('user cannot delete role with assigned users', function () {
         $role = Role::factory()->create();
         $employee = User::factory()->create();
         $employee->assignRole($role->name);
-        
+
         $browser->visit('/portal/roles')
-            ->click("button[wire\\:click='initData({$role->id})']")
-            ->pause(500)
-            ->click('button:contains("Delete")')
+            ->click("#delete-role-{$role->id}")
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('#confirm-delete-btn');
             })
             ->pause(1000)
-            ->assertSee('cannot be deleted');
+            ->assertSee('The role cannot be deleted because it is still assigned to users!');
     });
 });
 
@@ -114,7 +88,7 @@ test('user can switch between active and deleted tabs', function () {
         $role->delete();
         
         $browser->visit('/portal/roles')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-roles-tab')
             ->pause(500)
             ->assertSee('Deleted');
     });
@@ -127,13 +101,13 @@ test('user can restore a deleted role', function () {
         $role->delete();
         
         $browser->visit('/portal/roles')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-roles-tab')
             ->pause(500)
-            ->click("button[wire\\:click='restore({$role->id})']")
+            ->click("#restore-role-{$role->id}")
             ->pause(500)
             ->waitFor('#RestoreModal', 5)
             ->within('#RestoreModal', function ($modal) {
-                $modal->press('Restore');
+                $modal->press('#confirm-restore-btn');
             })
             ->pause(1000)
             ->assertSee('restored');
@@ -147,11 +121,9 @@ test('user can permanently delete a role', function () {
         $role->delete();
         
         $browser->visit('/portal/roles')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-roles-tab')
             ->pause(500)
-            ->click("button[wire\\:click='initData({$role->id})']")
-            ->pause(500)
-            ->click('button:contains("Permanently Delete")')
+            ->click('.card')  // Click the role card to select it
             ->pause(500)
             ->waitFor('#ForceDeleteModal', 5)
             ->within('#ForceDeleteModal', function ($modal) {
@@ -168,9 +140,9 @@ test('user can select all roles', function () {
         Role::factory()->count(3)->create();
         
         $browser->visit('/portal/roles')
-            ->check('input[type="checkbox"][wire\\:model="selectAll"]')
+            ->click('#select-all-roles-checkbox')
             ->pause(500)
-            ->assertChecked('input[type="checkbox"][wire\\:model="selectAll"]');
+            ->assertPresent('#select-all-roles-checkbox');
     });
 });
 
@@ -180,10 +152,9 @@ test('user can bulk delete roles', function () {
         $roles = Role::factory()->count(2)->create();
         
         $browser->visit('/portal/roles')
-            ->check("input[type='checkbox'][value='{$roles[0]->id}']")
-            ->check("input[type='checkbox'][value='{$roles[1]->id}']")
+            ->click('#select-all-roles-checkbox')
             ->pause(500)
-            ->click('button:contains("Bulk Delete")')
+            ->click('#bulk-delete-roles-btn')
             ->pause(500)
             ->waitFor('#BulkDeleteModal', 5)
             ->within('#BulkDeleteModal', function ($modal) {

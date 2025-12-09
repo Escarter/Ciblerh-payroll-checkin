@@ -5,7 +5,7 @@
                 <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
                     <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
                         <li class="breadcrumb-item">
-                            <a href="#">
+                            <a href="{{ route('portal.dashboard') }}">
                                 <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg>
@@ -93,7 +93,7 @@
                     <option value="" selected>{{__('common.select_employees')}}</option>
                     <option value="all">{{__('employees.all_employees')}}</option>
                     @foreach ($employees as $employee)
-                    <option value=" {{$employee->id}}">{{$employee->name}}</option>
+                    <option value="{{$employee->id}}">{{$employee->name}}</option>
                     @endforeach
                 </select>
             </div>
@@ -124,12 +124,12 @@
         </div>
 
         <div class="col">
-            <label for="Start Date">{{__('common.start_date')}}: </label>
-            <input wire:model.live="start_date" id="StartDate" type="date" class="form-control">
+            <label for="start_date">{{__('common.start_date')}}: </label>
+            <input wire:model.live="start_date" id="start_date" type="date" class="form-control">
         </div>
         <div class="col">
-            <label for="End Date">{{__('common.end_date')}}: </label>
-            <input wire:model.live="end_date" id="EndDate" type="date" class="form-control">
+            <label for="end_date">{{__('common.end_date')}}: </label>
+            <input wire:model.live="end_date" id="end_date" type="date" class="form-control">
         </div>
     </div>
     <div class="card pb-3 ">
@@ -190,7 +190,7 @@
                             @elseif($payslip->sms_sent_status == 2)
                             <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                             @elseif($payslip->sms_sent_status == 3)
-                            <span class="badge badge-lg text-md bg-info">{{__('Disabled')}}</span>
+                            <span class="badge badge-lg text-md bg-info">{{__('common.disabled')}}</span>
                             @else
                             <span class="badge badge-lg text-md text-dark bg-warning">{{__('common.pending')}}</span>
                             @endif

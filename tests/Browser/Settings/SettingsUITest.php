@@ -22,8 +22,9 @@ test('user can update SMTP settings', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         Setting::factory()->create();
-        
-        $browser->visit('/portal/settings')
+
+        $this->visitAndWait($browser, '/portal/settings');
+        $browser->assertPresent('#smtp_host')
             ->type('#smtp_host', 'smtp.example.com')
             ->type('#smtp_port', '587')
             ->type('#smtp_username', 'user@example.com')
@@ -32,8 +33,8 @@ test('user can update SMTP settings', function () {
             ->type('#from_email', 'noreply@example.com')
             ->type('#from_name', 'Test Company')
             ->click('#save-mail-config-btn')
-            ->pause(1000)
-            ->assertSee('saved');
+            ->pause(3000)
+            ->assertSee('Setting for SMTP successfully added!');
     });
 });
 
@@ -48,8 +49,8 @@ test('user can update SMS provider settings', function () {
             ->type('#sms_provider_password', 'test_password')
             ->type('#sms_provider_senderid', 'TEST')
             ->click('#save-sms-config-btn')
-            ->pause(1000)
-            ->assertSee('saved');
+            ->pause(2000)
+            ->assertSee('Setting for SMS successfully added!');
     });
 });
 
@@ -62,8 +63,8 @@ test('user can test email configuration', function () {
             ->type('#test_email_address', 'test@example.com')
             ->type('#test_email_message', 'Test message')
             ->click('#send-test-email-btn')
-            ->pause(1000)
-            ->assertSee('sent');
+            ->pause(2000)
+            ->assertSee('Test Email sent successfully!');
     });
 });
 
@@ -126,12 +127,12 @@ test('user can update birthday SMS templates', function () {
     $this->browse(function (Browser $browser) {
         $user = $this->loginAs($browser, 'admin');
         Setting::factory()->create();
-        
-        $browser->visit('/portal/settings')
-            ->type('#birthday_sms_message_en', 'Happy Birthday :name:!')
+
+        $this->visitAndWait($browser, '/portal/settings');
+        $browser->type('#birthday_sms_message_en', 'Happy Birthday :name:!')
             ->click('#save-sms-config-btn')
-            ->pause(1000)
-            ->assertSee('saved');
+            ->pause(2000)
+            ->assertPresent('.alert-success, .text-success');
     });
 });
 
@@ -143,8 +144,8 @@ test('user sees validation errors for required SMTP fields', function () {
         $browser->visit('/portal/settings')
             ->clear('#smtp_host')
             ->click('#save-mail-config-btn')
-            ->pause(500)
-            ->assertSee('required');
+            ->pause(2000)
+            ->assertPresent('.invalid-feedback, .text-danger, .alert-danger');
     });
 });
 

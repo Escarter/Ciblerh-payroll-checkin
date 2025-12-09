@@ -17,13 +17,14 @@ use App\Livewire\Portal\Roles\Partial\WithAdvanceSalAndAbsencesPermissions;
 use App\Livewire\Portal\Roles\Partial\WithSettingPermissions;
 use App\Livewire\Portal\Roles\Partial\WithPaySlipAndEmployeePermissions;
 use App\Livewire\Portal\Roles\Partial\WithReportPermissions;
+use App\Livewire\Portal\Roles\Partial\WithImportJobPermissions;
 
 class Create extends Component
 {
 
     use  WithComDeptServPermissions, WithRolePermissions, WithAuditLogPermissions, WithTickOvertimePermissions,
     WithAdvanceSalAndAbsencesPermissions, WithLeaveAndLeaveTypePermissions, WithSettingPermissions, WithPaySlipAndEmployeePermissions,
-    WithReportPermissions;
+    WithReportPermissions, WithImportJobPermissions;
 
     public $name;
     public $role;
@@ -62,7 +63,8 @@ class Create extends Component
                     $this->selectedEmployeePermissions,
                     $this->selectedSettingPermissions,
                     $this->selectedReportPermissions,
-                   
+                    $this->selectedImportJobPermissions,
+
                 ]);
             }
 
@@ -83,6 +85,7 @@ class Create extends Component
         $this->settingPermissionClearFields();
         $this->payslipAndEmployeePermissionClearFields();
         $this->reportPermissionClearFields();
+        $this->importJobPermissionClearFields();
         $this->reset(['name']);
     }
 

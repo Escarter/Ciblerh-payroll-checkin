@@ -60,7 +60,11 @@ class All extends Component
                 auth()->user(),
                 'delete_payslip_process',
                 'web',
-                __('Delete Payslip process for ') . $job->month . "-" . $job->year . " @ " . now()
+                __('payslips.delete_payslip_process_for', [
+                    'month' => $job->month,
+                    'year' => $job->year,
+                    'datetime' => now()->format('Y-m-d H:i:s')
+                ])
             );
 
             $job->delete(); // Soft delete
@@ -93,7 +97,11 @@ class All extends Component
             auth()->user(),
             'force_delete_payslip_process',
             'web',
-            __('Permanently delete Payslip process for ') . $job->month . "-" . $job->year . " @ " . now()
+            __('payslips.permanently_delete_payslip_process_for', [
+                'month' => $job->month,
+                'year' => $job->year,
+                'datetime' => now()->format('Y-m-d H:i:s')
+            ])
         );
 
         $job->payslips()->forceDelete(); // Permanently delete related payslips

@@ -82,8 +82,8 @@ return [
         'string' => 'Le champ :attribute n\'est peut être pas plus grand que :max characters.',
         'array' => 'Le champ :attribute peut ne pas avoir plus de :max items.',
     ],
-    'mimes' => 'Le champ :attribute doit être un dossier de type: :values.',
-    'mimetypes' => 'Le champ :attribute doit être un dossier de type: :values.',
+    'mimes' => 'Le champ :attribute doit être un fichier de type: :values.',
+    'mimetypes' => 'Le champ :attribute doit être un fichier de type: :values.',
     'min' => [
         'numeric' => 'Le champ :attribute doit être au moins :min.',
         'file' => 'Le champ :attribute doit être au moins :min kilobytes.',

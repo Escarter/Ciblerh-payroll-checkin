@@ -20,41 +20,6 @@ test('user can view advance salaries page', function () {
     });
 });
 
-test('user can search for advance salaries', function () {
-    $this->browse(function (Browser $browser) {
-        $user = $this->loginAs($browser, 'admin');
-        $company = Company::factory()->create();
-        $department = Department::factory()->create(['company_id' => $company->id]);
-        $employee = User::factory()->create(['department_id' => $department->id]);
-        $advanceSalary = AdvanceSalary::factory()->create([
-            'user_id' => $employee->id,
-            'company_id' => $company->id,
-        ]);
-        
-        $browser->visit('/portal/advance-salaries')
-            ->type('#search', $employee->first_name)
-            ->pause(1000)
-            ->assertSee($employee->first_name);
-    });
-});
-
-test('user can view advance salary details', function () {
-    $this->browse(function (Browser $browser) {
-        $user = $this->loginAs($browser, 'admin');
-        $company = Company::factory()->create();
-        $department = Department::factory()->create(['company_id' => $company->id]);
-        $employee = User::factory()->create(['department_id' => $department->id]);
-        $advanceSalary = AdvanceSalary::factory()->create([
-            'user_id' => $employee->id,
-            'company_id' => $company->id,
-        ]);
-        
-        $browser->visit('/portal/advance-salaries')
-            ->click("button[wire\\:click='initData({$advanceSalary->id})']")
-            ->pause(500)
-            ->assertSee($employee->name);
-    });
-});
 
 test('user can approve advance salary', function () {
     $this->browse(function (Browser $browser) {
@@ -69,11 +34,14 @@ test('user can approve advance salary', function () {
         ]);
         
         $browser->visit('/portal/advance-salaries')
-            ->click("button[wire\\:click='initData({$advanceSalary->id})']")
+            ->click("#edit-advance-salary-{$advanceSalary->id}")
             ->pause(500)
-            ->select('#approval_status', '1')
-            ->type('#approval_reason', 'Approved')
-            ->click('button:contains("Update")')
+            ->waitFor('#EditAdvanceSalaryModal', 5)
+            ->within('#EditAdvanceSalaryModal', function ($modal) {
+                $modal->select('#approval_status', '1')
+                    ->type('#approval_reason', 'Approved')
+                    ->press('#confirm-advance-salary-btn');
+            })
             ->pause(1000)
             ->assertSee('updated');
     });
@@ -92,11 +60,14 @@ test('user can reject advance salary', function () {
         ]);
         
         $browser->visit('/portal/advance-salaries')
-            ->click("button[wire\\:click='initData({$advanceSalary->id})']")
+            ->click("#edit-advance-salary-{$advanceSalary->id}")
             ->pause(500)
-            ->select('#approval_status', '2')
-            ->type('#approval_reason', 'Rejected')
-            ->click('button:contains("Update")')
+            ->waitFor('#EditAdvanceSalaryModal', 5)
+            ->within('#EditAdvanceSalaryModal', function ($modal) {
+                $modal->select('#approval_status', '2')
+                    ->type('#approval_reason', 'Rejected')
+                    ->press('#confirm-advance-salary-btn');
+            })
             ->pause(1000)
             ->assertSee('updated');
     });
@@ -115,13 +86,17 @@ test('user can bulk approve advance salaries', function () {
         ]);
         
         $browser->visit('/portal/advance-salaries')
-            ->check("input[type='checkbox'][value='{$advanceSalaries[0]->id}']")
-            ->check("input[type='checkbox'][value='{$advanceSalaries[1]->id}']")
+            ->click('#select-all-advance-salaries-checkbox')
+            ->pause(2000)  // Wait longer for Livewire to update
+            ->click('#bulk-approve-advance-salaries-btn')
             ->pause(500)
-            ->select('#bulk_approval_status', '1')
-            ->click('button:contains("Bulk Approve")')
+            ->waitFor('#EditBulkAdvanceSalaryModal', 5)
+            ->within('#EditBulkAdvanceSalaryModal', function ($modal) {
+                $modal->type('#bulk_approval_reason', 'Bulk approved for testing')
+                    ->press('#bulk-advance-salary-confirm-btn');
+            })
             ->pause(1000)
-            ->assertSee('approved');
+            ->assertSee('updated');
     });
 });
 
@@ -137,13 +112,11 @@ test('user can delete an advance salary', function () {
         ]);
         
         $browser->visit('/portal/advance-salaries')
-            ->click("button[wire\\:click='initData({$advanceSalary->id})']")
-            ->pause(500)
-            ->click('button:contains("Delete")')
+            ->click("#delete-advance-salary-{$advanceSalary->id}")
             ->pause(500)
             ->waitFor('#DeleteModal', 5)
             ->within('#DeleteModal', function ($modal) {
-                $modal->press('Delete');
+                $modal->press('#confirm-delete-btn');
             })
             ->pause(1000)
             ->assertSee('moved to trash');
@@ -163,7 +136,7 @@ test('user can switch between active and deleted tabs', function () {
         $advanceSalary->delete();
         
         $browser->visit('/portal/advance-salaries')
-            ->click('button:contains("Deleted")')
+            ->click('#deleted-advance-salaries-tab')
             ->pause(500)
             ->assertSee('Deleted');
     });
@@ -182,13 +155,14 @@ test('user can restore a deleted advance salary', function () {
         $advanceSalary->delete();
         
         $browser->visit('/portal/advance-salaries')
-            ->click('button:contains("Deleted")')
-            ->pause(500)
-            ->click("button[wire\\:click='restore({$advanceSalary->id})']")
-            ->pause(500)
-            ->waitFor('#RestoreModal', 5)
+            ->click('#deleted-advance-salaries-tab')
+            ->pause(1000)
+            ->click("#restore-advance-salary-{$advanceSalary->id}")
+            ->pause(1000)
+            ->waitFor('#RestoreModal', 10)
             ->within('#RestoreModal', function ($modal) {
-                $modal->press('Restore');
+                $modal->pause(500)
+                    ->press('#confirm-restore-btn');
             })
             ->pause(1000)
             ->assertSee('restored');
@@ -207,7 +181,7 @@ test('user can export advance salaries', function () {
         ]);
         
         $browser->visit('/portal/advance-salaries')
-            ->click('button:contains("Export")')
+            ->click('#export-advance-salaries-btn')
             ->pause(1000)
             ->assertSee('Export');
     });

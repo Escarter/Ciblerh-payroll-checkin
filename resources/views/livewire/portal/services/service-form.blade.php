@@ -20,7 +20,7 @@
                         </div>
                         <div class="form-group mb-4">
                             <label for="name">{{__('common.name')}}</label>
-                            <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
+                            <input wire:model="name" id="service-name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
                             @error('name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
@@ -28,7 +28,7 @@
                         @if($isEditMode)
                         <div class='form-group mb-4'>
                             <label for="is_active">{{__('common.status')}}?</label>
-                            <select wire:model="is_active" name="is_active" class="form-select  @error('is_active') is-invalid @enderror">
+                            <select wire:model="is_active" id="service-is-active" name="is_active" class="form-select  @error('is_active') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1" {{ ($is_active == true || $is_active == 1) ? 'selected' : '' }}>{{__('common.active')}}</option>
                                 <option value="0" {{ ($is_active == false || $is_active == 0) ? 'selected' : '' }}>{{__('services.inactive')}}</option>
@@ -40,7 +40,7 @@
                         @endif
                         <div class="d-flex justify-content-end">
                             <button type="button" wire:click.prevent="{{ $isEditMode ? 'clearFields' : '' }}" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
-                            <button type="submit" wire:click.prevent="{{ $isEditMode ? 'update' : 'store' }}" class="btn btn-primary" wire:loading.attr="disabled">{{ $isEditMode ? __('common.update') : __('common.create') }}</button>
+                            <button type="submit" wire:click.prevent="{{ $isEditMode ? 'update' : 'store' }}" id="save-service-btn" class="btn btn-primary" wire:loading.attr="disabled">{{ $isEditMode ? __('common.update') : __('common.create') }}</button>
                         </div>
                     </x-form-items.form>
                 </div>

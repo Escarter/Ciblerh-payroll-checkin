@@ -11,7 +11,7 @@
                         <p class="pt-2">{{__('common.restore_confirmation_message')}} &#128522;</p>
                     </div>
                     <div class="d-flex justify-content-center">
-                        <button type="button" wire:click="restore" class="btn btn-success mx-3" data-bs-dismiss="modal">{{__('common.confirm_restore')}}</button>
+                        <button type="button" wire:click="restore" id="confirm-restore-btn" class="btn btn-success mx-3" data-bs-dismiss="modal">{{__('common.confirm_restore')}}</button>
                         <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{__('common.cancel')}}</button>
                     </div>
                 </div>

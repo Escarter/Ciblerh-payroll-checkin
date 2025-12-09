@@ -109,7 +109,7 @@
                         </div>
                         <div class="form-group mb-2">
                             <div class="form-check form-switch">
-                                <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_edit" @if($receive_sms_notifications) checked @endif>
+                                <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_edit">
                                 <label class="form-check-label" for="receive_sms_notifications_edit">
                                     {{__('employees.receive_sms_notifications')}}
                                 </label>

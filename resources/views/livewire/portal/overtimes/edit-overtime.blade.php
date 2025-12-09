@@ -57,7 +57,7 @@
                         </div>
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
-                            <button type="submit" wire:click.prevent="update" class="btn btn-secondary" wire:loading.attr="disabled">{{__('common.confirm')}}</button>
+                            <button type="submit" wire:click.prevent="update" id="confirm-overtime-btn" class="btn btn-secondary" wire:loading.attr="disabled">{{__('common.confirm')}}</button>
                         </div>
                     </x-form-items.form>
                 </div>

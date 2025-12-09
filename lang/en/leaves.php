@@ -42,6 +42,7 @@ return [
     'selected_leave_types_permanently_deleted' => 'Selected leave types permanently deleted!',
     'leavetype_successfully_imported' => 'LeaveType successfully imported!',
     'imported_excel_file_for_leavetype' => 'Imported excel file for LeaveType',
+    'import_completed' => 'Import completed successfully',
     'exported_excel_file_for_leavetype' => 'Exported excel file for LeaveType',
 
     // Leave fields
@@ -114,6 +115,9 @@ return [
     'edit_leave_type' => 'Edit Leave Type',
     'edit_leave_type_details' => 'Edit Leave Type details',
     'no_leave_type_found' => 'No Leave Type Found..!',
+    'leave_type_name_required' => 'Leave type name is required',
+    'leave_type_already_exists' => 'Leave type already exists',
+    'default_number_of_days_must_be_positive_number' => 'Default number of days must be a positive number',
 
     // Bulk Operations
     'move_selected_leave_records_to_trash' => 'Move Selected Leave Records to Trash',

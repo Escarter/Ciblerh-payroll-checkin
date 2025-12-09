@@ -174,7 +174,7 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">{{__('common.search')}}</label>
-                    <input wire:model.live.debounce.300ms="searchQuery" type="text" class="form-control" placeholder="{{__('common.search_placeholder')}}">
+                    <input id="download-jobs-search" wire:model.live.debounce.300ms="searchQuery" type="text" class="form-control" placeholder="{{__('common.search_placeholder')}}">
                 </div>
             </div>
         </div>

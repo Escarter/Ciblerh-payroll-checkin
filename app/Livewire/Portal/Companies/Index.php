@@ -5,7 +5,7 @@ namespace App\Livewire\Portal\Companies;
 use App\Exports\CompanyExport;
 use App\Models\User;
 use App\Models\Company;
-use Livewire\Component;
+use App\Livewire\BaseImportComponent;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -19,9 +19,16 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Computed;
 
-class Index extends Component
+class Index extends BaseImportComponent
 {
     use WithDataTable;
+
+    protected $importType = 'companies';
+    protected $importPermission = 'company-create';
+
+    // Cache for existing company data to avoid N+1 queries
+    protected $existingCompanyCodes;
+    protected $existingCompanyNames;
 
     public $managers = [];
     public $supervisors;
@@ -309,19 +316,8 @@ class Index extends Component
 
     public function import()
     {
-        $this->validate([
-            'company_file' => 'sometimes|nullable|mimes:xlsx,csv|max:500',
-        ]);
-        Excel::import(new CompanyImport(), $this->company_file);
-        auditLog(
-            auth()->user(),
-            'company_imported',
-            'web',
-            __('companies.imported_excel_file_for_companies')
-        );
-
-        $this->clearFields();
-        $this->closeModalAndFlashMessage(__('companies.companies_successfully_imported'), 'importCompaniesModal');
+        // Redirect to centralized import system
+        return redirect()->route('portal.import-jobs.index')->with('message', __('common.redirected_to_centralized_import'));
     }
     public function export()
     {
@@ -377,5 +373,159 @@ class Index extends Component
             'active_companies' => $active_companies,
             'deleted_companies' => $deleted_companies,
         ])->layout('components.layouts.dashboard');
+    }
+
+    /**
+     * Get import columns for company preview
+     */
+    protected function getImportColumns(): array
+    {
+        return $this->getPreviewColumns();
+    }
+
+    /**
+     * Perform the actual company import
+     */
+    protected function performImport()
+    {
+        Excel::import(new CompanyImport(), $this->company_file);
+
+        return [
+            'imported_count' => 'unknown', // Could be enhanced to return actual count
+        ];
+    }
+
+    /**
+     * Preload validation data to optimize performance
+     */
+    protected function preloadValidationData(): void
+    {
+        // Cache existing company codes and names to avoid N+1 queries during validation
+        // Limit results to prevent timeouts with large datasets
+        if (!isset($this->existingCompanyCodes)) {
+            $this->existingCompanyCodes = Company::whereNotNull('code')
+                ->limit(2000) // Reasonable limit for company codes
+                ->pluck('code')
+                ->map(function($code) {
+                    return strtolower(trim($code));
+                })
+                ->toArray();
+        }
+
+        if (!isset($this->existingCompanyNames)) {
+            $this->existingCompanyNames = Company::whereNotNull('name')
+                ->limit(2000) // Reasonable limit for company names
+                ->pluck('name')
+                ->map(function($name) {
+                    return strtolower(trim($name));
+                })
+                ->toArray();
+        }
+    }
+
+    /**
+     * Check if company code exists (optimized to avoid N+1 queries)
+     */
+    protected function isCompanyCodeExists(string $code): bool
+    {
+        return in_array(strtolower(trim($code)), $this->existingCompanyCodes ?? []);
+    }
+
+    /**
+     * Check if company name exists (optimized to avoid N+1 queries)
+     */
+    protected function isCompanyNameExists(string $name): bool
+    {
+        return in_array(strtolower(trim($name)), $this->existingCompanyNames ?? []);
+    }
+
+    /**
+     * Get company ID (not needed for company import)
+     */
+    protected function getCompanyId(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Get department ID (not needed for company import)
+     */
+    protected function getDepartmentId(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Validate a single preview row for companies
+     */
+    protected function validatePreviewRow(array $rowData, int $rowNumber): array
+    {
+        $errors = [];
+        $warnings = [];
+        $parsedData = [];
+
+        try {
+            // Validate required fields
+            if (empty($rowData[1] ?? '')) {
+                $errors[] = __('companies.name_required');
+            }
+            if (empty($rowData[3] ?? '')) {
+                $errors[] = __('companies.sector_required');
+            }
+
+            // Validate code uniqueness if provided (optimized to avoid N+1 queries)
+            if (!empty($rowData[0]) && $this->isCompanyCodeExists($rowData[0])) {
+                $warnings[] = __('companies.code_already_exists');
+            }
+
+            // Validate name uniqueness (optimized to avoid N+1 queries)
+            if (!empty($rowData[1]) && $this->isCompanyNameExists($rowData[1])) {
+                $warnings[] = __('companies.name_already_exists');
+            }
+
+        } catch (\Exception $e) {
+            $errors[] = __('common.row_validation_error', ['error' => $e->getMessage()]);
+        }
+
+        return [
+            'valid' => empty($errors),
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'parsed_data' => $parsedData
+        ];
+    }
+
+    /**
+     * Get column definitions for preview
+     */
+    public function getPreviewColumns(): array
+    {
+        return [
+            0 => __('companies.code'),
+            1 => __('companies.name'),
+            2 => __('companies.description'),
+            3 => __('companies.sector'),
+        ];
+    }
+
+    /**
+     * Get expected columns for field validation
+     */
+    protected function getExpectedColumns(): array
+    {
+        return [
+            'code',
+            'name',
+            'description',
+            'sector'
+        ];
+    }
+
+    /**
+     * Override to return correct file property for this component
+     */
+    protected function getFileProperty()
+    {
+        return $this->company_file ?? null;
     }
 }

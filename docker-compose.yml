@@ -60,6 +60,8 @@ services:
       - ./bootstrap/cache:/var/www/html/bootstrap/cache
     environment:
       - APP_ENV=${APP_ENV:-local}
+      - APP_NAME=${APP_NAME:-Ciblerh}
+      - APP_KEY=${APP_KEY:-base64:Zq19gOj4vEiJ0pWYU1C1zVvDKZ2uHt9e7E6c3m2A=}
       - APP_DEBUG=${APP_DEBUG:-true}
       - TZ=${TZ:-Africa/Douala}
       - FORCE_SEED=${FORCE_SEED:-false}
@@ -123,6 +125,8 @@ services:
       - ./bootstrap/cache:/var/www/html/bootstrap/cache
     environment:
       - APP_ENV=${APP_ENV:-local}
+      - APP_NAME=${APP_NAME:-Ciblerh}
+      - APP_KEY=${APP_KEY:-base64:Zq19gOj4vEiJ0pWYU1C1zVvDKZ2uHt9e7E6c3m2A=}
       - APP_DEBUG=${APP_DEBUG:-true}
       - TZ=${TZ:-Africa/Douala}
       - DB_CONNECTION=mysql
@@ -164,6 +168,8 @@ services:
       - ./bootstrap/cache:/var/www/html/bootstrap/cache
     environment:
       - APP_ENV=${APP_ENV:-local}
+      - APP_NAME=${APP_NAME:-Ciblerh}
+      - APP_KEY=${APP_KEY:-base64:Zq19gOj4vEiJ0pWYU1C1zVvDKZ2uHt9e7E6c3m2A=}
       - APP_DEBUG=${APP_DEBUG:-true}
       - TZ=${TZ:-Africa/Douala}
       - DB_CONNECTION=mysql

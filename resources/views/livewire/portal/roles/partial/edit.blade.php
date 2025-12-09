@@ -373,6 +373,27 @@
                                 </div>
                                 <!--end::Input group-->
                             </div>
+                            <div class="d-flex border-bottom border-1">
+                                <!--begin::Label-->
+                                <div class="text-gray-800 w-25">{{__('common.import_jobs')}}</div>
+                                <div>
+                                    <!--begin::Wrapper-->
+                                    <div class="d-flex">
+                                        <!--begin::Checkbox-->
+                                        <label class="form-check form-check-custom form-check-solid me-3 me-lg-20">
+                                            <input class="form-check-input" type="checkbox" value="" wire:model="selectAllImportJobPermissions">
+                                            <span class="form-check-label">{{__('common.all')}}</span>
+                                        </label>
+                                        @foreach($ImportJobPermissions as $key => $value)
+                                        <label class="form-check  form-check-custom form-check-solid me-3 me-lg-20">
+                                            <input class="form-check-input" type="checkbox" wire:model="selectedImportJobPermissions" value="{{$value}}">
+                                            <span class="form-check-label">{{__($key)}}</span>
+                                        </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <!--end::Input group-->
+                            </div>
                         </div>
                         <!--end::Table body-->
                     </div>

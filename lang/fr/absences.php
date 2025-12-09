@@ -9,7 +9,7 @@ return [
 
     'absences' => 'Absences',
     'absence' => 'Absence',
-    'total_absences' => 'Total des absences',
+    'total_absences' => 'Total Absences',
     'absences_management' => 'Gestion des absences',
     'manage_employees_absences_request' => 'Gérer les demandes d\'absences des employés!',
     'absence_record' => 'enregistrement d\'absence',

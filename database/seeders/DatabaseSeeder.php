@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
         // Only create test data in non-production environments
         if (!$isProduction) {
             $this->command->info('Creating test data for development environment...');
-            $this->createTestData();
+            // $this->createTestData();
             $this->assignRoles();
         } else {
             $this->command->info('Skipping test data creation in production environment');

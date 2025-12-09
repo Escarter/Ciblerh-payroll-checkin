@@ -132,6 +132,8 @@ return [
     'selected_payslips_permanently_deleted' => 'Selected payslips permanently deleted!',
     'failed_to_send_email' => 'Failed to send email',
     'failed_to_send_email_recipient_retry_scheduled' => 'Failed to send email. Recipient: :email. Automatic retry scheduled',
+    'no_failed_payslips_found_to_resend' => 'No failed payslips found to resend.',
+    'bulk_resend_completed' => 'Bulk resend completed: :resend successful, :skipped skipped',
 
     // Employee payslip history UI labels
     'for_this_employee' => 'for this employee',
@@ -185,5 +187,11 @@ return [
     'bulk' => 'Bulk',
     'permanently_delete_selected_payslips' => 'Permanently Delete Selected Payslips',
     'restore_selected_payslips' => 'Restore Selected Payslips',
+
+    // Audit log messages for payslip processes
+    'delete_payslip_process_for' => 'Delete Payslip process for :month-:year @ :datetime',
+    'permanently_delete_payslip_process_for' => 'Permanently delete Payslip process for :month-:year @ :datetime',
+    'bulk_delete_payslip_process_for' => 'Bulk delete Payslip process for :month-:year @ :datetime',
+    'bulk_permanently_delete_payslip_process_for' => 'Bulk permanently delete Payslip process for :month-:year @ :datetime',
     'move_selected_payslips_to_trash' => 'Move Selected Payslips to Trash',
 ];

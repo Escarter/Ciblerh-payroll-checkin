@@ -75,6 +75,7 @@ return [
     'department_required_for_service_import' => 'Department is required for service import',
     'department_must_belong_to_company' => 'Department must belong to a company for service import',
     'department_context_required' => 'Department context is required for service import',
+    'import_completed' => 'Import completed successfully',
 
     // Permissions
     'cannot_permanently_delete_service' => 'Cannot permanently delete service. It has related tickings records.',
@@ -87,4 +88,8 @@ return [
     'in_for_this_department' => 'in for this department',
     'for_these_departments' => 'for these departments',
     'new' => 'New',
+
+    // Import validation messages
+    'name_required' => 'Service name is required',
+    'name_already_exists' => 'Service name already exists in this department',
 ];
