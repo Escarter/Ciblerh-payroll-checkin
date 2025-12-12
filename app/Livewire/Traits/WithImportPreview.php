@@ -166,9 +166,9 @@ trait WithImportPreview
                 'file' => $this->getFileProperty() ? $this->getFileProperty()->getClientOriginalName() : 'unknown'
             ]);
 
-            session()->flash('error', __('common.preview_processing_failed', [
+            $this->dispatch("showToast", message: __('common.preview_processing_failed', [
                 'error' => $errorMessage
-            ]));
+            ]), type: "error");
         } finally {
             $this->isProcessingPreview = false;
             $this->processingStep = '';
@@ -747,9 +747,9 @@ trait WithImportPreview
                 'file' => $this->getFileProperty()
             ]);
 
-            session()->flash('error', __('common.field_validation_error', [
+            $this->dispatch("showToast", message: __('common.field_validation_error', [
                 'error' => $e->getMessage()
-            ]));
+            ]), type: "error");
         }
     }
 

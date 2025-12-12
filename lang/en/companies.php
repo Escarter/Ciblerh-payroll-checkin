@@ -48,6 +48,8 @@ return [
     'no_company_selected' => 'No company selected',
     'company_required' => 'Company is required',
     'company_context_required' => 'Company context is required',
+    'name_is_required_in_csv_when_no_context_company_is_provided' => 'Company name is required in CSV when no context company is provided',
+    'validation_failed' => 'Validation failed for company: :company_name',
 
     // Permissions
     'cannot_permanently_delete_company' => 'Cannot permanently delete company. It has related records.',

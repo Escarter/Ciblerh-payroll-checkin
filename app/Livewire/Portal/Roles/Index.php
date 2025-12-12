@@ -30,7 +30,7 @@ class Index extends Component
     public function roleUpdated()
     {
         // Display success message using the same pattern as roleCreated
-        session()->flash('message', __('roles.role_and_permissions_updated_successfully'));
+        $this->showToast(__('roles.role_and_permissions_updated_successfully'), 'success');
     }
 
     //Get & assign selected advance_salary props

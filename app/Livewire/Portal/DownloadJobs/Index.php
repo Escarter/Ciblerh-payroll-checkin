@@ -176,20 +176,20 @@ class Index extends Component
         $job = DownloadJob::findOrFail($jobId);
 
         if (!$job->canBeDownloaded()) {
-            session()->flash('error', __('File is not available for download.'));
+            $this->dispatch("showToast", message: __('File is not available for download.'), type: "error");
             return;
         }
 
         // Check if file exists (file_path is relative to public disk)
         if (!Storage::disk('public')->exists($job->file_path)) {
-            session()->flash('error', __('File not found. Please contact your administrator.'));
+            $this->dispatch("showToast", message: __('File not found. Please contact your administrator.'), type: "error");
             return;
         }
 
         try {
             return Storage::disk('public')->download($job->file_path, $job->file_name);
         } catch (\Exception $e) {
-            session()->flash('error', __('Unable to download file. Please try again.'));
+            $this->dispatch("showToast", message: __('Unable to download file. Please try again.'), type: "error");
             \Log::error('Download error: ' . $e->getMessage());
         }
     }
@@ -199,16 +199,16 @@ class Index extends Component
         $job = DownloadJob::findOrFail($jobId);
 
         if (!$job->canBeCancelled()) {
-            session()->flash('error', __('download_jobs.job_cannot_be_cancelled'));
+            $this->dispatch("showToast", message: __('download_jobs.job_cannot_be_cancelled'), type: "error");
             return;
         }
 
         try {
             $job->update(['status' => DownloadJob::STATUS_CANCELLED]);
-            session()->flash('message', __('download_jobs.job_cancelled_successfully'));
+            $this->dispatch("showToast", message: __('download_jobs.job_cancelled_successfully'), type: "success");
             $this->loadStats();
         } catch (\Exception $e) {
-            session()->flash('error', __('download_jobs.unable_to_cancel_job'));
+            $this->dispatch("showToast", message: __('download_jobs.unable_to_cancel_job'), type: "error");
         }
     }
 
@@ -217,7 +217,7 @@ class Index extends Component
         $job = DownloadJob::findOrFail($jobId);
 
         if (!$job->canBeDeleted()) {
-            session()->flash('error', __('download_jobs.report_cannot_be_deleted'));
+            $this->dispatch("showToast", message: __('download_jobs.report_cannot_be_deleted'), type: "error");
             return;
         }
 
@@ -228,7 +228,7 @@ class Index extends Component
     public function delete()
     {
         if (!$this->jobToDelete) {
-            session()->flash('error', __('download_jobs.report_not_found'));
+            $this->dispatch("showToast", message: __('download_jobs.report_not_found'), type: "error");
             return;
         }
 
@@ -239,10 +239,10 @@ class Index extends Component
             }
 
             $this->jobToDelete->delete();
-            session()->flash('message', __('download_jobs.report_deleted_successfully'));
+            $this->dispatch("showToast", message: __('download_jobs.report_deleted_successfully'), type: "success");
             $this->loadStats();
         } catch (\Exception $e) {
-            session()->flash('error', __('download_jobs.unable_to_delete_report'));
+            $this->dispatch("showToast", message: __('download_jobs.unable_to_delete_report'), type: "error");
         } finally {
             $this->showDeleteModal = false;
             $this->jobToDelete = null;
@@ -261,7 +261,7 @@ class Index extends Component
     public function bulkCancel()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('download_jobs.please_select_jobs_to_cancel'));
+            $this->dispatch("showToast", message: __('download_jobs.please_select_jobs_to_cancel'), type: "error");
             return;
         }
 
@@ -280,7 +280,7 @@ class Index extends Component
             }
         }
 
-        session()->flash('message', __('download_jobs.jobs_cancelled_successfully', ['count' => $cancelled]));
+        $this->dispatch("showToast", message: __('download_jobs.jobs_cancelled_successfully', ['count' => $cancelled]), type: "success");
         $this->reset(['selectedJobs', 'selectAll']);
         $this->loadStats();
     }
@@ -288,7 +288,7 @@ class Index extends Component
     public function confirmBulkDelete()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('download_jobs.please_select_reports_to_delete'));
+            $this->dispatch("showToast", message: __('download_jobs.please_select_reports_to_delete'), type: "error");
             return;
         }
 
@@ -298,7 +298,7 @@ class Index extends Component
     public function bulkDelete()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('download_jobs.please_select_reports_to_delete'));
+            $this->dispatch("showToast", message: __('download_jobs.please_select_reports_to_delete'), type: "error");
             return;
         }
 
@@ -321,7 +321,7 @@ class Index extends Component
             }
         }
 
-        session()->flash('message', __('download_jobs.reports_deleted_successfully', ['count' => $deleted]));
+        $this->dispatch("showToast", message: __('download_jobs.reports_deleted_successfully', ['count' => $deleted]), type: "success");
         $this->reset(['selectedJobs', 'selectAll']);
         $this->showBulkDeleteModal = false;
         $this->loadStats();
@@ -339,7 +339,7 @@ class Index extends Component
     public function refreshJobs()
     {
         $this->loadStats();
-        session()->flash('message', __('download_jobs.jobs_refreshed_successfully'));
+        $this->dispatch("showToast", message: __('download_jobs.jobs_refreshed_successfully'), type: "success");
     }
 
     public function getAvailableJobTypes()
@@ -426,10 +426,10 @@ class Index extends Component
             // Refresh stats
             $this->loadStats();
 
-            session()->flash('message', __('download_jobs.report_generation_started'));
+            $this->dispatch("showToast", message: __('download_jobs.report_generation_started'), type: "success");
         } catch (\Exception $e) {
             logger('Error in generateNewReport:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            session()->flash('error', __('download_jobs.error_starting_report_generation') . $e->getMessage());
+            $this->dispatch("showToast", message: __('download_jobs.error_starting_report_generation') . $e->getMessage(), type: "error");
         }
     }
 

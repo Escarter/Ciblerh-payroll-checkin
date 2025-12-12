@@ -80,7 +80,7 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
             return [
                 'found' => false,
                 'department' => null,
-                'error' => __('Department is required')
+                'error' => __('departments.name_is_required')
             ];
         }
 
@@ -113,7 +113,7 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
             return [
                 'found' => false,
                 'department' => null,
-                'error' => __('Company context is required for department lookup')
+                'error' => __('common.company_context_required')
             ];
         }
         $result = findOrCreateDepartment($departmentValue, $this->company->id, $this->autoCreateEntities);
@@ -128,10 +128,10 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
             // Validate department and company context
             '*' => function ($attribute, $value, $onFailure) {
                 if (!$this->department || !$this->department->id) {
-                    $onFailure(__('Department context is required for service import'));
+                    $onFailure(__('common.department_context_required_for_service_import'));
                 }
                 if (!$this->department || !$this->department->company_id) {
-                    $onFailure(__('Department must belong to a company for service import'));
+                    $onFailure(__('common.department_must_belong_to_company_for_service_import'));
                 }
             }
         ];

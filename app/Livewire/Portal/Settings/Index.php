@@ -179,7 +179,7 @@ class Index extends Component
 
         if(empty($setting->smtp_host) && empty($setting->smtp_port))
         {
-        $this->showToast(__('settings.setting_for_smtp_required'), 'error');
+        $this->showToast(__('settings.setting_for_smtp_required'), 'danger');
         }
 
         setSavedSmtpCredentials();
@@ -197,7 +197,7 @@ class Index extends Component
 
         if (!empty($this->setting)) {
             if (empty($setting->sms_provider_username) && empty($setting->sms_provider_password)) {
-                $this->showToast(__('settings.setting_for_sms_required'), 'error');
+                $this->showToast(__('settings.setting_for_sms_required'), 'danger');
             }
 
             $sms_client = match ($setting->sms_provider) {
@@ -215,7 +215,7 @@ class Index extends Component
             if ($response['responsecode'] === 1) {
                 $this->showToast(__('settings.test_sms_sent_successfully'));
             } else {
-                $this->showToast(__('settings.test_sms_failed'), 'error');
+                $this->showToast(__('settings.test_sms_failed'), 'danger');
             }
         }
     }

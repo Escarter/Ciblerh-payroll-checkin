@@ -187,7 +187,7 @@ class Index extends BaseImportComponent
                            $company->payslipProcess()->count() > 0;
         
         if ($hasRelatedRecords) {
-            $this->showToast(__('companies.cannot_permanently_delete_company'), 'error');
+            $this->showToast(__('companies.cannot_permanently_delete_company'), 'danger');
             return;
         }
         
@@ -248,7 +248,7 @@ class Index extends BaseImportComponent
             
             if (!empty($companiesWithRelatedRecords)) {
                 $companyNames = implode(', ', $companiesWithRelatedRecords);
-                session()->flash('error', __('companies.cannot_permanently_delete_companies') . $companyNames);
+                $this->showToast(__('companies.cannot_permanently_delete_companies') . $companyNames, 'danger');
                 return;
             }
             

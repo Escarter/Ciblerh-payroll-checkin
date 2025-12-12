@@ -21,11 +21,6 @@ class SendSinglePayslipJob implements ShouldQueue
 {
     use  Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The queue connection name
-     */
-    public $queue = 'emails';
-
     protected $raw_file_path;
     protected $employee;
     protected $record;
@@ -38,6 +33,7 @@ class SendSinglePayslipJob implements ShouldQueue
     public function __construct($raw_file_path,User $employee,Payslip $record, $destination)
     {
         $this->employee = $employee;
+        $this->queue = 'emails';
         $this->raw_file_path = $raw_file_path;
         $this->record = $record;
         $this->destination = $destination;
@@ -67,7 +63,7 @@ class SendSinglePayslipJob implements ShouldQueue
                 $this->record->update([
                     'email_sent_status' => 'failed',
                     'sms_sent_status' => 'failed',
-                    'failure_reason' => __('{{__('payslips.failed_sending_email_sms')}}')
+                    'failure_reason' => __('payslips.failed_sending_email_sms')
                 ]);
             } else {
                 $this->record->update(['email_sent_status' => 'successful']);
@@ -77,7 +73,7 @@ class SendSinglePayslipJob implements ShouldQueue
             $this->record->update([
                 'email_sent_status' => 'failed',
                 'sms_sent_status' => 'failed',
-                'failure_reason' => __('{{__('payslips.no_valid_email_address')}}')
+                'failure_reason' => __('payslips.no_valid_email_address')
             ]);
         }
     }

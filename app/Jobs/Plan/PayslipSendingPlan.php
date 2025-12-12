@@ -77,7 +77,7 @@ class PayslipSendingPlan
                         $payslip_process->update([
                             'status' => 'successful', // Batch completed successfully
                             'percentage_completion' => 100,
-                            'failure_reason' => __('Process completed with :failed out of :total payslips failed to send', [
+                            'failure_reason' => __('payslips.process_completed_with_failures', [
                                 'failed' => $failedPayslips,
                                 'total' => $totalPayslips
                             ])
@@ -148,9 +148,9 @@ class PayslipSendingPlan
                 'encryption_status' => Payslip::STATUS_FAILED,
                 'email_sent_status' => Payslip::STATUS_FAILED,
                 'sms_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => empty($employee->matricule) 
-                    ? __('User Matricule is empty')
-                    : __('Matricule :matricule not found in any PDF file for month :month', [
+                'failure_reason' => empty($employee->matricule)
+                    ? __('payslips.user_matricule_empty')
+                    : __('payslips.matricule_not_found_in_pdf', [
                         'matricule' => $employee->matricule,
                         'month' => $payslip_process->month
                     ])
@@ -170,7 +170,7 @@ class PayslipSendingPlan
             $totalEmployees = $allEmployees->count();
             $existingFailureReason = $payslip_process->failure_reason;
             
-            $unmatchedMessage = __(':unmatched out of :total employees could not be matched to PDF files', [
+            $unmatchedMessage = __('payslips.unmatched_employees_summary', [
                 'unmatched' => $unmatchedCount,
                 'total' => $totalEmployees
             ]);

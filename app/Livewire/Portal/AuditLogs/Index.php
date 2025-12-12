@@ -35,16 +35,16 @@ class Index extends Component
     {
         try {
             $auditLog = $auditLogId ? AuditLog::findOrFail($auditLogId) : $this->audit_log;
-            
+
             if (!$auditLog) {
-                session()->flash('error', __('audit_logs.audit_log_not_found'));
+                $this->dispatch("showToast", message: __('audit_logs.audit_log_not_found'), type: "error");
                 return;
             }
-            
+
             $auditLog->delete(); // Soft delete
             $this->closeModalAndFlashMessage(__('audit_logs.audit_log_moved_to_trash'), 'DeleteModal');
         } catch (\Exception $e) {
-            session()->flash('error', __('audit_logs.error_deleting_audit_log') . $e->getMessage());
+            $this->dispatch("showToast", message: __('audit_logs.error_deleting_audit_log') . $e->getMessage(), type: "error");
         }
         
         $this->clearFields();
@@ -54,16 +54,16 @@ class Index extends Component
     {
         try {
             $auditLog = $auditLogId ? AuditLog::withTrashed()->findOrFail($auditLogId) : $this->audit_log;
-            
+
             if (!$auditLog) {
-                session()->flash('error', __('audit_logs.audit_log_not_found'));
+                $this->dispatch("showToast", message: __('audit_logs.audit_log_not_found'), type: "error");
                 return;
             }
-            
+
             $auditLog->forceDelete();
             $this->closeModalAndFlashMessage(__('audit_logs.audit_log_permanently_deleted'), 'ForceDeleteModal');
         } catch (\Exception $e) {
-            session()->flash('error', __('audit_logs.error_deleting_audit_log') . $e->getMessage());
+            $this->dispatch("showToast", message: __('audit_logs.error_deleting_audit_log') . $e->getMessage(), type: "error");
         }
         
         $this->clearFields();
@@ -76,8 +76,8 @@ class Index extends Component
 
     public function closeModalAndFlashMessage($message, $modalId = null)
     {
-        session()->flash('message', $message);
-        
+        $this->dispatch("showToast", message: $message, type: "success");
+
         if ($modalId) {
             $this->dispatch('closeModal', modalId: $modalId);
         }

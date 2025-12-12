@@ -91,7 +91,7 @@ class Profile extends Component
     }
     public function refresh($message)
     {
-        session()->flash('message', $message);
+        $this->dispatch("showToast", message: $message, type: "success");
     }
     public function render()
     {

@@ -89,7 +89,7 @@ class UserRoles extends Component
         $this->user->refresh();
         $this->userRoles = $this->user->roles->toArray();
 
-        session()->flash('message', __('common.roles_updated_successfully'));
+        $this->dispatch("showToast", message: __('common.roles_updated_successfully'), type: "success");
     }
 
     public function closeModal()

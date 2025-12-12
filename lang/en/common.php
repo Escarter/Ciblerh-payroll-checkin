@@ -110,6 +110,8 @@ return [
     'invalid_leave_days' => 'Invalid leave days value',
     'company_context_required' => 'Company context is required',
     'department_required_for_service' => 'Department is required when creating a service',
+    'department_context_required_for_service_import' => 'Department context is required for service import',
+    'department_must_belong_to_company_for_service_import' => 'Department must belong to a company for service import',
     'service_not_found' => 'Service not found',
     'invalid_entity_type' => 'Invalid entity type',
     'large_file_preview_skipped' => 'Preview skipped for large file',

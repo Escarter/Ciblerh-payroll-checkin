@@ -110,6 +110,8 @@ return [
     'invalid_leave_days' => 'Valeur de jours de congé invalide',
     'company_context_required' => 'Le contexte d\'entreprise est requis',
     'department_required_for_service' => 'Le département est requis lors de la création d\'un service',
+    'department_context_required_for_service_import' => 'Le contexte de département est requis pour l\'importation de service',
+    'department_must_belong_to_company_for_service_import' => 'Le département doit appartenir à une entreprise pour l\'importation de service',
     'service_not_found' => 'Service introuvable',
     'invalid_entity_type' => 'Type d\'entité invalide',
     'large_file_preview_skipped' => 'Aperçu ignoré pour fichier volumineux',

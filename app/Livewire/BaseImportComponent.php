@@ -78,13 +78,13 @@ abstract class BaseImportComponent extends Component
         // Validate file exists
         $file = $this->getFileProperty();
         if (!$file) {
-            session()->flash('error', __('common.no_file_selected'));
+            $this->dispatch("showToast", message: __('common.no_file_selected'), type: "error");
             return;
         }
 
         // Validate company selection if needed
         if (!$this->getCompanyId()) {
-            session()->flash('error', __('companies.select_company_required'));
+            $this->dispatch("showToast", message: __('companies.select_company_required'), type: "error");
             return;
         }
 
@@ -142,9 +142,9 @@ abstract class BaseImportComponent extends Component
                 }
 
                 // For large files, show error
-                session()->flash('error', __('common.import_queue_failed_sync_fallback', [
+                $this->dispatch("showToast", message: __('common.import_queue_failed_sync_fallback', [
                     'error' => $queueException->getMessage()
-                ]));
+                ]), type: "error");
                 return;
             }
 
@@ -154,7 +154,7 @@ abstract class BaseImportComponent extends Component
                 'user_id' => auth()->id()
             ]);
 
-            session()->flash('error', __('common.import_setup_failed', ['error' => $e->getMessage()]));
+            $this->dispatch("showToast", message: __('common.import_setup_failed', ['error' => $e->getMessage()]), type: "error");
         }
     }
 
@@ -205,7 +205,7 @@ abstract class BaseImportComponent extends Component
                 'user_id' => auth()->id()
             ]);
 
-            session()->flash('error', __('common.import_sync_failed', ['error' => $e->getMessage()]));
+            $this->dispatch("showToast", message: __('common.import_sync_failed', ['error' => $e->getMessage()]), type: "error");
         }
     }
 
@@ -268,7 +268,7 @@ abstract class BaseImportComponent extends Component
      */
     protected function closeModalAndFlashMessage($message, $modalId)
     {
-        $this->dispatch('close-modal', $modalId);
-        session()->flash('success', $message);
+        $this->dispatch('close-modal', id: $modalId);
+        $this->dispatch("showToast", message: $message, type: "success");
     }
 }

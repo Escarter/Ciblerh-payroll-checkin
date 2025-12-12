@@ -21,7 +21,6 @@ class CompanyExportJob implements ShouldQueue
     /**
      * The queue connection name
      */
-    public $queue = 'processing';
 
     protected $downloadJob;
 
@@ -30,6 +29,7 @@ class CompanyExportJob implements ShouldQueue
      */
     public function __construct(DownloadJob $downloadJob)
     {
+        $this->queue = 'processing';
         $this->downloadJob = $downloadJob;
     }
 

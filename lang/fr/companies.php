@@ -48,6 +48,8 @@ return [
     'no_company_selected' => 'Aucune société sélectionnée',
     'company_required' => 'La société est requise',
     'company_context_required' => 'Le contexte de la société est requis',
+    'name_is_required_in_csv_when_no_context_company_is_provided' => 'Le nom de la société est requis dans le CSV lorsqu\'aucune société de contexte n\'est fournie',
+    'validation_failed' => 'Échec de validation pour la société: :company_name',
 
     // Permissions
     'cannot_permanently_delete_company' => 'Impossible de supprimer définitivement la société. Elle a des enregistrements liés.',

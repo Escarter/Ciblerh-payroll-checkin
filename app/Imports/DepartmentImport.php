@@ -289,7 +289,7 @@ class DepartmentImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVal
             return [
                 'found' => false,
                 'supervisor' => null,
-                'error' => __('supervisors.email_is_empty')
+                'error' => __('employees.email_is_empty')
             ];
         }
 
@@ -299,7 +299,7 @@ class DepartmentImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVal
             return [
                 'found' => false,
                 'supervisor' => null,
-                'error' => __('supervisors.not_found', ['email' => $email])
+                'error' => __('employees.not_found', ['email' => $email])
             ];
         }
 
@@ -342,7 +342,7 @@ class DepartmentImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVal
             return [
                 'found' => false,
                 'supervisor' => null, // Set to null to prevent issues
-                'error' => __('supervisors.does_not_have_role', ['email' => $email])
+                'error' => __('employees.does_not_have_role', ['email' => $email])
             ];
         }
 

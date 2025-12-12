@@ -439,7 +439,7 @@ class All extends BaseImportComponent
                            $employee->supDepartments()->count() > 0;
         
         if ($hasRelatedRecords) {
-            session()->flash('error', __('employees.cannot_permanently_delete_employee'));
+            $this->showToast(__('employees.cannot_permanently_delete_employee'), 'danger');
             return;
         }
         
@@ -502,7 +502,7 @@ class All extends BaseImportComponent
             
             if (!empty($employeesWithRelatedRecords)) {
                 $employeeNames = implode(', ', $employeesWithRelatedRecords);
-                session()->flash('error', __('employees.cannot_permanently_delete_employees') . $employeeNames);
+                $this->showToast(__('employees.cannot_permanently_delete_employees') . $employeeNames, 'danger');
                 return;
             }
             

@@ -185,7 +185,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             return [
                 'found' => false,
                 'department' => null,
-                'error' => __('Department is required')
+                'error' => __('employees.department_required')
             ];
         }
 
@@ -229,7 +229,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             return [
                 'found' => false,
                 'service' => null,
-                'error' => __('Service is required')
+                'error' => __('employees.service_required')
             ];
         }
 
@@ -333,7 +333,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '11' => function ($attribute, $value, $onFailure) {
                 $array = ['employee', 'supervisor', 'manager'];
                 if (!in_array(strtolower($value), $array)) {
-                    $onFailure(__('Role must be one of: employee, supervisor, manager'));
+                    $onFailure(__('employees.role_invalid'));
                 }
             },
             '18' => 'nullable|date_format:H:i', // work_start_time
@@ -342,7 +342,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             // Validate company context
             '*' => function ($attribute, $value, $onFailure) {
                 if (!$this->company || !$this->company->id) {
-                    $onFailure(__('Company context is required for employee import'));
+                    $onFailure(__('employees.company_context_required'));
                 }
             }
         ];

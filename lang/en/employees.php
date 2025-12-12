@@ -476,4 +476,9 @@ return [
     'work_start_time_must_be_before_end' => 'Work start time must be before work end time',
     'personal_phone_invalid' => 'Personal phone number is invalid',
     'alternative_email_invalid' => 'Alternative email is invalid',
+
+    // Supervisor/manager import translations
+    'email_is_empty' => 'Supervisor email is empty',
+    'not_found' => 'Supervisor with email :email not found',
+    'does_not_have_role' => 'User with email :email does not have supervisor or manager role',
 ];

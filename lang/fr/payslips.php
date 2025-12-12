@@ -71,6 +71,9 @@ return [
     'sms_setting_required' => 'Configuration SMS requise!',
     'sms_smtp_settings_required' => 'Configurations SMS et SMTP requises!!',
     'insufficient_sms_balance_refill' => 'Le solde SMS n\'est pas suffisant, rechargez le SMS pour continuer',
+    'smtp_settings_not_configured' => 'Paramètres SMTP non configurés',
+    'sms_provider_required' => 'Configuration du fournisseur SMS requise!',
+    'smtp_sms_settings_required' => 'Configuration des paramètres SMTP et SMS requise!',
     'file_upload_max_pages' => 'Le fichier téléversé doit avoir :max pages maximum',
     'file_upload_page_limit' => 'Le fichier téléversé doit avoir ',
     'file_upload_page_limit_suffix' => ' pages maximum',
@@ -93,6 +96,7 @@ return [
     'email_rfc_error_retry_scheduled' => 'Erreur RFC email: :error. Nouvelle tentative :retry/:max programmée',
     'email_rfc_error_after_max_retries' => 'Erreur RFC email après :max nouvelles tentatives: :error',
     'retry_failed_payslip_not_found' => 'Nouvelle tentative échouée: Fichier de fiche de paie introuvable',
+    'retry_failed_employee_not_found' => 'Nouvelle tentative échouée: Employé introuvable',
     'retry_failed_no_valid_email' => 'Nouvelle tentative échouée: Aucune adresse email valide',
     'retry_attempt_failed_email_delivery' => 'Tentative de nouvelle tentative échouée: Échec de livraison email',
     'retry_attempt_failed_with_next' => 'Tentative :retry échouée: Échec de livraison email. Nouvelle tentative :next/:max programmée',
@@ -118,7 +122,9 @@ return [
 
     // Raisons d'échec
     'no_valid_email_address' => 'Aucune adresse email valide pour l\'utilisateur',
+    'user_matricule_empty' => 'Le matricule de l\'utilisateur est vide',
     'failed_sending_email_sms' => 'Échec d\'envoi d\'email et SMS',
+    'failed_sending_sms' => 'Échec d\'envoi de SMS',
     'failed_to_resent_email' => 'Échec de renvoi d\'email',
 
     // Historique des fiches de paie employé spécifiques
@@ -195,4 +201,25 @@ return [
     'bulk_delete_payslip_process_for' => 'Suppression en masse du processus de fiche de paie pour :month-:year @ :datetime',
     'bulk_permanently_delete_payslip_process_for' => 'Suppression définitive en masse du processus de fiche de paie pour :month-:year @ :datetime',
     'move_selected_payslips_to_trash' => 'Déplacer les fiches de paie sélectionnées vers la corbeille',
+    'user_initiated_payslip_sending' => 'L\'utilisateur <a href="/portal/users?user_id=:user_id">:user_name</a> a initié l\'envoi de la fiche de paie au département <strong>:department_name</strong> pour le mois de :month - :year <a href="/portal/payslips/history"> Aller aux détails des fiches de paie</a>',
+
+    // Clés de traduction manquantes supplémentaires
+    'download_payslips' => 'Télécharger les fiches de paie',
+    'email_address_has_bounced_previously' => 'L\'adresse email a été rejetée précédemment',
+    'email_notifications_disabled_for_this_employee' => 'Notifications email désactivées pour cet employé',
+    'permanently_delete_selected_payslip_processes' => 'Supprimer définitivement les processus de fiches de paie sélectionnés',
+    'restore_selected_payslip_processes' => 'Restaurer les processus de fiches de paie sélectionnés',
+    'retry_scheduled' => 'Nouvelle tentative :retry/:max programmée',
+    'status_of_payslips_sending' => 'Statut de l\'envoi des fiches de paie',
+    'target' => 'Cible',
+    'this_will_attempt_to_resend_count_failed_payslips' => 'Cela tentera de renvoyer :count fiches de paie échouées',
+    'you_are_about_to_resend_email_and_sms_with_employee_payslip' => 'Vous êtes sur le point de renvoyer l\'email et le SMS avec la fiche de paie de l\'employé',
+    'you_are_about_to_resend_email_with_employee_payslip' => 'Vous êtes sur le point de renvoyer l\'email avec la fiche de paie de l\'employé',
+    'you_are_about_to_resend_sms_with_pdf_password_to_employee' => 'Vous êtes sur le point de renvoyer le SMS avec le mot de passe PDF à l\'employé',
+
+    // Messages des tâches planifiées
+    'matricule_not_found_in_pdf' => 'Matricule :matricule introuvable dans tout fichier PDF pour le mois :month',
+    'process_completed_with_failures' => 'Processus terminé avec :failed fiches de paie sur :total qui n\'ont pas pu être envoyées',
+    'unmatched_employees_summary' => ':unmatched employés sur :total n\'ont pas pu être associés aux fichiers PDF',
+    'process_failed_generic' => 'Quelque chose s\'est mal passé dans le processus!',
 ];

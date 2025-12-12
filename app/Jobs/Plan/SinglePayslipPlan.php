@@ -77,8 +77,8 @@ class SinglePayslipPlan {
                 'email_sent_status' => Payslip::STATUS_FAILED,
                 'sms_sent_status' => Payslip::STATUS_FAILED,
                 'failure_reason' => empty($employee->matricule)
-                    ? __('User Matricule is empty')
-                    : __('Matricule :matricule not found in any PDF file for month :month', [
+                    ? __('payslips.user_matricule_empty')
+                    : __('payslips.matricule_not_found_in_pdf', [
                         'matricule' => $employee->matricule,
                         'month' => $month
                     ])

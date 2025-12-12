@@ -20,11 +20,6 @@ class RetryPayslipEmailJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * The queue connection name
-     */
-    public $queue = 'high-priority';
-
-    /**
      * The number of times the job may be attempted.
      *
      * @var int
@@ -46,6 +41,7 @@ class RetryPayslipEmailJob implements ShouldQueue
     public function __construct($payslip_id)
     {
         $this->payslip_id = $payslip_id;
+        $this->queue = 'high-priority';
     }
 
     /**
@@ -86,7 +82,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             $existingReason = $payslip->failure_reason ?? '';
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . ' | ' . __('Retry failed: Payslip file not found')
+                'failure_reason' => $existingReason . ' | ' . __('payslips.retry_failed_payslip_not_found')
             ]);
             return;
         }
@@ -102,7 +98,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             $existingReason = $payslip->failure_reason ?? '';
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . ' | ' . __('Retry failed: Employee not found')
+                'failure_reason' => $existingReason . ' | ' . __('payslips.retry_failed_employee_not_found')
             ]);
             return;
         }
@@ -116,7 +112,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_DISABLED,
-                'email_status_note' => __('Email notifications disabled for this employee')
+                'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee')
             ]);
             return;
         }
@@ -131,7 +127,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
                 'email_bounced' => true,
-                'failure_reason' => __('Email address has bounced previously. Please update employee email address.')
+                        'failure_reason' => __('payslips.email_bounced_update_address')
             ]);
             return;
         }
@@ -148,7 +144,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             $existingReason = $payslip->failure_reason ?? '';
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . ' | ' . __('Retry failed: No valid email address')
+                'failure_reason' => $existingReason . ' | ' . __('payslips.retry_failed_no_valid_email')
             ]);
             return;
         }
@@ -179,7 +175,7 @@ class RetryPayslipEmailJob implements ShouldQueue
                         'email_bounced_at' => now(),
                         'email_bounce_reason' => $isBounce['reason'],
                         'email_bounce_type' => $isBounce['type'] ?? 'hard',
-                        'failure_reason' => __('Email bounced: :reason', ['reason' => $isBounce['reason']])
+                        'failure_reason' => __('payslips.email_bounced', ['reason' => $isBounce['reason']])
                     ]);
                     
                     Log::warning('RetryPayslipEmailJob: Email bounced', [
@@ -202,7 +198,7 @@ class RetryPayslipEmailJob implements ShouldQueue
                     $payslip->update([
                         'email_retry_count' => $currentRetryCount + 1,
                         'last_email_retry_at' => now(),
-                        'failure_reason' => $existingReason . ' | ' . __('Retry attempt :retry failed: Email delivery failed. Retry :next/:max scheduled', [
+                        'failure_reason' => $existingReason . ' | ' . __('payslips.retry_attempt_failed_with_next', [
                             'retry' => $currentRetryCount,
                             'next' => $currentRetryCount + 1,
                             'max' => $maxRetries
@@ -224,7 +220,7 @@ class RetryPayslipEmailJob implements ShouldQueue
                     $existingReason = $payslip->failure_reason ?? '';
                     $payslip->update([
                         'email_sent_status' => Payslip::STATUS_FAILED,
-                        'failure_reason' => $existingReason . ' | ' . __('Retry attempt failed after :max retries: Email delivery failed', [
+                        'failure_reason' => $existingReason . ' | ' . __('payslips.retry_attempt_failed_after_max', [
                             'max' => $maxRetries
                         ])
                     ]);
@@ -256,7 +252,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             $existingReason = $payslip->failure_reason ?? '';
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . ' | ' . __('Retry error: :error', ['error' => $e->getMessage()])
+                'failure_reason' => $existingReason . ' | ' . __('payslips.retry_error', ['error' => $e->getMessage()])
             ]);
             
             Log::error('RetryPayslipEmailJob: Swift Transport Exception', [
@@ -267,7 +263,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             $existingReason = $payslip->failure_reason ?? '';
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . ' | ' . __('Retry RFC error: :error', ['error' => $e->getMessage()])
+                'failure_reason' => $existingReason . ' | ' . __('payslips.retry_rfc_error', ['error' => $e->getMessage()])
             ]);
             
             Log::error('RetryPayslipEmailJob: Swift RFC Exception', [
@@ -278,7 +274,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             $existingReason = $payslip->failure_reason ?? '';
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . ' | ' . __('Retry error: :error', ['error' => $e->getMessage()])
+                'failure_reason' => $existingReason . ' | ' . __('payslips.retry_error', ['error' => $e->getMessage()])
             ]);
             
             Log::error('RetryPayslipEmailJob: General Exception', [
@@ -303,7 +299,7 @@ class RetryPayslipEmailJob implements ShouldQueue
         }
 
         // Common bounce indicators
-        $reason = __('Email address is invalid or does not exist');
+        $reason = __('payslips.email_invalid_or_does_not_exist');
         $type = 'hard'; // Assume hard bounce by default
 
         return [

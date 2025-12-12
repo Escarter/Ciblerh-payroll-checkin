@@ -92,6 +92,172 @@ services:
     networks:
       - ciblerh_network
 
+  # Queue Workers
+  queue-high-priority:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["php", "artisan", "queue:work", "--queue=high-priority", "--sleep=3", "--tries=3", "--max-jobs=1000", "--timeout=90"]
+    restart: unless-stopped
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - QUEUE_CONNECTION=redis
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - redis
+    networks:
+      - ciblerh_network
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "php", "artisan", "queue:count", "high-priority"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  queue-emails:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["php", "artisan", "queue:work", "--queue=emails", "--sleep=3", "--tries=3", "--max-jobs=1000", "--timeout=120"]
+    restart: unless-stopped
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - QUEUE_CONNECTION=redis
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - redis
+    networks:
+      - ciblerh_network
+    deploy:
+      replicas: 5
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "php", "artisan", "queue:count", "emails"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  queue-processing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["php", "artisan", "queue:work", "--queue=processing", "--sleep=3", "--tries=3", "--max-jobs=500", "--timeout=1800", "--memory=512"]
+    restart: unless-stopped
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - QUEUE_CONNECTION=redis
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - redis
+    networks:
+      - ciblerh_network
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "php", "artisan", "queue:count", "processing"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  queue-pdf-processing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["php", "artisan", "queue:work", "--queue=pdf-processing", "--sleep=3", "--tries=3", "--max-jobs=500", "--timeout=600", "--memory=256"]
+    restart: unless-stopped
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - QUEUE_CONNECTION=redis
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - redis
+    networks:
+      - ciblerh_network
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "php", "artisan", "queue:count", "pdf-processing"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  queue-default:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["php", "artisan", "queue:work", "--queue=default", "--sleep=3", "--tries=3", "--max-jobs=1000", "--timeout=90"]
+    restart: unless-stopped
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - QUEUE_CONNECTION=redis
+    volumes:
+      - .:/var/www/html
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    depends_on:
+      - redis
+    networks:
+      - ciblerh_network
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "php", "artisan", "queue:count", "default"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
   # Nginx Web Server
   nginx:
     image: nginx:alpine

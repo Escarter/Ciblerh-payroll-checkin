@@ -91,7 +91,7 @@ class Index extends BaseImportComponent
 
         if ($this->role === 'supervisor') {
             // Supervisors can't create departments - they only manage existing ones
-            session()->flash('error', __('departments.supervisors_cannot_create'));
+            $this->showToast(__('departments.supervisors_cannot_create'), 'danger');
             return;
         }
         
@@ -204,7 +204,7 @@ class Index extends BaseImportComponent
                            $department->employees()->count() > 0;
         
         if ($hasRelatedRecords) {
-            session()->flash('error', __('departments.cannot_permanently_delete_department'));
+            $this->showToast(__('departments.cannot_permanently_delete_department'), 'danger');
             return;
         }
         
@@ -262,7 +262,7 @@ class Index extends BaseImportComponent
             
             if (!empty($departmentsWithRelatedRecords)) {
                 $departmentNames = implode(', ', $departmentsWithRelatedRecords);
-                session()->flash('error', __('departments.cannot_permanently_delete_departments') . $departmentNames);
+                $this->showToast(__('departments.cannot_permanently_delete_departments') . $departmentNames, 'danger');
                 return;
             }
             

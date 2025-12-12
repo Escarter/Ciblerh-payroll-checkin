@@ -59,7 +59,7 @@ function createPayslipRecord($employee, $month, $process_id, $user_id, $file = n
     }
 }
 if (!function_exists('sendSmsAndUpdateRecord')) {
-    function sendSmsAndUpdateRecord($emp, $month, $record)
+    function sendSmsAndUpdateRecord($emp, $month, $record, $sms_balance = null)
     {
         // Check if employee has SMS notifications enabled
         if (isset($emp->receive_sms_notifications) && !$emp->receive_sms_notifications) {
@@ -92,36 +92,42 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 default => new Nexah($setting)
              };
 
-            if ($sms_client->getBalance()['credit'] !== 0) {
-                $message = '';
+            $message = '';
 
-                if($emp->preferred_language === 'en'){
-                    $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_en);
-                }else{
-                    $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_fr);
-                }
-
-                $response = $sms_client->sendSMS([
-                        'sms' =>  $message,
-                        'mobiles' => $phone,
-                    ]);
-
-                if ($response['responsecode'] === 1) {
-                    $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
-                } else {
-                    // Preserve existing failure reason if any
-                    $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
-                    $record->update([
-                        'sms_sent_status' => Payslip::STATUS_FAILED,
-                        'failure_reason' => $existingReason . __('Failed sending SMS')
-                    ]);
-                }
+            if($emp->preferred_language === 'en'){
+                $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_en);
             }else{
+                $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_fr);
+            }
+
+            $response = $sms_client->sendSMS([
+                    'sms' =>  $message,
+                    'mobiles' => $phone,
+                ]);
+
+            if ($response['responsecode'] === 1) {
+                $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
+            } else {
+                // Check if failure is due to insufficient balance
+                $failureReason = __('payslips.failed_sending_sms');
+
+                // Use provided balance or check once per job if not provided
+                if ($sms_balance !== null) {
+                    if ($sms_balance['credit'] === 0) {
+                        $failureReason = __('payslips.insufficient_sms_balance');
+                    }
+                } elseif (!empty($sms_client)) {
+                    $balance = $sms_client->getBalance();
+                    if ($balance['credit'] === 0) {
+                        $failureReason = __('payslips.insufficient_sms_balance');
+                    }
+                }
+
                 // Preserve existing failure reason if any
                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
                 $record->update([
                     'sms_sent_status' => Payslip::STATUS_FAILED,
-                    'failure_reason' => $existingReason . __('No available SMS Balance')
+                    'failure_reason' => $existingReason . $failureReason
                 ]);
             }
         } else {

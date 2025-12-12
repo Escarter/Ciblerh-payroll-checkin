@@ -137,7 +137,7 @@ class Index extends BaseImportComponent
         
         // Check if service has related tickings
         if ($service->tickings()->count() > 0) {
-            session()->flash('error', __('services.cannot_permanently_delete_service'));
+            $this->showToast(__('services.cannot_permanently_delete_service'), 'danger');
             return;
         }
         
@@ -192,7 +192,7 @@ class Index extends BaseImportComponent
             
             if (!empty($servicesWithTickings)) {
                 $serviceNames = implode(', ', $servicesWithTickings);
-                session()->flash('error', __('services.cannot_permanently_delete_services') . $serviceNames);
+                $this->showToast(__('services.cannot_permanently_delete_services') . $serviceNames, 'danger');
                 return;
             }
             

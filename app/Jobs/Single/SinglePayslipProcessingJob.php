@@ -40,6 +40,7 @@ class SinglePayslipProcessingJob implements ShouldQueue
         $this->month = $month;
         $this->chunk = $chunk;
         $this->user_id = $user_id;
+        $this->queue = 'pdf-processing';
 
     }
 
@@ -66,7 +67,7 @@ class SinglePayslipProcessingJob implements ShouldQueue
                     $created_record->update([
                         'email_sent_status' => 'failed',
                         'sms_sent_status' => 'failed',
-                        'failure_reason' => __('User Matricule is empty')
+                        'failure_reason' => __('payslips.user_matricule_empty')
                     ]);
                 } else {
                     if (strpos($pdf_text, 'Matricule ' . $this->employee->matricule) !== FALSE) {
@@ -123,7 +124,7 @@ class SinglePayslipProcessingJob implements ShouldQueue
                 $record->update([
                     'email_sent_status' => 'failed',
                     'sms_sent_status' => 'failed',
-                    'failure_reason' => __('{{__('payslips.failed_sending_email_sms')}}')
+                    'failure_reason' => __('payslips.failed_sending_email_sms')
                 ]);
             } else {
                 $record->update(['email_sent_status' => 'successful']);
@@ -133,7 +134,7 @@ class SinglePayslipProcessingJob implements ShouldQueue
             $record->update([
                 'email_sent_status' => 'failed',
                 'sms_sent_status' => 'failed',
-                'failure_reason' => __('{{__('payslips.no_valid_email_address')}}')
+                'failure_reason' => __('payslips.no_valid_email_address')
             ]);
         }
     }

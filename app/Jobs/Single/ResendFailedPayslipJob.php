@@ -64,7 +64,7 @@ class ResendFailedPayslipJob implements ShouldQueue
                 $this->record->update([
                     'email_sent_status' => 'failed',
                     'sms_sent_status' => 'failed',
-                    'failure_reason' => __('User Matricule is empty')
+                    'failure_reason' => __('payslips.user_matricule_empty')
                 ]);
             } else {
                 if (strpos($pdf_text, 'Matricule ' . $this->employee->matricule) !== FALSE) {

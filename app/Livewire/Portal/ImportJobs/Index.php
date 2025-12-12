@@ -347,16 +347,16 @@ class Index extends Component
         $job = ImportJob::findOrFail($jobId);
 
         if (!$job->canBeCancelled()) {
-            session()->flash('error', __('import_jobs.job_cannot_be_cancelled'));
+            $this->dispatch("showToast", message: __('import_jobs.job_cannot_be_cancelled'), type: "danger");
             return;
         }
 
         try {
             $job->update(['status' => ImportJob::STATUS_CANCELLED]);
-            session()->flash('message', __('import_jobs.job_cancelled_successfully'));
+            $this->dispatch("showToast", message: __('import_jobs.job_cancelled_successfully'), type: "success");
             $this->loadStats();
         } catch (\Exception $e) {
-            session()->flash('error', __('import_jobs.unable_to_cancel_job'));
+            $this->dispatch("showToast", message: __('import_jobs.unable_to_cancel_job'), type: "danger");
         }
     }
 
@@ -372,7 +372,7 @@ class Index extends Component
     public function bulkCancel()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('import_jobs.please_select_jobs_to_cancel'));
+            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_cancel'), type: "danger");
             return;
         }
 
@@ -391,7 +391,7 @@ class Index extends Component
             }
         }
 
-        session()->flash('message', __('import_jobs.jobs_cancelled_successfully', ['count' => $cancelled]));
+        $this->dispatch("showToast", message: __('import_jobs.jobs_cancelled_successfully', ['count' => $cancelled]), type: "success");
         $this->reset(['selectedJobs', 'selectAll']);
         $this->loadStats();
     }
@@ -400,7 +400,7 @@ class Index extends Component
     {
         // Validate job ID
         if (!$jobId) {
-            session()->flash('error', 'Job ID is required');
+            $this->dispatch("showToast", message: 'Job ID is required', type: "error");
             return;
         }
 
@@ -408,13 +408,13 @@ class Index extends Component
 
         // Check if user owns this job
         if ($this->jobToRetry->user_id !== auth()->id()) {
-            session()->flash('error', __('import_jobs.job_not_found'));
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
             return;
         }
 
         // Check if job is failed (can only retry failed jobs)
         if (!$this->jobToRetry->isFailed()) {
-            session()->flash('error', __('import_jobs.can_only_retry_failed_jobs'));
+            $this->dispatch("showToast", message: __('import_jobs.can_only_retry_failed_jobs'), type: "error");
             return;
         }
 
@@ -436,14 +436,14 @@ class Index extends Component
     public function confirmRetry()
     {
         if (!$this->jobToRetry) {
-            session()->flash('error', __('import_jobs.job_not_found'));
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
             return;
         }
 
         try {
             // Check if the original file still exists
             if (!$this->jobToRetry->file_path || !\Storage::disk('local')->exists($this->jobToRetry->file_path)) {
-                session()->flash('error', __('import_jobs.original_file_not_found'));
+                $this->dispatch("showToast", message: __('import_jobs.original_file_not_found'), type: "error");
                 return;
             }
 
@@ -457,19 +457,19 @@ class Index extends Component
 
             $newJob = ImportService::createImportJob($this->jobToRetry->import_type, $config);
 
-            session()->flash('message', __('import_jobs.job_retried_successfully'));
+            $this->dispatch("showToast", message: __('import_jobs.job_retried_successfully'), type: "success");
             $this->loadStats();
             $this->hideRetryModal();
 
         } catch (\Exception $e) {
-            session()->flash('error', __('import_jobs.error_retrying_job') . ': ' . $e->getMessage());
+            $this->dispatch("showToast", message: __('import_jobs.error_retrying_job') . ': ' . $e->getMessage(), type: "danger");
         }
     }
 
     public function bulkRetry()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('import_jobs.please_select_jobs_to_retry'));
+            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_retry'), type: "danger");
             return;
         }
 
@@ -498,7 +498,7 @@ class Index extends Component
             }
         }
 
-        session()->flash('message', __('import_jobs.jobs_retried_successfully', ['count' => $retried]));
+        $this->dispatch("showToast", message: __('import_jobs.jobs_retried_successfully', ['count' => $retried]), type: "success");
         $this->reset(['selectedJobs', 'selectAll']);
         $this->loadStats();
     }
@@ -506,7 +506,7 @@ class Index extends Component
     public function bulkDelete()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('import_jobs.please_select_jobs_to_delete'));
+            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_delete'), type: "error");
             return;
         }
 
@@ -524,7 +524,7 @@ class Index extends Component
             }
         }
 
-        session()->flash('message', __('import_jobs.jobs_moved_to_trash_successfully', ['count' => $deleted]));
+        $this->dispatch("showToast", message: __('import_jobs.jobs_moved_to_trash_successfully', ['count' => $deleted]), type: "success");
         $this->reset(['selectedJobs', 'selectAll']);
         $this->loadStats();
     }
@@ -532,7 +532,7 @@ class Index extends Component
     public function bulkRestore()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('import_jobs.please_select_jobs_to_restore'));
+            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_restore'), type: "error");
             return;
         }
 
@@ -551,7 +551,7 @@ class Index extends Component
             }
         }
 
-        session()->flash('message', __('import_jobs.jobs_restored_successfully', ['count' => $restored]));
+        $this->dispatch("showToast", message: __('import_jobs.jobs_restored_successfully', ['count' => $restored]), type: "success");
         $this->reset(['selectedJobs', 'selectAll']);
         $this->loadStats();
     }
@@ -559,7 +559,7 @@ class Index extends Component
     public function bulkForceDelete()
     {
         if (empty($this->selectedJobs)) {
-            session()->flash('error', __('import_jobs.please_select_jobs_to_delete'));
+            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_delete'), type: "error");
             return;
         }
 
@@ -582,7 +582,7 @@ class Index extends Component
             }
         }
 
-        session()->flash('message', __('import_jobs.jobs_deleted_permanently', ['count' => $deleted]));
+        $this->dispatch("showToast", message: __('import_jobs.jobs_deleted_permanently', ['count' => $deleted]), type: "success");
         $this->reset(['selectedJobs', 'selectAll']);
         $this->loadStats();
     }
@@ -592,41 +592,41 @@ class Index extends Component
         $job = ImportJob::withTrashed()->findOrFail($jobId);
 
         if ($job->user_id !== auth()->id()) {
-            session()->flash('error', __('import_jobs.job_not_found'));
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
             return;
         }
 
         try {
             $job->restore();
-            session()->flash('message', __('import_jobs.job_restored_successfully'));
+            $this->dispatch("showToast", message: __('import_jobs.job_restored_successfully'), type: "success");
             $this->loadStats();
         } catch (\Exception $e) {
-            session()->flash('error', __('import_jobs.unable_to_restore_job'));
+            $this->dispatch("showToast", message: __('import_jobs.unable_to_restore_job'), type: "error");
         }
     }
 
     public function delete()
     {
         if (!$this->job_id) {
-            session()->flash('error', __('import_jobs.job_not_found'));
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
             return;
         }
 
         $job = ImportJob::findOrFail($this->job_id);
 
         if ($job->user_id !== auth()->id()) {
-            session()->flash('error', __('import_jobs.job_not_found'));
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
             return;
         }
 
         try {
             $job->delete(); // Soft delete
-            session()->flash('message', __('import_jobs.job_moved_to_trash_successfully'));
+            $this->dispatch("showToast", message: __('import_jobs.job_moved_to_trash_successfully'), type: "success");
             $this->loadStats();
             $this->job_id = null;
             $this->dispatch('hide-delete-modal');
         } catch (\Exception $e) {
-            session()->flash('error', __('import_jobs.unable_to_delete_job'));
+            $this->dispatch("showToast", message: __('import_jobs.unable_to_delete_job'), type: "error");
         }
     }
 
@@ -635,7 +635,7 @@ class Index extends Component
         $job = ImportJob::withTrashed()->findOrFail($this->job_id);
 
         if ($job->user_id !== auth()->id()) {
-            session()->flash('error', __('import_jobs.job_not_found'));
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
             return;
         }
 
@@ -645,12 +645,12 @@ class Index extends Component
                 \Storage::delete($job->file_path);
             }
             $job->forceDelete();
-            session()->flash('message', __('import_jobs.job_deleted_permanently'));
+            $this->dispatch("showToast", message: __('import_jobs.job_deleted_permanently'), type: "success");
             $this->loadStats();
             $this->job_id = null;
             $this->dispatch('hide-force-delete-modal');
         } catch (\Exception $e) {
-            session()->flash('error', __('import_jobs.unable_to_delete_job'));
+            $this->dispatch("showToast", message: __('import_jobs.unable_to_delete_job'), type: "error");
         }
     }
 
@@ -666,7 +666,7 @@ class Index extends Component
     public function refreshJobs()
     {
         $this->loadStats();
-        session()->flash('message', __('import_jobs.jobs_refreshed_successfully'));
+        $this->dispatch("showToast", message: __('import_jobs.jobs_refreshed_successfully'), type: "success");
     }
 
     public function getAvailableImportTypes()
@@ -801,7 +801,7 @@ class Index extends Component
             }
 
         } catch (\Exception $e) {
-            session()->flash('error', __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage());
+            $this->dispatch("showToast", message: __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage(), type: "error");
         }
     }
 
@@ -848,10 +848,10 @@ class Index extends Component
 
             // Refresh stats and show success message
             $this->loadStats();
-            session()->flash('message', __('import_jobs.import_job_created_successfully'));
+            $this->dispatch("showToast", message: __('import_jobs.import_job_created_successfully'), type: "success");
 
         } catch (\Exception $e) {
-            session()->flash('error', __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage());
+            $this->dispatch("showToast", message: __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage(), type: "error");
         }
     }
 
@@ -966,7 +966,7 @@ class Index extends Component
                 'error' => $job->error_message ?? __('common.unknown_error')
             ]);
 
-            $this->showToast($message, 'error');
+            $this->showToast($message, 'danger');
         }
     }
 

@@ -476,4 +476,9 @@ return [
     'work_start_time_must_be_before_end' => 'L\'heure de début de travail doit être avant l\'heure de fin',
     'personal_phone_invalid' => 'Le numéro de téléphone personnel est invalide',
     'alternative_email_invalid' => 'L\'email alternatif est invalide',
+
+    // Traductions d'import superviseur/manager
+    'email_is_empty' => 'L\'email du superviseur est vide',
+    'not_found' => 'Superviseur avec l\'email :email introuvable',
+    'does_not_have_role' => 'L\'utilisateur avec l\'email :email n\'a pas le rôle de superviseur ou manager',
 ];

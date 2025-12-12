@@ -376,7 +376,7 @@ class Index extends BaseImportComponent
                            $employee->supDepartments()->count() > 0;
         
         if ($hasRelatedRecords) {
-            session()->flash('error', __('employees.cannot_permanently_delete_employee'));
+            $this->showToast(__('employees.cannot_permanently_delete_employee'), 'danger');
             return;
         }
         
@@ -439,7 +439,7 @@ class Index extends BaseImportComponent
             
             if (!empty($employeesWithRelatedRecords)) {
                 $employeeNames = implode(', ', $employeesWithRelatedRecords);
-                session()->flash('error', __('employees.cannot_permanently_delete_employees') . $employeeNames);
+                $this->showToast(__('employees.cannot_permanently_delete_employees') . $employeeNames, 'danger');
                 return;
             }
             
@@ -632,7 +632,7 @@ class Index extends BaseImportComponent
         };
         
         if (!in_array($this->role_name, $allowedRoles)) {
-            session()->flash('error', __('employees.no_permission_assign_roles') . $this->role_name);
+            $this->showToast(__('employees.no_permission_assign_roles') . $this->role_name, 'danger');
             return;
         }
         

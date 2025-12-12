@@ -49,7 +49,7 @@ class History extends Component
         
         // Check if the file exists
         if (!Storage::disk('modified')->exists($payslip->file)) {
-            session()->flash('error', __('payslips.payslip_file_not_found'));
+            $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
             return;
         }
         
@@ -60,7 +60,7 @@ class History extends Component
                 ['Content-Type'=> 'application/pdf']
             );
         } catch (\Exception $e) {
-            session()->flash('error', __('payslips.unable_to_download_payslip'));
+            $this->showToast(__('payslips.unable_to_download_payslip'), 'danger');
         }
     }
     public function resendEmail()
@@ -223,15 +223,15 @@ class History extends Component
 
         try {
             $payslip = $payslipId ? Payslip::findOrFail($payslipId) : $this->payslip;
-            
+
             if (!empty($payslip)) {
                 $payslip->delete(); // Soft delete
                 $this->closeModalAndFlashMessage(__('payslips.payslip_successfully_moved_to_trash'), 'DeleteModal');
             } else {
-                session()->flash('error', __('payslips.payslip_not_found'));
+                $this->showToast(__('payslips.payslip_not_found'), 'danger');
             }
         } catch (\Exception $e) {
-            session()->flash('error', __('payslips.error_deleting_payslip') . $e->getMessage());
+            $this->showToast(__('payslips.error_deleting_payslip') . $e->getMessage(), 'danger');
         }
         
         $this->reset(['payslip']);
@@ -257,15 +257,15 @@ class History extends Component
 
         try {
             $payslip = $payslipId ? Payslip::withTrashed()->findOrFail($payslipId) : $this->payslip;
-            
+
             if (!empty($payslip)) {
                 $payslip->forceDelete();
                 $this->closeModalAndFlashMessage(__('payslips.payslip_permanently_deleted'), 'ForceDeleteModal');
             } else {
-                session()->flash('error', __('payslips.payslip_not_found'));
+                $this->showToast(__('payslips.payslip_not_found'), 'danger');
             }
         } catch (\Exception $e) {
-            session()->flash('error', __('payslips.error_deleting_payslip') . $e->getMessage());
+            $this->showToast(__('payslips.error_deleting_payslip') . $e->getMessage(), 'danger');
         }
         
         $this->reset(['payslip']);

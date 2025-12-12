@@ -102,13 +102,13 @@ class Payslip extends Component
             ['format' => 'xlsx']
         );
 
-        session()->flash('message', __('Report generation started! You can track progress in the Generate page.'));
+        $this->showToast(__('Report generation started! You can track progress in the Generate page.'), 'success');
     }
 
     public function downloadBulkPayslips()
     {
         if (!$this->employee_id || $this->employee_id === 'all') {
-            session()->flash('error', __('Please select a specific employee for bulk download.'));
+            $this->showToast(__('Please select a specific employee for bulk download.'), 'danger');
             return;
         }
 
@@ -126,7 +126,7 @@ class Payslip extends Component
             ['format' => 'zip']
         );
 
-        session()->flash('message', __('Bulk download started! You can track progress in the Generate page.'));
+        $this->showToast(__('Bulk download started! You can track progress in the Generate page.'), 'success');
     }
 
     public function render()

@@ -67,6 +67,8 @@ class SendPayslipJob implements ShouldQueue
     protected $month;
     protected $process_id;
     protected $user_id;
+    protected static $sms_balance_checked = false;
+    protected static $sms_balance = null;
 
     /**
      * Create a new job instance.
@@ -80,7 +82,8 @@ class SendPayslipJob implements ShouldQueue
         $this->month = $process->month;
         $this->user_id = $process->user_id;
         $this->process_id = $process->id;
-        
+        $this->queue = 'emails';
+
     }
 
     /**
@@ -102,6 +105,30 @@ class SendPayslipJob implements ShouldQueue
 
         Log::info($encrypted_files);
 
+        // Check SMS balance once per job to avoid repeated API calls
+        $sms_balance = null;
+        if (!self::$sms_balance_checked) {
+            $setting = \App\Models\Setting::first();
+            if (!empty($setting->sms_provider)) {
+                $sms_client = match ($setting->sms_provider) {
+                    'twilio' => new \App\Services\TwilioSMS($setting),
+                    'nexah' => new \App\Services\Nexah($setting),
+                    'aws_sns' => new \App\Services\AwsSnsSMS($setting),
+                    default => new \App\Services\Nexah($setting)
+                };
+
+                try {
+                    $sms_balance = $sms_client->getBalance();
+                    self::$sms_balance = $sms_balance;
+                    self::$sms_balance_checked = true;
+                } catch (\Exception $e) {
+                    Log::warning('Failed to check SMS balance: ' . $e->getMessage());
+                }
+            }
+        } else {
+            $sms_balance = self::$sms_balance;
+        }
+
         foreach ($this->employee_chunk as $employee) {
             // Early check: if there is a payslip record with encryption failed, mark email/SMS as skipped
             $existingFailed = Payslip::where('employee_id', $employee->id)
@@ -112,7 +139,7 @@ class SendPayslipJob implements ShouldQueue
             if ($existingFailed) {
                 $existingReason = $existingFailed->failure_reason ?? '';
                 if (strpos($existingReason, 'Email/SMS skipped') === false) {
-                    $skipReason = __('Email/SMS skipped: Encryption failed. ') . $existingReason;
+                    $skipReason = __('payslips.encryption_failed_email_sms_skipped') . $existingReason;
                     $existingFailed->update([
                         'email_sent_status' => Payslip::STATUS_FAILED,
                         'sms_sent_status' => Payslip::STATUS_FAILED,
@@ -128,7 +155,7 @@ class SendPayslipJob implements ShouldQueue
                 $encrypted_files = [$this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf'];
             }
 
-            collect($encrypted_files)->each(function ($file) use ($employee, $pay_month, $dest) {
+            collect($encrypted_files)->each(function ($file) use ($employee, $pay_month, $dest, $sms_balance) {
 
                 if (strpos($file, $employee->matricule .'_'.$pay_month.'.pdf') !== FALSE) {
 
@@ -152,7 +179,7 @@ class SendPayslipJob implements ShouldQueue
                         // Update status to indicate email was skipped due to encryption failure
                         $existingReason = $record_exists->failure_reason ?? '';
                         if (strpos($existingReason, 'Email/SMS skipped') === false) {
-                            $skipReason = __('Email/SMS skipped: Encryption failed. ') . $existingReason;
+                            $skipReason = __('payslips.encryption_failed_email_sms_skipped') . $existingReason;
                             
                             $record_exists->update([
                                 'email_sent_status' => Payslip::STATUS_FAILED,
@@ -190,7 +217,7 @@ class SendPayslipJob implements ShouldQueue
                         
                         $record->update([
                             'email_sent_status' => Payslip::STATUS_DISABLED,
-                            'email_status_note' => __('Email notifications disabled for this employee')
+                            'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee')
                         ]);
                         return; // Skip to next employee
                     }
@@ -207,8 +234,8 @@ class SendPayslipJob implements ShouldQueue
                             'email_sent_status' => Payslip::STATUS_FAILED,
                             'email_bounced' => true,
                             'email_bounced_at' => now(),
-                            'email_bounce_reason' => __('Email previously bounced: :reason', ['reason' => $employee->email_bounce_reason ?? 'Unknown']),
-                            'failure_reason' => __('Email address has bounced previously. Please update employee email address.')
+                            'email_bounce_reason' => __('payslips.email_previously_bounced') . ': ' . ($employee->email_bounce_reason ?? 'Unknown'),
+                            'failure_reason' => __('payslips.email_address_has_bounced_previously')
                         ]);
                         return; // Skip to next employee
                     }
@@ -254,7 +281,7 @@ class SendPayslipJob implements ShouldQueue
                             'email_bounced' => true,
                             'email_bounced_at' => now(),
                             'email_bounce_reason' => $isBounce['reason'],
-                            'failure_reason' => __('Email bounced: :reason', ['reason' => $isBounce['reason']])
+                            'failure_reason' => __('payslips.email_bounced') . ': ' . $isBounce['reason']
                         ];
                         if (\Illuminate\Support\Facades\Schema::hasColumn('payslips', 'email_bounce_type')) {
                             $update['email_bounce_type'] = $isBounce['type'] ?? 'hard';
@@ -286,7 +313,7 @@ class SendPayslipJob implements ShouldQueue
                                     'email_sent_status' => Payslip::STATUS_FAILED,
                                     'email_retry_count' => $currentRetryCount + 1,
                                     'last_email_retry_at' => now(),
-                                    'failure_reason' => $existingReason . __('Failed to send email. Recipient: :email. Retry :retry/:max scheduled', [
+                                    'failure_reason' => $existingReason . __('payslips.failed_to_send_email_retry_scheduled', [
                                         'email' => $emailToUse,
                                         'retry' => $currentRetryCount + 1,
                                         'max' => $maxRetries
@@ -311,7 +338,7 @@ class SendPayslipJob implements ShouldQueue
                                 $record->update([
                                     'email_sent_status' => Payslip::STATUS_FAILED,
                                     'sms_sent_status' => Payslip::STATUS_FAILED,
-                                    'failure_reason' => $existingReason . __('Failed to send email after :max retry attempts. Recipient: :email', [
+                                    'failure_reason' => $existingReason . __('payslips.failed_to_send_email_after_max_retries', [
                                         'max' => $maxRetries,
                                         'email' => $emailToUse
                                     ])
@@ -334,7 +361,7 @@ class SendPayslipJob implements ShouldQueue
                                 'failure_reason' => null // Clear failure reason on success
                                 ]);
 
-                                sendSmsAndUpdateRecord($employee, $pay_month, $record);
+                                sendSmsAndUpdateRecord($employee, $pay_month, $record, $sms_balance);
 
                                 Log::info('mail-sent');
                         }
@@ -358,7 +385,7 @@ class SendPayslipJob implements ShouldQueue
                                     'email_sent_status' => Payslip::STATUS_FAILED,
                                     'email_retry_count' => $currentRetryCount + 1,
                                     'last_email_retry_at' => now(),
-                                    'failure_reason' => $existingReason . __('Email error: :error. Retry :retry/:max scheduled', [
+                                    'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
                                         'error' => $e->getMessage(),
                                         'retry' => $currentRetryCount + 1,
                                         'max' => $maxRetries
@@ -371,13 +398,11 @@ class SendPayslipJob implements ShouldQueue
                                 $record->update([
                                     'email_sent_status' => Payslip::STATUS_FAILED,
                                     'sms_sent_status' => Payslip::STATUS_FAILED,
-                                    'failure_reason' => $existingReason . __('Email error after :max retries: :error', [
-                                        'max' => $maxRetries,
-                                        'error' => $e->getMessage()
-                                    ])
+                                    'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
                                 ]);
                             }
-                            } catch (\Swift_RfcComplianceException $e) {
+                            }
+                            catch (\Swift_RfcComplianceException $e) {
                                 Log::info('------> err Swift_Rfc:' . $e->getMessage());
                                 Log::info('' . PHP_EOL . '');
 
@@ -396,7 +421,7 @@ class SendPayslipJob implements ShouldQueue
                                     'email_sent_status' => Payslip::STATUS_FAILED,
                                     'email_retry_count' => $currentRetryCount + 1,
                                     'last_email_retry_at' => now(),
-                                    'failure_reason' => $existingReason . __('Email RFC error: :error. Retry :retry/:max scheduled', [
+                                    'failure_reason' => $existingReason . __('payslips.email_rfc_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
                                         'error' => $e->getMessage(),
                                         'retry' => $currentRetryCount + 1,
                                         'max' => $maxRetries
@@ -409,13 +434,11 @@ class SendPayslipJob implements ShouldQueue
                                 $record->update([
                                     'email_sent_status' => Payslip::STATUS_FAILED,
                                     'sms_sent_status' => Payslip::STATUS_FAILED,
-                                    'failure_reason' => $existingReason . __('Email RFC error after :max retries: :error', [
-                                        'max' => $maxRetries,
-                                        'error' => $e->getMessage()
-                                    ])
+                                    'failure_reason' => $existingReason . __('payslips.email_rfc_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
                                 ]);
                             }
-                            } catch (Exception $e) {
+                            }
+                            catch (Exception $e) {
                                 Log::info('------> err' . $e->getMessage());
                                 Log::info('' . PHP_EOL . '');
 
@@ -434,7 +457,7 @@ class SendPayslipJob implements ShouldQueue
                                     'email_sent_status' => Payslip::STATUS_FAILED,
                                     'email_retry_count' => $currentRetryCount + 1,
                                     'last_email_retry_at' => now(),
-                                    'failure_reason' => $existingReason . __('Email error: :error. Retry :retry/:max scheduled', [
+                                    'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
                                         'error' => $e->getMessage(),
                                         'retry' => $currentRetryCount + 1,
                                         'max' => $maxRetries
@@ -447,10 +470,7 @@ class SendPayslipJob implements ShouldQueue
                                 $record->update([
                                     'email_sent_status' => Payslip::STATUS_FAILED,
                                     'sms_sent_status' => Payslip::STATUS_FAILED,
-                                    'failure_reason' => $existingReason . __('Email error after :max retries: :error', [
-                                        'max' => $maxRetries,
-                                        'error' => $e->getMessage()
-                                    ])
+                                    'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
                                 ]);
                             }
                             }
@@ -477,11 +497,10 @@ class SendPayslipJob implements ShouldQueue
         if (stripos($email, 'bounce') !== false) {
             return [
                 'is_bounce' => true,
-                'reason' => __('Email address is invalid or does not exist'),
+                'reason' => __('payslips.email_invalid_or_does_not_exist'),
                 'type' => 'hard',
             ];
         }
         return ['is_bounce' => false];
     }
-
 }

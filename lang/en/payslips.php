@@ -71,6 +71,9 @@ return [
     'sms_setting_required' => 'Setting for SMS required!',
     'sms_smtp_settings_required' => 'Setting for SMS and SMTP configurations required!!',
     'insufficient_sms_balance_refill' => 'SMS Balance is not enough, Refill SMS to proceed',
+    'smtp_settings_not_configured' => 'SMTP settings not configured',
+    'sms_provider_required' => 'SMS provider configuration required!',
+    'smtp_sms_settings_required' => 'SMTP and SMS settings configuration required!',
     'file_upload_max_pages' => 'File uploaded needs to have :max pages maximum',
     'file_upload_page_limit' => 'File uploaded needs to have ',
     'file_upload_page_limit_suffix' => ' pages maximum',
@@ -93,6 +96,7 @@ return [
     'email_rfc_error_retry_scheduled' => 'Email RFC error: :error. Retry :retry/:max scheduled',
     'email_rfc_error_after_max_retries' => 'Email RFC error after :max retries: :error',
     'retry_failed_payslip_not_found' => 'Retry failed: Payslip file not found',
+    'retry_failed_employee_not_found' => 'Retry failed: Employee not found',
     'retry_failed_no_valid_email' => 'Retry failed: No valid email address',
     'retry_attempt_failed_email_delivery' => 'Retry attempt failed: Email delivery failed',
     'retry_attempt_failed_with_next' => 'Retry attempt :retry failed: Email delivery failed. Retry :next/:max scheduled',
@@ -118,7 +122,9 @@ return [
 
     // Failure reasons
     'no_valid_email_address' => 'No valid email address for User',
+    'user_matricule_empty' => 'User matricule is empty',
     'failed_sending_email_sms' => 'Failed sending Email & SMS',
+    'failed_sending_sms' => 'Failed sending SMS',
     'failed_to_resent_email' => 'Failed to resent Email',
 
     // Employee payslip history specific
@@ -195,4 +201,25 @@ return [
     'bulk_delete_payslip_process_for' => 'Bulk delete Payslip process for :month-:year @ :datetime',
     'bulk_permanently_delete_payslip_process_for' => 'Bulk permanently delete Payslip process for :month-:year @ :datetime',
     'move_selected_payslips_to_trash' => 'Move Selected Payslips to Trash',
+    'user_initiated_payslip_sending' => 'User <a href="/portal/users?user_id=:user_id">:user_name</a> initiated the sending of payslip to department <strong>:department_name</strong> for the month of :month - :year <a href="/portal/payslips/history"> Go to Playslips details</a>',
+
+    // Additional missing keys
+    'download_payslips' => 'Download Payslips',
+    'email_address_has_bounced_previously' => 'Email address has bounced previously',
+    'email_notifications_disabled_for_this_employee' => 'Email notifications disabled for this employee',
+    'permanently_delete_selected_payslip_processes' => 'Permanently Delete Selected Payslip Processes',
+    'restore_selected_payslip_processes' => 'Restore Selected Payslip Processes',
+    'retry_scheduled' => 'Retry :retry/:max scheduled',
+    'status_of_payslips_sending' => 'Status of Payslips Sending',
+    'target' => 'Target',
+    'this_will_attempt_to_resend_count_failed_payslips' => 'This will attempt to resend :count failed payslips',
+    'you_are_about_to_resend_email_and_sms_with_employee_payslip' => 'You are about to resend email and SMS with employee payslip',
+    'you_are_about_to_resend_email_with_employee_payslip' => 'You are about to resend email with employee payslip',
+    'you_are_about_to_resend_sms_with_pdf_password_to_employee' => 'You are about to resend SMS with PDF password to employee',
+
+    // Plan job messages
+    'matricule_not_found_in_pdf' => 'Matricule :matricule not found in any PDF file for month :month',
+    'process_completed_with_failures' => 'Process completed with :failed out of :total payslips failed to send',
+    'unmatched_employees_summary' => ':unmatched out of :total employees could not be matched to PDF files',
+    'process_failed_generic' => 'Something went wrong in the process!',
 ];

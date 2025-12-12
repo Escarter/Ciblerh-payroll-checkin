@@ -28,11 +28,6 @@ class RenameEncryptPdfJob implements ShouldQueue
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * The queue connection name
-     */
-    public $queue = 'pdf-processing';
-
-    /**
      * The number of times the job may be attempted.
      *
      * @var int
@@ -68,6 +63,7 @@ class RenameEncryptPdfJob implements ShouldQueue
         $this->chunk = $chunk;
         $this->user_id = $this->process->user_id;
         $this->process_id = $process_id;
+        $this->queue = 'pdf-processing';
     }
 
     /**
@@ -116,7 +112,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                         'encryption_status' => Payslip::STATUS_FAILED,
                         'email_sent_status' => Payslip::STATUS_FAILED,
                         'sms_sent_status' => Payslip::STATUS_FAILED,
-                        'failure_reason' => __('User Matricule is empty')
+                        'failure_reason' => __('payslips.user_matricule_empty')
                     ]);
                 } else {
 

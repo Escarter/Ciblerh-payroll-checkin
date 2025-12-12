@@ -31,7 +31,7 @@ class All extends Component
         
         // Check if the file exists
         if (!Storage::disk('modified')->exists($payslip->file)) {
-            session()->flash('error', __('payslips.payslip_file_not_found'));
+            $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
             return;
         }
         
@@ -42,7 +42,7 @@ class All extends Component
                 ['Content-Type'=> 'application/pdf']
             );
         } catch (\Exception $e) {
-            session()->flash('error', __('payslips.unable_to_download_payslip'));
+            $this->showToast(__('payslips.unable_to_download_payslip'), 'danger');
         }
     }
 

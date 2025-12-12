@@ -36,11 +36,6 @@ class ImportDataJob implements ShouldQueue
      */
     public $memory = 512;
 
-    /**
-     * The queue connection name
-     */
-    public $queue = 'processing';
-
     protected $importType;
     protected $filePath;
     protected $userId;
@@ -65,6 +60,7 @@ class ImportDataJob implements ShouldQueue
         $this->autoCreateEntities = $autoCreateEntities;
         $this->importJobId = $importJobId;
         $this->importId = uniqid('import_', true);
+        $this->queue = 'processing';
 
         // Note: importJob is loaded in handle() method to avoid deserialization issues
     }

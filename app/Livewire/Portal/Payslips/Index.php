@@ -226,37 +226,24 @@ class Index extends Component
         ]);
 
         $setting = Setting::first();
-        
+
         if(!empty($setting)){
-          
-
+            // Check SMTP settings
             if (empty($setting->smtp_host) && empty($setting->smtp_port)) {
-                session()->flash('error', __('payslips.smtp_setting_required'));
+                $this->showToast(__('payslips.smtp_setting_required'), 'danger');
                 return;
             }
 
-            if (empty($setting->sms_provider_username) && empty($setting->sms_provider_password)) {
-                session()->flash('error', __('payslips.sms_setting_required'));
+            // Check SMS settings
+            if (empty($setting->sms_provider)) {
+                $this->showToast(__('payslips.sms_provider_required'), 'danger');
                 return;
             }
-
         }else{
-            session()->flash('error', __('payslips.sms_smtp_settings_required'));
+            $this->showToast(__('payslips.smtp_sms_settings_required'), 'danger');
             return;
         }
 
-        $sms_client = match ($setting->sms_provider) {
-            'twilio' => new TwilioSMS($setting),
-            'nexah' =>  new Nexah($setting),
-            'aws_sns' => new AwsSnsSMS($setting),
-            default => new Nexah($setting)
-        };
-
-        if ($sms_client->getBalance()['credit'] === 0) {
-            session()->flash('error', __('payslips.insufficient_sms_balance_refill'));
-            return;
-        }
-        
 
         $raw_file_path = $this->payslip_file->store(auth()->user()->id, 'raw');
 
@@ -271,7 +258,7 @@ class Index extends Component
 
 
         if (countPages(Storage::disk('raw')->path($raw_file_path)) > config('ciblerh.max_payslip_pages')) {
-            session()->flash('error', __('payslips.file_upload_max_pages', ['max' => config('ciblerh.max_payslip_pages')]));
+            $this->showToast(__('payslips.file_upload_max_pages', ['max' => config('ciblerh.max_payslip_pages')]), 'danger');
             return $this->redirect(route('portal.payslips.index'), navigate: true);
         }
 
@@ -301,10 +288,16 @@ class Index extends Component
             auth()->user(),
             'payslip_sending',
             'web',
-            'User <a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> initiated the sending of payslip to department <strong>' . $choosen_department->name . '</strong> for the month of ' . $this->month . ' - ' . now()->year . '<a href="/portal/payslips/history"> Go to Playslips details</a>'
+            __('payslips.user_initiated_payslip_sending', [
+                'user_id' => auth()->user()->id,
+                'user_name' => auth()->user()->name,
+                'department_name' => $choosen_department->name,
+                'month' => $this->month,
+                'year' => now()->year
+            ])
         );
 
-        session()->flash('message', __('payslips.job_processing_status'));
+        $this->showToast(__('payslips.job_processing_status'), 'success');
         return $this->redirect(route('portal.payslips.index'), navigate: true);
     }
 

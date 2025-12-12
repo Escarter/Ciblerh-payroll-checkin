@@ -27,6 +27,7 @@ class SplitPdfSingleEmployee implements ShouldQueue
     {
         $this->file = $file;
         $this->destination = $destination;
+        $this->queue = 'pdf-processing';
     }
 
     /**
