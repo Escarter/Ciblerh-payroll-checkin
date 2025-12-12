@@ -402,6 +402,8 @@ return [
 
     // Employee fields
     'prof_phone_number' => 'Numéro de téléphone prof',
+    'professional_phone' => 'Téléphone professionnel',
+    'personal_phone' => 'Téléphone personnel',
     'position' => 'Position',
     'personal_phone_number' => 'Numéro de téléphone personnel',
     'contract_end' => 'Date de fin de contrat',
@@ -578,4 +580,10 @@ return [
     'october' => 'Octobre',
     'november' => 'Novembre',
     'december' => 'Décembre',
+
+    // Traductions communes supplémentaires
+    'roles_status' => 'Statut des rôles',
+    'department' => 'Département',
+    'service' => 'Service',
+    'note' => 'Note',
 ];

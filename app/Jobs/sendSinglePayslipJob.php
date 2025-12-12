@@ -20,6 +20,11 @@ class sendSinglePayslipJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * The queue connection name
+     */
+    public $queue = 'emails';
+
     protected $raw_file_path;
     protected $employee;
     protected $record;

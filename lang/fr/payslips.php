@@ -187,6 +187,7 @@ return [
     'bulk' => 'En masse',
     'permanently_delete_selected_payslips' => 'Supprimer définitivement les fiches de paie sélectionnées',
     'restore_selected_payslips' => 'Restaurer les fiches de paie sélectionnées',
+    'pdf_password' => 'Mot de passe PDF',
 
     // Messages du journal d'audit pour les processus de fiches de paie
     'delete_payslip_process_for' => 'Supprimer le processus de fiche de paie pour :month-:year @ :datetime',

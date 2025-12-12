@@ -71,6 +71,42 @@ return [
             'after_commit' => false,
         ],
 
+        // High-priority queue for critical operations
+        'high-priority' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+            'queue' => 'high-priority',
+            'retry_after' => 90,
+            'after_commit' => false,
+        ],
+
+        // Email/SMS operations
+        'emails' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+            'queue' => 'emails',
+            'retry_after' => 90,
+            'after_commit' => false,
+        ],
+
+        // Heavy processing (imports, exports)
+        'processing' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+            'queue' => 'processing',
+            'retry_after' => 90,
+            'after_commit' => false,
+        ],
+
+        // PDF operations
+        'pdf-processing' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+            'queue' => 'pdf-processing',
+            'retry_after' => 90,
+            'after_commit' => false,
+        ],
+
     ],
 
     /*

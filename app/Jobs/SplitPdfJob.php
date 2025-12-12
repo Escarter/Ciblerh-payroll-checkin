@@ -18,6 +18,11 @@ class SplitPdfJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * The queue connection name
+     */
+    public $queue = 'pdf-processing';
+
     protected $process;
 
     /**

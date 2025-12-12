@@ -131,7 +131,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     'email' => $row[2],
                     'professional_phone_number' => $phoneValidation['formatted'],
                     'personal_phone_number' => $personalPhoneNumber,
-                    'matricule' => $row[4],
+                    'matricule' => (string) $row[4],
                     'position' => $row[5],
                     'net_salary' => $row[6],
                     'salary_grade' => $row[7],
@@ -324,7 +324,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '1' => 'required|string', // last_name
             '2' => ['required', 'email', 'unique:users,email'], // email - using built-in email validation
             '3' => ['required', new PhoneNumber()], // professional_phone_number
-            '4' => 'required|string', // matricule
+            '4' => 'required', // matricule (can be string or numeric)
             '5' => 'required|string', // position
             '6' => 'required|numeric', // net_salary
             '7' => 'required|string', // salary_grade

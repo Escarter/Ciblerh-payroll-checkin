@@ -187,6 +187,7 @@ return [
     'bulk' => 'Bulk',
     'permanently_delete_selected_payslips' => 'Permanently Delete Selected Payslips',
     'restore_selected_payslips' => 'Restore Selected Payslips',
+    'pdf_password' => 'PDF Password',
 
     // Audit log messages for payslip processes
     'delete_payslip_process_for' => 'Delete Payslip process for :month-:year @ :datetime',

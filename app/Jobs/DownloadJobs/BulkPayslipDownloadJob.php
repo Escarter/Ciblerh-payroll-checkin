@@ -17,6 +17,11 @@ class BulkPayslipDownloadJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * The queue connection name
+     */
+    public $queue = 'processing';
+
     protected $downloadJob;
 
     /**

@@ -20,6 +20,11 @@ class RetryPayslipEmailJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
+     * The queue connection name
+     */
+    public $queue = 'high-priority';
+
+    /**
      * The number of times the job may be attempted.
      *
      * @var int

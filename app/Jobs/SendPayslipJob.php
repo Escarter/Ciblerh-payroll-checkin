@@ -57,6 +57,11 @@ class SendPayslipJob implements ShouldQueue
      */
     public $failOnTimeout = true;
 
+    /**
+     * The queue connection name
+     */
+    public $queue = 'emails';
+
     protected $employee_chunk;
     protected $destination;
     protected $month;

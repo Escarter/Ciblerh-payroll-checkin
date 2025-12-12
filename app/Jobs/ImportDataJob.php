@@ -36,6 +36,11 @@ class ImportDataJob implements ShouldQueue
      */
     public $memory = 512;
 
+    /**
+     * The queue connection name
+     */
+    public $queue = 'processing';
+
     protected $importType;
     protected $filePath;
     protected $userId;

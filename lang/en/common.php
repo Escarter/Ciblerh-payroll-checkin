@@ -401,6 +401,8 @@ return [
 
     // Employee fields
     'prof_phone_number' => 'Prof Phone Number',
+    'professional_phone' => 'Professional Phone',
+    'personal_phone' => 'Personal Phone',
     'position' => 'Position',
     'personal_phone_number' => 'Personal Phone Number',
     'contract_end' => 'Contract End Date',
@@ -576,5 +578,11 @@ return [
     'october' => 'October',
     'november' => 'November',
     'december' => 'December',
+
+    // Additional common translations
+    'roles_status' => 'Roles Status',
+    'department' => 'Department',
+    'service' => 'Service',
+    'note' => 'Note',
 
 ];

@@ -28,6 +28,11 @@ class RenameEncryptPdfJob implements ShouldQueue
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
+     * The queue connection name
+     */
+    public $queue = 'pdf-processing';
+
+    /**
      * The number of times the job may be attempted.
      *
      * @var int
