@@ -20,4 +20,5 @@ return [
     'companies_description' => 'Import company information and basic details.',
     'services_description' => 'Import service definitions and department assignments.',
     'leave_types_description' => 'Import leave type definitions and policies.',
+    'supervisors_managers_description' => 'Import supervisor and manager user accounts with their roles and permissions.',
 ];

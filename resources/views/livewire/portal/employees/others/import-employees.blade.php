@@ -310,7 +310,6 @@
              <div class="modal-footer">
                  <div x-show="currentStep === 'upload'">
                      <button class="btn btn-gray-200 text-gray-600" type="button" data-bs-dismiss="modal">{{__('common.close')}}</button>
-                     <a href="{{route('portal.import-results.index')}}" class="btn btn-outline-info" wire:navigate>{{__('common.view_import_history')}}</a>
                      <button type="button" class="btn btn-primary" wire:click="processPreview" wire:loading.attr="disabled" :disabled="!$wire.employee_file || $wire.isProcessingPreview">
                          <span wire:loading.remove x-show="!$wire.isProcessingPreview">
                              <i class="fas fa-eye me-2"></i>{{__('common.preview_data')}}

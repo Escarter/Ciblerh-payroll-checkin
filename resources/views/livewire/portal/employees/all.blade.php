@@ -47,7 +47,7 @@
                 @endhasrole
                 @endcan
                 @can('employee-import')
-                <a href="#" data-bs-toggle="modal" data-bs-target="#importEmployeesModal" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
+                <a href="{{ route('portal.import-jobs.index') }}" class="btn btn-sm btn-tertiary py-2 d-inline-flex align-items-center">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg> {{__('common.import')}}
@@ -99,7 +99,7 @@
                                     <h2 class="h5">{{__('employees.total_employees')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($employees_count)}}</h3>
                                 </a>
-                               
+
                             </div>
                         </div>
                     </div>
@@ -389,7 +389,7 @@
                             </a>
                             @endif
                             @endcan
-                            
+
                             @can('employee-delete')
                             @if($employee->hasAnyRole(['supervisor', 'manager']) || $employee->hasRole('admin'))
                             <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal">

@@ -132,8 +132,7 @@ class Index extends Component
             }
         }
 
-        $this->closeModalAndFlashMessage(__('settings.setting_for_sms_successfully_added'),'');
-        return $this->redirect(route('portal.settings.index'), navigate: true);
+        $this->showToast(__('settings.setting_for_sms_successfully_added'));
 
     }
     public function saveSmtpConfig()
@@ -169,9 +168,7 @@ class Index extends Component
 
         setSavedSmtpCredentials();
 
-        $this->closeModalAndFlashMessage(__('settings.setting_for_smtp_successfully_added'),'');
-
-        return $this->redirect(route('portal.settings.index'), navigate: true);
+        $this->showToast(__('settings.setting_for_smtp_successfully_added'));
     }
 
     public function sendTestEmail()
@@ -182,16 +179,14 @@ class Index extends Component
 
         if(empty($setting->smtp_host) && empty($setting->smtp_port))
         {
-            $this->closeModalAndFlashMessage(__('settings.setting_for_smtp_required'), '');
+        $this->showToast(__('settings.setting_for_smtp_required'), 'error');
         }
 
         setSavedSmtpCredentials();
 
         Mail::to($this->test_email_address)->send(new TestEmail($this->test_email_message));
 
-        $this->closeModalAndFlashMessage(__('settings.test_email_sent_successfully'), '');
-
-        return $this->redirect(route('portal.settings.index'), navigate: true);
+        $this->showToast(__('settings.test_email_sent_successfully'));
     }
 
     public function sendTestSms()
@@ -202,7 +197,7 @@ class Index extends Component
 
         if (!empty($this->setting)) {
             if (empty($setting->sms_provider_username) && empty($setting->sms_provider_password)) {
-                $this->closeModalAndFlashMessage(__('settings.setting_for_sms_required'), '');
+                $this->showToast(__('settings.setting_for_sms_required'), 'error');
             }
 
             $sms_client = match ($setting->sms_provider) {
@@ -218,13 +213,11 @@ class Index extends Component
             ]);
 
             if ($response['responsecode'] === 1) {
-                $this->closeModalAndFlashMessage(__('settings.test_sms_sent_successfully'), '');
+                $this->showToast(__('settings.test_sms_sent_successfully'));
             } else {
-                $this->closeModalAndFlashMessage(__('settings.test_sms_failed'), '');
+                $this->showToast(__('settings.test_sms_failed'), 'error');
             }
         }
-
-        return $this->redirect(route('portal.settings.index'), navigate: true);
     }
 
     public function render()

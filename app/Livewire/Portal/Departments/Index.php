@@ -572,7 +572,7 @@ class Index extends BaseImportComponent
      */
     protected function performImport()
     {
-        Excel::import(new DepartmentImport($this->company, $this->autoCreateEntities), $this->department_file);
+        Excel::import(new DepartmentImport($this->company, $this->autoCreateEntities, auth()->id()), $this->department_file);
 
         return [
             'imported_count' => 'unknown',

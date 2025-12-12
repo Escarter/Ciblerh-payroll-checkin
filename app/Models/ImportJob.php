@@ -43,6 +43,7 @@ class ImportJob extends Model
     const TYPE_COMPANIES = 'companies';
     const TYPE_SERVICES = 'services';
     const TYPE_LEAVE_TYPES = 'leave_types';
+    const TYPE_SUP_MGR = 'sup_mgr';
 
     // Status Constants
     const STATUS_PENDING = 'pending';

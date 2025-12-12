@@ -73,6 +73,13 @@ return [
     'no_import_type_selected' => 'No import type selected',
     'first_name_too_short' => 'First name is too short (minimum 2 characters)',
     'last_name_too_short' => 'Last name is too short (minimum 2 characters)',
+
+    // Department validation messages
+    'departments' => [
+        'name_is_required' => 'Department name is required',
+        'name_must_be_text' => 'Department name must be text',
+        'name_cannot_exceed_255_characters' => 'Department name cannot exceed 255 characters',
+    ],
     'invalid_email_format' => 'Invalid email format',
     'email_already_exists' => 'Email already exists',
     'invalid_phone_format' => 'Invalid phone number format',
@@ -443,6 +450,7 @@ return [
     'companies' => 'Companies',
     'my_departments' => 'My Departments',
     'employees' => 'Employees',
+    'supervisors_managers' => 'Supervisors & Managers',
     'checkins' => 'Checkins',
     'overtimes' => 'Overtimes',
     'advance_salaries' => 'Advance Salaries',

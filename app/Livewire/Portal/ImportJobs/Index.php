@@ -133,7 +133,7 @@ class Index extends Component
     public function updatedSelectAll($value)
     {
         if ($value) {
-            $jobs = $this->getJobs();
+            $jobs = $this->jobs;
             $this->selectedJobs = $jobs->items() ? collect($jobs->items())->pluck('id')->map(fn($id) => (string) $id)->toArray() : [];
         } else {
             $this->selectedJobs = [];
@@ -762,17 +762,27 @@ class Index extends Component
                 $this->validate($validationRules);
             }
 
-            // Store file temporarily first
+            // Get file object for analysis (don't store yet)
             $fileObject = $this->getSafeFileObject();
             if (!$fileObject) {
                 throw new \Exception(__('common.no_file_selected'));
             }
 
-            $fileName = uniqid('import_') . '_' . $fileObject->getClientOriginalName();
-            $this->filePath = $fileObject->storeAs('imports', $fileName, 'local');
+            // Store file path temporarily for analysis (will be stored permanently in confirmImport)
+            $tempFileName = uniqid('temp_') . '_' . $fileObject->getClientOriginalName();
+            $this->filePath = 'temp/' . $tempFileName;
+
+            // Store temporarily for analysis only
+            $fileObject->storeAs('temp', $tempFileName, 'local');
 
             // Perform quick file analysis to determine if we should skip preview
             $fileInfo = $this->quickFileAnalysis();
+
+            // Clean up temp file after analysis
+            if (\Storage::disk('local')->exists($this->filePath)) {
+                \Storage::disk('local')->delete($this->filePath);
+            }
+            $this->filePath = null; // Clear the path since file was temporary
 
             // Initialize preview properties
             $this->initializePreview();
@@ -797,10 +807,26 @@ class Index extends Component
 
     public function confirmImport()
     {
+        \Log::info('ImportJobs/Index confirmImport called', [
+            'import_type' => $this->newImport['import_type'] ?? 'unknown',
+            'company_id' => $this->newImport['company_id'] ?? 'not set',
+            'department_id' => $this->newImport['department_id'] ?? 'not set',
+            'file_path' => $this->filePath
+        ]);
+
         try {
+            // Store the file permanently before creating the import job
+            $fileObject = $this->getSafeFileObject();
+            if (!$fileObject) {
+                throw new \Exception(__('common.no_file_selected'));
+            }
+
+            $fileName = uniqid('import_') . '_' . $fileObject->getClientOriginalName();
+            $filePath = $fileObject->storeAs('imports', $fileName, 'local');
+
             // Prepare config for the import
             $config = [
-                'file_path' => $this->filePath,
+                'file_path' => $filePath,
                 'company_id' => $this->newImport['company_id'],
                 'department_id' => $this->newImport['department_id'],
                 'auto_create_entities' => $this->newImport['auto_create_entities'] ?? false,
@@ -838,6 +864,11 @@ class Index extends Component
 
     public function resetNewImport()
     {
+        // Clean up any stored import file if it exists
+        if ($this->filePath && \Storage::disk('local')->exists($this->filePath)) {
+            \Storage::disk('local')->delete($this->filePath);
+        }
+
         $this->newImport = [
             'import_type' => '',
             'file' => null,
@@ -845,6 +876,7 @@ class Index extends Component
             'department_id' => null,
             'auto_create_entities' => false,
         ];
+        $this->filePath = null;
         $this->previewSkipped = false;
     }
 
@@ -991,6 +1023,7 @@ class Index extends Component
 
         // Get expected columns for this import type
         $expectedColumns = $this->getExpectedColumns();
+        $requiredColumns = $this->getRequiredColumns();
 
         // If rowData is indexed array, map it to associative array using expected columns
         if (isset($rowData[0]) && !isset($rowData[$expectedColumns[0] ?? ''])) {
@@ -1004,7 +1037,7 @@ class Index extends Component
         $parsedData = $rowData;
 
         // Check for missing required columns
-        foreach ($expectedColumns as $column) {
+        foreach ($requiredColumns as $column) {
             if (!isset($rowData[$column]) || trim($rowData[$column]) === '') {
                 $errors[] = __('common.missing_required_field', ['field' => $column]);
             }
@@ -1639,6 +1672,33 @@ class Index extends Component
                 return ['name', 'department'];
             case ImportJob::TYPE_LEAVE_TYPES:
                 return ['name', 'description', 'default_number_of_days', 'is_active'];
+            default:
+                return ['name'];
+        }
+    }
+
+    protected function getRequiredColumns(): array
+    {
+        if (!$this->currentImportType) {
+            return [];
+        }
+
+        // Define required columns based on import type (excludes optional columns)
+        switch ($this->currentImportType) {
+            case ImportJob::TYPE_EMPLOYEES:
+                return [
+                    'first_name', 'last_name', 'email', 'professional_phone_number',
+                    'matricule', 'position', 'net_salary', 'salary_grade',
+                    'department', 'service', 'role'
+                ];
+            case ImportJob::TYPE_COMPANIES:
+                return ['name'];
+            case ImportJob::TYPE_DEPARTMENTS:
+                return ['name', 'company']; // supervisor_email is optional
+            case ImportJob::TYPE_SERVICES:
+                return ['name', 'department'];
+            case ImportJob::TYPE_LEAVE_TYPES:
+                return ['name'];
             default:
                 return ['name'];
         }

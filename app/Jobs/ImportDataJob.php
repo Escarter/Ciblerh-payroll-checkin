@@ -24,12 +24,17 @@ class ImportDataJob implements ShouldQueue
     /**
      * The number of seconds the job can run before timing out
      */
-    public $timeout = 600; // 10 minutes for large file processing
+    public $timeout = 1200; // 20 minutes for large file processing
 
     /**
      * The number of times the job may be attempted
      */
     public $tries = 2;
+
+    /**
+     * Memory limit for large file processing
+     */
+    public $memory = 512;
 
     protected $importType;
     protected $filePath;
@@ -155,6 +160,18 @@ class ImportDataJob implements ShouldQueue
      */
     public function handle(): void
     {
+        Log::info("=== IMPORT DATA JOB STARTED ===");
+
+        Log::info("ImportDataJob handle started", [
+            'import_type' => $this->importType,
+            'file_path' => $this->filePath,
+            'user_id' => $this->userId,
+            'company_id' => $this->companyId,
+            'department_id' => $this->departmentId,
+            'auto_create_entities' => $this->autoCreateEntities,
+            'import_job_id' => $this->importJobId
+        ]);
+
         try {
             // Ensure import job record exists and is loaded
             if (!$this->importJob && $this->importJobId) {
@@ -219,6 +236,7 @@ class ImportDataJob implements ShouldQueue
             // Save to temp location for processing
             Storage::disk('local')->put('temp/' . basename($this->filePath), $file);
 
+            Log::info("About to call performImport", ['temp_path' => $tempPath, 'file_path' => $this->filePath]);
             $this->importResults = $this->performImport($tempPath, $this->filePath);
 
             // Update database record with results
@@ -278,12 +296,26 @@ class ImportDataJob implements ShouldQueue
      */
     protected function performImport(string $tempPath, string $originalFilePath): array
     {
+        \Log::info('performImport called', [
+            'temp_path' => $tempPath,
+            'original_file_path' => $originalFilePath
+        ]);
+
         $import = $this->createImportInstance();
+
+        \Log::info('Import instance created successfully', [
+            'import_class' => get_class($import)
+        ]);
 
         // Determine file type and import accordingly
         $fileExtension = strtolower(pathinfo($originalFilePath, PATHINFO_EXTENSION));
 
         try {
+            \Log::info('About to call Excel::import', [
+                'file_extension' => $fileExtension,
+                'temp_path' => $tempPath
+            ]);
+
             if ($fileExtension === 'csv') {
                 // Import CSV file
                 Excel::import($import, $tempPath, null, \Maatwebsite\Excel\Excel::CSV);
@@ -329,17 +361,24 @@ class ImportDataJob implements ShouldQueue
             'warnings' => []
         ];
 
-        // Check for validation errors and failures
+        // Check for validation errors and failures (limit to prevent memory issues)
+        $maxErrorsToStore = 100; // Limit error storage to prevent memory exhaustion
+        $storedErrors = 0;
+
         if (method_exists($import, 'errors') && $import->errors()->count() > 0) {
             $results['failed_count'] = $import->errors()->count();
-            $results['errors'] = $import->errors()->map(function($error) {
+            $errors = $import->errors()->map(function($error) {
                 return [
                     'row' => $error->row(),
                     'attribute' => $error->attribute(),
                     'errors' => $error->errors(),
                     'values' => $error->values()
                 ];
-            })->toArray();
+            });
+
+            // Limit the number of errors stored to prevent memory issues
+            $results['errors'] = $errors->take($maxErrorsToStore)->toArray();
+            $storedErrors = count($results['errors']);
         }
 
         if (method_exists($import, 'failures') && $import->failures()->count() > 0) {
@@ -351,9 +390,26 @@ class ImportDataJob implements ShouldQueue
                     'errors' => $failure->errors(),
                     'values' => $failure->values()
                 ];
-            })->toArray();
+            });
 
-            $results['errors'] = array_merge($results['errors'], $failureErrors);
+            // Add remaining failure errors up to the limit
+            $remainingLimit = $maxErrorsToStore - $storedErrors;
+            if ($remainingLimit > 0) {
+                $additionalErrors = $failureErrors->take($remainingLimit)->toArray();
+                $results['errors'] = array_merge($results['errors'], $additionalErrors);
+                $storedErrors += count($additionalErrors);
+            }
+        }
+
+        // If we hit the limit, add a summary message
+        $totalErrors = ($import->errors()->count() ?? 0) + ($import->failures()->count() ?? 0);
+        if ($totalErrors > $maxErrorsToStore) {
+            $results['errors'][] = [
+                'row' => null,
+                'attribute' => 'summary',
+                'errors' => ["Limited error display: showing {$maxErrorsToStore} of {$totalErrors} total errors. Check individual records for complete validation details."],
+                'values' => []
+            ];
         }
 
         // Calculate imported count as total rows minus failed rows
@@ -374,38 +430,77 @@ class ImportDataJob implements ShouldQueue
                     if (!$company) {
                         throw new \Exception('Company not found for employee import');
                     }
-                    return new EmployeeImport($company, $this->autoCreateEntities);
+
+                    $department = null;
+                    if ($this->departmentId) {
+                        $department = \App\Models\Department::find($this->departmentId);
+                        if (!$department) {
+                            throw new \Exception('Department not found for employee import');
+                        }
+                    }
+
+                    $service = null;
+                    // Note: Service context would need to be added to ImportDataJob if needed
+
+                    return new EmployeeImport($company, $department, $service, $this->autoCreateEntities, $this->userId);
                 } else {
                     throw new \Exception('Company ID required for employee import');
                 }
 
             case 'departments':
+                \Log::error('*** DEPARTMENTS CASE EXECUTING ***');
+                \Log::error('ImportDataJob creating DepartmentImport', [
+                    'company_id' => $this->companyId,
+                    'auto_create_entities' => $this->autoCreateEntities
+                ]);
+
+                $company = null;
                 if ($this->companyId) {
-                    $company = \App\Models\Company::find($this->companyId);
-                    if (!$company) {
-                        throw new \Exception('Company not found for department import');
-                    }
-                    return new DepartmentImport($company, $this->autoCreateEntities);
-                } else {
-                    throw new \Exception('Company ID required for department import');
+                \Log::error('Looking up company', ['company_id' => $this->companyId, 'type' => gettype($this->companyId)]);
+                $company = \App\Models\Company::find($this->companyId);
+                \Log::error('Company::find result', ['company' => $company ? $company->toArray() : 'NULL']);
+                if (!$company) {
+                    \Log::error('Company not found for department import', [
+                        'company_id' => $this->companyId,
+                        'available_companies' => \App\Models\Company::pluck('id')->toArray()
+                    ]);
+                    throw new \Exception("Company with ID {$this->companyId} not found for department import");
                 }
+                if (!$company->id) {
+                    \Log::error('Company found but has null ID', ['company' => $company->toArray()]);
+                    throw new \Exception('Company found but has invalid ID');
+                }
+                \Log::error('Company found for DepartmentImport', [
+                    'company_id' => $company->id,
+                    'company_name' => $company->name
+                ]);
+                } else {
+                    \Log::warning('No company ID provided for DepartmentImport - this may cause import failures');
+                }
+
+                \Log::info('Creating DepartmentImport instance', [
+                    'company_provided' => $company ? true : false,
+                    'company_id' => $company ? $company->id : null
+                ]);
+
+                return new DepartmentImport($company, $this->autoCreateEntities, $this->userId);
 
             case 'companies':
                 return new CompanyImport($this->userId);
 
             case 'services':
                 if ($this->departmentId) {
-                    $department = \App\Models\Department::find($this->departmentId);
+                    $department = \App\Models\Department::with('company')->find($this->departmentId);
                     if (!$department) {
                         throw new \Exception('Department not found for service import');
                     }
-                    return new ServiceImport($department, $this->autoCreateEntities);
+                    return new ServiceImport($department, $this->autoCreateEntities, $this->userId);
                 } else {
                     throw new \Exception('Department ID required for service import');
                 }
 
             case 'leave_types':
-                return new LeaveTypeImport();
+                return new LeaveTypeImport($this->userId);
 
             default:
                 throw new \Exception("Unknown import type: {$this->importType}");

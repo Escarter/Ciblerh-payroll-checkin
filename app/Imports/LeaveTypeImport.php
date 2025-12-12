@@ -17,6 +17,8 @@ class LeaveTypeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVali
 {
     use Importable, SkipsErrors, SkipsFailures;
 
+    public $userId; // User ID for author_id field in background jobs
+
     /**
      * @return int
      */
@@ -25,9 +27,9 @@ class LeaveTypeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVali
         return 2;
     }
 
-    public function __construct()
+    public function __construct($userId = null)
     {
-        
+        $this->userId = $userId;
     }
 
     /**
@@ -44,7 +46,7 @@ class LeaveTypeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVali
                 'description' => $row[1] ?? '',
                 'default_number_of_days' => $row[2] ?? 0,
                 'is_active' => $row[3] ?? true,
-                'author_id' => auth()->user()->id,
+                'author_id' => $this->userId ?? auth()->user()->id,
             ]);
         }
     }

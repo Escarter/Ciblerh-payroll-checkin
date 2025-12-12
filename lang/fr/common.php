@@ -73,6 +73,13 @@ return [
     'no_import_type_selected' => 'Aucun type d\'import sélectionné',
     'first_name_too_short' => 'Le prénom est trop court (minimum 2 caractères)',
     'last_name_too_short' => 'Le nom est trop court (minimum 2 caractères)',
+
+    // Messages de validation des départements
+    'departments' => [
+        'name_is_required' => 'Le nom du département est requis',
+        'name_must_be_text' => 'Le nom du département doit être du texte',
+        'name_cannot_exceed_255_characters' => 'Le nom du département ne peut pas dépasser 255 caractères',
+    ],
     'invalid_email_format' => 'Format d\'email invalide',
     'email_already_exists' => 'L\'email existe déjà',
     'invalid_phone_format' => 'Format de numéro de téléphone invalide',
@@ -444,6 +451,7 @@ return [
     'companies' => 'Sociétés',
     'my_departments' => 'Mes départements',
     'employees' => 'Employés',
+    'supervisors_managers' => 'Superviseurs & Gestionnaires',
     'checkins' => 'Pointages',
     'overtimes' => 'Heures Sups',
     'advance_salaries' => 'Avances sur salaire',

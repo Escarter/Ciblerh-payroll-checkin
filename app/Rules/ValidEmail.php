@@ -14,12 +14,13 @@ class ValidEmail implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (empty($value)) {
-            return; // Let 'required' rule handle empty values
+        if (empty(trim($value))) {
+            $fail(__('The :attribute field cannot be empty'));
+            return;
         }
 
         $validation = validateEmail($value);
-        
+
         if (!$validation['valid']) {
             $fail($validation['error'] ?? __('The :attribute must be a valid email address'));
         }

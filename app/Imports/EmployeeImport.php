@@ -22,15 +22,19 @@ use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use App\Rules\PhoneNumber;
 use App\Rules\ValidEmail;
 
-class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValidation, SkipsOnError, SkipsOnFailure
+class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValidation, SkipsOnError, SkipsOnFailure, WithChunkReading
 {
     use Importable, SkipsErrors, SkipsFailures;
 
     public $company;
+    public $department; // Optional department context
+    public $service; // Optional service context
     public $autoCreateEntities = false; // Whether to auto-create missing departments/services
+    public $userId; // User ID for author_id field in background jobs
 
     /**
      * @return int
@@ -40,11 +44,22 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
         return 2;
     }
 
+    /**
+     * @return int
+     */
+    public function chunkSize(): int
+    {
+        return 1000; // Process 1000 rows at a time to prevent memory issues
+    }
 
-    public function __construct(Company $company, bool $autoCreateEntities = false)
+
+    public function __construct(Company $company, Department $department = null, Service $service = null, bool $autoCreateEntities = false, $userId = null)
     {
         $this->company = $company;
+        $this->department = $department;
+        $this->service = $service;
         $this->autoCreateEntities = $autoCreateEntities;
+        $this->userId = $userId;
     }
 
     /**
@@ -61,11 +76,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
 
         $code_exist = User::where('email', $row[2])->first();
 
-        // Validate email
-        $emailValidation = validateEmail($row[2] ?? '');
-        if (!$emailValidation['valid']) {
-            throw new \Exception('Email validation failed: ' . $emailValidation['error']);
-        }
+        // Email validation is handled by the rules() method
 
         // Validate and format phone number
         $phoneNumber = preg_replace('/\s+/', '', $row[3] ?? '');
@@ -102,13 +113,13 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             return null;
         }
 
-        // Handle department lookup (by ID or name)
+        // Handle department lookup (prioritize context over CSV)
         $departmentResult = $this->findDepartment($row[9] ?? '');
         if (!$departmentResult['found']) {
             throw new \Exception('Department validation failed: ' . $departmentResult['error']);
         }
 
-        // Handle service lookup (by ID or name)
+        // Handle service lookup (prioritize context over CSV)
         $serviceResult = $this->findService($row[10] ?? '', $departmentResult['department']->id);
         if (!$serviceResult['found']) {
             throw new \Exception('Service validation failed: ' . $serviceResult['error']);
@@ -138,11 +149,17 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     'date_of_birth' => $this->transformDate($row[22] ?? null),
                     'work_start_time' => $workStartTime,
                     'work_end_time' => $workEndTime,
-                    'author_id' => auth()->user()->id,
+                    'author_id' => $this->userId ?? auth()->user()->id,
                     'pdf_password' => Str::random(10),
                 ]);
 
-                $user->assignRole($row[11]);
+                // Assign employee role by default, plus the specific role from CSV (if different)
+                $csvRole = strtolower($row[11]);
+                if ($csvRole === 'employee') {
+                    $user->assignRole('employee');
+                } else {
+                    $user->assignRole(['employee', $row[11]]);
+                }
 
                 event(new EmployeeCreated($user, $row[13]));
 
@@ -154,6 +171,16 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
      */
     private function findDepartment($departmentValue): array
     {
+        // If we have department context, use it
+        if ($this->department && $this->department->id) {
+            return [
+                'found' => true,
+                'department' => $this->department,
+                'error' => null
+            ];
+        }
+
+        // If no department value provided and no context, this is an error
         if (empty($departmentValue)) {
             return [
                 'found' => false,
@@ -188,6 +215,16 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
      */
     private function findService($serviceValue, $departmentId): array
     {
+        // If we have service context, use it
+        if ($this->service && $this->service->id) {
+            return [
+                'found' => true,
+                'service' => $this->service,
+                'error' => null
+            ];
+        }
+
+        // If no service value provided and no context, this is an error
         if (empty($serviceValue)) {
             return [
                 'found' => false,
@@ -226,18 +263,26 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             return $default;
         }
 
-        try {
-            // Try to parse as Excel time
-            $dateTime = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
-            return $dateTime->format('H:i');
-        } catch (\Exception $e) {
-            // Try to parse as time string
+        // Check if it's already a time string (HH:MM format)
+        if (preg_match('/^\d{1,2}:\d{2}$/', $value)) {
             try {
                 return \Carbon\Carbon::createFromFormat('H:i', $value)->format('H:i');
             } catch (\Exception $e) {
                 return $default;
             }
         }
+
+        try {
+            // Try to parse as Excel time (numeric)
+            if (is_numeric($value)) {
+                $dateTime = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
+                return $dateTime->format('H:i');
+            }
+        } catch (\Exception $e) {
+            // Ignore Excel parsing errors
+        }
+
+        return $default;
     }
 
     public function transformDate($value, $format = 'Y-m-d')
@@ -246,10 +291,29 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             return null;
         }
 
+        // Check if it's already a date string in expected format
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            try {
+                return \Carbon\Carbon::createFromFormat($format, $value)->format($format);
+            } catch (\Exception $e) {
+                // Fall through to Excel parsing
+            }
+        }
+
         try {
-            return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value));
-        } catch (\ErrorException $e) {
-            return \Carbon\Carbon::createFromFormat($format, $value);
+            // Try to parse as Excel date (numeric)
+            if (is_numeric($value)) {
+                return \Carbon\Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value))->format($format);
+            }
+        } catch (\Exception $e) {
+            // Ignore Excel parsing errors
+        }
+
+        // Last resort: try to parse with Carbon
+        try {
+            return \Carbon\Carbon::parse($value)->format($format);
+        } catch (\Exception $e) {
+            return null;
         }
     }
 
@@ -258,7 +322,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
         return [
             '0' => 'required|string', // first_name
             '1' => 'required|string', // last_name
-            '2' => ['required', new ValidEmail(), 'unique:users,email'], // email
+            '2' => ['required', 'email', 'unique:users,email'], // email - using built-in email validation
             '3' => ['required', new PhoneNumber()], // professional_phone_number
             '4' => 'required|string', // matricule
             '5' => 'required|string', // position

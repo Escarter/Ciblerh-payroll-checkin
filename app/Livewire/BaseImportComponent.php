@@ -95,12 +95,24 @@ abstract class BaseImportComponent extends Component
 
             // Try to dispatch background job
             try {
+                $companyId = $this->getCompanyId();
+                $departmentId = $this->getDepartmentId();
+
+                \Log::info('BaseImportComponent dispatching ImportDataJob', [
+                    'import_type' => $this->importType,
+                    'file_path' => $filePath,
+                    'user_id' => auth()->id(),
+                    'company_id' => $companyId,
+                    'department_id' => $departmentId,
+                    'auto_create_entities' => $this->autoCreateEntities ?? false
+                ]);
+
                 \App\Jobs\ImportDataJob::dispatch(
                     $this->importType,
                     $filePath,
                     auth()->id(),
-                    $this->getCompanyId(),
-                    $this->getDepartmentId(),
+                    $companyId,
+                    $departmentId,
                     $this->autoCreateEntities ?? false
                 );
 

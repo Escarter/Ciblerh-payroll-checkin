@@ -55,7 +55,7 @@ class ImportService
             ImportJob::TYPE_EMPLOYEES => [
                 'label' => __('common.employees'),
                 'description' => __('import_types.employees_description'),
-                'template' => 'employee_import_template.csv',
+                'template' => 'import_employees.csv',
                 'excel_template' => 'import_employees.xlsx',
                 'permissions' => ['employee-create'],
                 'fields' => [
@@ -91,7 +91,7 @@ class ImportService
             ImportJob::TYPE_DEPARTMENTS => [
                 'label' => __('common.departments'),
                 'description' => __('import_types.departments_description'),
-                'template' => 'department_import_template.csv',
+                'template' => 'import_departments.csv',
                 'excel_template' => 'import_departments.xlsx',
                 'permissions' => ['department-create'],
                 'fields' => [
@@ -106,7 +106,7 @@ class ImportService
             ImportJob::TYPE_COMPANIES => [
                 'label' => __('common.companies'),
                 'description' => __('import_types.companies_description'),
-                'template' => 'company_import_template.csv',
+                'template' => 'import_companies.csv',
                 'excel_template' => 'import_companies.xlsx',
                 'permissions' => ['company-create'],
                 'fields' => []
@@ -114,7 +114,7 @@ class ImportService
             ImportJob::TYPE_SERVICES => [
                 'label' => __('common.services'),
                 'description' => __('import_types.services_description'),
-                'template' => 'service_import_template.csv',
+                'template' => 'import_services.csv',
                 'excel_template' => 'import_services.xlsx',
                 'permissions' => ['service-create'],
                 'fields' => [
@@ -142,9 +142,17 @@ class ImportService
             ImportJob::TYPE_LEAVE_TYPES => [
                 'label' => __('common.leave_types'),
                 'description' => __('import_types.leave_types_description'),
-                'template' => 'leave_type_import_template.csv',
+                'template' => 'import_leave_types.csv',
                 'excel_template' => 'import_leave_types.xlsx',
                 'permissions' => ['leave_type-create'],
+                'fields' => []
+            ],
+            ImportJob::TYPE_SUP_MGR => [
+                'label' => __('common.supervisors_managers'),
+                'description' => __('import_types.supervisors_managers_description'),
+                'template' => 'import_supmgr.csv',
+                'excel_template' => 'import_supmgr.xlsx',
+                'permissions' => ['user-create'],
                 'fields' => []
             ]
         ];

@@ -132,6 +132,9 @@ return [
     // Import validation keys
     'department_required' => 'Department is required',
     'name_required' => 'Department name is required',
+    'name_is_required' => 'Department name is required',
+    'name_must_be_text' => 'Department name must be text',
+    'name_cannot_exceed_255_characters' => 'Department name cannot exceed 255 characters',
     'name_already_exists' => 'Department name already exists in this company',
     'supervisor_email_required' => 'Supervisor email is required when assigning a supervisor',
     'supervisor_not_found' => 'Supervisor not found with the provided email',

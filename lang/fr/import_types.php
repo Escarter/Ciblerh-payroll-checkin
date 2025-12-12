@@ -20,4 +20,5 @@ return [
     'companies_description' => 'Importer les informations des entreprises et les détails de base.',
     'services_description' => 'Importer les définitions de services et les affectations de département.',
     'leave_types_description' => 'Importer les définitions des types de congé et les politiques.',
+    'supervisors_managers_description' => 'Importer les comptes utilisateurs des superviseurs et gestionnaires avec leurs rôles et permissions.',
 ];

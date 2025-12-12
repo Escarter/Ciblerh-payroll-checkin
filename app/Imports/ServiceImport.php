@@ -23,6 +23,7 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
     public $department;
     public $company;
     public $autoCreateEntities = false; // Whether to auto-create missing departments/companies
+    public $userId; // User ID for author_id field in background jobs
 
     /**
      * @return int
@@ -33,11 +34,12 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
     }
 
 
-    public function __construct(Department $department = null, bool $autoCreateEntities = false)
+    public function __construct(Department $department = null, bool $autoCreateEntities = false, $userId = null)
     {
         $this->department = $department;
         $this->company = $department ? $department->company : null;
         $this->autoCreateEntities = $autoCreateEntities;
+        $this->userId = $userId;
     }
     /**
      * @param array $row
@@ -61,7 +63,7 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
                 'name' => $row[0],
                 'company_id' => $department->company_id,
                 'department_id' => $department->id,
-                'author_id' => auth()->user()->id,
+                'author_id' => $this->userId ?? auth()->user()->id,
             ]);
 
         }
@@ -94,7 +96,7 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
         // Try to find by ID first (if it's numeric)
         if (is_numeric($departmentValue)) {
             $department = Department::where('id', $departmentValue)
-                ->where('company_id', $this->company->id ?? null)
+                ->where('company_id', $this->company ? $this->company->id : null)
                 ->first();
 
             if ($department) {
@@ -107,7 +109,7 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
         }
 
         // Try to find by name (using the helper function)
-        if (!$this->company) {
+        if (!$this->company || !$this->company->id) {
             return [
                 'found' => false,
                 'department' => null,
@@ -128,7 +130,7 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
                 if (!$this->department || !$this->department->id) {
                     $onFailure(__('Department context is required for service import'));
                 }
-                if (!$this->department->company_id) {
+                if (!$this->department || !$this->department->company_id) {
                     $onFailure(__('Department must belong to a company for service import'));
                 }
             }

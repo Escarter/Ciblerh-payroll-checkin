@@ -132,6 +132,9 @@ return [
     // Import validation keys
     'department_required' => 'Le département est requis',
     'name_required' => 'Le nom du département est requis',
+    'name_is_required' => 'Le nom du département est requis',
+    'name_must_be_text' => 'Le nom du département doit être du texte',
+    'name_cannot_exceed_255_characters' => 'Le nom du département ne peut pas dépasser 255 caractères',
     'name_already_exists' => 'Le nom du département existe déjà dans cette société',
     'supervisor_email_required' => 'L\'email du superviseur est requis lors de l\'assignation d\'un superviseur',
     'supervisor_not_found' => 'Superviseur non trouvé avec l\'email fourni',
