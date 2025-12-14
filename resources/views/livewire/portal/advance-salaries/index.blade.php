@@ -387,7 +387,7 @@
                         <th class="border-bottom">{{__('employees.repayment_period')}}</th>
                         <th class="border-bottom">{{__('common.status')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
-                        @canany('advance_salary-update','advance_salary-delete')
+                        @canany(['advance_salary-update','advance_salary-delete'])
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
@@ -449,7 +449,7 @@
                         <td>
                             <span class="fw-normal">{{$advance_salary->created_at->format('Y-m-d')}}</span>
                         </td>
-                        @canany('advance_salary-update','advance_salary-delete','advance_salary-export')
+                        @canany(['advance_salary-update','advance_salary-delete','advance_salary-export'])
                         <td>
                             @if($activeTab === 'active')
                                 @can('advance_salary-export')

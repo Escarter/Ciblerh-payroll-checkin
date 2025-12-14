@@ -27,6 +27,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register custom @canany directive for Spatie Permission
+        \Blade::directive('canany', function ($permissions) {
+            return "<?php if(auth()->check() && auth()->user() && collect({$permissions})->contains(function(\$permission) { return auth()->user()->can(\$permission); })): ?>";
+        });
+
+        // Register @endcanany directive
+        \Blade::directive('endcanany', function () {
+            return "<?php endif; ?>";
+        });
+
         // Add failures method to Mail facade for Laravel 10 compatibility
         Mail::macro('failures', function () {
             return [];

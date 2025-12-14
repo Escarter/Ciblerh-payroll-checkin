@@ -390,7 +390,7 @@
                         <th class="border-bottom">{{__('common.sup_approval')}}</th>
                         <th class="border-bottom">{{__('common.mgr_approval')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
-                        @canany('ticking-update','ticking-delete')
+                        @canany(['ticking-update','ticking-delete'])
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
@@ -456,7 +456,7 @@
                         <td>
                             <span class="fw-normal">{{$checklog->created_at->format('Y-m-d')}}</span>
                         </td>
-                        @canany('ticking-update','ticking-delete')
+                        @canany(['ticking-update','ticking-delete'])
                         <td>
                             @if($activeTab === 'active')
                             @can('ticking-update')

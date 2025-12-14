@@ -384,7 +384,7 @@
                         <th class="border-bottom">{{__('common.sup_approval')}}</th>
                         <th class="border-bottom">{{__('common.mgr_approval')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
-                        @canany('leave-update','leave-delete')
+                        @canany(['leave-update','leave-delete'])
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
@@ -443,7 +443,7 @@
                         <td>
                             <span class="fw-normal">{{$leave->created_at->format('Y-m-d')}}</span>
                         </td>
-                        @canany('leave-update','leave-delete')
+                        @canany(['leave-update','leave-delete'])
                         <td>
                             @if($activeTab === 'active')
                                 @can('leave-update')

@@ -340,7 +340,7 @@
                         <th class="border-bottom">{{__('companies.company')}}</th>
                         <th class="border-bottom">{{__(key: 'Details')}}</th>
                         <th class="border-bottom">{{__('Roles & Status')}}</th>
-                        @canany('employee-delete','employee-update')
+                        @canany(['employee-delete','employee-update'])
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
@@ -410,7 +410,7 @@
                                 </div>
                             </div>
                         </td>
-                        @canany('employee-delete','employee-update')
+                        @canany(['employee-delete','employee-update'])
                         <td>
                             @if($activeTab === 'active')
                             @can('employee-view')

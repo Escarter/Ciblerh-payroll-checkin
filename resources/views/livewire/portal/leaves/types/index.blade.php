@@ -301,7 +301,7 @@
                         <th class="border-bottom">{{__('leaves.default_number_of_days')}}</th>
                         <th class="border-bottom">{{__('common.status')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
-                        @canany('leave_type-update','leave_type-delete')
+                        @canany(['leave_type-update','leave_type-delete'])
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
@@ -332,7 +332,7 @@
                         <td>
                             <span class="fw-normal">{{$leave_type->created_at->format('Y-m-d')}}</span>
                         </td>
-                        @canany('leave_type-update','leave_type-delete')
+                        @canany(['leave_type-update','leave_type-delete'])
                         <td>
                             @if($activeTab === 'active')
                                 @can('leave_type-update')

@@ -100,7 +100,7 @@
                                     </a>
                                 </li>
                                 @endhasrole
-                                @canany('ticking-read','overtime-read')
+                                @canany(['ticking-read','overtime-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('ticking-read')
                                 <li class="nav-item {{ $request->routeIs('portal.checklogs.*') ? 'active' : '' }}">
@@ -131,7 +131,7 @@
                                 </li>
                                 @endcan
                                 @endcanany
-                                @canany('advance_salary-read','absence-read')
+                                @canany(['advance_salary-read','absence-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('advance_salary-read')
                                 <li class="nav-item {{ $request->routeIs('portal.advance-salaries.*') ? 'active' : '' }}">
@@ -162,7 +162,7 @@
                                 </li>
                                 @endcan
                                 @endcanany
-                                @canany('payslip-read','payslip-sending')
+                                @canany(['payslip-read','payslip-sending'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('payslip-sending')
                                 <li class="nav-item {{ $request->routeIs('portal.payslips.index') ? 'active' : '' }}">
@@ -195,7 +195,7 @@
                                 @endcan
 
                                 @endcanany
-                                @canany('leave-read','leave_type-read')
+                                @canany(['leave-read','leave_type-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('leave-read')
                                 <li class="nav-item {{ $request->routeIs('portal.leaves.index') ? 'active' : '' }}">
@@ -227,7 +227,7 @@
                                 @endcan
                                 @endcanany
 
-                                @canany('report-payslip-read','report-checkin-read')
+                                @canany(['report-payslip-read','report-checkin-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 <li class="nav-item">
                                     <span class="nav-link d-flex justify-content-between align-items-center {{ $request->routeIs('portal.reports.*') ? '' : 'collapsed' }} " data-bs-toggle="collapse" data-bs-target="#submenu-user" aria-expanded="{{ $request->routeIs('portal.reports.*') ? 'true' : 'false' }}"><span>
@@ -269,7 +269,7 @@
                                         </ul>
                                     </div>
                                 </li>
-                                @endcanany
+                                @endif
 
                                 @can('importjob-read')
                                 <li class="nav-item {{ $request->routeIs('portal.import-jobs.*') ? 'active' : '' }}">

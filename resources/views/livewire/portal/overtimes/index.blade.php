@@ -378,7 +378,7 @@
                         <th class="border-bottom">{{__('overtime.work_period')}}</th>
                         <th class="border-bottom">{{__('employees.approval_status')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
-                        @canany('overtime-update','overtime-delete')
+                        @canany(['overtime-update','overtime-delete'])
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
@@ -442,7 +442,7 @@
                         <td>
                             <span class="fw-normal">{{$overtime->created_at->format('Y-m-d')}}</span>
                         </td>
-                        @canany('overtime-update','overtime-delete')
+                        @canany(['overtime-update','overtime-delete'])
                         <td>
                             @if($activeTab === 'active')
                             @can('overtime-update')

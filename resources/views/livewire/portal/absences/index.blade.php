@@ -387,7 +387,7 @@
                         <th class="border-bottom">{{__('common.attachment_link')}}</th>
                         <th class="border-bottom">{{__('common.status')}}</th>
                         <th class="border-bottom">{{__('common.created_date')}}</th>
-                        @canany('absence-update','absence-delete')
+                        @canany(['absence-update','absence-delete'])
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
@@ -433,7 +433,7 @@
                         <td>
                             <span class="fw-normal">{{$absence->created_at->format('Y-m-d')}}</span>
                         </td>
-                        @canany('absence-update','absence-delete')
+                        @canany(['absence-update','absence-delete'])
                         <td>
                             @if($activeTab === 'active')
                                 @can('absence-update')
