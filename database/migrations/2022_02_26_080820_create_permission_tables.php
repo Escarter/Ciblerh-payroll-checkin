@@ -114,9 +114,15 @@ class CreatePermissionTables extends Migration
             $table->primary([$columnNames['permission_pivot_key'] ?: 'permission_id', $columnNames['role_pivot_key'] ?: 'role_id'], 'role_has_permissions_permission_id_role_id_primary');
         });
 
-        app('cache')
-            ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
-            ->forget(config('permission.cache.key'));
+        // Clear the permission cache if cache is available (handles Laravel 12 compatibility)
+        try {
+            app('cache')
+                ->store(config('permission.cache.store') != 'default' ? config('permission.cache.store') : null)
+                ->forget(config('permission.cache.key'));
+        } catch (\Exception $e) {
+            // Cache table might not exist yet during initial migration
+            // This is safe to ignore as cache will be cleared later
+        }
     }
 
     /**
