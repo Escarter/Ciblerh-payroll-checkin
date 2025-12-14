@@ -20,6 +20,13 @@ class Payslip extends Model
     const SMS_STATUS_SUCCESSFUL = 4;
     const SMS_STATUS_FAILED = 5;
 
+    // Email delivery status constants
+    const DELIVERY_STATUS_PENDING = 'pending';
+    const DELIVERY_STATUS_SENT = 'sent';
+    const DELIVERY_STATUS_DELIVERED = 'delivered';
+    const DELIVERY_STATUS_BOUNCED = 'bounced';
+    const DELIVERY_STATUS_COMPLAINED = 'complained';
+
     protected $guarded  = [];
 
     protected $casts = [
@@ -28,6 +35,11 @@ class Payslip extends Model
         'email_retry_count' => 'integer',
         'sms_status_note' => 'string',
         'email_status_note' => 'string',
+        'encryption_status_note' => 'string',
+        'email_sent_at' => 'datetime',
+        'email_delivery_confirmed_at' => 'datetime',
+        'email_delivered_at' => 'datetime',
+        'email_bounced_at' => 'datetime',
     ];
 
     public function scopeSupervisor($query)

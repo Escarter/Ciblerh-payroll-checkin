@@ -51,6 +51,7 @@ return [
     'permanently_delete_selected_services' => 'Supprimer définitivement les services sélectionnés',
 
     // Service fields
+    'name' => 'Nom',
     'service_name' => 'Nom du service',
     'service_code' => 'Code service',
     'department' => 'Département',

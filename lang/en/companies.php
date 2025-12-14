@@ -22,6 +22,7 @@ return [
     'selected_companies_permanently_deleted' => 'Selected companies permanently deleted!',
 
     // Company fields
+    'name' => 'Name',
     'company_name' => 'Company Name',
     'company_code' => 'Company Code',
     'address' => 'Address',

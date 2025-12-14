@@ -76,7 +76,7 @@ test('it creates failed payslip when employee matricule is empty', function () {
     
     expect($payslip)->not->toBeNull();
     expect($payslip->encryption_status)->toBe(Payslip::STATUS_FAILED);
-    expect($payslip->failure_reason)->toContain('Matricule is empty');
+    expect($payslip->failure_reason)->toContain('User matricule is empty');
 });
 
 test('it does not create duplicate payslip record if one already exists', function () {

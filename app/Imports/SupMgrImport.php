@@ -80,4 +80,25 @@ class SupMgrImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValidat
             '2' => 'required|unique:users,email',
         ];
     }
+
+    /**
+     * Custom attribute names for validation error messages
+     */
+    public function customValidationAttributes(): array
+    {
+        return [
+            '0' => __('employees.first_name'),
+            '1' => __('employees.last_name'),
+            '2' => __('employees.email'),
+            '3' => __('common.phone_number'),
+            '4' => __('employees.matricule'),
+            '5' => __('common.position'),
+            '6' => __('employees.net_salary'),
+            '7' => __('employees.salary_grade'),
+            '8' => __('employees.contract_end_date'),
+            '9' => __('common.status'),
+            '10' => __('common.password'),
+            '11' => __('employees.role'),
+        ];
+    }
 }

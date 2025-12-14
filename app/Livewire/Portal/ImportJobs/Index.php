@@ -60,6 +60,7 @@ class Index extends Component
         'department_id' => null,
         'service_id' => null,
         'auto_create_entities' => false,
+        'send_welcome_emails' => false,
     ];
     public $filePath = null; // Path to the stored import file
     public $previewSkipped = false; // Track if preview was skipped for large files
@@ -400,7 +401,7 @@ class Index extends Component
     {
         // Validate job ID
         if (!$jobId) {
-            $this->dispatch("showToast", message: 'Job ID is required', type: "error");
+            $this->dispatch("showToast", message: 'Job ID is required', type: "danger");
             return;
         }
 
@@ -408,13 +409,13 @@ class Index extends Component
 
         // Check if user owns this job
         if ($this->jobToRetry->user_id !== auth()->id()) {
-            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "danger");
             return;
         }
 
         // Check if job is failed (can only retry failed jobs)
         if (!$this->jobToRetry->isFailed()) {
-            $this->dispatch("showToast", message: __('import_jobs.can_only_retry_failed_jobs'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.can_only_retry_failed_jobs'), type: "danger");
             return;
         }
 
@@ -436,14 +437,14 @@ class Index extends Component
     public function confirmRetry()
     {
         if (!$this->jobToRetry) {
-            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "danger");
             return;
         }
 
         try {
             // Check if the original file still exists
             if (!$this->jobToRetry->file_path || !\Storage::disk('local')->exists($this->jobToRetry->file_path)) {
-                $this->dispatch("showToast", message: __('import_jobs.original_file_not_found'), type: "error");
+                $this->dispatch("showToast", message: __('import_jobs.original_file_not_found'), type: "danger");
                 return;
             }
 
@@ -506,7 +507,7 @@ class Index extends Component
     public function bulkDelete()
     {
         if (empty($this->selectedJobs)) {
-            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_delete'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_delete'), type: "danger");
             return;
         }
 
@@ -532,7 +533,7 @@ class Index extends Component
     public function bulkRestore()
     {
         if (empty($this->selectedJobs)) {
-            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_restore'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_restore'), type: "danger");
             return;
         }
 
@@ -559,7 +560,7 @@ class Index extends Component
     public function bulkForceDelete()
     {
         if (empty($this->selectedJobs)) {
-            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_delete'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_delete'), type: "danger");
             return;
         }
 
@@ -592,7 +593,7 @@ class Index extends Component
         $job = ImportJob::withTrashed()->findOrFail($jobId);
 
         if ($job->user_id !== auth()->id()) {
-            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "danger");
             return;
         }
 
@@ -601,21 +602,21 @@ class Index extends Component
             $this->dispatch("showToast", message: __('import_jobs.job_restored_successfully'), type: "success");
             $this->loadStats();
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('import_jobs.unable_to_restore_job'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.unable_to_restore_job'), type: "danger");
         }
     }
 
     public function delete()
     {
         if (!$this->job_id) {
-            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "danger");
             return;
         }
 
         $job = ImportJob::findOrFail($this->job_id);
 
         if ($job->user_id !== auth()->id()) {
-            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "danger");
             return;
         }
 
@@ -626,7 +627,7 @@ class Index extends Component
             $this->job_id = null;
             $this->dispatch('hide-delete-modal');
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('import_jobs.unable_to_delete_job'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.unable_to_delete_job'), type: "danger");
         }
     }
 
@@ -635,7 +636,7 @@ class Index extends Component
         $job = ImportJob::withTrashed()->findOrFail($this->job_id);
 
         if ($job->user_id !== auth()->id()) {
-            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "danger");
             return;
         }
 
@@ -684,6 +685,36 @@ class Index extends Component
         $this->dispatch('show-create-modal');
     }
 
+    /**
+     * Validate SMTP settings are configured when sending welcome emails
+     * Returns true if validation passes, false if it fails
+     */
+    protected function validateSmtpSettingsForImport(): bool
+    {
+        $setting = \App\Models\Setting::first();
+
+        if (!$setting) {
+            $this->dispatch("showToast", message: __('common.smtp_not_configured'), type: "error");
+            return false;
+        }
+
+        $requiredFields = ['smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'from_email', 'from_name'];
+        $missingFields = [];
+
+        foreach ($requiredFields as $field) {
+            if (empty($setting->$field)) {
+                $missingFields[] = $field;
+            }
+        }
+
+        if (!empty($missingFields)) {
+            $this->dispatch("showToast", message: __('common.smtp_missing_fields', ['fields' => implode(', ', $missingFields)]), type: "danger");
+            return false;
+        }
+
+        return true;
+    }
+
     public function closeCreateModal()
     {
         $this->showCreateModal = false;
@@ -699,6 +730,7 @@ class Index extends Component
         $this->newImport['company_id'] = null;
         $this->newImport['department_id'] = null;
         $this->newImport['auto_create_entities'] = false;
+        $this->newImport['send_welcome_emails'] = false;
     }
 
     public function updatedNewImportCompanyId($value)
@@ -762,6 +794,13 @@ class Index extends Component
                 $this->validate($validationRules);
             }
 
+            // Validate SMTP settings if sending welcome emails
+            if ($this->newImport['send_welcome_emails'] ?? false) {
+                if (!$this->validateSmtpSettingsForImport()) {
+                    return; // Stop import if SMTP validation fails
+                }
+            }
+
             // Get file object for analysis (don't store yet)
             $fileObject = $this->getSafeFileObject();
             if (!$fileObject) {
@@ -801,7 +840,7 @@ class Index extends Component
             }
 
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage(), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage(), type: "danger");
         }
     }
 
@@ -851,7 +890,7 @@ class Index extends Component
             $this->dispatch("showToast", message: __('import_jobs.import_job_created_successfully'), type: "success");
 
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage(), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage(), type: "danger");
         }
     }
 

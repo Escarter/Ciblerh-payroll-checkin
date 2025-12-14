@@ -197,7 +197,7 @@ class PayslipSendingPlan
         // Run any cleaning work ...
         $payslip_process->update([
             'status' => 'failed',
-            'failure_reason' => 'Something went wrong in the proccess!'
+            'failure_reason' => __('payslips.process_failed_generic')
         ]);
     }
 }

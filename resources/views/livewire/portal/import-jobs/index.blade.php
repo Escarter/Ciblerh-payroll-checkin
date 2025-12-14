@@ -1,4 +1,4 @@
-<div wire:poll.30s="checkForCompletedImports">
+<div>
     <x-alert />
 
     <!-- Page Header -->

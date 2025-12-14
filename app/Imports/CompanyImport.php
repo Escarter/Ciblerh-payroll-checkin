@@ -71,4 +71,18 @@ class CompanyImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
             '1' => 'nullable|string', // Code (nullable)
         ];
     }
+
+    /**
+     * Custom attribute names for validation error messages
+     */
+    public function customValidationAttributes(): array
+    {
+        return [
+            '0' => __('companies.name'),
+            '1' => __('companies.code'),
+            '2' => __('common.address'),
+            '3' => __('common.city'),
+            '4' => __('common.country'),
+        ];
+    }
 }

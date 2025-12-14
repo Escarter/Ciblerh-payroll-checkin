@@ -59,4 +59,17 @@ class LeaveTypeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVali
             '3' => 'nullable|boolean',
         ];
     }
+
+    /**
+     * Custom attribute names for validation error messages
+     */
+    public function customValidationAttributes(): array
+    {
+        return [
+            '0' => __('common.name'),
+            '1' => __('common.description'),
+            '2' => __('leave_types.default_number_of_days'),
+            '3' => __('common.is_active'),
+        ];
+    }
 }

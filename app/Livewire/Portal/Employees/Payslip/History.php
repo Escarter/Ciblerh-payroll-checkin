@@ -23,6 +23,7 @@ class History extends Component
     public $employee;
 
     public ?Payslip $payslip;
+    public ?Payslip $selectedPayslip = null;
     
     // Soft delete properties
     public $activeTab = 'active';
@@ -81,41 +82,16 @@ class History extends Component
 
                             Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination_file, $this->payslip->month));
 
-                            // Validate if email was actually sent before updating status
-                            if (Mail::failures()) {
-                                // Reset retry count for manual resend, then schedule automatic retry if enabled
-                                $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                                $this->payslip->update([
-                                    'email_sent_status' => Payslip::STATUS_FAILED,
-                                    'email_retry_count' => 0, // Reset retry count for manual resend
-                                    'last_email_retry_at' => null,
-                                    'failure_reason' => __('payslips.failed_to_send_email_recipient', ['email' => $employee->email])
-                                ]);
-                                
-                                // Schedule automatic retry if retries are enabled
-                                if ($maxRetries > 0) {
-                                    $retryDelay = config('ciblerh.email_retry_delay', 60);
-                                    RetryPayslipEmailJob::dispatch($this->payslip->id)
-                                        ->delay(now()->addSeconds($retryDelay));
-                                    
-                                    $this->payslip->update([
-                                        'email_retry_count' => 1,
-                                        'last_email_retry_at' => now(),
-                                        'failure_reason' => __('payslips.failed_to_send_email_recipient_retry_scheduled', ['email' => $employee->email])
-                                    ]);
-                                }
-                                
-                                Log::info('mail-failed: ' . json_encode(Mail::failures()));
-                                $message = $maxRetries > 0 
-                                    ? __('payslips.email_automatic_retry_scheduled')
-                                    : __('payslips.failed_to_send_email');
-                                $this->closeModalAndFlashMessage($message, 'resendEmailModal');
-                            } else {
+                            // Email accepted by mail server - mark as sent (not yet delivered)
+                            // The MailSentListener will update to 'delivered' when Laravel confirms the send
+                            // Webhooks will update to 'delivered' when email provider confirms delivery
                             $this->payslip->update([
-                                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                                    'email_retry_count' => 0, // Reset retry count on success
-                                    'last_email_retry_at' => null,
-                                    'failure_reason' => null, // Clear failure reason
+                                'email_sent_status' => Payslip::STATUS_SUCCESSFUL, // Keep as successful for backward compatibility
+                                'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT, // Mark as sent
+                                'email_sent_at' => now(),
+                                'email_retry_count' => 0, // Reset retry count on success
+                                'last_email_retry_at' => null,
+                                'failure_reason' => null, // Clear failure reason
                             ]);
 
                             // sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
@@ -129,7 +105,6 @@ class History extends Component
                             );
 
                             $this->closeModalAndFlashMessage(__('payslips.email_resent_successfully'), 'resendEmailModal');
-                            }
 
                         } catch (\Swift_TransportException $e) {
 
@@ -188,14 +163,15 @@ class History extends Component
                 default => new Nexah($setting)
             };
 
-            if($sms_client->getBalance()['credit'] !== 0){
+            $balance = $sms_client->getBalance();
+            if($balance['credit'] !== 0){
                 $employee = User::findOrFail($this->payslip->employee->id);
 
                 if (auth()->user()->hasRole('user') && $employee->group->user_id !== auth()->user()->id) {
                     return abort(401);
                 }
 
-                sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
+                sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip, $balance);
 
                 auditLog(
                     auth()->user(),
@@ -320,6 +296,38 @@ class History extends Component
         $this->selectAll = false;
     }
 
+    public function showPayslipDetails($payslip_id)
+    {
+        $this->selectedPayslip = Payslip::with('sendProcess.department')->findOrFail($payslip_id);
+        $this->dispatch('open-modal', 'payslipDetailsModal');
+    }
+
+    public function refreshTaskData()
+    {
+        // Refresh the selected payslip data
+        if ($this->selectedPayslip) {
+            $this->selectedPayslip->refresh();
+        }
+    }
+
+    public function getPayslipOverallStatus($payslip)
+    {
+        // Determine overall status based on encryption, email, and SMS status
+        if ($payslip->encryption_status == Payslip::STATUS_FAILED ||
+            $payslip->email_sent_status == Payslip::STATUS_FAILED ||
+            $payslip->sms_sent_status == Payslip::STATUS_FAILED) {
+            return 'failed';
+        }
+
+        if ($payslip->encryption_status == Payslip::STATUS_SUCCESSFUL &&
+            $payslip->email_sent_status == Payslip::STATUS_SUCCESSFUL &&
+            ($payslip->sms_sent_status == Payslip::STATUS_SUCCESSFUL || $payslip->sms_sent_status == Payslip::STATUS_DISABLED)) {
+            return 'success';
+        }
+
+        return 'processing';
+    }
+
     public function toggleSelectAll()
     {
         if ($this->selectAll) {
@@ -376,5 +384,29 @@ class History extends Component
             'active_payslips' => $active_payslips,
             'deleted_payslips' => $deleted_payslips,
         ])->layout('components.layouts.dashboard');
+    }
+
+    public function closePayslipDetailsModal()
+    {
+        $this->selectedPayslip = null;
+    }
+
+    public function resendPayslip($payslipId)
+    {
+        $payslip = Payslip::findOrFail($payslipId);
+
+        // Check if payslip can be resent (failed or pending status)
+        if ($payslip->encryption_status == Payslip::STATUS_SUCCESSFUL &&
+            ($payslip->email_sent_status == Payslip::STATUS_FAILED ||
+             $payslip->sms_sent_status == Payslip::STATUS_FAILED ||
+             $payslip->email_sent_status == Payslip::STATUS_PENDING ||
+             $payslip->sms_sent_status == Payslip::STATUS_PENDING)) {
+
+            // Use the existing retry job
+            \App\Jobs\Single\ResendFailedPayslipJob::dispatch($payslip);
+
+            session()->flash('message', __('payslips.payslip_queued_for_resend'));
+            $this->closePayslipDetailsModal();
+        }
     }
 }

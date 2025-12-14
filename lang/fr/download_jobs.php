@@ -99,4 +99,8 @@ return [
     'no_reports_found' => 'Aucun rapport trouvé',
     'your_generated_reports_will_appear_here' => 'Vos rapports générés apparaîtront ici',
     'create_your_first_report' => 'Créez votre premier rapport',
+
+    // Téléchargement en masse de fiches de paie spécifique
+    'no_payslips_found_matching_criteria' => 'Aucune fiche de paie trouvée correspondant aux critères spécifiés.',
+    'cannot_create_zip_file' => 'Impossible de créer le fichier zip',
 ];

@@ -80,6 +80,12 @@ class RenameEncryptPdfJob implements ShouldQueue
 
         $pay_month = $this->month;
 
+        // Ensure temp directory exists for PDF processing
+        $tempDir = config('ciblerh.temp_dir');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
         Storage::disk('modified')->makeDirectory($this->destination);
 
         foreach ($this->chunk as $file) {

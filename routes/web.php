@@ -211,3 +211,10 @@ Route::group(
             ]);
         });
 });
+
+// Email Webhook Routes (no auth required)
+Route::prefix('webhooks/email')->group(function () {
+    Route::post('mailgun', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'mailgun']);
+    Route::post('ses', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'ses']);
+    Route::post('postmark', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'postmark']);
+});

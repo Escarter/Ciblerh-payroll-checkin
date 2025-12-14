@@ -28,6 +28,24 @@ class Index extends Component
     public $smtp_username;
     public $smtp_password;
     public $smtp_encryption;
+
+    // AWS SES
+    public $ses_key;
+    public $ses_secret;
+    public $ses_region;
+
+    // Postmark
+    public $postmark_token;
+
+    // Sendmail
+    public $sendmail_path;
+
+    // Mailpit
+    public $mailpit_host;
+    public $mailpit_port;
+
+    // Log
+    public $log_channel;
     public $from_email;
     public $from_name;
     public $replyTo_email;
@@ -58,6 +76,7 @@ class Index extends Component
         $this->sms_provider_username = !empty($this->setting) ? $this->setting->sms_provider_username : '';
         $this->sms_provider_password = !empty($this->setting) ? $this->setting->sms_provider_password :'';
         $this->sms_provider_senderid = !empty($this->setting) ? $this->setting->sms_provider_senderid :'';
+        $this->smtp_provider = !empty($this->setting) ? $this->setting->smtp_provider :'smtp';
         $this->smtp_host = !empty($this->setting) ? $this->setting->smtp_host :'';
         $this->smtp_port = !empty($this->setting) ? $this->setting->smtp_port :'';
         $this->smtp_username = !empty($this->setting) ? $this->setting->smtp_username :'';
@@ -67,6 +86,20 @@ class Index extends Component
         $this->from_name = !empty($this->setting) ? $this->setting->from_name :'';
         $this->replyTo_email = !empty($this->setting) ? $this->setting->replyTo_email :'';
         $this->replyTo_name = !empty($this->setting) ? $this->setting->replyTo_name :'';
+
+        // Load additional provider settings
+        $this->mailgun_domain = !empty($this->setting) ? $this->setting->mailgun_domain :'';
+        $this->mailgun_secret = !empty($this->setting) ? $this->setting->mailgun_secret :'';
+        $this->mailgun_endpoint = !empty($this->setting) ? $this->setting->mailgun_endpoint :'';
+        $this->mailgun_scheme = !empty($this->setting) ? $this->setting->mailgun_scheme :'';
+        $this->ses_key = !empty($this->setting) ? $this->setting->ses_key :'';
+        $this->ses_secret = !empty($this->setting) ? $this->setting->ses_secret :'';
+        $this->ses_region = !empty($this->setting) ? $this->setting->ses_region :'';
+        $this->postmark_token = !empty($this->setting) ? $this->setting->postmark_token :'';
+        $this->sendmail_path = !empty($this->setting) ? $this->setting->sendmail_path :'';
+        $this->mailpit_host = !empty($this->setting) ? $this->setting->mailpit_host :'';
+        $this->mailpit_port = !empty($this->setting) ? $this->setting->mailpit_port :'';
+        $this->log_channel = !empty($this->setting) ? $this->setting->log_channel :'';
         $this->sms_balance = !empty($this->setting) ? $this->setting->sms_balance :'';
 
         $this->sms_content_en = !empty($this->setting) ? (!empty($this->setting->sms_content_en) ? $this->setting->sms_content_en  : "Mr/Mrs :name:, your pay slip for the month of :month:-:year: has been sent to your mailbox. Please use the following password: :pdf_password: to view it.") :'';
@@ -141,11 +174,19 @@ class Index extends Component
             ['company_id' => 1],
             [
                 'company_id' => 1,
-                'smtp_provider' => !empty($this->smtp_provider) ? $this->smtp_provider:'smtp',
+                'smtp_provider' => $this->smtp_provider ?: 'smtp',
                 'mailgun_domain' => $this->mailgun_domain,
                 'mailgun_secret' => $this->mailgun_secret,
                 'mailgun_endpoint' => $this->mailgun_endpoint,
                 'mailgun_scheme' => $this->mailgun_scheme,
+                'ses_key' => $this->ses_key,
+                'ses_secret' => $this->ses_secret,
+                'ses_region' => $this->ses_region,
+                'postmark_token' => $this->postmark_token,
+                'sendmail_path' => $this->sendmail_path,
+                'mailpit_host' => $this->mailpit_host,
+                'mailpit_port' => $this->mailpit_port,
+                'log_channel' => $this->log_channel,
                 'smtp_host' => $this->smtp_host,
                 'smtp_port' => $this->smtp_port,
                 'smtp_username' => $this->smtp_username,

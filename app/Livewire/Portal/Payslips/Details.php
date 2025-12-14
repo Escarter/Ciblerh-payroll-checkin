@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Gate;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Setting;
+use App\Services\SMS\TwilioSMS;
+use App\Services\SMS\Nexah;
+use App\Services\SMS\AwsSnsSMS;
 
 class Details extends Component
 {
@@ -21,12 +25,13 @@ class Details extends Component
     public $job;
     public ?Payslip $payslip;
     public ?int $payslip_id = null;
+    public ?Payslip $selectedPayslip = null;
 
     // Soft delete properties
     public $activeTab = 'active';
     public $selectedPayslips = [];
     public $selectAll = false;
-    
+
     // Unmatched employees tab
     public $showUnmatched = false;
 
@@ -39,6 +44,20 @@ class Details extends Component
     {
         if (!empty($payslip_id)) {
             $this->payslip = Payslip::findOrFail($payslip_id);
+        }
+    }
+
+    public function showPayslipDetails($payslip_id)
+    {
+        $this->selectedPayslip = Payslip::with('sendProcess.department')->findOrFail($payslip_id);
+        $this->dispatch('open-modal', 'payslipDetailsModal');
+    }
+
+    public function refreshTaskData()
+    {
+        // Refresh the selected payslip data
+        if ($this->selectedPayslip) {
+            $this->selectedPayslip->refresh();
         }
     }
 
@@ -76,49 +95,39 @@ class Details extends Component
 
                         Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination_file, $this->payslip->month));
 
-                        // Validate if email was actually sent before updating status
-                        if (Mail::failures()) {
-                            // Reset retry count for manual resend, then schedule automatic retry if enabled
-                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                            $this->payslip->update([
-                                'email_sent_status' => Payslip::STATUS_FAILED,
-                                'email_retry_count' => 0, // Reset retry count for manual resend
-                                'last_email_retry_at' => null,
-                                'failure_reason' => __('payslips.failed_to_send_email_recipient', ['email' => $employee->email])
-                            ]);
-                            
-                            // Schedule automatic retry if retries are enabled
-                            if ($maxRetries > 0) {
-                                $retryDelay = config('ciblerh.email_retry_delay', 60);
-                                RetryPayslipEmailJob::dispatch($this->payslip->id)
-                                    ->delay(now()->addSeconds($retryDelay));
-                                
-                                $this->payslip->update([
-                                    'email_retry_count' => 1,
-                                    'last_email_retry_at' => now(),
-                                    'failure_reason' => __('payslips.failed_to_send_email_recipient_retry_scheduled', ['email' => $employee->email])
-                                ]);
-                            }
-                            
-                            Log::info('mail-failed: ' . json_encode(Mail::failures()));
-                            $message = $maxRetries > 0
-                                ? __('payslips.email_automatic_retry_scheduled')
-                                : __('payslips.failed_to_send_email');
-                            $this->closeModalAndFlashMessage($message, 'resendPayslipModal');
-                        } else {
+                        // Email accepted by mail server - delivery will be confirmed via webhooks
                         $this->payslip->update([
                             'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                                'email_retry_count' => 0, // Reset retry count on success
-                                'last_email_retry_at' => null,
-                                'failure_reason' => null, // Clear failure reason
+                            'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                            'email_sent_at' => now(),
+                            'email_retry_count' => 0, // Reset retry count on success
+                            'last_email_retry_at' => null,
+                            'failure_reason' => null, // Clear failure reason
                         ]);
 
-                        sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip);
+                        // Check SMS balance for optimization
+                        $sms_balance = null;
+                        $setting = Setting::first();
+                        if (!empty($setting->sms_provider)) {
+                            $sms_client = match ($setting->sms_provider) {
+                                'twilio' => new TwilioSMS($setting),
+                                'nexah' => new Nexah($setting),
+                                'aws_sns' => new AwsSnsSMS($setting),
+                                default => new Nexah($setting)
+                            };
+
+                            try {
+                                $sms_balance = $sms_client->getBalance();
+                            } catch (\Exception $e) {
+                                Log::warning('Failed to check SMS balance in resend payslip: ' . $e->getMessage());
+                            }
+                        }
+
+                        sendSmsAndUpdateRecord($employee, $this->payslip->month, $this->payslip, $sms_balance);
 
                         Log::info('mail-sent');
 
                         $this->closeModalAndFlashMessage(__('payslips.employee_payslip_resent_successfully'), 'resendPayslipModal');
-                        }
                     } catch (\Swift_TransportException $e) {
 
                         Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
@@ -278,30 +287,37 @@ class Details extends Component
 
                 Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $payslip->file, $payslip->month));
 
-                if (Mail::failures()) {
-                    // Schedule retry if enabled
-                    $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                    if ($maxRetries > 0) {
-                        $payslip->update([
-                            'email_retry_count' => 0,
-                            'last_email_retry_at' => null,
-                        ]);
-                        
-                        $retryDelay = config('ciblerh.email_retry_delay', 60);
-                        RetryPayslipEmailJob::dispatch($payslip->id)
-                            ->delay(now()->addSeconds($retryDelay));
+                // Email accepted by mail server - delivery will be confirmed via webhooks
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                    'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                    'email_sent_at' => now(),
+                    'email_retry_count' => 0,
+                    'last_email_retry_at' => null,
+                    'failure_reason' => null,
+                ]);
+
+                    // Check SMS balance for optimization
+                    $sms_balance = null;
+                    $setting = Setting::first();
+                    if (!empty($setting->sms_provider)) {
+                        $sms_client = match ($setting->sms_provider) {
+                            'twilio' => new TwilioSMS($setting),
+                            'nexah' => new Nexah($setting),
+                            'aws_sns' => new AwsSnsSMS($setting),
+                            default => new Nexah($setting)
+                        };
+
+                        try {
+                            $sms_balance = $sms_client->getBalance();
+                        } catch (\Exception $e) {
+                            Log::warning('Failed to check SMS balance in bulk resend: ' . $e->getMessage());
+                        }
                     }
-                } else {
-                    $payslip->update([
-                        'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                        'email_retry_count' => 0,
-                        'last_email_retry_at' => null,
-                        'failure_reason' => null,
-                    ]);
-                    sendSmsAndUpdateRecord($employee, $payslip->month, $payslip);
+
+                    sendSmsAndUpdateRecord($employee, $payslip->month, $payslip, $sms_balance);
                     $resendCount++;
-                }
-            } catch (\Exception $e) {
+                }catch (\Exception $e) {
                 Log::error('Bulk resend failed for payslip', [
                     'payslip_id' => $payslip->id,
                     'error' => $e->getMessage()
@@ -470,6 +486,8 @@ class Details extends Component
             })
             ->count();
 
+        $totalEmployees = $this->job->payslips()->count();
+
         return view('livewire.portal.payslips.details', [
             'payslips' => $payslips,
             'payslips_count' => count($this->job->payslips), // Legacy for backward compatibility
@@ -477,7 +495,8 @@ class Details extends Component
             'deleted_payslips' => $deleted_payslips,
             'job' => $this->job,
             'unmatchedEmployees' => $unmatchedEmployees,
-            'unmatchedCount' => $unmatchedCount
+            'unmatchedCount' => $unmatchedCount,
+            'totalEmployees' => $totalEmployees
         ])->layout('components.layouts.dashboard');
     }
 
@@ -513,5 +532,43 @@ class Details extends Component
         }
 
         return $query->count();
+    }
+
+    public function getPayslipOverallStatus($payslip)
+    {
+        // If encryption failed, overall status is failed
+        if ($payslip->encryption_status == Payslip::STATUS_FAILED) {
+            return 'failed';
+        }
+
+        // If encryption is still processing, overall status is processing
+        if ($payslip->encryption_status == 0) {
+            return 'processing';
+        }
+
+        // If email failed and SMS failed/disabled, overall status is failed
+        if ($payslip->email_sent_status == Payslip::STATUS_FAILED &&
+            ($payslip->sms_sent_status == Payslip::STATUS_FAILED || $payslip->sms_sent_status == Payslip::STATUS_DISABLED)) {
+            return 'failed';
+        }
+
+        // If both email and SMS succeeded, or if email succeeded and SMS is disabled/failed but email is priority
+        if ($payslip->email_sent_status == Payslip::STATUS_SUCCESSFUL) {
+            return 'success';
+        }
+
+        // If SMS succeeded but email failed, still consider it successful (SMS fallback)
+        if ($payslip->sms_sent_status == Payslip::STATUS_SUCCESSFUL && $payslip->email_sent_status == Payslip::STATUS_FAILED) {
+            return 'success';
+        }
+
+        // If both are still pending/processing
+        if (($payslip->email_sent_status == 0 || $payslip->email_sent_status == null) &&
+            ($payslip->sms_sent_status == 0 || $payslip->sms_sent_status == null || $payslip->sms_sent_status == Payslip::STATUS_DISABLED)) {
+            return 'processing';
+        }
+
+        // Default to processing for any other cases
+        return 'processing';
     }
 }

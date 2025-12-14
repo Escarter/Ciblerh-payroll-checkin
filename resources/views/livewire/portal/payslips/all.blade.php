@@ -1,4 +1,5 @@
 <div>
+    @include('livewire.portal.payslips.partials.payslip-task-details-modal')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.restore-modal')
     @include('livewire.partials.bulk-restore-modal')
@@ -11,7 +12,8 @@
             <div class="mb-lg-0">
                 <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
                     <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
-                        <li class="breadcrumb-item"><a href="{{ route('portal.dashboard') }}"><svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <li class="breadcrumb-item">
+                            <a href="{{ route('portal.dashboard') }}"><svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg></a></li>
                         <li class="breadcrumb-item"><a href="{{route('portal.dashboard')}}" wire:navigate>{{__('dashboard.home')}}</a></li>
@@ -146,7 +148,7 @@
             </button>
             <button wire:click="$set('selectedJobs', [])"
                 class="btn btn-sm btn-outline-secondary">
-                {{__('Clear Selection')}}
+                {{__('common.clear_selection')}}
             </button>
             @endif
             @else
@@ -167,7 +169,7 @@
             </button>
             <button wire:click="$set('selectedJobs', [])"
                 class="btn btn-sm btn-outline-secondary">
-                {{__('Clear Selection')}}
+                {{__('common.clear_selection')}}
             </button>
             @endif
             @endif
@@ -203,7 +205,9 @@
                         <td>
                             @if (!is_null($job->department))
                             <a href="/portal/payslips/{{$job->id}}/details" wire:navigate class="d-flex align-items-center">
-                                <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary text-white me-3"><span>{{initials($job->department)}}</span></div>
+                                <div class="d-flex align-items-center justify-content-center fw-bold rounded bg-primary text-white me-3" style="width: 40px; height: 40px; border-radius: 50%;">
+                                    <span class="small">{{ $job->department ? initials($job->department->name) : 'N/A' }}</span>
+                                </div>
                                 <div class="d-block"><span class="fw-bold">{{$job->department->name}}</span>
                                     @hasanyrole('admin')
                                     <div class="small text-gray">
@@ -258,11 +262,17 @@
                         </td>
                         <td>
                             @if($activeTab === 'active')
-                            <!-- View Details Link -->
-                            <a href="/portal/payslips/{{$job->id}}/details" wire:navigate class="text-primary me-2" title="{{__('View Details & Download Payslips')}}">
+                            <!-- View Task Details Modal -->
+                            <a href='#' wire:click.prevent="showTaskDetails({{$job->id}})" data-bs-toggle="modal" data-bs-target="#payslipTaskDetailsModal" class="text-primary me-2" title="{{__('payslips.view_task_details')}}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </a>
+                            <!-- Go to Details Page -->
+                            <a href="/portal/payslips/{{$job->id}}/details" wire:navigate class="text-info me-2" title="{{__('View Details & Download Payslips')}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
                             </a>
                             <!-- Delete Link -->

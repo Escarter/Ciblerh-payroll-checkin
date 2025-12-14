@@ -27,7 +27,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <strong>{{__('common.status')}}:</strong>
-                                        <span class="badge bg-{{$selectedJob->status_badge}} ms-1">{{$selectedJob->status_display}}</span>
+                                        <span class="badge badge-lg bg-{{$selectedJob->status_badge}} ms-1">{{$selectedJob->status_display}}</span>
                                     </div>
                                     <div class="col-md-6">
                                         <strong>{{__('common.created_at')}}:</strong> {{$selectedJob->created_at->format('M d, Y H:i')}}

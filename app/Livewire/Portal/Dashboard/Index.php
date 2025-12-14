@@ -29,6 +29,8 @@ class Index extends Component
     // Modal state management
     public $showDepartmentModal = false;
     public $selectedDepartmentForModal = null;
+    public $showPayslipDetailsModal = false;
+    public $selectedFailureType = 'all';
 
     // Cache frequently used data
     protected $cachedData = [];
@@ -119,6 +121,18 @@ class Index extends Component
         $this->showDepartmentModal = true;
     }
 
+    public function openPayslipDetailsModal()
+    {
+        $this->showPayslipDetailsModal = true;
+        $this->selectedFailureType = 'all';
+    }
+
+    public function closePayslipDetailsModal()
+    {
+        $this->showPayslipDetailsModal = false;
+        $this->selectedFailureType = 'all';
+    }
+
     public function getChartData()
     {
         return $this->cache('chart_data', function () {
@@ -127,6 +141,8 @@ class Index extends Component
 
             return [
                 'approval_pie_chart' => $this->getApprovalStatusPieChart(),
+                'payslip_status_pie_chart' => $this->getPayslipStatusPieChart(),
+                'comprehensive_status_chart' => $this->getComprehensivePayslipStatusChart(),
                 'department_comparison' => $this->getDepartmentComparisonChart(),
                 'monthly_trends' => $this->getMonthlyTrendsChart(),
                 'chart_data' => $this->prepareWeeklyChart($stats),
@@ -154,8 +170,14 @@ class Index extends Component
                 ? "strftime('%W', created_at)"
                 : 'WEEK(created_at)';
 
-            return $query->selectRaw("{$periodFunction} as period, email_sent_status, COUNT(*) as data")
-                ->groupBy('period', 'email_sent_status')
+            return $query->selectRaw("
+                    {$periodFunction} as period,
+                    email_sent_status,
+                    sms_sent_status,
+                    encryption_status,
+                    COUNT(*) as data
+                ")
+                ->groupBy('period', 'email_sent_status', 'sms_sent_status', 'encryption_status')
                 ->orderBy('period')
                 ->get();
         } else {
@@ -163,8 +185,14 @@ class Index extends Component
                 ? "strftime('%d', created_at)"
                 : 'DAY(created_at)';
 
-            return $query->selectRaw("{$periodFunction} as period, email_sent_status, COUNT(*) as data")
-                ->groupBy('period', 'email_sent_status')
+            return $query->selectRaw("
+                    {$periodFunction} as period,
+                    email_sent_status,
+                    sms_sent_status,
+                    encryption_status,
+                    COUNT(*) as data
+                ")
+                ->groupBy('period', 'email_sent_status', 'sms_sent_status', 'encryption_status')
                 ->orderBy('period')
                 ->get();
         }
@@ -186,30 +214,76 @@ class Index extends Component
         $success = [];
         $failed = [];
         $pending = [];
+        $sms_disabled = [];
+        $encryption_issues = [];
 
+        // Group stats by period for processing
+        $groupedStats = [];
         foreach ($stats as $stat) {
             $periodLabel = $periodFormatter($stat->period);
-            if (!in_array($periodLabel, $periods, true)) {
-                $periods[] = $periodLabel;
+            if (!isset($groupedStats[$periodLabel])) {
+                $groupedStats[$periodLabel] = [
+                    'success' => 0,
+                    'failed' => 0,
+                    'pending' => 0,
+                    'sms_disabled' => 0,
+                    'encryption_failed' => 0
+                ];
             }
 
-            switch ($stat->email_sent_status) {
-                case Payslip::STATUS_SUCCESSFUL:
-                    $success[] = $stat->data;
-                    break;
-                case Payslip::STATUS_FAILED:
-                    $failed[] = $stat->data;
-                    break;
-                default:
-                    $pending[] = $stat->data;
+            // Determine overall status for this payslip
+            $emailStatus = $stat->email_sent_status;
+            $smsStatus = $stat->sms_sent_status;
+            $encryptionStatus = $stat->encryption_status;
+
+            // Count issues
+            $hasFailure = false;
+            if ($emailStatus == Payslip::STATUS_FAILED) {
+                $groupedStats[$periodLabel]['failed'] += $stat->data;
+                $hasFailure = true;
             }
+            if ($smsStatus == Payslip::STATUS_FAILED) {
+                $groupedStats[$periodLabel]['failed'] += $stat->data;
+                $hasFailure = true;
+            }
+            if ($encryptionStatus == Payslip::STATUS_FAILED) {
+                $groupedStats[$periodLabel]['encryption_failed'] += $stat->data;
+                $hasFailure = true;
+            }
+            if ($smsStatus == Payslip::STATUS_DISABLED) {
+                $groupedStats[$periodLabel]['sms_disabled'] += $stat->data;
+            }
+
+            // If no failures but has pending statuses, count as pending
+            if (!$hasFailure && ($emailStatus == Payslip::STATUS_PENDING || $smsStatus == Payslip::STATUS_PENDING)) {
+                $groupedStats[$periodLabel]['pending'] += $stat->data;
+            }
+            // If all statuses are successful, count as success
+            elseif (!$hasFailure &&
+                    $emailStatus == Payslip::STATUS_SUCCESSFUL &&
+                    ($smsStatus == Payslip::STATUS_SUCCESSFUL || $smsStatus == Payslip::STATUS_DISABLED) &&
+                    ($encryptionStatus == Payslip::STATUS_SUCCESSFUL || is_null($encryptionStatus))) {
+                $groupedStats[$periodLabel]['success'] += $stat->data;
+            }
+        }
+
+        // Convert to arrays for Chartist
+        foreach ($groupedStats as $period => $data) {
+            $periods[] = $period;
+            $success[] = $data['success'];
+            $failed[] = $data['failed'];
+            $pending[] = $data['pending'];
+            $sms_disabled[] = $data['sms_disabled'];
+            $encryption_issues[] = $data['encryption_failed'];
         }
 
         return [
             'periods' => $periods,
             'success' => $success,
             'failed' => $failed,
-            'pending' => $pending
+            'pending' => $pending,
+            'sms_disabled' => $sms_disabled,
+            'encryption_issues' => $encryption_issues
         ];
     }
 
@@ -523,6 +597,130 @@ class Index extends Component
         });
     }
 
+    public function getPayslipStatusPieChart()
+    {
+        return $this->cache('payslip_status_pie_chart', function () {
+            $query = Payslip::query()
+                ->when(
+                    $this->selectedCompanyId && $this->selectedCompanyId != 'all',
+                    fn($q) => $q->where('company_id', $this->selectedCompanyId)
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                );
+
+            $emailSuccessful = $query->clone()->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)->count();
+            $emailFailed = $query->clone()->where('email_sent_status', Payslip::STATUS_FAILED)->count();
+            $emailPending = $query->clone()->where('email_sent_status', Payslip::STATUS_PENDING)->count();
+
+            $smsSuccessful = $query->clone()->where('sms_sent_status', Payslip::STATUS_SUCCESSFUL)->count();
+            $smsFailed = $query->clone()->where('sms_sent_status', Payslip::STATUS_FAILED)->count();
+            $smsPending = $query->clone()->where('sms_sent_status', Payslip::STATUS_PENDING)->count();
+            $smsDisabled = $query->clone()->where('sms_sent_status', Payslip::STATUS_DISABLED)->count();
+
+            $encryptionSuccessful = $query->clone()->where('encryption_status', Payslip::STATUS_SUCCESSFUL)->count();
+            $encryptionFailed = $query->clone()->where('encryption_status', Payslip::STATUS_FAILED)->count();
+            $encryptionNotRecorded = $query->clone()->whereNull('encryption_status')->orWhere('encryption_status', '')->count();
+
+            return [
+                'labels' => [
+                    __('dashboard.email_successful'),
+                    __('dashboard.email_failed'),
+                    __('dashboard.email_pending'),
+                    __('dashboard.sms_successful'),
+                    __('dashboard.sms_failed'),
+                    __('dashboard.sms_pending'),
+                    __('dashboard.sms_disabled'),
+                    __('dashboard.encryption_successful'),
+                    __('dashboard.encryption_failed'),
+                    __('dashboard.encryption_not_recorded')
+                ],
+                'data' => [
+                    $emailSuccessful,
+                    $emailFailed,
+                    $emailPending,
+                    $smsSuccessful,
+                    $smsFailed,
+                    $smsPending,
+                    $smsDisabled,
+                    $encryptionSuccessful,
+                    $encryptionFailed,
+                    $encryptionNotRecorded
+                ],
+                'colors' => [
+                    '#28a745', // email successful - green
+                    '#dc3545', // email failed - red
+                    '#ffc107', // email pending - yellow
+                    '#20c997', // sms successful - teal
+                    '#e83e8c', // sms failed - pink
+                    '#fd7e14', // sms pending - orange
+                    '#6c757d', // sms disabled - gray
+                    '#007bff', // encryption successful - blue
+                    '#6f42c1', // encryption failed - purple
+                    '#adb5bd'  // encryption not recorded - light gray
+                ]
+            ];
+        });
+    }
+
+    public function getComprehensivePayslipStatusChart()
+    {
+        return $this->cache('comprehensive_status_chart', function () {
+            $query = Payslip::query()
+                ->when(
+                    $this->selectedCompanyId && $this->selectedCompanyId != 'all',
+                    fn($q) => $q->where('company_id', $this->selectedCompanyId)
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                );
+
+            // Calculate overall success rates
+            $totalPayslips = $query->clone()->count();
+
+            $emailSuccessRate = $totalPayslips > 0 ?
+                round(($query->clone()->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)->count() / $totalPayslips) * 100, 1) : 0;
+
+            $smsSuccessRate = $totalPayslips > 0 ?
+                round(($query->clone()->where('sms_sent_status', Payslip::STATUS_SUCCESSFUL)->count() / $totalPayslips) * 100, 1) : 0;
+
+            $encryptionSuccessRate = $totalPayslips > 0 ?
+                round(($query->clone()->where('encryption_status', Payslip::STATUS_SUCCESSFUL)->count() / $totalPayslips) * 100, 1) : 0;
+
+            // Get failure counts by type
+            $emailFailures = $query->clone()->where('email_sent_status', Payslip::STATUS_FAILED)->count();
+            $smsFailures = $query->clone()->where('sms_sent_status', Payslip::STATUS_FAILED)->count();
+            $encryptionFailures = $query->clone()->where('encryption_status', Payslip::STATUS_FAILED)->count();
+
+            // Get pending/disabled counts
+            $emailPending = $query->clone()->where('email_sent_status', Payslip::STATUS_PENDING)->count();
+            $smsPending = $query->clone()->where('sms_sent_status', Payslip::STATUS_PENDING)->count();
+            $smsDisabled = $query->clone()->where('sms_sent_status', Payslip::STATUS_DISABLED)->count();
+
+            return [
+                'total_payslips' => $totalPayslips,
+                'success_rates' => [
+                    'email' => $emailSuccessRate,
+                    'sms' => $smsSuccessRate,
+                    'encryption' => $encryptionSuccessRate
+                ],
+                'failure_counts' => [
+                    'email' => $emailFailures,
+                    'sms' => $smsFailures,
+                    'encryption' => $encryptionFailures
+                ],
+                'pending_counts' => [
+                    'email' => $emailPending,
+                    'sms' => $smsPending,
+                    'sms_disabled' => $smsDisabled
+                ],
+                'health_score' => round(($emailSuccessRate + $smsSuccessRate + $encryptionSuccessRate) / 3, 1)
+            ];
+        });
+    }
+
     public function getDepartmentComparisonChart()
     {
         return $this->cache('department_comparison', function () {
@@ -646,6 +844,125 @@ class Index extends Component
                 ->sortByDesc('performance_score')
                 ->take(5);
         });
+    }
+
+    public function getFailureDetails($failureType = 'all')
+    {
+        $query = Payslip::with('employee')
+            ->when(
+                $this->selectedCompanyId && $this->selectedCompanyId != 'all',
+                fn($q) => $q->where('company_id', $this->selectedCompanyId)
+            )
+            ->when(
+                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+            )
+            ->whereBetween('created_at', [now()->subDays(30), now()]); // Last 30 days
+
+        $emailFailures = [];
+        $smsFailures = [];
+        $encryptionFailures = [];
+
+        switch ($failureType) {
+            case 'failed':
+                // Get email failures
+                $emailFailures = $query->clone()
+                    ->where('email_sent_status', Payslip::STATUS_FAILED)
+                    ->orderBy('created_at', 'desc')
+                    ->take(10)
+                    ->get()
+                    ->map(function ($payslip) {
+                        return [
+                            'employee_name' => $payslip->name,
+                            'email' => $payslip->email,
+                            'error_message' => $payslip->email_status_note ?: __('dashboard.unknown_error'),
+                            'created_at' => $payslip->created_at->format('M j, Y H:i')
+                        ];
+                    });
+
+                // Get SMS failures
+                $smsFailures = $query->clone()
+                    ->where('sms_sent_status', Payslip::STATUS_FAILED)
+                    ->orderBy('created_at', 'desc')
+                    ->take(10)
+                    ->get()
+                    ->map(function ($payslip) {
+                        return [
+                            'employee_name' => $payslip->name,
+                            'phone' => $payslip->phone,
+                            'error_message' => $payslip->sms_status_note ?: __('dashboard.unknown_error'),
+                            'created_at' => $payslip->created_at->format('M j, Y H:i')
+                        ];
+                    });
+                break;
+
+            case 'encryption_issues':
+                $encryptionFailures = $query->clone()
+                    ->where('encryption_status', Payslip::STATUS_FAILED)
+                    ->orderBy('created_at', 'desc')
+                    ->take(10)
+                    ->get()
+                    ->map(function ($payslip) {
+                        return [
+                            'employee_name' => $payslip->name,
+                            'matricule' => $payslip->matricule,
+                            'error_message' => $payslip->encryption_status_note ?: __('dashboard.encryption_failed'),
+                            'created_at' => $payslip->created_at->format('M j, Y H:i')
+                        ];
+                    });
+                break;
+
+            default:
+                // Get all types of failures
+                $emailFailures = $query->clone()
+                    ->where('email_sent_status', Payslip::STATUS_FAILED)
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get()
+                    ->map(function ($payslip) {
+                        return [
+                            'employee_name' => $payslip->name,
+                            'email' => $payslip->email,
+                            'error_message' => $payslip->email_status_note ?: __('dashboard.unknown_error'),
+                            'created_at' => $payslip->created_at->format('M j, Y H:i')
+                        ];
+                    });
+
+                $smsFailures = $query->clone()
+                    ->where('sms_sent_status', Payslip::STATUS_FAILED)
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get()
+                    ->map(function ($payslip) {
+                        return [
+                            'employee_name' => $payslip->name,
+                            'phone' => $payslip->phone,
+                            'error_message' => $payslip->sms_status_note ?: __('dashboard.unknown_error'),
+                            'created_at' => $payslip->created_at->format('M j, Y H:i')
+                        ];
+                    });
+
+                $encryptionFailures = $query->clone()
+                    ->where('encryption_status', Payslip::STATUS_FAILED)
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get()
+                    ->map(function ($payslip) {
+                        return [
+                            'employee_name' => $payslip->name,
+                            'matricule' => $payslip->matricule,
+                            'error_message' => $payslip->encryption_status_note ?: __('dashboard.encryption_failed'),
+                            'created_at' => $payslip->created_at->format('M j, Y H:i')
+                        ];
+                    });
+                break;
+        }
+
+        return [
+            'email_failures' => $emailFailures,
+            'sms_failures' => $smsFailures,
+            'encryption_failures' => $encryptionFailures
+        ];
     }
 
     public function render()
@@ -975,10 +1292,14 @@ class Index extends Component
 
             // Additional chart data
             'approval_pie_chart' => $this->getApprovalStatusPieChart(),
+            'payslip_status_pie_chart' => $this->getPayslipStatusPieChart(),
+            'comprehensive_status_chart' => $this->getComprehensivePayslipStatusChart(),
             'department_comparison' => $this->getDepartmentComparisonChart(),
             'monthly_trends' => $this->getMonthlyTrendsChart(),
             'top_departments' => $this->getTopDepartmentsByPerformance(),
             'showDepartmentModal' => $this->showDepartmentModal,
+            'showPayslipDetailsModal' => $this->showPayslipDetailsModal,
+            'payslip_failure_details' => $this->getFailureDetails($this->selectedFailureType),
 
         ])->layout('components.layouts.dashboard');
     }

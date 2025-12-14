@@ -34,6 +34,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     public $department; // Optional department context
     public $service; // Optional service context
     public $autoCreateEntities = false; // Whether to auto-create missing departments/services
+    public $sendWelcomeEmails = false; // Whether to send welcome emails to imported employees
     public $userId; // User ID for author_id field in background jobs
 
     /**
@@ -53,12 +54,13 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     }
 
 
-    public function __construct(Company $company, Department $department = null, Service $service = null, bool $autoCreateEntities = false, $userId = null)
+    public function __construct(Company $company, Department $department = null, Service $service = null, bool $autoCreateEntities = false, $userId = null, bool $sendWelcomeEmails = false)
     {
         $this->company = $company;
         $this->department = $department;
         $this->service = $service;
         $this->autoCreateEntities = $autoCreateEntities;
+        $this->sendWelcomeEmails = $sendWelcomeEmails;
         $this->userId = $userId;
     }
 
@@ -161,7 +163,10 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     $user->assignRole(['employee', $row[11]]);
                 }
 
-                event(new EmployeeCreated($user, $row[13]));
+                // Only fire EmployeeCreated event if welcome emails should be sent
+                if ($this->sendWelcomeEmails) {
+                    event(new EmployeeCreated($user, $row[13]));
+                }
 
                 return $user;
     }
@@ -345,6 +350,38 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     $onFailure(__('employees.company_context_required'));
                 }
             }
+        ];
+    }
+
+    /**
+     * Custom attribute names for validation error messages
+     */
+    public function customValidationAttributes(): array
+    {
+        return [
+            '0' => __('employees.first_name'),
+            '1' => __('employees.last_name'),
+            '2' => __('employees.email'),
+            '3' => __('common.prof_phone_number'),
+            '4' => __('employees.matricule'),
+            '5' => __('common.position'),
+            '6' => __('employees.net_salary'),
+            '7' => __('employees.salary_grade'),
+            '8' => __('employees.contract_end_date'),
+            '9' => __('departments.departments'),
+            '10' => __('services.services'),
+            '11' => __('employees.role'),
+            '12' => __('common.status'),
+            '13' => __('common.password'),
+            '14' => __('employees.remaining_leave_days'),
+            '15' => __('employees.monthly_leave_allocation'),
+            '16' => __('employees.receive_sms_notifications'),
+            '17' => __('common.personal_phone_number'),
+            '18' => __('employees.work_start_time'),
+            '19' => __('employees.work_end_time'),
+            '20' => __('employees.receive_email_notifications'),
+            '21' => __('employees.alternative_email'),
+            '22' => __('employees.date_of_birth'),
         ];
     }
 }

@@ -136,4 +136,15 @@ class ServiceImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValida
             }
         ];
     }
+
+    /**
+     * Custom attribute names for validation error messages
+     */
+    public function customValidationAttributes(): array
+    {
+        return [
+            '0' => __('services.name'),
+            '1' => __('departments.name'),
+        ];
+    }
 }

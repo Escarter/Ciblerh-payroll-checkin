@@ -57,11 +57,6 @@ class SendPayslipJob implements ShouldQueue
      */
     public $failOnTimeout = true;
 
-    /**
-     * The queue connection name
-     */
-    public $queue = 'emails';
-
     protected $employee_chunk;
     protected $destination;
     protected $month;
@@ -257,109 +252,15 @@ class SendPayslipJob implements ShouldQueue
 
                         Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination_file, $pay_month));
 
-                        // Validate if email was actually sent before updating status
-                        if (Mail::failures()) {
-                            $failures = Mail::failures();
-                            
-                            // Check if this is a bounce (hard failure)
-                            $isBounce = $this->detectEmailBounce($failures, $emailToUse);
-                            
-                            if ($isBounce['is_bounce']) {
-                                // Mark email as bounced in user record
-                                $userUpdate = [
-                                    'email_bounced' => true,
-                                    'email_bounced_at' => now(),
-                                    'email_bounce_reason' => $isBounce['reason'],
-                                ];
-                                if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'email_bounce_type')) {
-                                    $userUpdate['email_bounce_type'] = $isBounce['type'] ?? 'hard';
-                                }
-                                $employee->update($userUpdate);
-
-                        $update = [
-                            'email_sent_status' => Payslip::STATUS_FAILED,
-                            'email_bounced' => true,
-                            'email_bounced_at' => now(),
-                            'email_bounce_reason' => $isBounce['reason'],
-                            'failure_reason' => __('payslips.email_bounced') . ': ' . $isBounce['reason']
-                        ];
-                        if (\Illuminate\Support\Facades\Schema::hasColumn('payslips', 'email_bounce_type')) {
-                            $update['email_bounce_type'] = $isBounce['type'] ?? 'hard';
-                        }
-                        $record->update($update);
-                                
-                                Log::warning('Email bounced for employee', [
-                                    'employee_id' => $employee->id,
-                                    'email' => $emailToUse,
-                                    'bounce_reason' => $isBounce['reason'],
-                                    'bounce_type' => $isBounce['type']
-                                ]);
-                                
-                                return; // Don't retry bounced emails
-                            }
-                            
-                            // Preserve existing failure reason if encryption failed, append email failure
-                            $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason)) 
-                                ? $record->failure_reason . ' | ' 
-                                : '';
-                            
-                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                            $currentRetryCount = $record->email_retry_count ?? 0;
-                            
-                            // Check if we should retry
-                            if ($currentRetryCount < $maxRetries) {
-                                // Increment retry count and schedule retry
-                                $record->update([
-                                    'email_sent_status' => Payslip::STATUS_FAILED,
-                                    'email_retry_count' => $currentRetryCount + 1,
-                                    'last_email_retry_at' => now(),
-                                    'failure_reason' => $existingReason . __('payslips.failed_to_send_email_retry_scheduled', [
-                                        'email' => $emailToUse,
-                                        'retry' => $currentRetryCount + 1,
-                                        'max' => $maxRetries
-                                    ])
-                                ]);
-                                
-                                // Calculate delay (exponential backoff: 60s, 120s, 240s, etc.)
-                                $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
-                                
-                                // Dispatch retry job with delay
-                                RetryPayslipEmailJob::dispatch($record->id)
-                                    ->delay(now()->addSeconds($retryDelay));
-                                
-                                Log::info('Email retry scheduled', [
-                                    'payslip_id' => $record->id,
-                                    'retry_count' => $currentRetryCount + 1,
-                                    'max_retries' => $maxRetries,
-                                    'delay_seconds' => $retryDelay
-                                ]);
-                            } else {
-                                // Max retries reached - mark as permanently failed
-                                $record->update([
-                                    'email_sent_status' => Payslip::STATUS_FAILED,
-                                    'sms_sent_status' => Payslip::STATUS_FAILED,
-                                    'failure_reason' => $existingReason . __('payslips.failed_to_send_email_after_max_retries', [
-                                        'max' => $maxRetries,
-                                        'email' => $emailToUse
-                                    ])
-                                ]);
-                                
-                                Log::warning('Email retry limit reached', [
-                                    'payslip_id' => $record->id,
-                                    'retry_count' => $currentRetryCount,
-                                    'max_retries' => $maxRetries
-                                ]);
-                            }
-                            
-                            Log::info('mail-failed: ' . json_encode(Mail::failures()));
-                        } else {
-                            // Email sent successfully - reset retry count
-                            $record->update([
-                                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                                'email_retry_count' => 0,
-                                'last_email_retry_at' => null,
-                                'failure_reason' => null // Clear failure reason on success
-                                ]);
+                        // Email accepted by mail server - delivery will be confirmed via webhooks
+                        $record->update([
+                            'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                            'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                            'email_sent_at' => now(),
+                            'email_retry_count' => 0,
+                            'last_email_retry_at' => null,
+                            'failure_reason' => null // Clear failure reason on success
+                        ]);
 
                                 sendSmsAndUpdateRecord($employee, $pay_month, $record, $sms_balance);
 

@@ -9,7 +9,7 @@
             </div>
             <div class="d-flex justify-content-between align-items-start">
                 <!-- Live Clock -->
-                <livewire:live-clock />
+                @include('components.live-clock')
             </div>
         </div>
         <div style="">
@@ -58,7 +58,7 @@
         <div class='mb-3 mt-0'>
             <div class='row'>
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
-                    <div class="card border-0 shadow">
+                    <div class="card border-0 shadow h-100">
                         <div class="card-body">
                             <div class="row d-block d-xl-flex align-items-center">
                                 <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
@@ -86,7 +86,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
-                    <div class="card border-0 shadow">
+                    <div class="card border-0 shadow h-100">
                         <div class="card-body">
                             <div class="row d-block d-xl-flex align-items-center">
                                 <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
@@ -114,7 +114,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
-                    <div class="card border-0 shadow">
+                    <div class="card border-0 shadow h-100">
                         <div class="card-body">
                             <div class="row d-block d-xl-flex align-items-center">
                                 <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
@@ -142,7 +142,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
-                    <div class="card border-0 shadow">
+                    <div class="card border-0 shadow h-100">
                         <div class="card-body">
                             <div class="row d-block d-xl-flex align-items-center">
                                 <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
@@ -294,7 +294,7 @@
         <div class='mb-3 mt-0'>
             <div class='row'>
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
-                    <div class="card border-0 shadow">
+                    <div class="card border-0 shadow h-100">
                         <div class="card-body">
                             <div class="row d-block d-xl-flex align-items-center">
                                 <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
@@ -333,7 +333,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
-                    <div class="card border-0 shadow">
+                    <div class="card border-0 shadow h-100">
                         <div class="card-body">
                             <div class="row d-block d-xl-flex align-items-center">
                                 <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
@@ -364,7 +364,7 @@
                 </div>
 
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
-                    <div class="card border-0 shadow">
+                    <div class="card border-0 shadow h-100">
                         <div class="card-body">
                             <div class="row d-block d-xl-flex align-items-center">
                                 <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
@@ -394,7 +394,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-sm-6 col-xl-3 mb-2">
-                    <div class="card border-0 shadow">
+                    <div class="card border-0 shadow h-100">
                         <div class="card-body">
                             <div class="row d-block d-xl-flex align-items-center">
                                 <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
@@ -469,7 +469,7 @@
         <div class="row">
             <!-- Payslips Overview Chart -->
             <div class='col-12 col-lg-8'>
-                <div class="card bg-gradient-primary border-0 shadow-lg">
+                <div class="card bg-gradient-primary border-0 shadow-lg h-100">
                     <div class="card-header d-sm-flex flex-row align-items-center flex-0 border-0">
                         <div class="d-block mb-3 mb-sm-0">
                             <div class="fs-5 fw-normal mb-2 ">{{__('dashboard.payslips_performance_overview')}}</div>
@@ -483,7 +483,9 @@
                         <div class="d-block ms-auto">
                             <div class="d-flex align-items-center text-end "><span class="dot rounded-circle bg-success me-2"></span> <span class="fw-normal small">{{__('dashboard.success')}}</span></div>
                             <div class="d-flex align-items-center text-end "><span class="dot rounded-circle bg-danger me-2"></span> <span class="fw-normal small">{{__('dashboard.failed')}}</span></div>
-                            <div class="d-flex align-items-center text-end mb-2 "><span class="dot rounded-circle bg-warning me-2"></span> <span class="fw-normal {{ $payslips_failed > 0 ? 'text-danger' : 'text-success' }}">{{__('dashboard.pending')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-1"><span class="dot rounded-circle bg-warning me-2"></span> <span class="fw-normal small">{{__('dashboard.pending')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-1"><span class="dot rounded-circle me-2" style="background-color: #6c757d;"></span> <span class="fw-normal small">{{__('dashboard.sms_disabled')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-2"><span class="dot rounded-circle me-2" style="background-color: #6f42c1;"></span> <span class="fw-normal small">{{__('dashboard.encryption_failed')}}</span></div>
                         </div>
                     </div>
                     <div class=" card-body p-3">
@@ -491,51 +493,230 @@
                     </div>
                 </div>
             </div>
-            <!-- Approval Status Pie Chart -->
+            <!-- Comprehensive Payslip Status Overview -->
             <div class="col-12 col-lg-4">
                 <div class="card border-0 shadow-lg h-100">
                     <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
                         <div class="d-block">
-                            <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.approval_status_distribution')}}</div>
-                            <div class="small text-gray">{{__('dashboard.checkin_approvals_breakdown')}}</div>
+                            <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.payslip_status_overview')}}</div>
+                            <div class="small text-gray">{{__('dashboard.comprehensive_status_breakdown')}}</div>
                         </div>
                     </div>
-                    <div class="card-body d-flex flex-column justify-content-center">
-                        <div style="position: relative; height: 250px; width: 100%;">
-                            <canvas class="approval-pie-chart" style="max-height: 250px; max-width: 100%;"></canvas>
+                    <div class="card-body">
+                        <!-- Health Score -->
+                        <div class="text-center mb-3">
+                            <div class="h5 fw-bold text-primary mb-1">{{ $comprehensive_status_chart['health_score'] }}%</div>
+                            <div class="small text-gray">{{__('dashboard.overall_health_score')}}</div>
                         </div>
-                        <div class="mt-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="d-flex align-items-center">
-                                    <div class="dot rounded-circle bg-warning me-2" style="width: 12px; height: 12px;"></div>
-                                    <span class="small">{{__('dashboard.pending')}}</span>
-                                </div>
-                                <span class="fw-bold">{{$approval_pie_chart['data'][0]}}</span>
+
+                        <!-- Success Rates -->
+                        <div class="mb-3">
+                            <div class="small fw-bold text-gray mb-2">{{__('dashboard.success_rates')}}</div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small">{{__('dashboard.email')}}:</span>
+                                <span class="badge bg-{{ $comprehensive_status_chart['success_rates']['email'] >= 90 ? 'success' : ($comprehensive_status_chart['success_rates']['email'] >= 70 ? 'warning' : 'danger') }}">
+                                    {{ $comprehensive_status_chart['success_rates']['email'] }}%
+                                </span>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="d-flex align-items-center">
-                                    <div class="dot rounded-circle bg-success me-2" style="width: 12px; height: 12px;"></div>
-                                    <span class="small">{{__('dashboard.approved')}}</span>
-                                </div>
-                                <span class="fw-bold">{{$approval_pie_chart['data'][1]}}</span>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small">{{__('dashboard.sms')}}:</span>
+                                <span class="badge bg-{{ $comprehensive_status_chart['success_rates']['sms'] >= 90 ? 'success' : ($comprehensive_status_chart['success_rates']['sms'] >= 70 ? 'warning' : 'danger') }}">
+                                    {{ $comprehensive_status_chart['success_rates']['sms'] }}%
+                                </span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <div class="dot rounded-circle bg-danger me-2" style="width: 12px; height: 12px;"></div>
-                                    <span class="small">{{__('dashboard.rejected')}}</span>
-                                </div>
-                                <span class="fw-bold">{{$approval_pie_chart['data'][2]}}</span>
+                                <span class="small">{{__('dashboard.encryption')}}:</span>
+                                <span class="badge bg-{{ $comprehensive_status_chart['success_rates']['encryption'] >= 90 ? 'success' : ($comprehensive_status_chart['success_rates']['encryption'] >= 70 ? 'warning' : 'danger') }}">
+                                    {{ $comprehensive_status_chart['success_rates']['encryption'] }}%
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Failure Counts -->
+                        <div class="mb-3">
+                            <div class="small fw-bold text-gray mb-2">{{__('dashboard.failure_counts')}}</div>
+                            @if($comprehensive_status_chart['failure_counts']['email'] > 0 || $comprehensive_status_chart['failure_counts']['sms'] > 0 || $comprehensive_status_chart['failure_counts']['encryption'] > 0)
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-danger">{{__('dashboard.email')}}:</span>
+                                <span class="fw-bold text-danger">{{ $comprehensive_status_chart['failure_counts']['email'] }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-danger">{{__('dashboard.sms')}}:</span>
+                                <span class="fw-bold text-danger">{{ $comprehensive_status_chart['failure_counts']['sms'] }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small text-danger">{{__('dashboard.encryption')}}:</span>
+                                <span class="fw-bold text-danger">{{ $comprehensive_status_chart['failure_counts']['encryption'] }}</span>
+                            </div>
+                            @else
+                            <div class="text-center text-success small">
+                                <i class="fas fa-check-circle me-1"></i>{{__('dashboard.no_failures')}}
+                            </div>
+                            @endif
+                        </div>
+
+                        <!-- Pending/Disabled Counts -->
+                        <div>
+                            <div class="small fw-bold text-gray mb-2">{{__('dashboard.pending_status')}}</div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small">{{__('dashboard.email_pending')}}:</span>
+                                <span class="fw-bold">{{ $comprehensive_status_chart['pending_counts']['email'] }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small">{{__('dashboard.sms_pending')}}:</span>
+                                <span class="fw-bold">{{ $comprehensive_status_chart['pending_counts']['sms'] }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="small">{{__('dashboard.sms_disabled')}}:</span>
+                                <span class="fw-bold">{{ $comprehensive_status_chart['pending_counts']['sms_disabled'] }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <!-- Combined Payslip Charts Row -->
+        <div class="row mt-4">
+            <!-- Weekly Payslips Distribution -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-lg h-100">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.weekly_payslips_distribution')}}</div>
+                            <h2 class="h3 fw-extrabold">{{$payslips_failed_week + $payslips_success_week}}</h2>
+                            <div class="small mt-2">
+                                <span class="fas fa-angle-up text-success"></span>
+                                <span class="text-success fw-bold">{{ ceil(($payslips_success_week/(($payslips_success_week+$payslips_failed_week) == 0 ? 1 : ($payslips_success_week+$payslips_failed_week) ))*100)}}%</span>
+                                {{__('dashboard.success_rate_this_week')}}
+                            </div>
+                        </div>
+                        <div class="d-block ms-auto">
+                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-success me-2"></span> <span class="fw-normal small">{{__('dashboard.success')}}</span></div>
+                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-danger me-2"></span> <span class="fw-normal small">{{__('dashboard.failed')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-1"><span class="dot rounded-circle bg-warning me-2"></span> <span class="fw-normal small">{{__('dashboard.pending')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-1"><span class="dot rounded-circle me-2" style="background-color: #6c757d;"></span> <span class="fw-normal small">{{__('dashboard.sms_disabled')}}</span></div>
+                            <div class="d-flex align-items-center text-end mb-2"><span class="dot rounded-circle me-2" style="background-color: #6f42c1;"></span> <span class="fw-normal small">{{__('dashboard.encryption_failed')}}</span></div>
+                        </div>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="bar-chart" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Detailed Payslip Status Breakdown -->
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 shadow-lg h-100">
+                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
+                        <div class="d-block">
+                            <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.detailed_payslip_status_breakdown')}}</div>
+                            <div class="small text-gray">{{__('dashboard.status_distribution_by_type')}}</div>
+                        </div>
+                        <div class="ms-auto">
+                            <button type="button" class="btn btn-outline-primary btn-sm" wire:click="openPayslipDetailsModal">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {{__('dashboard.view_details')}}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div style="position: relative; height: 250px; width: 100%; flex-shrink: 0;">
+                            <canvas class="payslip-status-pie-chart" style="max-height: 250px; max-width: 100%;"></canvas>
+                        </div>
+                        <div class="row mt-3 flex-grow-1">
+                            <!-- Email Status -->
+                            <div class="col-md-4">
+                                <div class="small fw-bold text-gray mb-2">{{__('dashboard.email_status')}}</div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle bg-success me-2" style="width: 8px; height: 8px;"></div>
+                                        <span class="small">{{__('dashboard.successful')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][0] }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle bg-danger me-2" style="width: 8px; height: 8px;"></div>
+                                        <span class="small">{{__('dashboard.failed')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][1] }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle bg-warning me-2" style="width: 8px; height: 8px;"></div>
+                                        <span class="small">{{__('dashboard.pending')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][2] }}</span>
+                                </div>
+                            </div>
+                            <!-- SMS Status -->
+                            <div class="col-md-4">
+                                <div class="small fw-bold text-gray mb-2">{{__('dashboard.sms_status')}}</div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle me-2" style="width: 8px; height: 8px; background-color: #20c997;"></div>
+                                        <span class="small">{{__('dashboard.successful')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][3] }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle me-2" style="width: 8px; height: 8px; background-color: #e83e8c;"></div>
+                                        <span class="small">{{__('dashboard.failed')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][4] }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle me-2" style="width: 8px; height: 8px; background-color: #fd7e14;"></div>
+                                        <span class="small">{{__('dashboard.pending')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][5] }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle me-2" style="width: 8px; height: 8px; background-color: #6c757d;"></div>
+                                        <span class="small">{{__('dashboard.disabled')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][6] }}</span>
+                                </div>
+                            </div>
+                            <!-- Encryption Status -->
+                            <div class="col-md-4">
+                                <div class="small fw-bold text-gray mb-2">{{__('dashboard.encryption_status')}}</div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle bg-primary me-2" style="width: 8px; height: 8px;"></div>
+                                        <span class="small">{{__('dashboard.successful')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][7] }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle me-2" style="width: 8px; height: 8px; background-color: #6f42c1;"></div>
+                                        <span class="small">{{__('dashboard.failed')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][8] }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="dot rounded-circle bg-secondary me-2" style="width: 8px; height: 8px;"></div>
+                                        <span class="small">{{__('dashboard.not_recorded')}}</span>
+                                    </div>
+                                    <span class="fw-bold">{{ $payslip_status_pie_chart['data'][9] }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Department Comparison Charts -->
         <div class="row mt-4">
             <div class="col-12 col-lg-6">
-                <div class="card border-0 shadow-lg">
+                <div class="card border-0 shadow-lg h-100">
                     <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
                         <div class="d-block">
                             <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.department_performance_comparison')}}</div>
@@ -558,7 +739,7 @@
             </div>
 
             <div class="col-12 col-lg-6">
-                <div class="card border-0 shadow-lg">
+                <div class="card border-0 shadow-lg h-100">
                     <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
                         <div class="d-block">
                             <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.monthly_trends')}}</div>
@@ -581,38 +762,55 @@
                 </div>
             </div>
         </div>
-
-        <!-- Weekly Payslips Chart -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-lg">
-                    <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
-                        <div class="d-block">
-                            <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.weekly_payslips_distribution')}}</div>
-                            <h2 class="h3 fw-extrabold">{{$payslips_failed_week + $payslips_success_week}}</h2>
-                            <div class="small mt-2">
-                                <span class="fas fa-angle-up text-success"></span>
-                                <span class="text-success fw-bold">{{ ceil(($payslips_success_week/(($payslips_success_week+$payslips_failed_week) == 0 ? 1 : ($payslips_success_week+$payslips_failed_week) ))*100)}}%</span>
-                                {{__('dashboard.success_rate_this_week')}}
+        <!-- Failure Details Drill-down Modal -->
+        <div class="modal fade" id="failureDetailsModal" tabindex="-1" aria-labelledby="failureDetailsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="failureDetailsModalLabel">{{__('dashboard.failure_details_breakdown')}}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-danger mb-3">{{__('dashboard.email_failures')}}</h6>
+                                <div class="small text-muted mb-2">{{__('dashboard.recent_email_failures')}}:</div>
+                                <div id="email-failures-list" class="small">
+                                    <!-- Email failures will be populated here -->
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-danger mb-3">{{__('dashboard.sms_failures')}}</h6>
+                                <div class="small text-muted mb-2">{{__('dashboard.recent_sms_failures')}}:</div>
+                                <div id="sms-failures-list" class="small">
+                                    <!-- SMS failures will be populated here -->
+                                </div>
                             </div>
                         </div>
-                        <div class="d-block ms-auto">
-                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-success me-2"></span> <span class="fw-normal small">{{__('dashboard.success')}}</span></div>
-                            <div class="d-flex align-items-center text-end"><span class="dot rounded-circle bg-warning me-2"></span> <span class="fw-normal small">{{__('dashboard.failed')}}</span></div>
-                            <div class="d-flex align-items-center text-end mb-2"><span class="dot rounded-circle bg-light me-2"></span> <span class="fw-normal small">{{__('dashboard.pending')}}</span></div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="fw-bold text-primary mb-3">{{__('dashboard.encryption_failures')}}</h6>
+                                <div class="small text-muted mb-2">{{__('dashboard.recent_encryption_failures')}}:</div>
+                                <div id="encryption-failures-list" class="small">
+                                    <!-- Encryption failures will be populated here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body p-3">
-                        <div class="bar-chart" style="height: 250px;"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{__('dashboard.close')}}</button>
+                        <a href="/portal/payslips" class="btn btn-primary">{{__('dashboard.view_all_payslips')}}</a>
                     </div>
                 </div>
             </div>
         </div>
 
+
         <!-- Department Performance Comparison -->
         <div class="row mt-4">
             <div class="col-12 col-lg-6">
-                <div class="card border-0 shadow">
+                <div class="card border-0 shadow h-100">
                     <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
                         <div class="d-block">
                             <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.top_departments_performance')}}</div>
@@ -668,7 +866,7 @@
 
             <!-- Attendance Heatmap -->
             <div class="col-12 col-lg-6">
-                <div class="card border-0 shadow">
+                <div class="card border-0 shadow h-100">
                     <div class="card-header d-flex flex-row align-items-center flex-0 border-bottom">
                         <div class="d-block">
                             <div class="h6 fw-normal text-gray mb-2">{{__('dashboard.attendance_heatmap')}}</div>
@@ -1021,9 +1219,297 @@
                 </div>
             </div>
         </div>
+        </div>
     </div>
 </div>
+
+<!-- Payslip Details Modal -->
+@if($showPayslipDetailsModal)
+<div class="modal fade show d-block" id="payslipDetailsModal" tabindex="-1" aria-labelledby="payslipDetailsModalLabel" aria-hidden="false" style="background-color: rgba(0,0,0,0.5);" wire:ignore.self>
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="payslipDetailsModalLabel">
+                    <svg class="icon icon-sm me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    {{__('dashboard.payslip_processing_details')}}
+                </h5>
+                <button type="button" class="btn-close" wire:click="closePayslipDetailsModal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Summary Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <div class="fs-4 fw-bold">{{ $comprehensive_status_chart['total_payslips'] }}</div>
+                                <div class="small">{{__('dashboard.total_payslips')}}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <div class="fs-4 fw-bold">{{ $comprehensive_status_chart['success_rates']['email'] }}%</div>
+                                <div class="small">{{__('dashboard.email_success_rate')}}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <div class="fs-4 fw-bold">{{ $comprehensive_status_chart['success_rates']['sms'] }}%</div>
+                                <div class="small">{{__('dashboard.sms_success_rate')}}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body text-center">
+                                <div class="fs-4 fw-bold">{{ $comprehensive_status_chart['success_rates']['encryption'] }}%</div>
+                                <div class="small">{{__('dashboard.encryption_success_rate')}}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Failure Details Tabs -->
+                <ul class="nav nav-tabs" id="payslipTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-failures" type="button" role="tab" aria-controls="all-failures" aria-selected="true">
+                            {{__('dashboard.all_failures')}}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#email-failures" type="button" role="tab" aria-controls="email-failures" aria-selected="false">
+                            {{__('dashboard.email_failures')}}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="sms-tab" data-bs-toggle="tab" data-bs-target="#sms-failures" type="button" role="tab" aria-controls="sms-failures" aria-selected="false">
+                            {{__('dashboard.sms_failures')}}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="encryption-tab" data-bs-toggle="tab" data-bs-target="#encryption-failures" type="button" role="tab" aria-controls="encryption-failures" aria-selected="false">
+                            {{__('dashboard.encryption_failures')}}
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3" id="payslipTabsContent">
+                    <!-- All Failures Tab -->
+                    <div class="tab-pane fade show active" id="all-failures" role="tabpanel" aria-labelledby="all-tab">
+                        <div class="row">
+                            @if(count($payslip_failure_details['email_failures']) > 0 || count($payslip_failure_details['sms_failures']) > 0 || count($payslip_failure_details['encryption_failures']) > 0)
+                                <!-- Email Failures -->
+                                @if(count($payslip_failure_details['email_failures']) > 0)
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-danger">
+                                        <div class="card-header bg-danger text-white">
+                                            <h6 class="mb-0">
+                                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 7.89a2 2 0 002.83 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                                </svg>
+                                                {{__('dashboard.email_failures')}}
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            @foreach($payslip_failure_details['email_failures'] as $failure)
+                                            <div class="mb-3 p-2 border-bottom">
+                                                <div class="fw-bold small">{{ $failure['employee_name'] }}</div>
+                                                <div class="small text-muted">{{ $failure['email'] }}</div>
+                                                <div class="small text-danger">{{ $failure['error_message'] }}</div>
+                                                <div class="small text-muted">{{ $failure['created_at'] }}</div>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- SMS Failures -->
+                                @if(count($payslip_failure_details['sms_failures']) > 0)
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-warning">
+                                        <div class="card-header bg-warning text-white">
+                                            <h6 class="mb-0">
+                                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                                </svg>
+                                                {{__('dashboard.sms_failures')}}
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            @foreach($payslip_failure_details['sms_failures'] as $failure)
+                                            <div class="mb-3 p-2 border-bottom">
+                                                <div class="fw-bold small">{{ $failure['employee_name'] }}</div>
+                                                <div class="small text-muted">{{ $failure['phone'] }}</div>
+                                                <div class="small text-danger">{{ $failure['error_message'] }}</div>
+                                                <div class="small text-muted">{{ $failure['created_at'] }}</div>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
+
+                                <!-- Encryption Failures -->
+                                @if(count($payslip_failure_details['encryption_failures']) > 0)
+                                <div class="col-md-4 mb-3">
+                                    <div class="card border-info">
+                                        <div class="card-header bg-info text-white">
+                                            <h6 class="mb-0">
+                                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                                </svg>
+                                                {{__('dashboard.encryption_failures')}}
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            @foreach($payslip_failure_details['encryption_failures'] as $failure)
+                                            <div class="mb-3 p-2 border-bottom">
+                                                <div class="fw-bold small">{{ $failure['employee_name'] }}</div>
+                                                <div class="small text-muted">{{__('dashboard.matricule')}}: {{ $failure['matricule'] }}</div>
+                                                <div class="small text-danger">{{ $failure['error_message'] }}</div>
+                                                <div class="small text-muted">{{ $failure['created_at'] }}</div>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
+                            @else
+                                <div class="col-12">
+                                    <div class="text-center py-5">
+                                        <svg class="icon icon-lg text-success mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <h5 class="text-success">{{__('dashboard.no_failures_found')}}</h5>
+                                        <p class="text-muted">{{__('dashboard.all_payslips_processed_successfully')}}</p>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Email Failures Tab -->
+                    <div class="tab-pane fade" id="email-failures" role="tabpanel" aria-labelledby="email-tab">
+                        @if(count($payslip_failure_details['email_failures']) > 0)
+                            <div class="row">
+                                @foreach($payslip_failure_details['email_failures'] as $failure)
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-danger">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-start">
+                                                <div class="avatar avatar-sm d-flex align-items-center justify-content-center fw-bold rounded bg-danger text-white me-3">
+                                                    <span>{{ strtoupper(substr($failure['employee_name'], 0, 1)) }}</span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-bold">{{ $failure['employee_name'] }}</div>
+                                                    <div class="small text-muted">{{ $failure['email'] }}</div>
+                                                    <div class="small text-danger mt-1">{{ $failure['error_message'] }}</div>
+                                                    <div class="small text-muted mt-1">{{ $failure['created_at'] }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-5">
+                                <svg class="icon icon-lg text-success mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <h5 class="text-success">{{__('dashboard.no_email_failures')}}</h5>
+                                <p class="text-muted">{{__('dashboard.all_emails_sent_successfully')}}</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- SMS Failures Tab -->
+                    <div class="tab-pane fade" id="sms-failures" role="tabpanel" aria-labelledby="sms-tab">
+                        @if(count($payslip_failure_details['sms_failures']) > 0)
+                            <div class="row">
+                                @foreach($payslip_failure_details['sms_failures'] as $failure)
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-warning">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-start">
+                                                <div class="avatar avatar-sm d-flex align-items-center justify-content-center fw-bold rounded bg-warning text-white me-3">
+                                                    <span>{{ strtoupper(substr($failure['employee_name'], 0, 1)) }}</span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-bold">{{ $failure['employee_name'] }}</div>
+                                                    <div class="small text-muted">{{ $failure['phone'] }}</div>
+                                                    <div class="small text-danger mt-1">{{ $failure['error_message'] }}</div>
+                                                    <div class="small text-muted mt-1">{{ $failure['created_at'] }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-5">
+                                <svg class="icon icon-lg text-success mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <h5 class="text-success">{{__('dashboard.no_sms_failures')}}</h5>
+                                <p class="text-muted">{{__('dashboard.all_sms_sent_successfully')}}</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Encryption Failures Tab -->
+                    <div class="tab-pane fade" id="encryption-failures" role="tabpanel" aria-labelledby="encryption-tab">
+                        @if(count($payslip_failure_details['encryption_failures']) > 0)
+                            <div class="row">
+                                @foreach($payslip_failure_details['encryption_failures'] as $failure)
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border-info">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-start">
+                                                <div class="avatar avatar-sm d-flex align-items-center justify-content-center fw-bold rounded bg-info text-white me-3">
+                                                    <span>{{ strtoupper(substr($failure['employee_name'], 0, 1)) }}</span>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-bold">{{ $failure['employee_name'] }}</div>
+                                                    <div class="small text-muted">{{__('dashboard.matricule')}}: {{ $failure['matricule'] }}</div>
+                                                    <div class="small text-danger mt-1">{{ $failure['error_message'] }}</div>
+                                                    <div class="small text-muted mt-1">{{ $failure['created_at'] }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="text-center py-5">
+                                <svg class="icon icon-lg text-success mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <h5 class="text-success">{{__('dashboard.no_encryption_failures')}}</h5>
+                                <p class="text-muted">{{__('dashboard.all_files_encrypted_successfully')}}</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" wire:click="closePayslipDetailsModal">
+                    {{__('common.close')}}
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+@endif
+
 @push('styles')
 <style>
     .bg-gradient-primary {
@@ -1119,6 +1605,79 @@
 <script src="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/chartist.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chartist@1.3.0/dist/chartist.min.css">
 
+<style>
+    /* Chartist Chart Colors - Match legend colors */
+    .line-chart .ct-series-pending .ct-line,
+    .line-chart .ct-series-pending .ct-point,
+    .line-chart .ct-series-pending .ct-area {
+        stroke: #ffc107 !important;
+        /* pending - warning/yellow */
+        fill: rgba(255, 193, 7, 0.3) !important;
+    }
+
+    .line-chart .ct-series-failed .ct-line,
+    .line-chart .ct-series-failed .ct-point,
+    .line-chart .ct-series-failed .ct-area {
+        stroke: #dc3545 !important;
+        /* failed - danger/red */
+        fill: rgba(220, 53, 69, 0.3) !important;
+    }
+
+    .line-chart .ct-series-success .ct-line,
+    .line-chart .ct-series-success .ct-point,
+    .line-chart .ct-series-success .ct-area {
+        stroke: #28a745 !important;
+        /* success - success/green */
+        fill: rgba(40, 167, 69, 0.3) !important;
+    }
+
+    .bar-chart .ct-series-pending .ct-bar {
+        stroke: #ffc107 !important;
+        /* pending - warning/yellow */
+        fill: #ffc107 !important;
+    }
+
+    .bar-chart .ct-series-failed .ct-bar {
+        stroke: #dc3545 !important;
+        /* failed - danger/red */
+        fill: #dc3545 !important;
+    }
+
+    .bar-chart .ct-series-success .ct-bar {
+        stroke: #28a745 !important;
+        /* success - success/green */
+        fill: #28a745 !important;
+    }
+
+    .bar-chart .ct-series-sms-disabled .ct-bar {
+        stroke: #6c757d !important;
+        /* sms disabled - gray */
+        fill: #6c757d !important;
+    }
+
+    .bar-chart .ct-series-encryption-issues .ct-bar {
+        stroke: #6f42c1 !important;
+        /* encryption issues - purple */
+        fill: #6f42c1 !important;
+    }
+
+    .line-chart .ct-series-sms-disabled .ct-line,
+    .line-chart .ct-series-sms-disabled .ct-point,
+    .line-chart .ct-series-sms-disabled .ct-area {
+        stroke: #6c757d !important;
+        /* sms disabled - gray */
+        fill: #6c757d !important;
+    }
+
+    .line-chart .ct-series-encryption-issues .ct-line,
+    .line-chart .ct-series-encryption-issues .ct-point,
+    .line-chart .ct-series-encryption-issues .ct-area {
+        stroke: #6f42c1 !important;
+        /* encryption issues - purple */
+        fill: #6f42c1 !important;
+    }
+</style>
+
 <script type="text/javascript">
     // New Chart.js charts
     // Initialize charts on DOM ready
@@ -1132,9 +1691,12 @@
         fetchFreshChartData();
     });
 
+    // Global variable to store the Livewire component instance
+    let livewireComponent = null;
+
     // Chart instances storage
     let chartInstances = {
-        approvalPie: null,
+        payslipStatusPie: null,
         departmentComparison: null,
         monthlyTrends: null,
         payslipLine: null,
@@ -1144,7 +1706,7 @@
     // Function to destroy existing charts
     function destroyCharts() {
         // Destroy Chart.js charts
-        if (chartInstances.approvalPie) chartInstances.approvalPie.destroy();
+        if (chartInstances.payslipStatusPie) chartInstances.payslipStatusPie.destroy();
         if (chartInstances.departmentComparison) chartInstances.departmentComparison.destroy();
         if (chartInstances.monthlyTrends) chartInstances.monthlyTrends.destroy();
 
@@ -1181,7 +1743,7 @@
         // Get the current Livewire component instance
         const livewireElement = document.querySelector('[wire\\:id]');
         if (livewireElement) {
-            const livewireComponent = Livewire.find(livewireElement.getAttribute('wire:id'));
+            livewireComponent = Livewire.find(livewireElement.getAttribute('wire:id'));
 
             if (livewireComponent) {
                 // Call the chart data methods on the Livewire component
@@ -1205,49 +1767,41 @@
         Chart.defaults.borderColor = '#333';
         Chart.defaults.backgroundColor = 'rgba(54, 162, 235, 0.2)';
 
-        // Approval Status Pie Chart
-        const approvalPieElement = document.querySelector('.approval-pie-chart');
-        if (approvalPieElement) {
-            const approvalPieCtx = approvalPieElement.getContext('2d');
-            chartInstances.approvalPie = new Chart(approvalPieCtx, {
+        // Payslip Status Pie Chart
+        const payslipStatusPieElement = document.querySelector('.payslip-status-pie-chart');
+        if (payslipStatusPieElement) {
+            const payslipStatusPieCtx = payslipStatusPieElement.getContext('2d');
+            chartInstances.payslipStatusPie = new Chart(payslipStatusPieCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: @json($approval_pie_chart['labels']),
+                    labels: @json($payslip_status_pie_chart['labels']),
                     datasets: [{
-                        data: @json($approval_pie_chart['data']),
-                        backgroundColor: @json($approval_pie_chart['colors']),
-                        borderWidth: 0,
-                        cutout: '60%'
+                        data: @json($payslip_status_pie_chart['data']),
+                        backgroundColor: @json($payslip_status_pie_chart['colors']),
+                        borderWidth: 2,
+                        borderColor: '#fff'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    aspectRatio: 1,
                     plugins: {
                         legend: {
-                            display: false
+                            display: false // We'll show custom legend below
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            borderColor: '#fff',
-                            borderWidth: 1,
                             callbacks: {
                                 label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return label + ': ' + value + ' (' + percentage + '%)';
                                 }
                             }
                         }
                     },
-                    elements: {
-                        arc: {
-                            borderWidth: 0
-                        }
-                    }
+                    cutout: '50%'
                 }
             });
         }
@@ -1419,10 +1973,31 @@
 
                 chartInstances.payslipLine = new Chartist.Line('.line-chart', {
                     labels: chartData.periods || [],
-                    series: [
-                        chartData.pending || [],
-                        chartData.failed || [],
-                        chartData.success || []
+                    series: [{
+                            name: 'pending',
+                            data: chartData.pending || [],
+                            className: 'ct-series-pending'
+                        },
+                        {
+                            name: 'failed',
+                            data: chartData.failed || [],
+                            className: 'ct-series-failed'
+                        },
+                        {
+                            name: 'success',
+                            data: chartData.success || [],
+                            className: 'ct-series-success'
+                        },
+                        {
+                            name: 'sms_disabled',
+                            data: chartData.sms_disabled || [],
+                            className: 'ct-series-sms-disabled'
+                        },
+                        {
+                            name: 'encryption_issues',
+                            data: chartData.encryption_issues || [],
+                            className: 'ct-series-encryption-issues'
+                        }
                     ]
                 }, {
                     low: 0,
@@ -1457,10 +2032,21 @@
 
                 chartInstances.payslipBar = new Chartist.Bar('.bar-chart', {
                     labels: barChartData.periods || [],
-                    series: [
-                        barChartData.pending || [],
-                        barChartData.failed || [],
-                        barChartData.success || []
+                    series: [{
+                            name: 'pending',
+                            data: barChartData.pending || [],
+                            className: 'ct-series-pending'
+                        },
+                        {
+                            name: 'failed',
+                            data: barChartData.failed || [],
+                            className: 'ct-series-failed'
+                        },
+                        {
+                            name: 'success',
+                            data: barChartData.success || [],
+                            className: 'ct-series-success'
+                        }
                     ]
                 }, {
                     low: 0,
@@ -1491,49 +2077,41 @@
         Chart.defaults.borderColor = '#333';
         Chart.defaults.backgroundColor = 'rgba(54, 162, 235, 0.2)';
 
-        // Approval Status Pie Chart
-        const approvalPieElement = document.querySelector('.approval-pie-chart');
-        if (approvalPieElement && chartData.approval_pie_chart) {
-            const approvalPieCtx = approvalPieElement.getContext('2d');
-            chartInstances.approvalPie = new Chart(approvalPieCtx, {
+        // Payslip Status Pie Chart
+        const payslipStatusPieElement = document.querySelector('.payslip-status-pie-chart');
+        if (payslipStatusPieElement && chartData.payslip_status_pie_chart) {
+            const payslipStatusPieCtx = payslipStatusPieElement.getContext('2d');
+            chartInstances.payslipStatusPie = new Chart(payslipStatusPieCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: chartData.approval_pie_chart.labels,
+                    labels: chartData.payslip_status_pie_chart.labels,
                     datasets: [{
-                        data: chartData.approval_pie_chart.data,
-                        backgroundColor: chartData.approval_pie_chart.colors,
-                        borderWidth: 0,
-                        cutout: '60%'
+                        data: chartData.payslip_status_pie_chart.data,
+                        backgroundColor: chartData.payslip_status_pie_chart.colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    aspectRatio: 1,
                     plugins: {
                         legend: {
-                            display: false
+                            display: false // We'll show custom legend below
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#fff',
-                            bodyColor: '#fff',
-                            borderColor: '#fff',
-                            borderWidth: 1,
                             callbacks: {
                                 label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return label + ': ' + value + ' (' + percentage + '%)';
                                 }
                             }
                         }
                     },
-                    elements: {
-                        arc: {
-                            borderWidth: 0
-                        }
-                    }
+                    cutout: '50%'
                 }
             });
         }
@@ -1704,10 +2282,21 @@
 
                     chartInstances.payslipLine = new Chartist.Line('.line-chart', {
                         labels: chartData.chart_data.periods || [],
-                        series: [
-                            chartData.chart_data.pending || [],
-                            chartData.chart_data.failed || [],
-                            chartData.chart_data.success || []
+                        series: [{
+                                name: 'pending',
+                                data: chartData.chart_data.pending || [],
+                                className: 'ct-series-pending'
+                            },
+                            {
+                                name: 'failed',
+                                data: chartData.chart_data.failed || [],
+                                className: 'ct-series-failed'
+                            },
+                            {
+                                name: 'success',
+                                data: chartData.chart_data.success || [],
+                                className: 'ct-series-success'
+                            }
                         ]
                     }, {
                         low: 0,
@@ -1740,10 +2329,31 @@
 
                     chartInstances.payslipBar = new Chartist.Bar('.bar-chart', {
                         labels: chartData.chart_daily.periods || [],
-                        series: [
-                            chartData.chart_daily.pending || [],
-                            chartData.chart_daily.failed || [],
-                            chartData.chart_daily.success || []
+                        series: [{
+                                name: 'pending',
+                                data: chartData.chart_daily.pending || [],
+                                className: 'ct-series-pending'
+                            },
+                            {
+                                name: 'failed',
+                                data: chartData.chart_daily.failed || [],
+                                className: 'ct-series-failed'
+                            },
+                            {
+                                name: 'success',
+                                data: chartData.chart_daily.success || [],
+                                className: 'ct-series-success'
+                            },
+                            {
+                                name: 'sms_disabled',
+                                data: chartData.chart_daily.sms_disabled || [],
+                                className: 'ct-series-sms-disabled'
+                            },
+                            {
+                                name: 'encryption_issues',
+                                data: chartData.chart_daily.encryption_issues || [],
+                                className: 'ct-series-encryption-issues'
+                            }
                         ]
                     }, {
                         low: 0,
@@ -1765,6 +2375,95 @@
                     console.error('Error creating dynamic bar chart:', error);
                 }
             }
+        }
+    }
+
+    // Function to add drill-down functionality to charts
+    function addChartDrillDown(chartInstance, chartType) {
+        if (!chartInstance) return;
+
+        chartInstance.on('draw', function(data) {
+            if (data.type === 'line' || data.type === 'bar' || data.type === 'point') {
+                // Make chart elements clickable
+                data.element._node.addEventListener('click', function() {
+                    const seriesName = data.series.name;
+                    if (seriesName === 'failed' || seriesName === 'encryption_issues') {
+                        showFailureDetailsModal(seriesName);
+                    }
+                });
+
+                // Add cursor pointer for clickable elements
+                data.element._node.style.cursor = 'pointer';
+            }
+        });
+    }
+
+    // Function to show failure details modal
+    function showFailureDetailsModal(failureType) {
+        if (!livewireComponent) {
+            console.error('Livewire component not available');
+            return;
+        }
+
+        // Call Livewire method to get failure details
+        livewireComponent.call('getFailureDetails', failureType).then((details) => {
+            // Populate modal with failure details
+            populateFailureModal(details);
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('failureDetailsModal'));
+            modal.show();
+        });
+    }
+
+    // Function to populate failure modal with data
+    function populateFailureModal(details) {
+        // Translation strings
+        const translations = {
+            no_email_failures_found: @json(__('dashboard.no_email_failures_found')),
+            no_sms_failures_found: @json(__('dashboard.no_sms_failures_found')),
+            no_encryption_failures_found: @json(__('dashboard.no_encryption_failures_found'))
+        };
+
+        // Populate email failures
+        const emailList = document.getElementById('email-failures-list');
+        if (details.email_failures && details.email_failures.length > 0) {
+            emailList.innerHTML = details.email_failures.map(failure =>
+                `<div class="mb-2 p-2 bg-light rounded small">
+                    <strong>${failure.employee_name}</strong><br>
+                    <span class="text-muted">${failure.email}</span><br>
+                    <span class="text-danger">${failure.error_message}</span>
+                </div>`
+            ).join('');
+        } else {
+            emailList.innerHTML = '<div class="text-muted">' + translations.no_email_failures_found + '</div>';
+        }
+
+        // Populate SMS failures
+        const smsList = document.getElementById('sms-failures-list');
+        if (details.sms_failures && details.sms_failures.length > 0) {
+            smsList.innerHTML = details.sms_failures.map(failure =>
+                `<div class="mb-2 p-2 bg-light rounded small">
+                    <strong>${failure.employee_name}</strong><br>
+                    <span class="text-muted">${failure.phone}</span><br>
+                    <span class="text-danger">${failure.error_message}</span>
+                </div>`
+            ).join('');
+        } else {
+            smsList.innerHTML = '<div class="text-muted">' + translations.no_sms_failures_found + '</div>';
+        }
+
+        // Populate encryption failures
+        const encryptionList = document.getElementById('encryption-failures-list');
+        if (details.encryption_failures && details.encryption_failures.length > 0) {
+            encryptionList.innerHTML = details.encryption_failures.map(failure =>
+                `<div class="mb-2 p-2 bg-light rounded small">
+                    <strong>${failure.employee_name}</strong><br>
+                    <span class="text-muted">${failure.matricule}</span><br>
+                    <span class="text-danger">${failure.error_message}</span>
+                </div>`
+            ).join('');
+        } else {
+            encryptionList.innerHTML = '<div class="text-muted">' + translations.no_encryption_failures_found + '</div>';
         }
     }
 

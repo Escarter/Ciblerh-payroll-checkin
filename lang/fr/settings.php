@@ -17,21 +17,42 @@ return [
     'security_settings' => 'Paramètres de sécurité',
     'integration_settings' => 'Paramètres d\'intégration',
 
-    // SMTP Settings
-    'smtp_provider' => 'Fournisseur SMTP',
+    // Email Settings
+    'email_provider' => 'Fournisseur d\'email',
+    'smtp_configuration' => 'Configuration SMTP',
     'smtp' => 'SMTP',
-    'mailgun' => 'MailGun',
+    'mailgun' => 'Mailgun',
+    'ses' => 'Amazon SES',
+    'postmark' => 'Postmark',
+    'sendmail' => 'Sendmail',
+    'mailpit' => 'Mailpit',
+    'log' => 'Journal',
+    'array' => 'Tableau',
+
+    // SMTP Settings
     'smtp_host' => 'Hôte SMTP',
     'smtp_port' => 'Port SMTP',
     'smtp_username' => 'Nom d\'utilisateur SMTP',
     'smtp_password' => 'Mot de passe SMTP',
     'smtp_encryption' => 'Chiffrement SMTP',
-    'smtp_from_address' => 'Adresse expéditeur',
-    'smtp_from_name' => 'Nom expéditeur',
+
+    // Email Settings
+    'from_email' => 'Email expéditeur',
+    'from_name' => 'Nom expéditeur',
+    'reply_to_email' => 'Email de réponse',
+    'reply_to_name' => 'Nom de réponse',
+
     'test_email' => 'Email de test',
     'send_test_email' => 'Envoyer un email de test',
-    'smtp_settings_saved' => 'Paramètres SMTP enregistrés avec succès!',
-    'smtp_test_sent' => 'Email de test envoyé avec succès!',
+    'setting_for_smtp_successfully_added' => 'Paramètres email enregistrés avec succès!',
+    'test_email_sent_successfully' => 'Email de test envoyé avec succès!',
+    'setting_for_smtp_required' => 'Les paramètres email sont requis pour envoyer des emails de test',
+
+    // Provider-specific information
+    'smtp_limitations' => 'Limitations SMTP',
+    'smtp_webhook_note' => 'SMTP ne prend pas en charge les webhooks pour la confirmation de livraison. Le statut de livraison des emails sera suivi uniquement via la gestion des rebonds.',
+    'transactional_webhook_note' => 'Ce fournisseur prend en charge les webhooks pour la confirmation de livraison en temps réel.',
+    'development_driver_note' => 'Ceci est un pilote de développement/test et ne doit pas être utilisé en production.',
 
     // SMS Settings
     'sms_provider' => 'Fournisseur SMS',
@@ -83,11 +104,146 @@ return [
     // Integration Settings
     'api_settings' => 'Paramètres API',
     'webhook_settings' => 'Paramètres webhook',
+    'webhook_configuration' => 'Configuration webhook',
     'third_party_integrations' => 'Intégrations tierces',
     'api_key' => 'Clé API',
     'api_secret' => 'Secret API',
     'webhook_url' => 'URL webhook',
     'webhook_secret' => 'Secret webhook',
+    'webhook_setup_required' => 'Configuration webhook requise',
+    'webhook_setup_instructions' => 'Configurez les webhooks dans le tableau de bord de votre fournisseur d\'email pour recevoir des notifications de livraison en temps réel.',
+    'webhook_url_help' => 'Copiez cette URL et collez-la dans la configuration webhook de votre fournisseur d\'email.',
+
+    // Mailgun Webhook Setup
+    'mailgun_webhook_setup' => 'Configuration webhook Mailgun',
+    'mailgun_webhook_step_1' => 'Allez dans votre tableau de bord Mailgun → Webhooks',
+    'mailgun_webhook_step_2' => 'Créez un nouveau webhook pour les événements: Livré, Rebondi, Plainte, Désabonné',
+    'mailgun_webhook_step_3' => 'Collez l\'URL webhook ci-dessus dans le champ URL',
+
+    // SES Webhook Setup
+    'ses_webhook_setup' => 'Configuration webhook Amazon SES',
+    'ses_webhook_step_1' => 'Allez dans la console Amazon SES → Ensembles de configuration',
+    'ses_webhook_step_2' => 'Créez ou modifiez un ensemble de configuration avec un sujet SNS pour les notifications',
+    'ses_webhook_step_3' => 'Configurez le sujet SNS pour envoyer des webhooks à l\'URL ci-dessus',
+
+    // Postmark Webhook Setup
+    'postmark_webhook_setup' => 'Configuration webhook Postmark',
+    'postmark_webhook_step_1' => 'Allez dans le tableau de bord Postmark → Webhooks',
+    'postmark_webhook_step_2' => 'Créez un nouveau webhook pour les événements: Livré, Rebondi, Plainte spam',
+    'postmark_webhook_step_3' => 'Collez l\'URL webhook ci-dessus dans le champ URL',
+
+    // Provider Information
+    'get_credentials' => 'Obtenir les identifiants',
+    'setup' => 'Configuration',
+    'pricing' => 'Tarification',
+    'support' => 'Support',
+    'documentation' => 'Documentation',
+    'best_for' => 'Idéal pour',
+    'webhook_support' => 'Support webhook',
+    'yes' => 'Oui',
+    'no' => 'Non',
+
+    // NEXAH SMS Provider
+    'nexah_info_title' => 'NEXAH - Fournisseur SMS local africain',
+    'nexah_description' => 'NEXAH est un fournisseur SMS leader en Afrique, offrant une livraison locale fiable avec des prix compétitifs.',
+    'nexah_step_1' => 'Visitez nexah.net et créez un compte',
+    'nexah_step_2' => 'Complétez la vérification et financez votre compte',
+    'nexah_step_3' => 'Copiez vos identifiants API depuis le tableau de bord',
+    'nexah_pricing' => 'Paiement à l\'usage, à partir de 0,02 $/SMS',
+    'nexah_support' => 'Support local disponible',
+
+    // Twilio SMS Provider
+    'twilio_info_title' => 'Twilio - Fournisseur SMS mondial',
+    'twilio_description' => 'Twilio fournit une livraison SMS mondiale avec des fonctionnalités avancées comme la messagerie programmable et le suivi de livraison.',
+    'twilio_step_1' => 'Inscrivez-vous sur twilio.com',
+    'twilio_step_2' => 'Achetez un numéro de téléphone et vérifiez votre compte',
+    'twilio_step_3' => 'Obtenez votre Account SID et Auth Token depuis la console',
+    'twilio_pricing' => 'Paiement à l\'usage, 0,0075-0,05 $/SMS selon la destination',
+    'twilio_docs' => 'Voir la documentation SMS Twilio',
+
+    // AWS SNS Provider
+    'aws_sns_info_title' => 'AWS SNS - Service SMS cloud',
+    'aws_sns_description' => 'Amazon SNS fournit une livraison SMS évolutive intégrée à l\'écosystème AWS et autres services cloud.',
+    'aws_sns_step_1' => 'Créez un compte AWS sur aws.amazon.com',
+    'aws_sns_step_2' => 'Configurez un utilisateur IAM avec les permissions SNS',
+    'aws_sns_step_3' => 'Obtenez votre Access Key ID et Secret Access Key',
+    'aws_sns_pricing' => 'Paiement à l\'usage, 0,00645-0,09 $/SMS selon la destination',
+    'aws_sns_docs' => 'Voir la documentation AWS SNS',
+
+    // SMTP Provider
+    'smtp_info_title' => 'SMTP - Serveur email standard',
+    'smtp_description' => 'Connectez-vous à n\'importe quel serveur SMTP incluant Gmail, Outlook, ou votre propre serveur email.',
+    'smtp_step_1' => 'Contactez votre fournisseur email ou département IT',
+    'smtp_step_2' => 'Demandez les détails du serveur SMTP et les identifiants',
+    'smtp_step_3' => 'Note: Peut nécessiter des mots de passe d\'application pour Gmail/Outlook',
+    'smtp_best_for' => 'Infrastructure email existante',
+
+    // Mailgun Provider
+    'mailgun_info_title' => 'Mailgun - Service email transactionnel',
+    'mailgun_description' => 'Mailgun fournit un email transactionnel puissant avec webhooks, analyses, et taux de délivrabilité élevés.',
+    'mailgun_step_1' => 'Inscrivez-vous sur mailgun.com',
+    'mailgun_step_2' => 'Vérifiez votre domaine et configurez les enregistrements DNS',
+    'mailgun_step_3' => 'Obtenez votre clé API et domaine depuis le tableau de bord',
+    'mailgun_pricing' => 'Niveau gratuit: 5 000 emails/mois, puis 0,80 $/1 000 emails',
+    'mailgun_docs' => 'Voir la documentation Mailgun',
+
+    // Amazon SES Provider
+    'ses_info_title' => 'Amazon SES - Service email cloud',
+    'ses_description' => 'Amazon SES offre une livraison email évolutive avec analyses avancées et intégration aux services AWS.',
+    'ses_step_1' => 'Configurez un compte AWS et allez dans la console SES',
+    'ses_step_2' => 'Vérifiez vos domaines ou adresses email',
+    'ses_step_3' => 'Créez des identifiants IAM avec permissions SES',
+    'ses_pricing' => 'Niveau gratuit: 62 000 emails/mois, puis 0,10 $/1 000 emails',
+    'ses_docs' => 'Voir la documentation Amazon SES',
+
+    // Postmark Provider
+    'postmark_info_title' => 'Postmark - Email axé sur la délivrabilité',
+    'postmark_description' => 'Postmark se spécialise dans l\'email transactionnel avec une délivrabilité exceptionnelle et analyses détaillées.',
+    'postmark_step_1' => 'Inscrivez-vous sur postmarkapp.com',
+    'postmark_step_2' => 'Vérifiez votre domaine et créez un serveur',
+    'postmark_step_3' => 'Obtenez votre Server API Token depuis le tableau de bord',
+    'postmark_pricing' => 'Niveau gratuit: 100 emails/jour, puis 1,50 $/1 000 emails',
+    'postmark_docs' => 'Voir la documentation Postmark',
+
+    // Sendmail Provider
+    'sendmail_info_title' => 'Sendmail - Email serveur local',
+    'sendmail_description' => 'Sendmail est une solution serveur email locale pour les systèmes avec leur propre infrastructure mail.',
+    'sendmail_step_1' => 'Assurez-vous que sendmail est installé sur votre serveur',
+    'sendmail_step_2' => 'Configurez sendmail pour votre domaine',
+    'sendmail_best_for' => 'Serveurs auto-hébergés avec configuration mail locale',
+
+    // Development Providers
+    'development_provider_title' => 'Fournisseur développement/test',
+    'development_provider_description' => 'Ces fournisseurs sont conçus pour les environnements de développement et test. Ne pas utiliser en production.',
+
+    // Additional UI Text
+    'verify_sms_setup' => 'Vérifiez que votre configuration SMS fonctionne correctement',
+    'email_configuration_guide' => 'Guide de configuration email',
+    'email_setup_overview' => 'Guide complet pour configurer la livraison email',
+    'general_setup_steps' => 'Étapes générales de configuration',
+    'select_provider_and_get_credentials' => 'Sélectionnez votre fournisseur email et obtenez les identifiants API',
+    'configure_provider_settings' => 'Configurez les paramètres spécifiques au fournisseur dans le formulaire ci-dessus',
+    'setup_webhooks_optional' => 'Configurez les webhooks (recommandé pour le suivi de livraison)',
+    'test_configuration' => 'Testez votre configuration en utilisant le formulaire ci-dessous',
+    'configure_email_templates' => 'Configurez les modèles d\'email et la messagerie',
+    'pro_tip' => 'Astuce pro',
+    'webhook_recommendation' => 'Utilisez des fournisseurs avec support webhook (Mailgun, SES, Postmark) pour des notifications de livraison en temps réel et un meilleur suivi.',
+    'test_email_configuration' => 'Tester la configuration email',
+    'test_email_setup_instructions' => 'Envoyez un email de test pour vérifier votre configuration',
+
+    // Provider Information Section
+    'provider_information' => 'Informations sur les fournisseurs',
+    'sms_providers' => 'Fournisseurs SMS',
+    'email_providers' => 'Fournisseurs email',
+    'how_to_get_sms_credentials' => 'Comment obtenir les identifiants des fournisseurs SMS',
+    'how_to_get_email_credentials' => 'Comment obtenir les identifiants des fournisseurs email',
+    'sms_providers_guide' => 'Guide des fournisseurs SMS',
+    'email_providers_guide' => 'Guide des fournisseurs email',
+    'available_sms_providers' => 'Fournisseurs SMS disponibles',
+    'available_email_providers' => 'Fournisseurs email disponibles',
+    'recommended' => 'Recommandé',
+    'credentials' => 'Identifiants',
+    'guide' => 'Guide',
 
     // Actions
     'save_settings' => 'Enregistrer les paramètres',

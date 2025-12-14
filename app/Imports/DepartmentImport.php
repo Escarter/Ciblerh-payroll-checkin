@@ -388,4 +388,16 @@ class DepartmentImport implements ToModel, WithStartRow, SkipsEmptyRows, WithVal
             '0.max' => __('departments.name_cannot_exceed_255_characters'),
         ];
     }
+
+    /**
+     * Custom attribute names for validation error messages
+     */
+    public function customValidationAttributes(): array
+    {
+        return [
+            '0' => __('departments.name'),
+            '1' => __('employees.email'),
+            '2' => __('companies.company'),
+        ];
+    }
 }

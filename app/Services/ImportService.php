@@ -85,6 +85,13 @@ class ImportService
                         'label' => __('import_types.auto_create_departments_services'),
                         'required' => false,
                         'default' => false
+                    ],
+                    'send_welcome_emails' => [
+                        'type' => 'checkbox',
+                        'label' => __('common.send_welcome_emails'),
+                        'required' => false,
+                        'default' => false,
+                        'description' => __('common.send_welcome_emails_description')
                     ]
                 ]
             ],
@@ -240,6 +247,7 @@ class ImportService
             $job->company_id,
             $job->department_id,
             $job->import_config['auto_create_entities'] ?? false,
+            $job->import_config['send_welcome_emails'] ?? false,
             $job->id
         );
     }

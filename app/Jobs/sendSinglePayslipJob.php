@@ -59,16 +59,13 @@ class sendSinglePayslipJob implements ShouldQueue
             
             Mail::to($this->employee->email)->send(new SendPayslip($this->employee, $destination, $this->record->month))->onQueue('emails');
 
-            if (Mail::failures()) {
-                $this->record->update([
-                    'email_sent_status' => 'failed',
-                    'sms_sent_status' => 'failed',
-                    'failure_reason' => __('payslips.failed_sending_email_sms')
-                ]);
-            } else {
-                $this->record->update(['email_sent_status' => 'successful']);
-                sendSmsAndUpdateRecord($this->employee, $this->record->month, $this->record);
-            }
+            // Email accepted by mail server - delivery will be confirmed via webhooks
+            $this->record->update([
+                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                'email_sent_at' => now(),
+            ]);
+            sendSmsAndUpdateRecord($this->employee, $this->record->month, $this->record);
         } else {
             $this->record->update([
                 'email_sent_status' => 'failed',

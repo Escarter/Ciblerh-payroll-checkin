@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Gate;
 use App\Jobs\Plan\PayslipSendingPlan;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
+use App\Jobs\Single\ResendFailedPayslipJob;
 
 class Index extends Component
 {
@@ -23,14 +24,20 @@ class Index extends Component
     public $companies = [];
     public $departments = [];
     public $company_id, $department_id, $month, $payslip_file;
-    public ?int $job_id = null;
+    public $job_id = null;
 
     public ?SendPayslipProcess $send_payslip_process;
-    
+
     // Soft delete properties
     public $activeTab = 'active';
     public $selectedSendPayslipProcesses = [];
     public $selectAll = false;
+
+    // Task details modal properties
+    public ?SendPayslipProcess $selectedProcess = null;
+
+    // Individual payslip details modal properties
+    public $selectedPayslip = null;
 
     public function initData($job_id)
     {
@@ -59,13 +66,13 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('payslips.payslip_process_moved_to_trash'), 'DeleteModal');
     }
 
-    public function restore()
+    public function restore($processId)
     {
         if (!Gate::allows('payslip-delete')) {
             return abort(401);
         }
 
-        $process = SendPayslipProcess::withTrashed()->findOrFail($this->job_id);
+        $process = SendPayslipProcess::withTrashed()->findOrFail($processId);
         $process->restore();
 
         $this->closeModalAndFlashMessage(__('payslips.payslip_process_restored'), 'RestoreModal');
@@ -180,9 +187,524 @@ class Index extends Component
         return $query->orderBy('created_at', 'desc')->take(20)->get();
     }
 
+    public function showTaskDetails($processId)
+    {
+        $this->selectedProcess = SendPayslipProcess::with(['department', 'owner', 'payslips'])->findOrFail($processId);
+
+        // Clear cached statistics when loading a new process
+        $this->cachedTaskStatistics = null;
+        $this->cachedAdvancedStatistics = null;
+        $this->cachedPerformanceMetrics = null;
+    }
+
+    public function closeTaskDetailsModal()
+    {
+        $this->selectedProcess = null;
+
+        // Clear cached statistics when closing modal
+        $this->cachedTaskStatistics = null;
+        $this->cachedAdvancedStatistics = null;
+        $this->cachedPerformanceMetrics = null;
+    }
+
+    public function showPayslipDetails($payslipId)
+    {
+        $this->selectedPayslip = \App\Models\Payslip::with(['sendPayslipProcess.department', 'sendPayslipProcess.owner'])->findOrFail($payslipId);
+    }
+
+    public function closePayslipDetailsModal()
+    {
+        $this->selectedPayslip = null;
+    }
+
+    public function getPayslipOverallStatus($payslip)
+    {
+        // If encryption failed, overall status is failed
+        if ($payslip->encryption_status == 2) {
+            return 'failed';
+        }
+
+        // If encryption is successful and either email or SMS is sent, it's success
+        if ($payslip->encryption_status == 1 && ($payslip->email_sent_status == 1 || $payslip->sms_sent_status == 1)) {
+            return 'success';
+        }
+
+        // If encryption is successful but both email and SMS failed, it's failed
+        if ($payslip->encryption_status == 1 && $payslip->email_sent_status == 2 && $payslip->sms_sent_status == 2) {
+            return 'failed';
+        }
+
+        // If encryption is successful but email and SMS are disabled, it's success
+        if ($payslip->encryption_status == 1 && $payslip->email_sent_status == 3 && $payslip->sms_sent_status == 3) {
+            return 'success';
+        }
+
+        // Otherwise, it's still processing
+        return 'processing';
+    }
+
+    public function resendPayslip($payslipId)
+    {
+        $payslip = \App\Models\Payslip::findOrFail($payslipId);
+
+        // Reset statuses to allow reprocessing
+        $payslip->update([
+            'encryption_status' => 0,
+            'email_sent_status' => 0,
+            'sms_sent_status' => 0,
+            'encryption_status_note' => null,
+            'email_status_note' => null,
+            'sms_status_note' => null,
+        ]);
+
+        // Trigger reprocessing
+        \App\Jobs\Single\ResendFailedPayslipJob::dispatch($payslip);
+
+        session()->flash('message', __('payslips.payslip_queued_for_resend'));
+        $this->closePayslipDetailsModal();
+    }
+
+    public function getTaskProgressPercentage()
+    {
+        if (!$this->selectedProcess) {
+            return 0;
+        }
+
+        $totalPayslips = $this->selectedProcess->payslips()->count();
+        if ($totalPayslips === 0) {
+            return 0;
+        }
+
+        // Consider a payslip as completed if it's successfully encrypted and sent via email or SMS
+        $completedPayslips = $this->selectedProcess->payslips()
+            ->where('encryption_status', 1)
+            ->where(function ($query) {
+                $query->where('email_sent_status', 1)
+                      ->orWhere('sms_sent_status', 1);
+            })
+            ->count();
+
+        return ($completedPayslips / $totalPayslips) * 100;
+    }
+
+    // Cached statistics to prevent repeated calculations
+    private $cachedTaskStatistics = null;
+    private $cachedAdvancedStatistics = null;
+    private $cachedPerformanceMetrics = null;
+
+    public function getTaskStatistics()
+    {
+        if (!$this->selectedProcess) {
+            return [
+                'total' => 0,
+                'successful' => 0,
+                'pending' => 0,
+                'failed' => 0,
+                'processing' => 0,
+                'successful_percentage' => 0,
+                'pending_percentage' => 0,
+                'failed_percentage' => 0,
+                'processing_percentage' => 0,
+            ];
+        }
+
+        // Use cached statistics if available, otherwise calculate and cache
+        if (!isset($this->cachedTaskStatistics) || $this->cachedTaskStatistics === null) {
+            $this->cachedTaskStatistics = $this->calculateTaskStatistics();
+        }
+
+        return $this->cachedTaskStatistics;
+    }
+
+    private function calculateTaskStatistics()
+    {
+        // Eager load payslips to prevent N+1 queries
+        $payslips = $this->selectedProcess->payslips()
+            ->select(['id', 'encryption_status', 'email_sent_status', 'sms_sent_status'])
+            ->get();
+
+        $total = $payslips->count();
+
+        if ($total === 0) {
+            return [
+                'total' => 0,
+                'successful' => 0,
+                'pending' => 0,
+                'failed' => 0,
+                'processing' => 0,
+                'successful_percentage' => 0,
+                'pending_percentage' => 0,
+                'failed_percentage' => 0,
+                'processing_percentage' => 0,
+            ];
+        }
+
+        $successful = 0;
+        $failed = 0;
+        $processing = 0;
+        $pending = 0;
+
+        foreach ($payslips as $payslip) {
+            $status = $this->getPayslipOverallStatus($payslip);
+
+            switch ($status) {
+                case 'success':
+                    $successful++;
+                    break;
+                case 'failed':
+                    $failed++;
+                    break;
+                case 'processing':
+                    $processing++;
+                    break;
+                default:
+                    $pending++;
+                    break;
+            }
+        }
+
+        return [
+            'total' => $total,
+            'successful' => $successful,
+            'pending' => $pending,
+            'failed' => $failed,
+            'processing' => $processing,
+            'successful_percentage' => $total > 0 ? ($successful / $total) * 100 : 0,
+            'pending_percentage' => $total > 0 ? ($pending / $total) * 100 : 0,
+            'failed_percentage' => $total > 0 ? ($failed / $total) * 100 : 0,
+            'processing_percentage' => $total > 0 ? ($processing / $total) * 100 : 0,
+        ];
+    }
+
+    public function getAdvancedTaskStatistics()
+    {
+        if (!$this->selectedProcess) {
+            return [
+                'estimated_completion_time' => 'N/A',
+                'average_processing_time' => 'N/A',
+                'first_error_timestamp' => 'N/A',
+                'last_success_timestamp' => 'N/A',
+            ];
+        }
+
+        // Use cached advanced statistics if available
+        if (!isset($this->cachedAdvancedStatistics) || $this->cachedAdvancedStatistics === null) {
+            $this->cachedAdvancedStatistics = $this->calculateAdvancedTaskStatistics();
+        }
+
+        return $this->cachedAdvancedStatistics;
+    }
+
+    private function calculateAdvancedTaskStatistics()
+    {
+        $payslips = $this->selectedProcess->payslips()
+            ->select(['id', 'created_at', 'updated_at', 'encryption_status', 'email_sent_status', 'sms_sent_status'])
+            ->get();
+
+        $result = [
+            'estimated_completion_time' => 'N/A',
+            'average_processing_time' => 'N/A',
+            'first_error_timestamp' => 'N/A',
+            'last_success_timestamp' => 'N/A',
+        ];
+
+        if ($payslips->isEmpty()) {
+            return $result;
+        }
+
+        // Calculate processing metrics
+        $completedPayslips = $payslips->filter(function ($payslip) {
+            return $this->getPayslipOverallStatus($payslip) === 'success';
+        });
+
+        $failedPayslips = $payslips->filter(function ($payslip) {
+            return $this->getPayslipOverallStatus($payslip) === 'failed';
+        });
+
+        $processingPayslips = $payslips->filter(function ($payslip) {
+            return $this->getPayslipOverallStatus($payslip) === 'processing';
+        });
+
+        // Average processing time for completed payslips
+        if ($completedPayslips->count() > 0) {
+            $totalProcessingTime = 0;
+            foreach ($completedPayslips as $payslip) {
+                $processingTime = $payslip->created_at->diffInSeconds($payslip->updated_at);
+                $totalProcessingTime += $processingTime;
+            }
+            $avgProcessingTime = $totalProcessingTime / $completedPayslips->count();
+
+            if ($avgProcessingTime < 60) {
+                $result['average_processing_time'] = round($avgProcessingTime) . 's';
+            } elseif ($avgProcessingTime < 3600) {
+                $result['average_processing_time'] = round($avgProcessingTime / 60, 1) . 'm';
+            } else {
+                $result['average_processing_time'] = round($avgProcessingTime / 3600, 1) . 'h';
+            }
+        }
+
+        // First error timestamp
+        if ($failedPayslips->count() > 0) {
+            $firstError = $failedPayslips->sortBy('updated_at')->first();
+            $result['first_error_timestamp'] = $firstError->updated_at->format('M d, H:i');
+        }
+
+        // Last success timestamp
+        if ($completedPayslips->count() > 0) {
+            $lastSuccess = $completedPayslips->sortByDesc('updated_at')->first();
+            $result['last_success_timestamp'] = $lastSuccess->updated_at->format('M d, H:i');
+        }
+
+        // Estimated completion time for remaining payslips
+        $remainingPayslips = $processingPayslips->count() + $payslips->filter(function ($payslip) {
+            return $this->getPayslipOverallStatus($payslip) === 'pending';
+        })->count();
+
+        if ($completedPayslips->count() > 0 && $remainingPayslips > 0) {
+            $avgProcessingTime = $this->calculateAverageProcessingTime($completedPayslips);
+            $estimatedSeconds = $avgProcessingTime * $remainingPayslips;
+            $estimatedCompletion = now()->addSeconds($estimatedSeconds);
+
+            if ($estimatedSeconds < 60) {
+                $result['estimated_completion_time'] = round($estimatedSeconds) . 's';
+            } elseif ($estimatedSeconds < 3600) {
+                $result['estimated_completion_time'] = round($estimatedSeconds / 60) . 'm';
+            } elseif ($estimatedSeconds < 86400) {
+                $result['estimated_completion_time'] = round($estimatedSeconds / 3600) . 'h';
+            } else {
+                $result['estimated_completion_time'] = round($estimatedSeconds / 86400) . 'd';
+            }
+        }
+
+        return $result;
+    }
+
+    public function getPerformanceMetrics()
+    {
+        if (!$this->selectedProcess) {
+            return [
+                'throughput_rate' => 'N/A',
+                'success_rate' => '0%',
+                'processing_efficiency' => '0%',
+                'error_rate' => '0%',
+                'avg_items_per_minute' => '0',
+            ];
+        }
+
+        // Use cached performance metrics if available
+        if (!isset($this->cachedPerformanceMetrics) || $this->cachedPerformanceMetrics === null) {
+            $this->cachedPerformanceMetrics = $this->calculatePerformanceMetrics();
+        }
+
+        return $this->cachedPerformanceMetrics;
+    }
+
+    private function calculatePerformanceMetrics()
+    {
+        $payslips = $this->selectedProcess->payslips()
+            ->select(['id', 'created_at', 'updated_at', 'encryption_status', 'email_sent_status', 'sms_sent_status'])
+            ->get();
+
+        $stats = $this->getTaskStatistics();
+        $total = $stats['total'] ?? 0;
+        $successful = $stats['successful'] ?? 0;
+        $failed = $stats['failed'] ?? 0;
+        $processing = $stats['processing'] ?? 0;
+
+        $result = [
+            'throughput_rate' => 'N/A',
+            'success_rate' => $total > 0 ? number_format(($successful / $total) * 100, 1) . '%' : '0%',
+            'processing_efficiency' => $total > 0 ? number_format((($successful + $processing) / $total) * 100, 1) . '%' : '0%',
+            'error_rate' => $total > 0 ? number_format(($failed / $total) * 100, 1) . '%' : '0%',
+            'avg_items_per_minute' => '0',
+        ];
+
+        // Calculate throughput rate (items processed per minute)
+        if ($payslips->count() > 0) {
+            $taskDuration = $this->selectedProcess->created_at->diffInMinutes(now());
+            if ($taskDuration > 0) {
+                $processedItems = $successful + $failed; // Items that have been processed (success or fail)
+                $result['throughput_rate'] = number_format($processedItems / $taskDuration, 1) . ' ' . __('payslips.per_minute');
+                $result['avg_items_per_minute'] = number_format($processedItems / $taskDuration, 1);
+            }
+        }
+
+        return $result;
+    }
+
+    private function calculateAverageProcessingTime($completedPayslips)
+    {
+        if ($completedPayslips->count() === 0) {
+            return 0;
+        }
+
+        $totalProcessingTime = 0;
+        foreach ($completedPayslips as $payslip) {
+            $processingTime = $payslip->created_at->diffInSeconds($payslip->updated_at);
+            $totalProcessingTime += $processingTime;
+        }
+
+        return $totalProcessingTime / $completedPayslips->count();
+    }
+
+    public function getTaskTimeline()
+    {
+        if (!$this->selectedProcess) {
+            return [];
+        }
+
+        $timeline = [];
+
+        // Process creation
+        $timeline[] = [
+            'title' => __('payslips.task_created'),
+            'description' => __('payslips.payslip_task_initiated', ['department' => $this->selectedProcess->department?->name ?? __('common.unknown')]),
+            'time' => $this->selectedProcess->created_at->diffForHumans(),
+            'type' => 'info'
+        ];
+
+        // If process is completed
+        if ($this->selectedProcess->status === 'successful') {
+            $timeline[] = [
+                'title' => __('payslips.task_completed'),
+                'description' => __('payslips.all_payslips_processed_successfully'),
+                'time' => $this->selectedProcess->updated_at->diffForHumans(),
+                'type' => 'success'
+            ];
+        } elseif ($this->selectedProcess->status === 'failed') {
+            $timeline[] = [
+                'title' => __('payslips.task_failed'),
+                'description' => __('payslips.payslip_processing_encountered_errors'),
+                'time' => $this->selectedProcess->updated_at->diffForHumans(),
+                'type' => 'error'
+            ];
+        } elseif ($this->selectedProcess->status === 'cancelled') {
+            $timeline[] = [
+                'title' => __('common.cancelled'),
+                'description' => __('payslips.task_cancelled_by_user'),
+                'time' => $this->selectedProcess->updated_at->diffForHumans(),
+                'type' => 'warning'
+            ];
+        }
+
+        // Sort by time (most recent first)
+        usort($timeline, function($a, $b) {
+            return strtotime($b['time']) - strtotime($a['time']);
+        });
+
+        return $timeline;
+    }
+
+    public function getRecentActivity()
+    {
+        if (!$this->selectedProcess) {
+            return [];
+        }
+
+        $activities = [];
+
+        // Get recent payslip activities
+        $recentPayslips = $this->selectedProcess->payslips()
+            ->orderBy('updated_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        foreach ($recentPayslips as $payslip) {
+            $activity = [
+                'time' => $payslip->updated_at->diffForHumans(),
+            ];
+
+            // Determine activity type and description
+            if ($payslip->encryption_status == 1) {
+                if ($payslip->email_sent_status == 1 || $payslip->sms_sent_status == 1) {
+                    $activity['type'] = 'success';
+                    $activity['title'] = __('payslips.payslip_sent');
+                    $activity['description'] = __('payslips.payslip_successfully_sent_to', ['name' => $payslip->name]);
+                } elseif ($payslip->email_sent_status == 2 && $payslip->sms_sent_status == 2) {
+                    $activity['type'] = 'error';
+                    $activity['title'] = __('payslips.payslip_failed');
+                    $activity['description'] = __('payslips.failed_to_send_payslip_to', ['name' => $payslip->name]);
+                } else {
+                    $activity['type'] = 'info';
+                    $activity['title'] = __('payslips.payslip_encrypted');
+                    $activity['description'] = __('payslips.payslip_encrypted_for', ['name' => $payslip->name]);
+                }
+            } elseif ($payslip->encryption_status == 2) {
+                $activity['type'] = 'error';
+                $activity['title'] = __('payslips.encryption_failed');
+                $activity['description'] = __('payslips.failed_to_encrypt_payslip_for', ['name' => $payslip->name]);
+            } else {
+                $activity['type'] = 'info';
+                $activity['title'] = __('payslips.payslip_processing');
+                $activity['description'] = __('payslips.processing_payslip_for', ['name' => $payslip->name]);
+            }
+
+            $activities[] = $activity;
+        }
+
+        return $activities;
+    }
+
+    public function getFailedPayslips()
+    {
+        if (!$this->selectedProcess) {
+            return collect();
+        }
+
+        return $this->selectedProcess->payslips()
+            ->where(function ($query) {
+                $query->where('encryption_status', 2) // Encryption failed
+                      ->orWhere('email_sent_status', 2) // Email failed
+                      ->orWhere('sms_sent_status', 2); // SMS failed
+            })
+            ->orderBy('updated_at', 'desc')
+            ->get();
+    }
+
+    public function refreshTaskData()
+    {
+        // Refresh the selected process data if modal is open
+        if ($this->selectedProcess) {
+            $this->selectedProcess = SendPayslipProcess::with(['department', 'owner', 'payslips'])->find($this->selectedProcess->id);
+
+            // Clear cached statistics to force recalculation
+            $this->cachedTaskStatistics = null;
+            $this->cachedAdvancedStatistics = null;
+            $this->cachedPerformanceMetrics = null;
+        }
+    }
+
+    public function cancelTask($processId)
+    {
+        if (!Gate::allows('payslip-delete')) {
+            return abort(401);
+        }
+
+        $process = SendPayslipProcess::findOrFail($processId);
+
+        if ($process->status === 'processing') {
+            $process->update(['status' => 'cancelled']);
+
+            auditLog(
+                auth()->user(),
+                'cancel_payslip_process',
+                'web',
+                __('payslips.payslip_process_cancelled') . $process->month . "-" . $process->year . " @ " . now()
+            );
+
+            session()->flash('message', __('payslips.task_cancelled_successfully'));
+            $this->closeTaskDetailsModal();
+            return $this->redirect(route('portal.payslips.index'), navigate: true);
+        }
+    }
 
     public function mount()
     {
+        // Initialize cache variables
+        $this->cachedTaskStatistics = null;
+        $this->cachedAdvancedStatistics = null;
+        $this->cachedPerformanceMetrics = null;
+
         $this->role = auth()->user()->getRoleNames()->first();
         $this->companies = match (auth()->user()->getRoleNames()->first()) {
             'manager' => Company::manager()->orderBy('created_at', 'desc')->get(),
@@ -197,7 +719,7 @@ class Index extends Component
             'admin' => [],
             default => [],
         };
-        
+
     }
 
     public function updatedCompanyId($company_id)
@@ -226,23 +748,20 @@ class Index extends Component
         ]);
 
         $setting = Setting::first();
-
+        
         if(!empty($setting)){
-            // Check SMTP settings
+          
+
             if (empty($setting->smtp_host) && empty($setting->smtp_port)) {
-                $this->showToast(__('payslips.smtp_setting_required'), 'danger');
+                session()->flash('error', __('payslips.smtp_setting_required'));
                 return;
             }
 
-            // Check SMS settings
-            if (empty($setting->sms_provider)) {
-                $this->showToast(__('payslips.sms_provider_required'), 'danger');
-                return;
-            }
         }else{
-            $this->showToast(__('payslips.smtp_sms_settings_required'), 'danger');
+            session()->flash('error', __('payslips.sms_smtp_settings_required'));
             return;
         }
+
 
 
         $raw_file_path = $this->payslip_file->store(auth()->user()->id, 'raw');
@@ -258,7 +777,7 @@ class Index extends Component
 
 
         if (countPages(Storage::disk('raw')->path($raw_file_path)) > config('ciblerh.max_payslip_pages')) {
-            $this->showToast(__('payslips.file_upload_max_pages', ['max' => config('ciblerh.max_payslip_pages')]), 'danger');
+            session()->flash('error', __('payslips.file_upload_max_pages', ['max' => config('ciblerh.max_payslip_pages')]));
             return $this->redirect(route('portal.payslips.index'), navigate: true);
         }
 
@@ -288,16 +807,10 @@ class Index extends Component
             auth()->user(),
             'payslip_sending',
             'web',
-            __('payslips.user_initiated_payslip_sending', [
-                'user_id' => auth()->user()->id,
-                'user_name' => auth()->user()->name,
-                'department_name' => $choosen_department->name,
-                'month' => $this->month,
-                'year' => now()->year
-            ])
+            'User <a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> initiated the sending of payslip to department <strong>' . $choosen_department->name . '</strong> for the month of ' . $this->month . ' - ' . now()->year . '<a href="/portal/payslips/history"> Go to Playslips details</a>'
         );
 
-        $this->showToast(__('payslips.job_processing_status'), 'success');
+        session()->flash('message', __('payslips.job_processing_status'));
         return $this->redirect(route('portal.payslips.index'), navigate: true);
     }
 

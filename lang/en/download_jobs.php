@@ -99,4 +99,8 @@ return [
     'no_reports_found' => 'No reports found',
     'your_generated_reports_will_appear_here' => 'Your generated reports will appear here',
     'create_your_first_report' => 'Create Your First Report',
+
+    // Bulk payslip download specific
+    'no_payslips_found_matching_criteria' => 'No payslips found matching the specified criteria.',
+    'cannot_create_zip_file' => 'Cannot create zip file',
 ];

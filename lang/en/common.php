@@ -254,6 +254,10 @@ return [
     'upload_and_validate' => 'Upload your filled template - the system will validate and import automatically',
     'auto_create_entities' => 'Auto-create missing departments/services',
     'auto_create_description' => 'If checked, system will create departments/services that don\'t exist yet',
+    'send_welcome_emails' => 'Send welcome emails to imported employees',
+    'send_welcome_emails_description' => 'If checked, new employees will receive welcome emails with their login credentials',
+    'smtp_not_configured' => 'SMTP settings are not configured. Please configure SMTP settings in the settings page before enabling welcome emails.',
+    'smtp_missing_fields' => 'SMTP configuration is incomplete. Missing required fields: :fields',
 
     // Import Preview
     'preview_data' => 'Preview Data',
@@ -527,11 +531,13 @@ return [
 
     // Import Jobs specific keys
     'completed' => 'Completed',
+    'complete' => 'Complete',
     'cancelled' => 'Cancelled',
     'date_from' => 'Date From',
     'date_to' => 'Date To',
     'type' => 'Type',
     'progress' => 'Progress',
+    'created_by' => 'Created By',
     'created_at' => 'Created At',
     'actions' => 'Actions',
     'general_information' => 'General Information',
@@ -586,5 +592,13 @@ return [
     'department' => 'Department',
     'service' => 'Service',
     'note' => 'Note',
+    'phone' => 'Phone',
+    'phone_number' => 'Phone Number',
+    'failure_reason' => 'Failure Reason',
+    'timeline' => 'Timeline',
+    'email' => 'Email',
+    'employee' => 'Employee',
+    'overall_status' => 'Overall Status',
+    'sms' => 'SMS',
 
 ];

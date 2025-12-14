@@ -377,6 +377,15 @@
                 });
             });
 
+            // Handle modal opening
+            window.Livewire.on('open-modal', (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
+                }
+            });
+
             // Handle modal closing
             window.Livewire.on('close-modal', (data) => {
                 if (data.id) {

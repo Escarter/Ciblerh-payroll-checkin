@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Registered;
 use App\Listeners\SendCredentailsDetailsNotification;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
+use Illuminate\Mail\Events\MessageSent;
+use App\Listeners\MailSentListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -22,6 +24,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         EmployeeCreated::class => [
             SendCredentailsDetailsNotification::class,
+        ],
+        MessageSent::class => [
+            MailSentListener::class,
         ],
     ];
 

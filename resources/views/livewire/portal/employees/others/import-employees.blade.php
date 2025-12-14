@@ -74,6 +74,15 @@
                                 </div>
                                 <small class="text-muted">{{__('common.auto_create_description')}}</small>
                              </div>
+                             <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" wire:model.live="sendWelcomeEmails" id="sendWelcomeEmails">
+                                    <label class="form-check-label" for="sendWelcomeEmails">
+                                        <strong>{{__('common.send_welcome_emails')}}</strong>
+                                    </label>
+                                </div>
+                                <small class="text-muted">{{__('common.send_welcome_emails_description')}}</small>
+                             </div>
                              <div class="mb-3" x-show="!$wire.company">
                                  <label for="selectedCompanyId" class="form-label">{{__('companies.select_company')}} <span class="text-danger">*</span></label>
                                  <select wire:model.live="selectedCompanyId" class="form-select @error('selectedCompanyId') is-invalid @enderror" id="selectedCompanyId" required>
@@ -294,6 +303,7 @@
                                          <h6 class="card-title">{{ __('common.import_settings') }}</h6>
                                          <ul class="list-unstyled">
                                              <li><strong>{{ __('common.auto_create_entities') }}:</strong> {{ $autoCreateEntities ? __('common.yes') : __('common.no') }}</li>
+                                             <li><strong>{{ __('common.send_welcome_emails') }}:</strong> {{ $sendWelcomeEmails ? __('common.yes') : __('common.no') }}</li>
                                              <li><strong>{{ __('common.file_name') }}:</strong> {{ $employee_file ? $employee_file->getClientOriginalName() : __('common.none') }}</li>
                                              @if($employee_file)
                                              <li><strong>{{ __('common.file_size') }}:</strong> {{ number_format($employee_file->getSize() / 1024, 1) }} KB</li>

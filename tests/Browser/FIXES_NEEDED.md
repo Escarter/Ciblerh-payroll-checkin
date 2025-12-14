@@ -137,3 +137,4 @@ php artisan dusk --screenshots tests/Browser/Companies/CompaniesUITest.php
 
 
 
+

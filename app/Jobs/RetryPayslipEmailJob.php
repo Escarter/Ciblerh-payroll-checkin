@@ -127,7 +127,7 @@ class RetryPayslipEmailJob implements ShouldQueue
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
                 'email_bounced' => true,
-                        'failure_reason' => __('payslips.email_bounced_update_address')
+                'failure_reason' => __('payslips.email_bounced_update_address')
             ]);
             return;
         }
@@ -154,89 +154,12 @@ class RetryPayslipEmailJob implements ShouldQueue
 
             Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $payslip->file, $payslip->month));
 
-            // Validate if email was actually sent
-            if (Mail::failures()) {
-                $failures = Mail::failures();
-                
-                // Check if this is a bounce
-                $isBounce = $this->detectEmailBounce($failures, $emailToUse);
-                
-                if ($isBounce['is_bounce']) {
-                    // Mark email as bounced
-                    $employee->update([
-                        'email_bounced' => true,
-                        'email_bounced_at' => now(),
-                        'email_bounce_reason' => $isBounce['reason']
-                    ]);
-                    
-                    $payslip->update([
-                        'email_sent_status' => Payslip::STATUS_FAILED,
-                        'email_bounced' => true,
-                        'email_bounced_at' => now(),
-                        'email_bounce_reason' => $isBounce['reason'],
-                        'email_bounce_type' => $isBounce['type'] ?? 'hard',
-                        'failure_reason' => __('payslips.email_bounced', ['reason' => $isBounce['reason']])
-                    ]);
-                    
-                    Log::warning('RetryPayslipEmailJob: Email bounced', [
-                        'payslip_id' => $this->payslip_id,
-                        'email' => $emailToUse,
-                        'bounce_reason' => $isBounce['reason']
-                    ]);
-                    
-                    return; // Don't retry bounced emails
-                }
-                
-                $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                $currentRetryCount = $payslip->email_retry_count ?? 0;
-                
-                if ($currentRetryCount < $maxRetries) {
-                    // Schedule another retry
-                    $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
-                    
-                    $existingReason = $payslip->failure_reason ?? '';
-                    $payslip->update([
-                        'email_retry_count' => $currentRetryCount + 1,
-                        'last_email_retry_at' => now(),
-                        'failure_reason' => $existingReason . ' | ' . __('payslips.retry_attempt_failed_with_next', [
-                            'retry' => $currentRetryCount,
-                            'next' => $currentRetryCount + 1,
-                            'max' => $maxRetries
-                        ])
-                    ]);
-                    
-                    RetryPayslipEmailJob::dispatch($payslip->id)
-                        ->delay(now()->addSeconds($retryDelay));
-                    
-                    Log::info('RetryPayslipEmailJob: Email retry failed, scheduling next retry', [
-                        'payslip_id' => $this->payslip_id,
-                        'retry_count' => $currentRetryCount + 1,
-                        'max_retries' => $maxRetries,
-                        'delay_seconds' => $retryDelay,
-                        'failures' => Mail::failures()
-                    ]);
-                } else {
-                    // Max retries reached
-                    $existingReason = $payslip->failure_reason ?? '';
-                    $payslip->update([
-                        'email_sent_status' => Payslip::STATUS_FAILED,
-                        'failure_reason' => $existingReason . ' | ' . __('payslips.retry_attempt_failed_after_max', [
-                            'max' => $maxRetries
-                        ])
-                    ]);
-                    
-                    Log::warning('RetryPayslipEmailJob: Email retry limit reached', [
-                        'payslip_id' => $this->payslip_id,
-                        'retry_count' => $currentRetryCount,
-                        'max_retries' => $maxRetries,
-                        'failures' => Mail::failures()
-                    ]);
-                }
-            } else {
-                // Success! Update status and send SMS
-                $payslip->update([
-                    'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                    'email_retry_count' => 0, // Reset retry count on success
+            // Email accepted by mail server - delivery will be confirmed via webhooks
+            $payslip->update([
+                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                'email_sent_at' => now(),
+                'email_retry_count' => 0, // Reset retry count on success
                     'last_email_retry_at' => null,
                     'failure_reason' => null // Clear failure reason on success
                 ]);

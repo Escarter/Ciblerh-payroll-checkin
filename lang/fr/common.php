@@ -253,6 +253,10 @@ return [
     'upload_and_validate' => 'Téléchargez votre modèle rempli - le système validera et importera automatiquement',
     'auto_create_entities' => 'Créer automatiquement les départements/services manquants',
     'auto_create_description' => 'Si coché, le système créera les départements/services qui n\'existent pas encore',
+    'send_welcome_emails' => 'Envoyer des emails de bienvenue aux employés importés',
+    'send_welcome_emails_description' => 'Si coché, les nouveaux employés recevront des emails de bienvenue avec leurs identifiants de connexion',
+    'smtp_not_configured' => 'Les paramètres SMTP ne sont pas configurés. Veuillez configurer les paramètres SMTP dans la page des paramètres avant d\'activer les emails de bienvenue.',
+    'smtp_missing_fields' => 'La configuration SMTP est incomplète. Champs requis manquants : :fields',
 
     // Import Preview
     'preview_data' => 'Aperçu des données',
@@ -529,11 +533,13 @@ return [
 
     // Import Jobs specific keys
     'completed' => 'Terminé',
+    'complete' => 'Terminé',
     'cancelled' => 'Annulé',
     'date_from' => 'Date de début',
     'date_to' => 'Date de fin',
     'type' => 'Type',
     'progress' => 'Progression',
+    'created_by' => 'Créé par',
     'created_at' => 'Créé le',
     'actions' => 'Actions',
     'general_information' => 'Informations générales',
@@ -588,4 +594,12 @@ return [
     'department' => 'Département',
     'service' => 'Service',
     'note' => 'Note',
+    'phone' => 'Téléphone',
+    'phone_number' => 'Numéro de téléphone',
+    'failure_reason' => 'Raison d\'échec',
+    'timeline' => 'Chronologie',
+    'email' => 'Email',
+    'employee' => 'Employé',
+    'overall_status' => 'Statut général',
+    'sms' => 'SMS',
 ];

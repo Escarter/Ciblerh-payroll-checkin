@@ -11,6 +11,7 @@ return [
     'file_not_found' => 'Import file not found.',
     'auto_create_departments_services' => 'Auto-create missing departments and services',
     'auto_create_missing_entities' => 'Auto-create missing entities',
+    'auto_create_entities' => 'Auto-create missing departments/services',
     'department_override_description' => 'Override department assignment from import file. Leave empty to use department from file.',
     'service_override_description' => 'Override service assignment from import file. Leave empty to use service from file.',
 

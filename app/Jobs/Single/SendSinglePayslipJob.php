@@ -25,6 +25,8 @@ class SendSinglePayslipJob implements ShouldQueue
     protected $employee;
     protected $record;
     protected $destination;
+    protected $sms_balance = null;
+    protected $sms_balance_checked = false;
     /**
      * Create a new job instance.
      *
@@ -48,6 +50,26 @@ class SendSinglePayslipJob implements ShouldQueue
     {
         Storage::disk('modified')->makeDirectory($this->destination);
 
+        // Check SMS balance once per job for optimization
+        if (!$this->sms_balance_checked) {
+            $setting = \App\Models\Setting::first();
+            if (!empty($setting->sms_provider)) {
+                $sms_client = match ($setting->sms_provider) {
+                    'twilio' => new \App\Services\TwilioSMS($setting),
+                    'nexah' => new \App\Services\Nexah($setting),
+                    'aws_sns' => new \App\Services\AwsSnsSMS($setting),
+                    default => new \App\Services\Nexah($setting)
+                };
+
+                try {
+                    $this->sms_balance = $sms_client->getBalance();
+                    $this->sms_balance_checked = true;
+                } catch (\Exception $e) {
+                    Log::warning('Failed to check SMS balance in single send job: ' . $e->getMessage());
+                }
+            }
+        }
+
         $pdf = new Pdf(Storage::disk('raw')->path($this->raw_file_path));
         $result = $pdf->setUserPassword($this->employee->pdf_password)
             ->passwordEncryption(128)
@@ -59,16 +81,13 @@ class SendSinglePayslipJob implements ShouldQueue
 
             Mail::to(cleanString($this->employee->email))->send(new SendPayslip($this->employee, $destination_file, $this->record->month));
 
-            if (Mail::failures()) {
-                $this->record->update([
-                    'email_sent_status' => 'failed',
-                    'sms_sent_status' => 'failed',
-                    'failure_reason' => __('payslips.failed_sending_email_sms')
-                ]);
-            } else {
-                $this->record->update(['email_sent_status' => 'successful']);
-                sendSmsAndUpdateRecord($this->employee, $this->record->month, $this->record);
-            }
+            // Email accepted by mail server - delivery will be confirmed via webhooks
+            $this->record->update([
+                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                'email_sent_at' => now(),
+            ]);
+            sendSmsAndUpdateRecord($this->employee, $this->record->month, $this->record, $this->sms_balance);
         } else {
             $this->record->update([
                 'email_sent_status' => 'failed',

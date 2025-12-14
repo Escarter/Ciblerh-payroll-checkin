@@ -12,6 +12,7 @@ abstract class BaseImportComponent extends Component
 
     // Common import properties
     public $autoCreateEntities = false;
+    public $sendWelcomeEmails = false; // Whether to send welcome emails to imported employees
     public $selectedCompanyId = null; // For company selection in import modal
     protected $importType = 'generic'; // Override in child classes
     protected $importPermission = null; // Override in child classes
@@ -88,6 +89,13 @@ abstract class BaseImportComponent extends Component
             return;
         }
 
+        // Validate SMTP settings if sending welcome emails
+        if ($this->sendWelcomeEmails ?? false) {
+            if (!$this->validateSmtpSettings()) {
+                return; // Stop import if SMTP validation fails
+            }
+        }
+
         try {
             // Store file temporarily for processing
             $fileName = uniqid('import_') . '_' . $file->getClientOriginalName();
@@ -113,7 +121,8 @@ abstract class BaseImportComponent extends Component
                     auth()->id(),
                     $companyId,
                     $departmentId,
-                    $this->autoCreateEntities ?? false
+                    $this->autoCreateEntities ?? false,
+                    $this->sendWelcomeEmails ?? false
                 );
 
                 // Clear form and preview
@@ -238,6 +247,7 @@ abstract class BaseImportComponent extends Component
     public function clearFields()
     {
         $this->autoCreateEntities = false;
+        $this->sendWelcomeEmails = false;
         // Child classes should override to clear their specific fields
     }
 
@@ -261,6 +271,36 @@ abstract class BaseImportComponent extends Component
     protected function getDepartmentId(): ?int
     {
         return null;
+    }
+
+    /**
+     * Validate SMTP settings are configured when sending welcome emails
+     * Returns true if validation passes, false if it fails
+     */
+    protected function validateSmtpSettings(): bool
+    {
+        $setting = \App\Models\Setting::first();
+
+        if (!$setting) {
+            $this->dispatch("showToast", message: __('common.smtp_not_configured'), type: "error");
+            return false;
+        }
+
+        $requiredFields = ['smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'from_email', 'from_name'];
+        $missingFields = [];
+
+        foreach ($requiredFields as $field) {
+            if (empty($setting->$field)) {
+                $missingFields[] = $field;
+            }
+        }
+
+        if (!empty($missingFields)) {
+            $this->dispatch("showToast", message: __('common.smtp_missing_fields', ['fields' => implode(', ', $missingFields)]), type: "error");
+            return false;
+        }
+
+        return true;
     }
 
     /**

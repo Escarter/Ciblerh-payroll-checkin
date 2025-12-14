@@ -51,7 +51,7 @@ class BulkPayslipDownloadJob implements ShouldQueue
             if ($payslips->count() === 0) {
                 $this->downloadJob->update([
                     'status' => DownloadJob::STATUS_FAILED,
-                    'error_message' => __('No payslips found matching the specified criteria.'),
+                    'error_message' => __('download_jobs.no_payslips_found_matching_criteria'),
                     'completed_at' => now()
                 ]);
                 return;
@@ -136,7 +136,7 @@ class BulkPayslipDownloadJob implements ShouldQueue
         $fullZipPath = Storage::disk('public')->path($zipPath);
         
         if ($zip->open($fullZipPath, ZipArchive::CREATE) !== TRUE) {
-            throw new \Exception(__('Cannot create zip file'));
+            throw new \Exception(__('download_jobs.cannot_create_zip_file'));
         }
 
         $processed = 0;

@@ -99,6 +99,19 @@ border: 1px dashed #384f80;}.border-prim{background: rgba(242, 244, 246, 0.4);bo
     -webkit-transform: translate(0, 0);
     transform: translate(0, 0);
 }
+/* Status Indicators */
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Cursor pointer utility */
+.cursor-pointer {
+    cursor: pointer;
+}
+
 /* Progress Steps for Import Modal */
 .progress-steps {
     margin: 0;
@@ -183,3 +196,62 @@ border: 1px dashed #384f80;}.border-prim{background: rgba(242, 244, 246, 0.4);bo
     opacity: 1;
     transform: translateX(0);
 }
+
+ .timeline {
+     position: relative;
+     padding-left: 30px;
+ }
+
+ .timeline::before {
+     content: '';
+     position: absolute;
+     left: 15px;
+     top: 0;
+     bottom: 0;
+     width: 2px;
+     background: #e9ecef;
+ }
+
+ .timeline-item {
+     position: relative;
+     margin-bottom: 20px;
+ }
+
+ .timeline-item:last-child {
+     margin-bottom: 0;
+ }
+
+ .timeline-marker {
+     position: absolute;
+     left: -22px;
+     top: 8px;
+     width: 14px;
+     height: 14px;
+     border-radius: 50%;
+     border: 3px solid #fff;
+     box-shadow: 0 0 0 2px #e9ecef;
+ }
+
+ .timeline-content {
+     background: #f8f9fa;
+     padding: 15px;
+     border-radius: 8px;
+     border-left: 4px solid #007bff;
+ }
+
+ .timeline-content h6 {
+     margin-bottom: 5px;
+     font-size: 0.9rem;
+     font-weight: 600;
+ }
+
+ .timeline-content p {
+     margin-bottom: 5px;
+     font-size: 0.85rem;
+     color: #6c757d;
+ }
+
+ .timeline-content small {
+     font-size: 0.75rem;
+     color: #9ca3af;
+ }

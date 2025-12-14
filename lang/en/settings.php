@@ -17,21 +17,53 @@ return [
     'security_settings' => 'Security Settings',
     'integration_settings' => 'Integration Settings',
 
-    // SMTP Settings
-    'smtp_provider' => 'SMTP Provider',
+    // Email Settings
+    'email_provider' => 'Email Provider',
+    'email_configuration' => 'Email Configuration',
+    'smtp_configuration' => 'SMTP Configuration',
     'smtp' => 'SMTP',
-    'mailgun' => 'MailGun',
+    'mailgun' => 'Mailgun',
+    'ses' => 'Amazon SES',
+    'postmark' => 'Postmark',
+    'sendmail' => 'Sendmail',
+    'mailpit' => 'Mailpit',
+    'log' => 'Log',
+    'array' => 'Array',
+
+    // Provider Categories
+    'basic_smtp_provider' => 'Basic SMTP Server',
+    'transactional_email_provider' => 'Transactional Email Service',
+    'cloud_email_provider' => 'Cloud Email Service',
+    'deliverability_focused_provider' => 'Deliverability-Focused Service',
+    'local_server_provider' => 'Local Server',
+    'recommended_local_provider' => 'Recommended Local Provider',
+    'global_sms_provider' => 'Global SMS Provider',
+    'cloud_sms_provider' => 'Cloud SMS Provider',
+
+    // SMTP Settings
     'smtp_host' => 'SMTP Host',
     'smtp_port' => 'SMTP Port',
     'smtp_username' => 'SMTP Username',
     'smtp_password' => 'SMTP Password',
     'smtp_encryption' => 'SMTP Encryption',
-    'smtp_from_address' => 'From Address',
-    'smtp_from_name' => 'From Name',
+
+    // Email Settings
+    'from_email' => 'From Email',
+    'from_name' => 'From Name',
+    'reply_to_email' => 'Reply To Email',
+    'reply_to_name' => 'Reply To Name',
+
     'test_email' => 'Test Email',
     'send_test_email' => 'Send Test Email',
-    'smtp_settings_saved' => 'SMTP settings saved successfully!',
-    'smtp_test_sent' => 'Test email sent successfully!',
+    'setting_for_smtp_successfully_added' => 'Email settings saved successfully!',
+    'test_email_sent_successfully' => 'Test email sent successfully!',
+    'setting_for_smtp_required' => 'Email settings are required to send test emails',
+
+    // Provider-specific information
+    'smtp_limitations' => 'SMTP Limitations',
+    'smtp_webhook_note' => 'SMTP does not support webhooks for delivery confirmation. Email delivery status will be tracked via bounce handling only.',
+    'transactional_webhook_note' => 'This provider supports webhooks for real-time delivery confirmation.',
+    'development_driver_note' => 'This is a development/testing driver and should not be used in production.',
 
     // SMS Settings
     'sms_provider' => 'SMS Provider',
@@ -83,11 +115,146 @@ return [
     // Integration Settings
     'api_settings' => 'API Settings',
     'webhook_settings' => 'Webhook Settings',
+    'webhook_configuration' => 'Webhook Configuration',
     'third_party_integrations' => 'Third Party Integrations',
     'api_key' => 'API Key',
     'api_secret' => 'API Secret',
     'webhook_url' => 'Webhook URL',
     'webhook_secret' => 'Webhook Secret',
+    'webhook_setup_required' => 'Webhook Setup Required',
+    'webhook_setup_instructions' => 'Configure webhooks in your email provider dashboard to receive real-time delivery notifications.',
+    'webhook_url_help' => 'Copy this URL and paste it in your email provider\'s webhook configuration.',
+
+    // Mailgun Webhook Setup
+    'mailgun_webhook_setup' => 'Mailgun Webhook Setup',
+    'mailgun_webhook_step_1' => 'Go to your Mailgun dashboard → Webhooks',
+    'mailgun_webhook_step_2' => 'Create a new webhook for events: Delivered, Bounced, Complained, Unsubscribed',
+    'mailgun_webhook_step_3' => 'Paste the webhook URL above in the URL field',
+
+    // SES Webhook Setup
+    'ses_webhook_setup' => 'Amazon SES Webhook Setup',
+    'ses_webhook_step_1' => 'Go to Amazon SES console → Configuration Sets',
+    'ses_webhook_step_2' => 'Create or edit a configuration set with SNS topic for notifications',
+    'ses_webhook_step_3' => 'Configure SNS topic to send webhooks to the URL above',
+
+    // Postmark Webhook Setup
+    'postmark_webhook_setup' => 'Postmark Webhook Setup',
+    'postmark_webhook_step_1' => 'Go to Postmark dashboard → Webhooks',
+    'postmark_webhook_step_2' => 'Create a new webhook for events: Delivered, Bounced, Spam Complaint',
+    'postmark_webhook_step_3' => 'Paste the webhook URL above in the URL field',
+
+    // Provider Information
+    'get_credentials' => 'Get Credentials',
+    'setup' => 'Setup',
+    'pricing' => 'Pricing',
+    'support' => 'Support',
+    'documentation' => 'Documentation',
+    'best_for' => 'Best For',
+    'webhook_support' => 'Webhook Support',
+    'yes' => 'Yes',
+    'no' => 'No',
+
+    // NEXAH SMS Provider
+    'nexah_info_title' => 'NEXAH - Local African SMS Provider',
+    'nexah_description' => 'NEXAH is a leading SMS provider in Africa, offering reliable local delivery with competitive pricing.',
+    'nexah_step_1' => 'Visit nexah.net and create an account',
+    'nexah_step_2' => 'Complete verification and fund your account',
+    'nexah_step_3' => 'Copy your API credentials from the dashboard',
+    'nexah_pricing' => 'Pay-per-use, starting from $0.02/SMS',
+    'nexah_support' => 'Local support available',
+
+    // Twilio SMS Provider
+    'twilio_info_title' => 'Twilio - Global SMS Provider',
+    'twilio_description' => 'Twilio provides global SMS delivery with advanced features like programmable messaging and delivery tracking.',
+    'twilio_step_1' => 'Sign up at twilio.com',
+    'twilio_step_2' => 'Purchase a phone number and verify your account',
+    'twilio_step_3' => 'Get your Account SID and Auth Token from the console',
+    'twilio_pricing' => 'Pay-per-use, $0.0075-$0.05/SMS depending on destination',
+    'twilio_docs' => 'View Twilio SMS Documentation',
+
+    // AWS SNS Provider
+    'aws_sns_info_title' => 'AWS SNS - Cloud SMS Service',
+    'aws_sns_description' => 'Amazon SNS provides scalable SMS delivery integrated with AWS ecosystem and other cloud services.',
+    'aws_sns_step_1' => 'Create an AWS account at aws.amazon.com',
+    'aws_sns_step_2' => 'Set up IAM user with SNS permissions',
+    'aws_sns_step_3' => 'Get your Access Key ID and Secret Access Key',
+    'aws_sns_pricing' => 'Pay-per-use, $0.00645-$0.09/SMS depending on destination',
+    'aws_sns_docs' => 'View AWS SNS Documentation',
+
+    // SMTP Provider
+    'smtp_info_title' => 'SMTP - Standard Email Server',
+    'smtp_description' => 'Connect to any SMTP server including Gmail, Outlook, or your own email server.',
+    'smtp_step_1' => 'Contact your email provider or IT department',
+    'smtp_step_2' => 'Request SMTP server details and credentials',
+    'smtp_step_3' => 'Note: May require app passwords for Gmail/Outlook',
+    'smtp_best_for' => 'Existing email infrastructure',
+
+    // Mailgun Provider
+    'mailgun_info_title' => 'Mailgun - Transactional Email Service',
+    'mailgun_description' => 'Mailgun provides powerful transactional email with webhooks, analytics, and high deliverability rates.',
+    'mailgun_step_1' => 'Sign up at mailgun.com',
+    'mailgun_step_2' => 'Verify your domain and set up DNS records',
+    'mailgun_step_3' => 'Get your API key and domain from the dashboard',
+    'mailgun_pricing' => 'Free tier: 5,000 emails/month, then $0.80/1,000 emails',
+    'mailgun_docs' => 'View Mailgun Documentation',
+
+    // Amazon SES Provider
+    'ses_info_title' => 'Amazon SES - Cloud Email Service',
+    'ses_description' => 'Amazon SES offers scalable email delivery with advanced analytics and integration with AWS services.',
+    'ses_step_1' => 'Set up AWS account and navigate to SES console',
+    'ses_step_2' => 'Verify your domain or email addresses',
+    'ses_step_3' => 'Create IAM credentials with SES permissions',
+    'ses_pricing' => 'Free tier: 62,000 emails/month, then $0.10/1,000 emails',
+    'ses_docs' => 'View Amazon SES Documentation',
+
+    // Postmark Provider
+    'postmark_info_title' => 'Postmark - Deliverability-Focused Email',
+    'postmark_description' => 'Postmark specializes in transactional email with exceptional deliverability and detailed analytics.',
+    'postmark_step_1' => 'Sign up at postmarkapp.com',
+    'postmark_step_2' => 'Verify your domain and create a server',
+    'postmark_step_3' => 'Get your Server API Token from the dashboard',
+    'postmark_pricing' => 'Free tier: 100 emails/day, then $1.50/1,000 emails',
+    'postmark_docs' => 'View Postmark Documentation',
+
+    // Sendmail Provider
+    'sendmail_info_title' => 'Sendmail - Local Server Email',
+    'sendmail_description' => 'Sendmail is a local email server solution for systems with their own mail infrastructure.',
+    'sendmail_step_1' => 'Ensure sendmail is installed on your server',
+    'sendmail_step_2' => 'Configure sendmail for your domain',
+    'sendmail_best_for' => 'Self-hosted servers with local mail setup',
+
+    // Development Providers
+    'development_provider_title' => 'Development/Testing Provider',
+    'development_provider_description' => 'These providers are designed for development and testing environments. Do not use in production.',
+
+    // Additional UI Text
+    'verify_sms_setup' => 'Verify your SMS configuration works correctly',
+    'email_configuration_guide' => 'Email Configuration Guide',
+    'email_setup_overview' => 'Complete guide to setting up email delivery',
+    'general_setup_steps' => 'General Setup Steps',
+    'select_provider_and_get_credentials' => 'Select your email provider and obtain API credentials',
+    'configure_provider_settings' => 'Configure provider-specific settings in the form above',
+    'setup_webhooks_optional' => 'Set up webhooks (recommended for delivery tracking)',
+    'test_configuration' => 'Test your configuration using the form below',
+    'configure_email_templates' => 'Configure email templates and messaging',
+    'pro_tip' => 'Pro Tip',
+    'webhook_recommendation' => 'Use providers with webhook support (Mailgun, SES, Postmark) for real-time delivery notifications and better tracking.',
+    'test_email_configuration' => 'Test Email Configuration',
+    'test_email_setup_instructions' => 'Send a test email to verify your configuration',
+
+    // Provider Information Section
+    'provider_information' => 'Provider Information',
+    'sms_providers' => 'SMS Providers',
+    'email_providers' => 'Email Providers',
+    'how_to_get_sms_credentials' => 'How to Get SMS Provider Credentials',
+    'how_to_get_email_credentials' => 'How to Get Email Provider Credentials',
+    'sms_providers_guide' => 'SMS Providers Guide',
+    'email_providers_guide' => 'Email Providers Guide',
+    'available_sms_providers' => 'Available SMS Providers',
+    'available_email_providers' => 'Available Email Providers',
+    'recommended' => 'Recommended',
+    'credentials' => 'Credentials',
+    'guide' => 'Guide',
 
     // Actions
     'save_settings' => 'Save Settings',

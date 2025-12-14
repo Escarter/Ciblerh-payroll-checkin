@@ -1,12 +1,13 @@
 <div>
     @include('livewire.portal.payslips.partials.resend-payslip')
+    @include('livewire.portal.payslips.partials.payslip-details-modal')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.restore-modal')
     @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => __('payslips.payslip')])
-    
+
     <!-- Bulk Resend Failed Modal -->
     <div class="modal fade" id="BulkResendFailedModal" tabindex="-1" aria-labelledby="BulkResendFailedModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -125,7 +126,7 @@
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>
-                    {{__('payslips.unmatched_employees')}}
+                    {{__('payslips.unmatched')}}
                     <span class="badge {{ $showUnmatched ? 'bg-light text-dark' : 'bg-warning text-dark' }} ms-1">{{ $unmatchedCount }}</span>
                 </button>
                 @endif
@@ -228,20 +229,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                 </svg>
                 <div>
-                    <strong>{{__('payslips.unmatched_employees')}}</strong>
+                    <strong>{{__('payslips.unmatched_employees', ['unmatched' => $unmatchedCount, 'total' => $totalEmployees])}}</strong>
                     <p class="mb-0">{{__('payslips.employees_whose_payslips_could_not_be_found_in_the_pdf_files')}}</p>
                 </div>
             </div>
         </div>
         <div class="card">
             <div class="table-responsive pb-4">
-                <table class="table employee-table table-bordered table-hover align-items-center">
+                <table class="table user-table table-bordered table-hover align-items-center dataTable">
                     <thead>
                         <tr>
                             <th class="border-bottom">{{__('common.name')}}</th>
-                            <th class="border-bottom">{{__('employees.matricule')}}</th>
-                            <th class="border-bottom">{{__('employees.email')}}</th>
-                            <th class="border-bottom">{{__('common.phone')}}</th>
+                            <th class="border-bottom">{{__('employees.employee_info')}}</th>
                             <th class="border-bottom">{{__('common.failure_reason')}}</th>
                             <th class="border-bottom">{{__('common.created_at')}}</th>
                         </tr>
@@ -251,29 +250,47 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar-sm me-2">
-                                        <span class="avatar-title bg-warning text-white rounded-circle">
-                                            {{ strtoupper(substr($payslip->first_name, 0, 1)) }}{{ strtoupper(substr($payslip->last_name, 0, 1)) }}
-                                        </span>
+                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary text-white me-3">
+                                        <span>{{ strtoupper(substr($payslip->first_name, 0, 1)) }}{{ strtoupper(substr($payslip->last_name, 0, 1)) }}</span>
                                     </div>
-                                    <div>
+                                    <div class="d-block">
                                         <span class="fw-bold">{{ $payslip->first_name }} {{ $payslip->last_name }}</span>
+                                        <div class="small text-gray">{{ $payslip->email ?? __('N/A') }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-secondary">{{ $payslip->matricule ?? __('N/A') }}</span>
+                                <div class="d-flex flex-column">
+                                    <div class="mb-1">
+                                        <span class="fw-bold text-primary">{{__('employees.matricule')}}:</span>
+                                        <span class="ms-1 fw-normal">{{ $payslip->matricule ?? __('N/A') }}</span>
+                                    </div>
+                                    @if(!is_null($payslip->phone))
+                                    <div>
+                                        <span class="fw-bold text-primary">{{__('common.phone')}}:</span>
+                                        <a href='tel:{{ $payslip->phone }}' class="ms-1 small text-gray">
+                                            <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                            </svg>
+                                            <span class="fw-normal">{{ $payslip->phone }}</span>
+                                        </a>
+                                    </div>
+                                    @else
+                                    <div>
+                                        <span class="fw-bold text-primary">{{__('common.phone')}}:</span>
+                                        <span class="ms-1 small text-gray">{{ __('N/A') }}</span>
+                                    </div>
+                                    @endif
+                                </div>
                             </td>
-                            <td>{{ $payslip->email ?? __('N/A') }}</td>
-                            <td>{{ $payslip->phone ?? __('N/A') }}</td>
                             <td>
-                                <span class="badge bg-danger">{{ $payslip->failure_reason ?? __('payslips.unknown_error') }}</span>
+                                <span class="text-danger">{{ $payslip->failure_reason ?? __('payslips.unknown_error') }}</span>
                             </td>
                             <td>{{ $payslip->created_at->format('Y-m-d H:i') }}</td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center py-4">
+                            <td colspan="4" class="text-center py-4">
                                 <p class="text-muted mb-0">{{__('payslips.no_unmatched_employees_found')}}</p>
                             </td>
                         </tr>
@@ -289,7 +306,7 @@
         <!-- Regular Payslips Table -->
         <div class="card">
             <div class="table-responsive pb-4">
-                <table class="table employee-table table-bordered table-hover align-items-center dataTable" id="datatable">
+                <table class="table user-table table-bordered table-hover align-items-center dataTable" id="datatable">
                     <thead>
                         <tr>
                             <th class="border-bottom">
@@ -405,18 +422,29 @@
                             </td>
                             <td>
                                 @if($activeTab === 'active')
+                                    <!-- View Details Link -->
+                                    <a href="#" wire:click="showPayslipDetails({{$payslip->id}})" class="text-info me-2" title="{{__('payslips.view_details')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </a>
                                     <!-- Download Link -->
+                                    @if($payslip->encryption_status == 1)
                                     <a href="#" wire:click="downloadPayslip({{$payslip->id}})" class="text-primary me-2" title="{{__('Download Payslip')}}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
                                     </a>
+                                    @endif
                                     <!-- Resend Link -->
+                                    @if($payslip->encryption_status == 1)
                                     <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendPayslipModal" class="text-warning me-2" title="{{__('Resend Payslip')}}">
                                         <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                                         </svg>
                                     </a>
+                                    @endif
                                     @can('payslip-delete')
                                     <!-- Delete Link -->
                                     <a href="#" wire:click.prevent="initData({{ $payslip->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal" class="text-danger" title="{{__('Delete')}}">
@@ -463,7 +491,7 @@
         @endif
     </div>
 
-    @section('scripts')
+    @push('scripts')
     <script>
         var resendPayslipModal = document.getElementById('resendPayslipModal')
         resendPayslipModal.addEventListener('show.bs.modal', function(event) {
@@ -496,5 +524,5 @@
             });
         })
     </script>
-    @endsection
+    @endpush
 </div>

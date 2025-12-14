@@ -84,7 +84,7 @@ test('reconcile unmatched employees handles empty matricule', function () {
         ->first();
     
     expect($payslip)->not->toBeNull();
-    expect($payslip->failure_reason)->toContain('Matricule is empty');
+    expect($payslip->failure_reason)->toContain('User matricule is empty');
 });
 
 test('reconcile unmatched employees updates process failure reason', function () {
@@ -161,6 +161,7 @@ test('reconcile unmatched employees handles department with no employees', funct
     // Should not throw error and process should remain unchanged
     expect($process->fresh())->not->toBeNull();
 });
+
 
 
 

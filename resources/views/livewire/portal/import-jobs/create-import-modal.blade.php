@@ -388,6 +388,9 @@
                                             @if($newImport['auto_create_entities'] ?? false)
                                             <li><strong>{{ __('import_types.auto_create_entities') }}:</strong> {{ __('common.yes') }}</li>
                                             @endif
+                                            @if($newImport['send_welcome_emails'] ?? false)
+                                            <li><strong>{{ __('common.send_welcome_emails') }}:</strong> {{ __('common.yes') }}</li>
+                                            @endif
                                         </ul>
                                     </div>
                                 </div>

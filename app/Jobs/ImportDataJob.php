@@ -42,6 +42,7 @@ class ImportDataJob implements ShouldQueue
     protected $companyId;
     protected $departmentId;
     protected $autoCreateEntities;
+    protected $sendWelcomeEmails;
     protected $importId;
     protected $importJobId;
     protected $importJob;
@@ -50,7 +51,7 @@ class ImportDataJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(string $importType, string $filePath, int $userId, ?int $companyId = null, ?int $departmentId = null, bool $autoCreateEntities = false, ?int $importJobId = null)
+    public function __construct(string $importType, string $filePath, int $userId, ?int $companyId = null, ?int $departmentId = null, bool $autoCreateEntities = false, bool $sendWelcomeEmails = false, ?int $importJobId = null)
     {
         $this->importType = $importType;
         $this->filePath = $filePath;
@@ -58,6 +59,7 @@ class ImportDataJob implements ShouldQueue
         $this->companyId = $companyId;
         $this->departmentId = $departmentId;
         $this->autoCreateEntities = $autoCreateEntities;
+        $this->sendWelcomeEmails = $sendWelcomeEmails;
         $this->importJobId = $importJobId;
         $this->importId = uniqid('import_', true);
         $this->queue = 'processing';
@@ -116,6 +118,7 @@ class ImportDataJob implements ShouldQueue
             'failed_imports' => 0,
             'import_config' => [
                 'auto_create_entities' => $this->autoCreateEntities,
+                'send_welcome_emails' => $this->sendWelcomeEmails,
             ],
             'started_at' => now(),
         ];
@@ -443,7 +446,7 @@ class ImportDataJob implements ShouldQueue
                     $service = null;
                     // Note: Service context would need to be added to ImportDataJob if needed
 
-                    return new EmployeeImport($company, $department, $service, $this->autoCreateEntities, $this->userId);
+                    return new EmployeeImport($company, $department, $service, $this->autoCreateEntities, $this->userId, $this->sendWelcomeEmails);
                 } else {
                     throw new \Exception('Company ID required for employee import');
                 }

@@ -11,6 +11,7 @@ return [
     'file_not_found' => 'Fichier d\'import introuvable.',
     'auto_create_departments_services' => 'Créer automatiquement les départements et services manquants',
     'auto_create_missing_entities' => 'Créer automatiquement les entités manquantes',
+    'auto_create_entities' => 'Créer automatiquement les départements/services manquants',
     'department_override_description' => 'Remplacer l\'affectation de département du fichier d\'import. Laisser vide pour utiliser le département du fichier.',
     'service_override_description' => 'Remplacer l\'affectation de service du fichier d\'import. Laisser vide pour utiliser le service du fichier.',
 
