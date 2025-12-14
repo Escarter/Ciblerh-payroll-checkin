@@ -71,7 +71,34 @@ class Index extends Component
     public function updatedselectedAbsences()
     {
         $this->bulkDisabled = count($this->selectedAbsences) < 2;
-        $this->checklog = null;
+    }
+
+    // Enhanced selection methods
+    public function selectAllVisible()
+    {
+        $this->selectedAbsences = $this->getAbsences()->pluck('id')->toArray();
+        $this->updatedselectedAbsences();
+    }
+
+    public function selectAllAbsences()
+    {
+        $this->selectedAbsences = match ($this->role) {
+            'supervisor' => Absence::search($this->query)->supervisor()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            'manager' => Absence::search($this->query)->manager()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            'admin' => Absence::search($this->query)->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            default => [],
+        };
+        $this->updatedselectedAbsences();
+    }
+
+    public function selectAllDeletedAbsences()
+    {
+        $this->selectedAbsencesForDelete = match ($this->role) {
+            'supervisor' => Absence::search($this->query)->supervisor()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'manager' => Absence::search($this->query)->manager()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'admin' => Absence::search($this->query)->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            default => [],
+        };
     }
 
     //Get & assign selected absence props

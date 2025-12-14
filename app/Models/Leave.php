@@ -94,8 +94,8 @@ class Leave extends Model
                 return $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
             })
             ->where(function ($q) use ($query) {
-                $q->where('start_time', 'like', '%' . $query . '%');
-                $q->orWhere('end_time', 'like', '%' . $query . '%');
+                $q->where('start_date', 'like', '%' . $query . '%');
+                $q->orWhere('end_date', 'like', '%' . $query . '%');
                 $q->orWhere('leave_reason', 'like', '%' . $query . '%');
                 $q->orWhereHas('user', function ($q) use ($query) {
                     $q->where('first_name', 'like', '%' . $query . '%');

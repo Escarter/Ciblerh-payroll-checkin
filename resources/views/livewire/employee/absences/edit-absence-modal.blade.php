@@ -8,12 +8,14 @@
                         <p>{{__('employees.edit_and_update_absence')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit.prevent="update" class="form-modal">
-                        <div class="form-group mb-4">
-                            <label for="absence_date">{{__('employees.absence_date')}}</label>
-                            <input type="date" wire:model.defer="absence_date" class="form-control  @error('absence_date') is-invalid @enderror" required="">
-                            @error('absence_date')
-                            <div class="invalid-feedback">{{$message}}</div>
-                            @enderror
+                        <div class='form-group row mb-4'>
+                            <div class="col">
+                                <label for="absence_date">{{__('employees.absence_date')}}</label>
+                                <input type="date" wire:model.defer="absence_date" class="form-control  @error('absence_date') is-invalid @enderror" required="">
+                                @error('absence_date')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
                         </div>
                         <div class="form-group mb-4">
                             <label for="absence_reason">{{__('leaves.absence_reason')}}</label>
@@ -24,6 +26,17 @@
                         </div>
                         <div class="form-group mb-4">
                             <label for="attachment">{{__('employees.supporting_file')}}</label>
+                            @if($absence && $absence->attachment_path)
+                            <div class="mb-2">
+                                <a href="{{asset('storage/attachments/'.$absence->attachment_path)}}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    {{__('employees.view_attachment')}}
+                                </a>
+                                <small class="text-muted d-block mt-1">{{__('employees.upload_new_to_replace')}}</small>
+                            </div>
+                            @endif
                             <input type="file" wire:model.defer="attachment" class="form-control  @error('attachment') is-invalid @enderror" />
                             @error('attachment')
                             <div class="invalid-feedback">{{$message}}</div>

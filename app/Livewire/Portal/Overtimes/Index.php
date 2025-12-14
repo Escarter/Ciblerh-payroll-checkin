@@ -243,8 +243,50 @@ class Index extends Component
         } else {
             $this->selectedOvertimesForDelete[] = $overtimeId;
         }
-        
+
         $this->selectAllForDelete = count($this->selectedOvertimesForDelete) === $this->getOvertimes()->count();
+    }
+
+    public function selectAllVisible()
+    {
+        $this->selectedOvertimes = $this->getOvertimes()->pluck('id')->toArray();
+    }
+
+    public function selectAllVisibleForDelete()
+    {
+        $this->selectedOvertimesForDelete = $this->getOvertimes()->pluck('id')->toArray();
+    }
+
+    public function selectAllDeletedOvertimes()
+    {
+        $this->selectedOvertimesForDelete = match ($this->role) {
+            'supervisor' => Overtime::search($this->query)->supervisor()->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'manager' => Overtime::search($this->query)->manager()->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'admin' => Overtime::search($this->query)->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            default => [],
+        };
+    }
+
+    public function selectAllOvertimes()
+    {
+        $query = Overtime::search($this->query)->with(['user']);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Add role-based filtering
+        match($this->role){
+            "supervisor" => $query->supervisor(),
+            "manager" => $query->manager(),
+            "admin" => null, // No additional filtering for admin
+            default => [],
+        };
+
+        $this->selectedOvertimes = $query->pluck('id')->toArray();
     }
 
     private function getOvertimes()

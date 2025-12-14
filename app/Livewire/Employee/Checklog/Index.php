@@ -18,6 +18,16 @@ class Index extends Component
     use WithDataTable;
 
     public ?array $selected = [];
+    public bool $selectAll = false;
+
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedChecklogsForDelete = [];
+    public $selectAllForDelete = false;
+
+    // Reactive count properties
+    public $activeChecklogsCount = 0;
+    public $deletedChecklogsCount = 0;
 
     //Create, Edit, Delete, View Post props
     public ?string $start_time = null;
@@ -37,6 +47,9 @@ class Index extends Component
         $this->company = auth()->user()->company;
         $this->department = auth()->user()->department;
         $this->service = auth()->user()->service;
+
+        // Initialize counts
+        $this->updateCounts();
     }
     //Get & assign selected checklog props
     public function initData($checklog_id)
@@ -191,12 +204,196 @@ class Index extends Component
         }
 
         if (!empty($this->checklog)) {
-
             $this->checklog->delete();
         }
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.checkin_deleted_success'), 'DeleteModal');
+
+        // Update counts
+        $this->updateCounts();
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selected)) {
+            Ticking::whereIn('id', $this->selected)
+                ->where('user_id', auth()->user()->id)
+                ->delete();
+
+            $this->selected = [];
+            $this->selectAll = false;
+
+            $this->closeModalAndFlashMessage(__('employees.selected_checkins_deleted'), 'BulkDeleteModal');
+
+            // Update counts
+            $this->updateCounts();
+        }
+    }
+
+    public function restore($checklogId)
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        $checklog = Ticking::withTrashed()->findOrFail($checklogId);
+
+        // Check if this checklog belongs to the current user
+        if ($checklog->user_id !== auth()->id()) {
+            return abort(403);
+        }
+
+        $checklog->restore();
+
+        $this->closeModalAndFlashMessage(__('employees.checkin_restored'), 'RestoreModal');
+
+        // Update counts
+        $this->updateCounts();
+    }
+
+    public function forceDelete($checklogId)
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        $checklog = Ticking::withTrashed()->findOrFail($checklogId);
+
+        // Check if this checklog belongs to the current user
+        if ($checklog->user_id !== auth()->id()) {
+            return abort(403);
+        }
+
+        $checklog->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('employees.checkin_permanently_deleted'), 'ForceDeleteModal');
+
+        // Update counts
+        $this->updateCounts();
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedChecklogsForDelete)) {
+            Ticking::withTrashed()
+                ->whereIn('id', $this->selectedChecklogsForDelete)
+                ->where('user_id', auth()->id()) // Ensure only user's own checklogs
+                ->restore();
+
+            $this->selectedChecklogsForDelete = [];
+
+            $this->closeModalAndFlashMessage(__('employees.selected_checkins_restored'), 'BulkRestoreModal');
+
+            // Update counts
+            $this->updateCounts();
+        }
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('ticking-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedChecklogsForDelete)) {
+            Ticking::withTrashed()
+                ->whereIn('id', $this->selectedChecklogsForDelete)
+                ->where('user_id', auth()->id()) // Ensure only user's own checklogs
+                ->forceDelete();
+
+            $this->selectedChecklogsForDelete = [];
+
+            $this->closeModalAndFlashMessage(__('employees.selected_checkins_permanently_deleted'), 'BulkForceDeleteModal');
+
+            // Update counts
+            $this->updateCounts();
+        }
+    }
+
+    //Toggle the $selectAll on or off based on the count of selected posts
+    public function updatedselectAll($value)
+    {
+        if ($value) {
+            $this->selected = $this->getChecklogs()->pluck('id')->toArray();
+        } else {
+            $this->selected = [];
+        }
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedChecklogsForDelete = [];
+        $this->selectAllForDelete = false;
+    }
+
+    public function toggleSelectAllForDelete()
+    {
+        if ($this->selectAllForDelete) {
+            $this->selectedChecklogsForDelete = $this->getChecklogs()->pluck('id')->toArray();
+        } else {
+            $this->selectedChecklogsForDelete = [];
+        }
+    }
+
+    public function toggleChecklogSelectionForDelete($checklogId)
+    {
+        if (in_array($checklogId, $this->selectedChecklogsForDelete)) {
+            $this->selectedChecklogsForDelete = array_diff($this->selectedChecklogsForDelete, [$checklogId]);
+        } else {
+            $this->selectedChecklogsForDelete[] = $checklogId;
+        }
+
+        $this->selectAllForDelete = count($this->selectedChecklogsForDelete) === $this->getChecklogs()->count();
+    }
+
+    public function selectAllVisible()
+    {
+        $this->selected = $this->getChecklogs()->pluck('id')->toArray();
+    }
+
+    public function selectAllVisibleForDelete()
+    {
+        $this->selectedChecklogsForDelete = $this->getChecklogs()->pluck('id')->toArray();
+    }
+
+    public function selectAllChecklogs()
+    {
+        $this->selected = Ticking::where('user_id', auth()->user()->id)->whereNull('deleted_at')->pluck('id')->toArray();
+    }
+
+    public function selectAllDeletedChecklogs()
+    {
+        $this->selectedChecklogsForDelete = Ticking::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
+    }
+
+    private function updateCounts()
+    {
+        $this->activeChecklogsCount = Ticking::where('user_id', auth()->user()->id)->whereNull('deleted_at')->count();
+        $this->deletedChecklogsCount = Ticking::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
+    }
+
+    private function getChecklogs()
+    {
+        $query = Ticking::where('user_id', auth()->user()->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
     public function recordOvertime($end_time)
@@ -227,6 +424,8 @@ class Index extends Component
             'end_day',
             'end_time',
             'comments',
+            'selected',
+            'selectAll',
         ]);
     }
 
@@ -237,12 +436,14 @@ class Index extends Component
             return abort(401);
         }
 
-        $checklogs_count = Ticking::where('user_id',auth()->user()->id)->count();
-        $checklogs = Ticking::where('user_id',auth()->user()->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
-        $pending_checklogs_count =  Ticking::where('user_id',auth()->user()->id)->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_PENDING)->where('manager_approval_status', Ticking::MANAGER_APPROVAL_PENDING)->count();
-        $approved_checklogs_count =  Ticking::where('user_id',auth()->user()->id)->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_APPROVED)->where('manager_approval_status', Ticking::MANAGER_APPROVAL_APPROVED)->count();
-        $rejected_checklogs_count =  Ticking::where('user_id',auth()->user()->id)->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_REJECTED)->where('manager_approval_status', Ticking::MANAGER_APPROVAL_REJECTED)->count();
+        $checklogs = $this->getChecklogs();
 
-        return view('livewire.employee.checklog.index', compact('checklogs','checklogs_count','pending_checklogs_count','approved_checklogs_count','rejected_checklogs_count'))->layout('components.layouts.employee.master');
+        // Get counts from all checklogs, not just current page
+        $allChecklogs = Ticking::where('user_id', auth()->user()->id);
+        $pending_checklogs_count = $allChecklogs->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_PENDING)->where('manager_approval_status', Ticking::MANAGER_APPROVAL_PENDING)->whereNull('deleted_at')->count();
+        $approved_checklogs_count = $allChecklogs->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_APPROVED)->where('manager_approval_status', Ticking::MANAGER_APPROVAL_APPROVED)->whereNull('deleted_at')->count();
+        $rejected_checklogs_count = $allChecklogs->where('supervisor_approval_status', Ticking::SUPERVISOR_APPROVAL_REJECTED)->where('manager_approval_status', Ticking::MANAGER_APPROVAL_REJECTED)->whereNull('deleted_at')->count();
+
+        return view('livewire.employee.checklog.index', compact('checklogs', 'pending_checklogs_count', 'approved_checklogs_count', 'rejected_checklogs_count'))->layout('components.layouts.employee.master');
     }
 }

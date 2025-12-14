@@ -2,7 +2,7 @@
     @include('livewire.portal.absences.edit-absence')
     @include('livewire.portal.absences.bulk-approval')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.restore-modal')
+    @include('livewire.portal.absences.restore-modal')
     @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => count($selectedAbsencesForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedAbsencesForDelete, 'itemType' => count($selectedAbsencesForDelete) === 1 ? __('employees.employee') : __('employees.employees')])
@@ -166,7 +166,7 @@
         <div class="col-md-3">
             <label for="search">{{__('common.search')}}: </label>
             <input wire:model.live="query" id="absences-search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
-            <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
+            <p class="badge badge-info">{{ $resultCount }}</p>
         </div>
         <div class="col-md-3">
             <label for="orderBy">{{__('common.order_by')}}: </label>
@@ -225,16 +225,38 @@
         </div>
 
         <!-- Bulk Actions (Left) -->
-        <div>
+        <div class="d-flex align-items-center gap-2">
             @if($activeTab === 'active')
+                <!-- Selection Controls -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        {{__('common.select')}}
+                        @if(count($selectedAbsences) > 0)
+                            <span class="badge bg-primary text-white ms-1">{{ count($selectedAbsences) }}</span>
+                        @endif
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                        <li><a class="dropdown-item" wire:click.prevent="selectAllAbsences" href="#">{{__('absences.select_all_absences')}}</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedAbsences', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                    </ul>
+                </div>
+
                 <!-- Bulk Actions when items are selected -->
                 @if(!$bulkDisabled && count($selectedAbsences) > 0)
                 <div class="d-flex align-items-center gap-2">
+                    <!-- Selection Info -->
+                  
+
                     <!-- Bulk Approval Actions -->
                     @can('absence-update')
                     <button id="bulk-approve-absences-btn" wire:click.prevent="initDataBulk('approve')"
-                        data-bs-toggle="modal" 
-                        data-bs-target="#EditBulkAbsenceModal" 
+                        data-bs-toggle="modal"
+                        data-bs-target="#EditBulkAbsenceModal"
                         class="btn btn-sm btn-success d-flex align-items-center">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -281,6 +303,25 @@
                 </div>
                 @endif
             @else
+                <!-- Selection Controls for Deleted Tab -->
+                <div class="dropdown me-2">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        {{__('common.select')}}
+                        @if(count($selectedAbsencesForDelete) > 0)
+                            <span class="badge bg-primary text-white ms-1">{{ count($selectedAbsencesForDelete) }}</span>
+                        @endif
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
+                        <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedAbsences" href="#">{{__('absences.select_all_deleted_absences')}}</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedAbsencesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                    </ul>
+                </div>
+
                 <!-- Deleted Tab Bulk Actions -->
                 @if(count($selectedAbsencesForDelete) > 0)
                 <div class="d-flex align-items-center gap-2">
@@ -411,7 +452,7 @@
                                 @endcan
                             @else
                                 @can('absence-delete')
-                                <a href="#" id="restore-absence-{{ $absence->id }}" wire:click.prevent="$set('{{ $absence->id }}', {{ $absence->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}">
+                                <a href="#" id="restore-absence-{{ $absence->id }}" wire:click.prevent="$set('absence_id', {{ $absence->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}">
                                     <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>

@@ -221,10 +221,29 @@
         </div>
 
         <!-- Bulk Actions (Left) -->
-        <div>
+        <div class="d-flex align-items-center gap-2">
             @if($activeTab === 'active')
-            <!-- Bulk Actions when items are selected -->
-            @if(!$bulkDisabled && count($selectedOvertimes) > 0)
+                <!-- Selection Controls -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        {{__('common.select')}}
+                        @if(count($selectedOvertimes) > 0)
+                            <span class="badge bg-primary text-white ms-1">{{ count($selectedOvertimes) }}</span>
+                        @endif
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                        <li><a class="dropdown-item" wire:click.prevent="selectAllOvertimes" href="#">{{__('overtime.select_all_overtimes')}}</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedOvertimes', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                    </ul>
+                </div>
+
+                <!-- Bulk Actions when items are selected -->
+                @if(!$bulkDisabled && count($selectedOvertimes) > 0)
             <div class="d-flex align-items-center gap-2">
                 <!-- Bulk Approval Actions -->
                 @can('overtime-update')
@@ -277,8 +296,27 @@
             </div>
             @endif
             @else
-            <!-- Deleted Tab Bulk Actions -->
-            @if(count($selectedOvertimesForDelete) > 0)
+                <!-- Selection Controls for Deleted Tab -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        {{__('common.select')}}
+                        @if(count($selectedOvertimesForDelete) > 0)
+                            <span class="badge bg-primary text-white ms-1">{{ count($selectedOvertimesForDelete) }}</span>
+                        @endif
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
+                        <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedOvertimes" href="#">{{__('overtime.select_all_deleted_overtimes')}}</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedOvertimesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                    </ul>
+                </div>
+
+                <!-- Deleted Tab Bulk Actions -->
+                @if(count($selectedOvertimesForDelete) > 0)
             <div class="d-flex align-items-center gap-2">
                 @can('overtime-delete')
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"

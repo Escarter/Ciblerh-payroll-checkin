@@ -27,6 +27,18 @@ return [
     'restore_selected_absence_records' => 'Restaurer les enregistrements d\'absence sélectionnés',
     'permanently_delete_selected_absence_records' => 'Supprimer définitivement les enregistrements d\'absence sélectionnés',
 
+    // Sélection en masse
+    'select_all_absences' => 'Sélectionner toutes les absences',
+    'select_all_visible' => 'Sélectionner tous les visibles',
+    'select_all_deleted_absences' => 'Sélectionner toutes les absences supprimées',
+    'deselect_all' => 'Désélectionner tout',
+    'selected_absences' => 'Absences sélectionnées',
+    'bulk_delete_absences' => 'Supprimer les absences sélectionnées',
+    'bulk_delete_selected_absences' => 'Supprimer les absences sélectionnées',
+    'no_absences_selected' => 'Aucune absence sélectionnée',
+    'confirm_bulk_delete_absences' => 'Êtes-vous sûr de vouloir supprimer les absences sélectionnées?',
+    'items_selected' => 'éléments sélectionnés',
+
     // Messages de succès
     'absences_successfully_updated' => 'Absences mises à jour avec succès!',
     'absence_successfully_updated' => 'Absence mise à jour avec succès!',
@@ -36,4 +48,5 @@ return [
     'selected_absence_records_moved_to_trash' => 'Enregistrements d\'absence sélectionnés déplacés vers la corbeille!',
     'selected_absence_records_restored' => 'Enregistrements d\'absence sélectionnés restaurés!',
     'selected_absence_records_permanently_deleted' => 'Enregistrements d\'absence sélectionnés supprimés définitivement!',
+    'selected_absences_deleted' => 'Absences sélectionnées supprimées avec succès!',
 ];

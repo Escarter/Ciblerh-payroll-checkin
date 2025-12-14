@@ -384,10 +384,34 @@ class Details extends Component
     public function toggleSelectAll()
     {
         if ($this->selectAll) {
-            $this->selectedPayslips = $this->getAllPayslips()->pluck('id')->toArray();
+            // Select only the payslips visible on the current page
+            $this->selectedPayslips = $this->getPayslips()->pluck('id')->toArray();
         } else {
             $this->selectedPayslips = [];
         }
+
+        // Update selectAll state based on whether all visible (paginated) payslips are selected
+        $visiblePayslipIds = $this->getPayslips()->pluck('id')->toArray();
+        $this->selectAll = !empty($visiblePayslipIds) && count(array_intersect($this->selectedPayslips, $visiblePayslipIds)) === count($visiblePayslipIds);
+    }
+
+    public function selectAllVisible()
+    {
+        $this->selectedPayslips = $this->getAllPayslips()->pluck('id')->toArray();
+    }
+
+    public function selectAllPayslips()
+    {
+        $query = Payslip::where('send_payslip_process_id', $this->job->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        $this->selectedPayslips = $query->pluck('id')->toArray();
     }
 
     public function togglePayslipSelection($payslipId)
@@ -397,8 +421,10 @@ class Details extends Component
         } else {
             $this->selectedPayslips[] = $payslipId;
         }
-        
-        $this->selectAll = count($this->selectedPayslips) === $this->getAllPayslips()->count();
+
+        // Update selectAll state based on whether all visible (paginated) payslips are selected
+        $visiblePayslipIds = $this->getPayslips()->pluck('id')->toArray();
+        $this->selectAll = !empty($visiblePayslipIds) && count(array_intersect($this->selectedPayslips, $visiblePayslipIds)) === count($visiblePayslipIds);
     }
 
     private function getPayslips()

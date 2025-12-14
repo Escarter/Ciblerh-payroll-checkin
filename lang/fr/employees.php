@@ -166,6 +166,16 @@ return [
     'absence_request_submitted' => 'Demande d\'absence soumise avec succès - sympa 😍!',
     'absence_request_updated' => 'Demande d\'absence mise à jour avec succès - sympa 😍!!',
     'absence_deleted' => 'Absence supprimée avec succès!',
+    'absence_restored' => 'Absence restaurée avec succès!',
+    'absence_permanently_deleted' => 'Absence supprimée définitivement!',
+    'selected_absences_restored' => 'Absences sélectionnées restaurées!',
+    'selected_absences_permanently_deleted' => 'Absences sélectionnées supprimées définitivement!',
+    'absence_start_date' => 'Date de début',
+    'absence_end_date' => 'Date de fin',
+    'selected_absence_days' => 'Jours d\'absence sélectionnés : ',
+    'absences_requests_submitted' => 'Demandes d\'absence soumises avec succès pour :count jours - sympa 😍!!',
+    'cannot_request_past_absence' => 'Impossible de demander une absence pour les dates passées!',
+    'upload_new_to_replace' => 'Téléchargez un nouveau fichier pour remplacer l\'existant (optionnel)',
 
     // Avances sur salaire spécifiques
     'advance_salary' => 'Avance sur salaire',
@@ -179,6 +189,12 @@ return [
     'advance_salary_recorded' => 'Avance sur salaire enregistrée avec succès!',
     'advance_salary_updated' => 'Avance sur salaire mise à jour avec succès!',
     'advance_salary_deleted' => 'Avance sur salaire supprimée avec succès!',
+    'advance_salary_restored' => 'Avance sur salaire restaurée avec succès!',
+    'advance_salary_permanently_deleted' => 'Avance sur salaire supprimée définitivement!',
+    'selected_advance_salaries_restored' => 'Avances sur salaire sélectionnées restaurées!',
+    'selected_advance_salaries_permanently_deleted' => 'Avances sur salaire sélectionnées supprimées définitivement!',
+    'advance_salary_record' => 'enregistrement d\'avance sur salaire',
+    'advance_salaries' => 'avances sur salaire',
     'repayment_period' => 'Période de remboursement',
 
     // Portail d'avance sur salaire spécifique
@@ -230,6 +246,13 @@ return [
     'checkins_recorded_success' => 'Pointages enregistrés avec succès - passez une bonne journée 😍!',
     'checkin_updated_success' => 'Pointage mis à jour avec succès!',
     'checkin_deleted_success' => 'Enregistrement de pointage supprimé avec succès!',
+    'checkin_restored' => 'Pointage restauré avec succès!',
+    'checkin_permanently_deleted' => 'Pointage supprimé définitivement!',
+    'selected_checkins_deleted' => 'Pointages sélectionnés supprimés!',
+    'selected_checkins_restored' => 'Pointages sélectionnés restaurés!',
+    'selected_checkins_permanently_deleted' => 'Pointages sélectionnés supprimés définitivement!',
+    'checkin_record' => 'enregistrement de pointage',
+    'checkins' => 'pointages',
 
     // Messages de succès pour le portail de pointages
     'checkin_successfully_updated' => 'Pointage mis à jour avec succès!',
@@ -277,6 +300,13 @@ return [
     'leave_request_submitted' => 'Demande de congé soumise avec succès - sympa 😍!',
     'leave_request_updated' => 'Demande de congé mise à jour avec succès - sympa 😍!!',
     'leave_deleted' => 'Congé supprimé avec succès!',
+    'leave_restored' => 'Congé restauré avec succès!',
+    'leave_permanently_deleted' => 'Congé supprimé définitivement!',
+    'selected_leaves_deleted' => 'Congés sélectionnés supprimés!',
+    'selected_leaves_restored' => 'Congés sélectionnés restaurés!',
+    'selected_leaves_permanently_deleted' => 'Congés sélectionnés supprimés définitivement!',
+    'leave_record' => 'enregistrement de congé',
+    'leaves' => 'congés',
 
     // Heures supplémentaires spécifiques
     'view_all_overtime_recorded' => 'Voir toutes vos heures supplémentaires enregistrées',
@@ -285,6 +315,13 @@ return [
     'overtime_created' => 'Heures supplémentaires créées avec succès!',
     'overtime_updated' => 'Heures supplémentaires mises à jour avec succès!',
     'overtime_deleted' => 'Enregistrement d\'heures supplémentaires supprimé avec succès!',
+    'overtime_restored' => 'Heures supplémentaires restaurées avec succès!',
+    'overtime_permanently_deleted' => 'Heures supplémentaires supprimées définitivement!',
+    'selected_overtimes_deleted' => 'Heures supplémentaires sélectionnées supprimées!',
+    'selected_overtimes_restored' => 'Heures supplémentaires sélectionnées restaurées!',
+    'selected_overtimes_permanently_deleted' => 'Heures supplémentaires sélectionnées supprimées définitivement!',
+    'overtime_record' => 'enregistrement d\'heures supplémentaires',
+    'overtimes' => 'heures supplémentaires',
 
     // Fiches de paie spécifiques
     'view_all_payslips' => 'Voir toutes vos fiches de paie',

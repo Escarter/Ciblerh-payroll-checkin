@@ -1679,9 +1679,12 @@
 </style>
 
 <script type="text/javascript">
+    console.log('Dashboard chart script loaded');
+
     // New Chart.js charts
     // Initialize charts on DOM ready
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM content loaded, initializing charts');
         if (typeof Chart === 'undefined') {
             console.error('Chart.js not loaded!');
             return;
@@ -1723,13 +1726,15 @@
 
     // Function to recreate charts with new data
     function recreateCharts() {
+        console.log('Recreating charts...');
         destroyCharts();
 
-        // Small delay to ensure DOM is updated
+        // Delay to ensure DOM is updated after Livewire request
         setTimeout(() => {
+            console.log('Fetching fresh chart data...');
             // Fetch fresh chart data from Livewire component
             fetchFreshChartData();
-        }, 100);
+        }, 500);
     }
 
     // Function to fetch fresh chart data
@@ -2467,10 +2472,115 @@
         }
     }
 
-    // Listen for Livewire events to update charts
-    document.addEventListener('livewire:init', () => {
-        Livewire.on('charts-updated', () => {
-            recreateCharts();
+    // Listen for select changes directly to update charts
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('Setting up direct select change listeners');
+
+        const companySelect = document.getElementById('selectedCompanyId');
+        const departmentSelect = document.getElementById('selectedDepartmentId');
+        const periodSelect = document.getElementById('period');
+
+        if (companySelect) {
+            companySelect.addEventListener('change', () => {
+                console.log('Company select changed directly');
+                setTimeout(() => {
+                    console.log('Recreating charts after company change');
+                    recreateCharts();
+                }, 1500); // Wait for Livewire to finish updating
+            });
+        }
+
+        if (departmentSelect) {
+            departmentSelect.addEventListener('change', () => {
+                console.log('Department select changed directly');
+                setTimeout(() => {
+                    console.log('Recreating charts after department change');
+                    recreateCharts();
+                }, 1500); // Wait for Livewire to finish updating
+            });
+        }
+
+        if (periodSelect) {
+            periodSelect.addEventListener('change', () => {
+                console.log('Period select changed directly');
+                setTimeout(() => {
+                    console.log('Recreating charts after period change');
+                    recreateCharts();
+                }, 1500); // Wait for Livewire to finish updating
+            });
+        }
+
+        // Listen for modal events that might affect chart rendering
+        const failureDetailsModal = document.getElementById('failureDetailsModal');
+        const payslipDetailsModal = document.getElementById('payslipDetailsModal');
+
+        if (failureDetailsModal) {
+            failureDetailsModal.addEventListener('shown.bs.modal', () => {
+                console.log('Failure details modal shown');
+                // Small delay to ensure modal is fully rendered
+                setTimeout(() => recreateCharts(), 300);
+            });
+            failureDetailsModal.addEventListener('hidden.bs.modal', () => {
+                console.log('Failure details modal hidden');
+                // Small delay to ensure modal is fully hidden
+                setTimeout(() => recreateCharts(), 300);
+            });
+        }
+
+        if (payslipDetailsModal) {
+            // For payslip modal, listen for DOM changes since it uses wire:ignore
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                        const target = mutation.target;
+                        if (target.id === 'payslipDetailsModal') {
+                            const display = window.getComputedStyle(target).display;
+                            console.log('Payslip modal display changed to:', display);
+                            if (display === 'none') {
+                                setTimeout(() => recreateCharts(), 300);
+                            }
+                        }
+                    }
+                });
+            });
+
+            observer.observe(payslipDetailsModal, {
+                attributes: true,
+                attributeFilter: ['style']
+            });
+        }
+
+        // Listen for department modal overlay changes
+        const departmentModalOverlay = document.querySelector('.department-modal-overlay');
+        if (departmentModalOverlay) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                        const display = window.getComputedStyle(departmentModalOverlay).display;
+                        console.log('Department modal overlay display changed to:', display);
+                        // Recreate charts when modal is hidden or shown
+                        setTimeout(() => recreateCharts(), 300);
+                    }
+                });
+            });
+
+            observer.observe(departmentModalOverlay, {
+                attributes: true,
+                attributeFilter: ['style']
+            });
+        }
+
+        // General modal event listener for any Bootstrap modals
+        document.addEventListener('show.bs.modal', (event) => {
+            console.log('Modal shown:', event.target.id);
+            // Small delay to ensure modal is fully rendered
+            setTimeout(() => recreateCharts(), 300);
+        });
+
+        document.addEventListener('hide.bs.modal', (event) => {
+            console.log('Modal hidden:', event.target.id);
+            // Small delay to ensure modal is fully hidden
+            setTimeout(() => recreateCharts(), 300);
         });
     });
 </script>

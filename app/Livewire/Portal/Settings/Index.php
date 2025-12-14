@@ -18,6 +18,11 @@ class Index extends Component
 
     public $setting, $sms_provider, $sms_provider_username, $sms_provider_password, $sms_provider_senderid;
 
+    // Provider-specific SMS properties for better field alignment
+    public $nexah_username, $nexah_password, $nexah_senderid;
+    public $twilio_account_sid, $twilio_auth_token, $twilio_phone_number;
+    public $sns_access_key, $sns_secret_key, $sns_region, $sns_senderid;
+
     public $smtp_provider;
     public $mailgun_domain;
     public $mailgun_secret;
@@ -117,12 +122,90 @@ class Index extends Component
         $this->birthday_sms_message_en = !empty($this->setting) ? (!empty($this->setting->birthday_sms_message_en) ? $this->setting->birthday_sms_message_en : "Happy Birthday! :name:, Wishing you a fantastic day filled with joy and a year ahead full of success. Enjoy your special day!") :'';
         $this->birthday_sms_message_fr = !empty($this->setting) ? (!empty($this->setting->birthday_sms_message_fr) ? $this->setting->birthday_sms_message_fr : "Joyeux anniversaire! :name:, Je te souhaite une journée fantastique pleine de joie et une année à venir remplie de succès. Profite bien de ta journée spéciale!") :'';
 
+        // Initialize provider-specific properties based on current provider (after all properties are loaded)
+        $this->initializeProviderSpecificProperties();
 
-    
+    }
+
+    private function initializeProviderSpecificProperties()
+    {
+        // Initialize provider-specific properties based on the current SMS provider
+        switch ($this->sms_provider) {
+            case 'nexah':
+                $this->nexah_username = $this->sms_provider_username;
+                $this->nexah_password = $this->sms_provider_password;
+                $this->nexah_senderid = $this->sms_provider_senderid;
+                break;
+
+            case 'twilio':
+                $this->twilio_account_sid = $this->sms_provider_username;
+                $this->twilio_auth_token = $this->sms_provider_password;
+                $this->twilio_phone_number = $this->sms_provider_senderid;
+                break;
+
+            case 'aws_sns':
+                $this->sns_access_key = $this->sms_provider_username;
+                $this->sns_secret_key = $this->sms_provider_password;
+                $this->sns_region = $this->ses_region ?: 'us-east-1'; // Default to us-east-1 if not set
+                $this->sns_senderid = $this->sms_provider_senderid;
+                break;
+
+            default:
+                // For unknown providers, use generic fields
+                $this->nexah_username = $this->sms_provider_username;
+                $this->nexah_password = $this->sms_provider_password;
+                $this->nexah_senderid = $this->sms_provider_senderid;
+                break;
+        }
+    }
+
+    public function updatedSmsProvider()
+    {
+        // When SMS provider changes, reinitialize provider-specific properties
+        $this->initializeProviderSpecificProperties();
+    }
+
+    public function updatedSnsRegion()
+    {
+        // When SNS region changes, update ses_region immediately
+        $this->ses_region = $this->sns_region;
+    }
+
+    private function mapProviderSpecificFieldsToGeneric()
+    {
+        // Map provider-specific fields back to generic database fields based on selected provider
+        switch ($this->sms_provider) {
+            case 'nexah':
+                $this->sms_provider_username = $this->nexah_username;
+                $this->sms_provider_password = $this->nexah_password;
+                $this->sms_provider_senderid = $this->nexah_senderid;
+                break;
+
+            case 'twilio':
+                $this->sms_provider_username = $this->twilio_account_sid;
+                $this->sms_provider_password = $this->twilio_auth_token;
+                $this->sms_provider_senderid = $this->twilio_phone_number;
+                break;
+
+            case 'aws_sns':
+                $this->sms_provider_username = $this->sns_access_key;
+                $this->sms_provider_password = $this->sns_secret_key;
+                $this->sms_provider_senderid = $this->sns_senderid;
+                // Update the ses_region as well since SNS uses it
+                $this->ses_region = $this->sns_region;
+                break;
+
+            default:
+                // For unknown providers, fields should already be in generic properties
+                break;
+        }
     }
 
     public function saveSmsConfig()
     {
+        // Map provider-specific fields back to generic database fields
+        $this->mapProviderSpecificFieldsToGeneric();
+
         $setting = Setting::updateOrCreate(
             ['company_id'=> 1],
             [
@@ -135,6 +218,8 @@ class Index extends Component
                 'sms_content_fr' => $this->sms_content_fr,
                 'birthday_sms_message_en' => $this->birthday_sms_message_en,
                 'birthday_sms_message_fr' => $this->birthday_sms_message_fr,
+                // Save SES region for SNS provider
+                'ses_region' => $this->ses_region,
               
             ]);
 

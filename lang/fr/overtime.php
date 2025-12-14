@@ -79,4 +79,6 @@ return [
     'approval' => 'Approbation',
     'rejection' => 'Rejet',
     'employee_overtime_bulk' => 'Heures supplémentaires des employés en lot',
+    'items_selected' => 'éléments sélectionnés',
+    'select_all_overtimes' => 'Sélectionner toutes les heures supplémentaires',
 ];

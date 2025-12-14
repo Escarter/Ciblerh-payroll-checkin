@@ -14,6 +14,17 @@ class Index extends Component
     use WithDataTable;
 
     //Create, Edit, Delete, View Post props
+    public ?array $selectedLeaves = [];
+    public bool $selectAll = false;
+
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedLeavesForDelete = [];
+    public $selectAllForDelete = false;
+
+    // Reactive count properties
+    public $activeLeavesCount = 0;
+    public $deletedLeavesCount = 0;
     public  $start_date;
     public  $end_date;
     public  $leave_type_id;
@@ -47,6 +58,9 @@ class Index extends Component
         $this->company = auth()->user()->company;
         $this->department = auth()->user()->department;
         $this->service = auth()->user()->service;
+
+        // Initialize counts
+        $this->updateCounts();
     }
     
     public function store()
@@ -132,12 +146,202 @@ class Index extends Component
         }
 
         if (!empty($this->leave)) {
-
             auth()->user()->leaves()->findOrFail($this->leave->id)->delete();
         }
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.leave_deleted'), 'DeleteModal');
+
+        // Update counts
+        $this->updateCounts();
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedLeaves)) {
+            Leave::whereIn('id', $this->selectedLeaves)
+                ->where('user_id', auth()->user()->id)
+                ->delete();
+
+            $this->selectedLeaves = [];
+            $this->selectAll = false;
+
+            $this->closeModalAndFlashMessage(__('employees.selected_leaves_deleted'), 'BulkDeleteModal');
+
+            // Update counts
+            $this->updateCounts();
+        }
+    }
+
+    public function restore($leaveId)
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        $leave = Leave::withTrashed()->findOrFail($leaveId);
+
+        // Check if this leave belongs to the current user
+        if ($leave->user_id !== auth()->id()) {
+            return abort(403);
+        }
+
+        $leave->restore();
+
+        $this->closeModalAndFlashMessage(__('employees.leave_restored'), 'RestoreModal');
+
+        // Update counts
+        $this->updateCounts();
+    }
+
+    public function forceDelete($leaveId)
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        $leave = Leave::withTrashed()->findOrFail($leaveId);
+
+        // Check if this leave belongs to the current user
+        if ($leave->user_id !== auth()->id()) {
+            return abort(403);
+        }
+
+        $leave->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('employees.leave_permanently_deleted'), 'ForceDeleteModal');
+
+        // Update counts
+        $this->updateCounts();
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedLeavesForDelete)) {
+            Leave::withTrashed()
+                ->whereIn('id', $this->selectedLeavesForDelete)
+                ->where('user_id', auth()->id()) // Ensure only user's own leaves
+                ->restore();
+
+            $this->selectedLeavesForDelete = [];
+
+            $this->closeModalAndFlashMessage(__('employees.selected_leaves_restored'), 'BulkRestoreModal');
+
+            // Update counts
+            $this->updateCounts();
+        }
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('leave-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedLeavesForDelete)) {
+            Leave::withTrashed()
+                ->whereIn('id', $this->selectedLeavesForDelete)
+                ->where('user_id', auth()->id()) // Ensure only user's own leaves
+                ->forceDelete();
+
+            $this->selectedLeavesForDelete = [];
+
+            $this->closeModalAndFlashMessage(__('employees.selected_leaves_permanently_deleted'), 'BulkForceDeleteModal');
+
+            // Update counts
+            $this->updateCounts();
+        }
+    }
+
+    //Toggle the $selectAll on or off based on the count of selected posts
+    public function updatedselectAll($value)
+    {
+        if ($value) {
+            $this->selectedLeaves = $this->getLeaves()->pluck('id')->toArray();
+        } else {
+            $this->selectedLeaves = [];
+        }
+    }
+
+    //Toggle the $selectAll on or off based on the count of selected posts
+    public function updatedselectedLeaves()
+    {
+        // This method can be used for additional logic if needed
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedLeavesForDelete = [];
+        $this->selectAllForDelete = false;
+    }
+
+    public function toggleSelectAllForDelete()
+    {
+        if ($this->selectAllForDelete) {
+            $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
+        } else {
+            $this->selectedLeavesForDelete = [];
+        }
+    }
+
+    public function toggleLeaveSelectionForDelete($leaveId)
+    {
+        if (in_array($leaveId, $this->selectedLeavesForDelete)) {
+            $this->selectedLeavesForDelete = array_diff($this->selectedLeavesForDelete, [$leaveId]);
+        } else {
+            $this->selectedLeavesForDelete[] = $leaveId;
+        }
+
+        $this->selectAllForDelete = count($this->selectedLeavesForDelete) === $this->getLeaves()->count();
+    }
+
+    public function selectAllVisible()
+    {
+        $this->selectedLeaves = $this->getLeaves()->pluck('id')->toArray();
+    }
+
+    public function selectAllVisibleForDelete()
+    {
+        $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
+    }
+
+    public function selectAllLeaves()
+    {
+        $this->selectedLeaves = auth()->user()->leaves()->whereNull('deleted_at')->pluck('id')->toArray();
+    }
+
+    public function selectAllDeletedLeaves()
+    {
+        $this->selectedLeavesForDelete = auth()->user()->leaves()->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
+    }
+
+    private function updateCounts()
+    {
+        $this->activeLeavesCount = Leave::where('user_id', auth()->user()->id)->whereNull('deleted_at')->count();
+        $this->deletedLeavesCount = Leave::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
+    }
+
+    private function getLeaves()
+    {
+        $query = Leave::search($this->query)->where('user_id', auth()->user()->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
     public function clearFields()
@@ -149,6 +353,8 @@ class Index extends Component
             'leave_type_id',
             'leave_reason',
             'interval',
+            'selectedLeaves',
+            'selectAll',
         ]);
     }
 
@@ -158,10 +364,13 @@ class Index extends Component
             return abort(401);
         }
 
-        $leaves = Leave::search($this->query)->where('user_id', auth()->user()->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
-        $pending_leave =  Leave::where('user_id', auth()->user()->id)->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_PENDING)->where('manager_approval_status', Leave::MANAGER_APPROVAL_PENDING)->count();
-        $approved_leave =  Leave::where('user_id', auth()->user()->id)->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_APPROVED)->where('manager_approval_status', Leave::MANAGER_APPROVAL_APPROVED)->count();
-        $rejected_leave =  Leave::where('user_id', auth()->user()->id)->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_REJECTED)->where('manager_approval_status', Leave::MANAGER_APPROVAL_REJECTED)->count();
+        $leaves = $this->getLeaves();
+
+        // Get counts from all leaves, not just current page
+        $allLeaves = Leave::where('user_id', auth()->user()->id);
+        $pending_leave = $allLeaves->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_PENDING)->where('manager_approval_status', Leave::MANAGER_APPROVAL_PENDING)->whereNull('deleted_at')->count();
+        $approved_leave = $allLeaves->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_APPROVED)->where('manager_approval_status', Leave::MANAGER_APPROVAL_APPROVED)->whereNull('deleted_at')->count();
+        $rejected_leave = $allLeaves->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_REJECTED)->where('manager_approval_status', Leave::MANAGER_APPROVAL_REJECTED)->whereNull('deleted_at')->count();
 
         return view('livewire.employee.leaves.index', compact('leaves', 'pending_leave', 'approved_leave', 'rejected_leave'))->layout('components.layouts.employee.master');
     }

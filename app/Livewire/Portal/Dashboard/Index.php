@@ -73,19 +73,16 @@ class Index extends Component
         if (!is_null($company_id)) {
             $this->departments = Department::where('company_id', $company_id)->get();
         }
-        $this->dispatch('charts-updated');
         $this->clearCache();
     }
 
     public function updatedSelectedDepartmentId($department_id)
     {
-        $this->dispatch('charts-updated');
         $this->clearCache();
     }
 
     public function updatedPeriod($period)
     {
-        $this->dispatch('charts-updated');
         $this->clearCache();
     }
 

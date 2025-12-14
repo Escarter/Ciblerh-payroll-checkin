@@ -288,6 +288,7 @@ return [
     'overall_status' => 'Statut général',
     'payslip_timeline' => 'Chronologie de la fiche de paie',
     'payslip_created' => 'Fiche de paie créée',
+    'select_all_payslips' => 'Sélectionner toutes les fiches de paie',
     'payslip_added_to_processing_queue' => 'Fiche de paie ajoutée à la file de traitement',
     'email_sent' => 'Email envoyé',
     'email_failed' => 'Échec de l\'email',

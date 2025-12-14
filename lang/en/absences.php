@@ -27,6 +27,18 @@ return [
     'restore_selected_absence_records' => 'Restore Selected Absence Records',
     'permanently_delete_selected_absence_records' => 'Permanently Delete Selected Absence Records',
 
+    // Bulk selection
+    'select_all_absences' => 'Select All Absences',
+    'select_all_visible' => 'Select All Visible',
+    'select_all_deleted_absences' => 'Select All Deleted Absences',
+    'deselect_all' => 'Deselect All',
+    'selected_absences' => 'Selected Absences',
+    'bulk_delete_absences' => 'Delete Selected Absences',
+    'bulk_delete_selected_absences' => 'Delete Selected Absences',
+    'no_absences_selected' => 'No absences selected',
+    'confirm_bulk_delete_absences' => 'Are you sure you want to delete the selected absences?',
+    'items_selected' => 'items selected',
+
     // Success messages
     'absences_successfully_updated' => 'Absences successfully updated!',
     'absence_successfully_updated' => 'Absence successfully updated!',
@@ -36,4 +48,5 @@ return [
     'selected_absence_records_moved_to_trash' => 'Selected absence records moved to trash!',
     'selected_absence_records_restored' => 'Selected absence records restored!',
     'selected_absence_records_permanently_deleted' => 'Selected absence records permanently deleted!',
+    'selected_absences_deleted' => 'Selected absences deleted successfully!',
 ];

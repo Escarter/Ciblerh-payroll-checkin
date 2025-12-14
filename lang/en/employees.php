@@ -166,6 +166,16 @@ return [
     'absence_request_submitted' => 'Absence request successfully submitted - nice 😍!',
     'absence_request_updated' => 'Absence request updated successfully - nice 😍!!',
     'absence_deleted' => 'Absence successfully deleted!',
+    'absence_restored' => 'Absence successfully restored!',
+    'absence_permanently_deleted' => 'Absence permanently deleted!',
+    'selected_absences_restored' => 'Selected absences restored!',
+    'selected_absences_permanently_deleted' => 'Selected absences permanently deleted!',
+    'absence_start_date' => 'Start Date',
+    'absence_end_date' => 'End Date',
+    'selected_absence_days' => 'Selected absence days: ',
+    'absences_requests_submitted' => 'Absence requests submitted successfully for :count days - nice 😍!!',
+    'cannot_request_past_absence' => 'Cannot request absence for past dates!',
+    'upload_new_to_replace' => 'Upload a new file to replace the existing one (optional)',
 
     // Advance Salary specific
     'advance_salary' => 'Advance Salary',
@@ -179,6 +189,12 @@ return [
     'advance_salary_recorded' => 'Advance salary recorded successfully!',
     'advance_salary_updated' => 'Advance Salary successfully updated!',
     'advance_salary_deleted' => 'Advance salary successfully deleted!',
+    'advance_salary_restored' => 'Advance salary successfully restored!',
+    'advance_salary_permanently_deleted' => 'Advance salary permanently deleted!',
+    'selected_advance_salaries_restored' => 'Selected advance salaries restored!',
+    'selected_advance_salaries_permanently_deleted' => 'Selected advance salaries permanently deleted!',
+    'advance_salary_record' => 'advance salary record',
+    'advance_salaries' => 'advance salaries',
     'repayment_period' => 'Repayment Period',
 
     // Portal Advance Salary specific
@@ -230,6 +246,13 @@ return [
     'checkins_recorded_success' => 'Checkins recorded successfully - have a nice day 😍!',
     'checkin_updated_success' => 'Checkin successfully updated!',
     'checkin_deleted_success' => 'Checkin record successfully deleted!',
+    'checkin_restored' => 'Checkin successfully restored!',
+    'checkin_permanently_deleted' => 'Checkin permanently deleted!',
+    'selected_checkins_deleted' => 'Selected checkins deleted!',
+    'selected_checkins_restored' => 'Selected checkins restored!',
+    'selected_checkins_permanently_deleted' => 'Selected checkins permanently deleted!',
+    'checkin_record' => 'checkin record',
+    'checkins' => 'checkins',
 
     // Portal Checklog success messages
     'checkin_successfully_updated' => 'Checkin successfully updated!',
@@ -277,6 +300,13 @@ return [
     'leave_request_submitted' => 'Leave request successfully submitted - nice 😍!',
     'leave_request_updated' => 'Leave request updated successfully - nice 😍!!',
     'leave_deleted' => 'Leave successfully deleted!',
+    'leave_restored' => 'Leave successfully restored!',
+    'leave_permanently_deleted' => 'Leave permanently deleted!',
+    'selected_leaves_deleted' => 'Selected leaves deleted!',
+    'selected_leaves_restored' => 'Selected leaves restored!',
+    'selected_leaves_permanently_deleted' => 'Selected leaves permanently deleted!',
+    'leave_record' => 'leave record',
+    'leaves' => 'leaves',
 
     // Overtime specific
     'view_all_overtime_recorded' => 'View all your overtime recorded',
@@ -285,6 +315,13 @@ return [
     'overtime_created' => 'Overtime successfully created!',
     'overtime_updated' => 'Overtime successfully updated!',
     'overtime_deleted' => 'Overtime record successfully deleted!',
+    'overtime_restored' => 'Overtime successfully restored!',
+    'overtime_permanently_deleted' => 'Overtime permanently deleted!',
+    'selected_overtimes_deleted' => 'Selected overtimes deleted!',
+    'selected_overtimes_restored' => 'Selected overtimes restored!',
+    'selected_overtimes_permanently_deleted' => 'Selected overtimes permanently deleted!',
+    'overtime_record' => 'overtime record',
+    'overtimes' => 'overtimes',
 
     // Payslip specific
     'view_all_payslips' => 'View all your payslips',
@@ -409,6 +446,8 @@ return [
     'manage_employees_in_assigned_departments' => 'Manage employees in your assigned departments',
 
     // Bulk Operations
+    'select_all_employees' => 'Select All Employees',
+    'select_all_deleted_employees' => 'Select All Deleted Employees',
     'restore_selected_employees' => 'Restore Selected Employees',
     'permanently_delete_selected_employees' => 'Permanently Delete Selected Employees',
 

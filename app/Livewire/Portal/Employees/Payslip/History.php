@@ -47,7 +47,13 @@ class History extends Component
     public function downloadPayslip($payslip_id)
     {
         $payslip = Payslip::findOrFail($payslip_id);
-        
+
+        // Check if encryption was successful
+        if ($payslip->encryption_status != 1) {
+            $this->showToast(__('payslips.encryption_not_successful'), 'danger');
+            return;
+        }
+
         // Check if the file exists
         if (!Storage::disk('modified')->exists($payslip->file)) {
             $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
@@ -67,9 +73,15 @@ class History extends Component
     public function resendEmail()
     {
         if (!empty($this->payslip)) {
+            // Check if encryption was successful
+            if ($this->payslip->encryption_status != 1) {
+                $this->closeModalAndFlashMessage(__('payslips.encryption_not_successful'), 'resendEmailModal');
+                return;
+            }
+
             $employee = User::findOrFail($this->payslip->employee->id);
 
-        
+
                 if (Storage::disk('modified')->exists($this->payslip->file)) {
 
                     $destination_file = $this->payslip->file;
@@ -153,6 +165,11 @@ class History extends Component
     public function resendSMS()
     {
         if(!empty($this->payslip)){
+            // Check if encryption was successful
+            if ($this->payslip->encryption_status != 1) {
+                $this->closeModalAndFlashMessage(__('payslips.encryption_not_successful'), 'resendSMSModal');
+                return;
+            }
 
             $setting = Setting::first();
 
@@ -335,6 +352,25 @@ class History extends Component
         } else {
             $this->selectedPayslips = [];
         }
+    }
+
+    public function selectAllVisible()
+    {
+        $this->selectedPayslips = $this->getPayslips()->pluck('id')->toArray();
+    }
+
+    public function selectAllPayslips()
+    {
+        $query = Payslip::where('employee_id', $this->employee->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        $this->selectedPayslips = $query->pluck('id')->toArray();
     }
 
     public function togglePayslipSelection($payslipId)

@@ -14,29 +14,89 @@
                         </div>
 
                         <x-form-items.form wire:submit="saveSmsConfig">
-                            <div class='form-group row mb-4'>
-                                <div class='col'>
-                                    <label for="sms_provider">{{ __('settings.sms_provider') }}</label>
-                                    <select wire:model.live='sms_provider' id="sms_provider" class="form-control w-100 @error('sms_provider') is-invalid @enderror">
-                                        <option value='nexah' selected>{{__('NEXAH')}}</option>
-                                        <option value='twilio'>{{__('Twilio')}}</option>
-                                        <option value='aws_sns'>{{__('AWS SNS')}}</option>
-                                    </select>
+                            <div class='form-group mb-4'>
+                                <label for="sms_provider">{{ __('settings.sms_provider') }}</label>
+                                <select wire:model.live='sms_provider' id="sms_provider" class="form-control w-100 @error('sms_provider') is-invalid @enderror">
+                                    <option value='nexah' selected>{{__('NEXAH')}}</option>
+                                    <option value='twilio'>{{__('Twilio')}}</option>
+                                    <option value='aws_sns'>{{__('AWS SNS')}}</option>
+                                </select>
+                            </div>
+
+                            <!-- NEXAH Provider Configuration -->
+                            <div x-show="$wire.sms_provider === 'nexah'" class="provider-config">
+                                <hr>
+                                <h6 class="text-primary mb-3">{{__('NEXAH')}} {{__('settings.configuration')}}</h6>
+                                <div class='form-group row mb-2'>
+                                    <div class="col">
+                                        <label for="nexah_username">{{ __('settings.username') }}</label>
+                                        <input wire:model="nexah_username" id="nexah_username" type="text" class="form-control w-100 @error('nexah_username') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'nexah'">
+                                    </div>
+                                    <div class="col">
+                                        <label for="nexah_password">{{ __('settings.password') }}</label>
+                                        <input wire:model="nexah_password" id="nexah_password" type="password" class="form-control w-100 @error('nexah_password') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'nexah'">
+                                    </div>
                                 </div>
-                                <!-- Form Group (default email)-->
-                                <div class="col">
-                                    <label for="sms_provider_username">{{ __('settings.username_or_token') }}</label>
-                                    <input wire:model="sms_provider_username" id="sms_provider_username" type="text" class="form-control w-100 @error('sms_provider_username') is-invalid @enderror" required autofocus>
+                                <div class="form-group mb-2">
+                                    <label for="nexah_senderid">{{ __('settings.senderid') }}</label>
+                                    <input wire:model="nexah_senderid" id="nexah_senderid" type="text" class="form-control w-100 @error('nexah_senderid') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'nexah'" placeholder="Your Sender ID">
                                 </div>
                             </div>
-                            <div class='form-group row mb-4'>
-                                <div class="col">
-                                    <label for="sms_provider_password">{{ __('settings.password_or_secret') }}</label>
-                                    <input wire:model="sms_provider_password" id="sms_provider_password" type="text" class="form-control w-100 @error('sms_provider_password') is-invalid @enderror" required autofocus>
+
+                            <!-- Twilio Provider Configuration -->
+                            <div x-show="$wire.sms_provider === 'twilio'" class="provider-config">
+                                <hr>
+                                <h6 class="text-primary mb-3">{{__('Twilio')}} {{__('settings.configuration')}}</h6>
+                                <div class='form-group row mb-2'>
+                                    <div class="col">
+                                        <label for="twilio_account_sid">{{ __('Account SID') }}</label>
+                                        <input wire:model="twilio_account_sid" id="twilio_account_sid" type="text" class="form-control w-100 @error('twilio_account_sid') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'twilio'" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                                    </div>
+                                    <div class="col">
+                                        <label for="twilio_auth_token">{{ __('Auth Token') }}</label>
+                                        <input wire:model="twilio_auth_token" id="twilio_auth_token" type="password" class="form-control w-100 @error('twilio_auth_token') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'twilio'" placeholder="your_auth_token">
+                                    </div>
                                 </div>
-                                <div class="col">
-                                    <label for="sms_provider_senderid">{{ __('settings.senderid') }}</label>
-                                    <input wire:model="sms_provider_senderid" id="sms_provider_senderid" type="text" class="form-control w-100 @error('sms_provider_senderid') is-invalid @enderror" required autofocus>
+                                <div class="form-group mb-2">
+                                    <label for="twilio_phone_number">{{ __('Phone Number') }}</label>
+                                    <input wire:model="twilio_phone_number" id="twilio_phone_number" type="text" class="form-control w-100 @error('twilio_phone_number') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'twilio'" placeholder="+1234567890">
+                                </div>
+                            </div>
+
+                            <!-- AWS SNS Provider Configuration -->
+                            <div x-show="$wire.sms_provider === 'aws_sns'" class="provider-config">
+                                <hr>
+                                <h6 class="text-primary mb-3">{{__('AWS SNS')}} {{__('settings.configuration')}}</h6>
+                                <div class='form-group row mb-2'>
+                                    <div class="col">
+                                        <label for="sns_access_key">{{ __('Access Key ID') }}</label>
+                                        <input wire:model="sns_access_key" id="sns_access_key" type="text" class="form-control w-100 @error('sns_access_key') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'aws_sns'" placeholder="AKIA...">
+                                    </div>
+                                    <div class="col">
+                                        <label for="sns_secret_key">{{ __('Secret Access Key') }}</label>
+                                        <input wire:model="sns_secret_key" id="sns_secret_key" type="password" class="form-control w-100 @error('sns_secret_key') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'aws_sns'" placeholder="your_secret_key">
+                                    </div>
+                                </div>
+                                <div class='form-group row mb-2'>
+                                    <div class="col">
+                                        <label for="sns_region">{{ __('Region') }}</label>
+                                        <select wire:model="sns_region" id="sns_region" class="form-control w-100 @error('sns_region') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'aws_sns'">
+                                            <option value="us-east-1">US East (N. Virginia)</option>
+                                            <option value="us-east-2">US East (Ohio)</option>
+                                            <option value="us-west-1">US West (N. California)</option>
+                                            <option value="us-west-2">US West (Oregon)</option>
+                                            <option value="eu-west-1">EU (Ireland)</option>
+                                            <option value="eu-west-2">EU (London)</option>
+                                            <option value="eu-central-1">EU (Frankfurt)</option>
+                                            <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+                                            <option value="ap-southeast-2">Asia Pacific (Sydney)</option>
+                                            <option value="ap-northeast-1">Asia Pacific (Tokyo)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <label for="sns_senderid">{{ __('Sender ID (Optional)') }}</label>
+                                        <input wire:model="sns_senderid" id="sns_senderid" type="text" class="form-control w-100 @error('sns_senderid') is-invalid @enderror" placeholder="Country code (e.g., 237)">
+                                    </div>
                                 </div>
                             </div>
 

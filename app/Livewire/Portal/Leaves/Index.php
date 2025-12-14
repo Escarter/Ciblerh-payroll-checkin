@@ -277,8 +277,39 @@ class Index extends Component
         } else {
             $this->selectedLeavesForDelete[] = $leaveId;
         }
-        
+
         $this->selectAllForDelete = count($this->selectedLeavesForDelete) === $this->getLeaves()->count();
+    }
+
+    public function selectAllVisible()
+    {
+        $this->selectedLeaves = $this->getLeaves()->pluck('id')->toArray();
+    }
+
+    public function selectAllVisibleForDelete()
+    {
+        $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
+    }
+
+    public function selectAllLeaves()
+    {
+        $this->selectedLeaves = match ($this->role) {
+            'supervisor' => Leave::search($this->query)->supervisor()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            'manager' => Leave::search($this->query)->manager()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            'admin' => Leave::search($this->query)->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            default => [],
+        };
+        $this->updatedselectedLeaves();
+    }
+
+    public function selectAllDeletedLeaves()
+    {
+        $this->selectedLeavesForDelete = match ($this->role) {
+            'supervisor' => Leave::search($this->query)->supervisor()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'manager' => Leave::search($this->query)->manager()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'admin' => Leave::search($this->query)->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            default => [],
+        };
     }
 
     private function getLeaves()

@@ -361,9 +361,11 @@
                         @endif
                     </div>
                     @else
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        {{__('common.close')}}
-                    </button>
+                    <div class="d-flex align-items-center justify-content-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            {{__('common.close')}}
+                        </button>
+                    </div>
                     @endif
                 </div>
             </div>

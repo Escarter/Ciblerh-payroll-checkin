@@ -288,6 +288,7 @@ return [
     'overall_status' => 'Overall Status',
     'payslip_timeline' => 'Payslip Timeline',
     'payslip_created' => 'Payslip Created',
+    'select_all_payslips' => 'Select All Payslips',
     'payslip_added_to_processing_queue' => 'Payslip added to processing queue',
     'email_sent' => 'Email Sent',
     'email_failed' => 'Email Failed',

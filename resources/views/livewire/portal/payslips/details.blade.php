@@ -133,8 +133,29 @@
             </div>
 
             <!-- Bulk Actions (Left) -->
-            <div>
+            <div class="d-flex align-items-center gap-2">
                 @if($activeTab === 'active')
+                    <!-- Selection Controls -->
+                    @if(count($payslips) > 0)
+                    <div class="dropdown me-2">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            {{__('common.select')}}
+                            @if(count($selectedPayslips) > 0)
+                                <span class="badge bg-primary text-white ms-1">{{ count($selectedPayslips) }}</span>
+                            @endif
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllPayslips" href="#">{{__('payslips.select_all_payslips')}}</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" wire:click.prevent="$set('selectedPayslips', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                        </ul>
+                    </div>
+                    @endif
+
                     <!-- Bulk Resend Failed Button -->
                     @if($this->getFailedPayslipsCount() > 0)
                     <div class="d-flex align-items-center gap-2 mb-2">

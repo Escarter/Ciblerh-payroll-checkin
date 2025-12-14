@@ -179,9 +179,30 @@
                     </button>
                 </div>
 
-                <!-- Bulk Actions (Left) -->
-                <div>
+                <!-- Selection Controls and Bulk Actions (Left) -->
+                <div class="d-flex align-items-center gap-2">
                     @if($activeTab === 'active')
+                        <!-- Selection Controls -->
+                        @if(count($payslips) > 0)
+                        <div class="dropdown me-2">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                {{__('common.select')}}
+                                @if(count($selectedPayslips) > 0)
+                                    <span class="badge bg-primary text-white ms-1">{{ count($selectedPayslips) }}</span>
+                                @endif
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                                <li><a class="dropdown-item" wire:click.prevent="selectAllPayslips" href="#">{{__('payslips.select_all_payslips')}}</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" wire:click.prevent="$set('selectedPayslips', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                            </ul>
+                        </div>
+                        @endif
+
                         <!-- Soft Delete Bulk Actions (when items selected for delete) -->
                         @if(count($selectedPayslips) > 0)
                         <div class="d-flex align-items-center gap-2">
@@ -207,9 +228,30 @@
                                 {{__('common.clear')}}
                             </button>
                         </div>
-                        @endif
-                    @else
-                        <!-- Deleted Tab Bulk Actions -->
+                    @endif
+                @else
+                    <!-- Selection Controls for Deleted Tab -->
+                    @if(count($payslips) > 0)
+                    <div class="dropdown me-2">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            {{__('common.select')}}
+                            @if(count($selectedPayslips) > 0)
+                                <span class="badge bg-primary text-white ms-1">{{ count($selectedPayslips) }}</span>
+                            @endif
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllPayslips" href="#">{{__('payslips.select_all_payslips')}}</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" wire:click.prevent="$set('selectedPayslips', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                        </ul>
+                    </div>
+                    @endif
+
+                    <!-- Deleted Tab Bulk Actions -->
                         @if(count($selectedPayslips) > 0)
                         <div class="d-flex align-items-center gap-2">
                             @can('payslip-delete')
@@ -371,23 +413,29 @@
                                             </svg>
                                         </a>
                                         <!-- Download Link -->
+                                        @if($payslip->encryption_status == 1)
                                         <a href="#" wire:click="downloadPayslip({{$payslip->id}})" class="text-primary me-2" title="{{__('payslips.download_payslip_title')}}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                             </svg>
                                         </a>
+                                        @endif
                                         <!-- Resend Email Link -->
+                                        @if($payslip->encryption_status == 1)
                                         <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendEmailModal" class="text-info me-2" title="{{__('payslips.resend_email_title')}}">
                                             <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                                             </svg>
                                         </a>
+                                        @endif
                                         <!-- Resend SMS Link -->
+                                        @if($payslip->encryption_status == 1)
                                         <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendSMSModal" class="text-tertiary me-2" title="{{__('payslips.resend_sms_title')}}">
                                             <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                                             </svg>
                                         </a>
+                                        @endif
                                         @can('payslip-delete')
                                         <!-- Delete Link -->
                                         <a href="#" wire:click.prevent="initData({{ $payslip->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal" class="text-danger" title="{{__('payslips.delete_title')}}">

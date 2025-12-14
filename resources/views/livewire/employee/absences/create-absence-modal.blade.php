@@ -8,12 +8,21 @@
                         <p>{{__('employees.record_and_submit_an_absence')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit.prevent="store" class="form-modal">
-                        <div class="form-group mb-4">
-                            <label for="absence_date">{{__('employees.absence_date')}}</label>
-                            <input type="date" wire:model.defer="absence_date" class="form-control  @error('absence_date') is-invalid @enderror" required="">
-                            @error('absence_date')
-                            <div class="invalid-feedback">{{$message}}</div>
-                            @enderror
+                        <div class='form-group row mb-4'>
+                            <div class="col">
+                                <label for="start_date">{{__('employees.absence_start_date')}}</label>
+                                <input type="date" wire:model.live="start_date" class="form-control  @error('start_date') is-invalid @enderror" min="{{ date('Y-m-d') }}" required="">
+                                @error('start_date')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class="col">
+                                <label for="end_date">{{__('employees.absence_end_date')}}</label>
+                                <input type="date" wire:model.live="end_date" class="form-control  @error('end_date') is-invalid @enderror" min="{{ date('Y-m-d') }}" required="">
+                                @error('end_date')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
                         </div>
                         <div class="form-group mb-4">
                             <label for="absence_reason">{{__('leaves.absence_reason')}}</label>
@@ -31,6 +40,9 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
+                            <div>
+                                @if($interval) {!! $interval !!} @endif
+                            </div>
                             <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
                             <button type="submit" wire:click.prevent="store" class="btn btn-primary" wire:loading.attr="disabled">{{__('common.create')}}</button>
                         </div>

@@ -221,12 +221,33 @@
             </button>
         </div>
 
-        <!-- Bulk Actions (Left) -->
-        <div>
+        <!-- Selection Controls and Bulk Actions (Left) -->
+        <div class="d-flex align-items-center gap-2">
             @if($activeTab === 'active')
-                <!-- Bulk Actions when items are selected -->
-                @if(!$bulkDisabled && count($selectedLeaves) > 0)
-                <div class="d-flex align-items-center gap-2">
+                @if(count($leaves) > 0)
+                    <!-- Selection Controls -->
+                    <div class="dropdown me-2">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                                {{__('common.select')}}
+                                @if(count($selectedLeaves) > 0)
+                                    <span class="badge bg-primary text-white ms-1">{{ count($selectedLeaves) }}</span>
+                                @endif
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                                <li><a class="dropdown-item" wire:click.prevent="selectAllLeaves" href="#">{{__('leaves.select_all_leaves')}}</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" wire:click.prevent="$set('selectedLeaves', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                            </ul>
+                        </div>
+                    @endif
+
+                    <!-- Bulk Actions when items are selected -->
+                    @if(!$bulkDisabled && count($selectedLeaves) > 0)
+                    <div class="d-flex align-items-center gap-2">
                     <!-- Bulk Approval Actions -->
                     @can('leave-update')
                     <button wire:click.prevent="initDataBulk('approve')" 
@@ -278,9 +299,29 @@
                 </div>
                 @endif
             @else
+                @if(count($leaves) > 0)
+                    <!-- Selection Controls for Deleted Tab -->
+                    <div class="dropdown me-2">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            {{__('common.select')}}
+                            @if(count($selectedLeavesForDelete) > 0)
+                                <span class="badge bg-primary text-white ms-1">{{ count($selectedLeavesForDelete) }}</span>
+                            @endif
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedLeaves" href="#">{{__('leaves.select_all_deleted_leaves')}}</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" wire:click.prevent="$set('selectedLeavesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                        </ul>
+                    </div>
+                @endif
+
                 <!-- Deleted Tab Bulk Actions -->
                 @if(count($selectedLeavesForDelete) > 0)
-                <div class="d-flex align-items-center gap-2">
                     @can('leave-delete')
                     <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                         class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
@@ -312,7 +353,6 @@
                         </svg>
                         {{__('common.clear')}}
                     </button>
-                </div>
                 @endif
             @endif
         </div>

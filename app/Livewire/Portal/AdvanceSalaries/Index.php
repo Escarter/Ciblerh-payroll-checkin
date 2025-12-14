@@ -258,8 +258,39 @@ class Index extends Component
         } else {
             $this->selectedAdvanceSalariesForDelete[] = $advanceSalaryId;
         }
-        
+
         $this->selectAllForDelete = count($this->selectedAdvanceSalariesForDelete) === $this->getAdvanceSalaries()->count();
+    }
+
+    public function selectAllVisible()
+    {
+        $this->selectedAdvanceSalaries = $this->getAdvanceSalaries()->pluck('id')->toArray();
+    }
+
+    public function selectAllVisibleForDelete()
+    {
+        $this->selectedAdvanceSalariesForDelete = $this->getAdvanceSalaries()->pluck('id')->toArray();
+    }
+
+    public function selectAllAdvanceSalaries()
+    {
+        $this->selectedAdvanceSalaries = match ($this->role) {
+            'supervisor' => AdvanceSalary::search($this->query)->supervisor()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            'manager' => AdvanceSalary::search($this->query)->manager()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            'admin' => AdvanceSalary::search($this->query)->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            default => [],
+        };
+        $this->updatedselectedAdvanceSalaries();
+    }
+
+    public function selectAllDeletedAdvanceSalaries()
+    {
+        $this->selectedAdvanceSalariesForDelete = match ($this->role) {
+            'supervisor' => AdvanceSalary::search($this->query)->supervisor()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'manager' => AdvanceSalary::search($this->query)->manager()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'admin' => AdvanceSalary::search($this->query)->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            default => [],
+        };
     }
 
     private function getAdvanceSalaries()

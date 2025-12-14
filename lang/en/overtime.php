@@ -79,4 +79,6 @@ return [
     'approval' => 'Approval',
     'rejection' => 'Rejection',
     'employee_overtime_bulk' => 'Employee Overtime Bulk',
+    'items_selected' => 'items selected',
+    'select_all_overtimes' => 'Select All Overtimes',
 ];

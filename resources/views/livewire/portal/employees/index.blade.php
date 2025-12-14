@@ -2,8 +2,8 @@
     @include('livewire.portal.employees.others.employee-form')
     @include('livewire.portal.employees.manager.edit-manager')
     @include('livewire.partials.delete-modal')
-    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => count($selectedEmployees) === 1 ? __('employees.employee') : __('employees.employees')])
+    @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employees.employee')])
     @include('livewire.partials.restore-modal')
     @include('livewire.partials.bulk-restore-modal')
@@ -229,23 +229,64 @@
             </button>
         </div>
 
-        <!-- Bulk Actions (Left) -->
-        <div>
-            @if(count($selectedEmployees) > 0)
+        <!-- Selection Controls and Bulk Actions (Left) -->
+        <div class="d-flex align-items-center gap-2">
+            @if(count($employees) > 0)
+                @if($activeTab === 'active')
+                    <!-- Selection Controls -->
+                    <div class="dropdown me-2">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            {{__('common.select')}}
+                            @if(is_array($selectedEmployees) && count($selectedEmployees) > 0)
+                                <span class="badge bg-primary text-white ms-1">{{ count($selectedEmployees) }}</span>
+                            @endif
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" wire:click="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click="selectAllEmployees" href="#">{{__('employees.select_all_employees')}}</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" wire:click="$set('selectedEmployees', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                        </ul>
+                    </div>
+                @else
+                    <!-- Selection Controls for Deleted Tab -->
+                    <div class="dropdown me-2">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            {{__('common.select')}}
+                            @if(is_array($selectedEmployeesForDelete) && count($selectedEmployeesForDelete) > 0)
+                                <span class="badge bg-primary text-white ms-1">{{ count($selectedEmployeesForDelete) }}</span>
+                            @endif
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" wire:click="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click="selectAllDeletedEmployees" href="#">{{__('employees.select_all_deleted_employees')}}</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" wire:click="$set('selectedEmployeesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                        </ul>
+                    </div>
+                @endif
+
+                @if((is_array($selectedEmployees) && count($selectedEmployees) > 0) || (is_array($selectedEmployeesForDelete) && count($selectedEmployeesForDelete) > 0))
             <div class="d-flex align-items-center gap-2">
 
                 @if($activeTab === 'active')
                 @can('employee-delete')
                 <button type="button"
                     id="bulk-delete-employees-btn"
-                    class="btn btn-sm btn-danger d-flex align-items-center"
-                    data-bs-toggle="modal" 
+                    class="btn btn-sm btn-danger d-flex align-items-center me-2"
+                    data-bs-toggle="modal"
                     data-bs-target="#BulkDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                     {{__('common.move_to_trash')}}
-                    <span class="badge bg-light text-white ms-1">{{ count($selectedEmployees) }}</span>
+                    <span class="badge bg-light text-white ms-1">{{ is_array($selectedEmployees) ? count($selectedEmployees) : 0 }}</span>
                 </button>
                 @endcan
                 @else
@@ -257,19 +298,19 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
                     {{__('common.restore_selected')}}
-                    <span class="badge bg-success text-white ms-1">{{ count($selectedEmployees) }}</span>
+                    <span class="badge bg-success text-white ms-1">{{ is_array($selectedEmployeesForDelete) ? count($selectedEmployeesForDelete) : 0 }}</span>
                 </button>
 
                 <button type="button"
-                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center me-2"
                     title="{{ __('employees.permanently_delete_selected_employees') }}"
-                    data-bs-toggle="modal" 
+                    data-bs-toggle="modal"
                     data-bs-target="#BulkForceDeleteModal">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                     {{__('common.delete_forever')}}
-                    <span class="badge bg-danger text-white ms-1">{{ count($selectedEmployees) }}</span>
+                    <span class="badge bg-danger text-white ms-1">{{ is_array($selectedEmployeesForDelete) ? count($selectedEmployeesForDelete) : 0 }}</span>
                 </button>
                 @endcan
                 @endif
@@ -282,6 +323,7 @@
                     {{__('common.clear')}}
                 </button>
             </div>
+            @endif
             @endif
         </div>
     </div>
@@ -313,7 +355,7 @@
                             <input type="checkbox"
                                 id="employee-checkbox-{{ $employee->id }}"
                                 wire:click="toggleEmployeeSelection({{ $employee->id }})"
-                                {{ in_array($employee->id, $selectedEmployees) ? 'checked' : '' }}
+                                {{ in_array($employee->id, $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees) ? 'checked' : '' }}
                                 class="form-check-input">
                         </td>
                         <td>

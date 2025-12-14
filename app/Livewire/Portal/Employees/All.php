@@ -70,6 +70,7 @@ class All extends BaseImportComponent
     // Soft delete properties
     public $activeTab = 'active';
     public $selectedEmployees = [];
+    public $selectedEmployeesForDelete = [];
     public $selectAll = false;
 
     //Update & Store Rules - using string-based validation to avoid new expressions in property
@@ -454,9 +455,15 @@ class All extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedEmployees)) {
-            User::whereIn('id', $this->selectedEmployees)->delete(); // Soft delete
-            $this->selectedEmployees = [];
+        $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
+
+        if (!empty($selectedArray)) {
+            User::whereIn('id', $selectedArray)->delete(); // Soft delete
+            if ($this->activeTab === 'deleted') {
+                $this->selectedEmployeesForDelete = [];
+            } else {
+                $this->selectedEmployees = [];
+            }
         }
 
         $this->closeModalAndFlashMessage(__('employees.selected_employees_moved_to_trash'), 'BulkDeleteModal');
@@ -468,9 +475,15 @@ class All extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedEmployees)) {
-            User::withTrashed()->whereIn('id', $this->selectedEmployees)->restore();
-            $this->selectedEmployees = [];
+        $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
+
+        if (!empty($selectedArray)) {
+            User::withTrashed()->whereIn('id', $selectedArray)->restore();
+            if ($this->activeTab === 'deleted') {
+                $this->selectedEmployeesForDelete = [];
+            } else {
+                $this->selectedEmployees = [];
+            }
         }
 
         $this->closeModalAndFlashMessage(__('employees.selected_employees_restored'), 'BulkRestoreModal');
@@ -482,10 +495,12 @@ class All extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedEmployees)) {
-            $employees = User::withTrashed()->whereIn('id', $this->selectedEmployees)->get();
+        $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
+
+        if (!empty($selectedArray)) {
+            $employees = User::withTrashed()->whereIn('id', $selectedArray)->get();
             $employeesWithRelatedRecords = [];
-            
+
             foreach ($employees as $employee) {
                 $hasRelatedRecords = $employee->leaves()->count() > 0 ||
                                    $employee->tickings()->count() > 0 ||
@@ -494,23 +509,27 @@ class All extends BaseImportComponent
                                    $employee->overtimes()->count() > 0 ||
                                    $employee->payslips()->count() > 0 ||
                                    $employee->supDepartments()->count() > 0;
-                
+
                 if ($hasRelatedRecords) {
                     $employeesWithRelatedRecords[] = $employee->name;
                 }
             }
-            
+
             if (!empty($employeesWithRelatedRecords)) {
                 $employeeNames = implode(', ', $employeesWithRelatedRecords);
                 $this->showToast(__('employees.cannot_permanently_delete_employees') . $employeeNames, 'danger');
                 return;
             }
-            
+
             foreach ($employees as $employee) {
                 $employee->forceDelete();
             }
-            
-            $this->selectedEmployees = [];
+
+            if ($this->activeTab === 'deleted') {
+                $this->selectedEmployeesForDelete = [];
+            } else {
+                $this->selectedEmployees = [];
+            }
         }
 
         $this->closeModalAndFlashMessage(__('employees.selected_employees_permanently_deleted'), 'BulkForceDeleteModal');
@@ -520,6 +539,7 @@ class All extends BaseImportComponent
     {
         $this->activeTab = $tab;
         $this->selectedEmployees = [];
+        $this->selectedEmployeesForDelete = [];
         $this->selectAll = false;
     }
 
@@ -532,15 +552,81 @@ class All extends BaseImportComponent
         }
     }
 
+    public function selectAllVisible()
+    {
+        $this->selectedEmployees = $this->getEmployees()->pluck('id')->toArray();
+    }
+
+    public function selectAllVisibleForDelete()
+    {
+        $this->selectedEmployeesForDelete = $this->getEmployees()->pluck('id')->toArray();
+    }
+
+    public function selectAllEmployees()
+    {
+        $query = User::search($this->query)->with(['company', 'department', 'service']);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        // Add role-based filtering
+        match($this->role){
+            "supervisor" => $query->whereHas('department', function ($q) {
+                $q->whereIn('id', auth()->user()->supDepartments->pluck('department_id'));
+            }),
+            "manager" => $query->whereHas('department', function ($q) {
+                $q->where('company_id', auth()->user()->company_id);
+            }),
+            "admin" => null, // No additional filtering for admin
+            default => [],
+        };
+
+        $this->selectedEmployees = $query->pluck('id')->toArray();
+    }
+
+    public function selectAllDeletedEmployees()
+    {
+        $query = User::search($this->query)->with(['company', 'department', 'service']);
+
+        // Add soft delete filtering for deleted tab
+        $query->withTrashed()->whereNotNull('deleted_at');
+
+        // Add role-based filtering
+        match($this->role){
+            "supervisor" => $query->whereHas('department', function ($q) {
+                $q->whereIn('id', auth()->user()->supDepartments->pluck('department_id'));
+            }),
+            "manager" => $query->whereHas('department', function ($q) {
+                $q->where('company_id', auth()->user()->company_id);
+            }),
+            "admin" => null, // No additional filtering for admin
+            default => [],
+        };
+
+        $this->selectedEmployeesForDelete = $query->pluck('id')->toArray();
+    }
+
     public function toggleEmployeeSelection($employeeId)
     {
-        if (in_array($employeeId, $this->selectedEmployees)) {
-            $this->selectedEmployees = array_diff($this->selectedEmployees, [$employeeId]);
+        if ($this->activeTab === 'deleted') {
+            if (in_array($employeeId, $this->selectedEmployeesForDelete)) {
+                $this->selectedEmployeesForDelete = array_diff($this->selectedEmployeesForDelete, [$employeeId]);
+            } else {
+                $this->selectedEmployeesForDelete[] = $employeeId;
+            }
         } else {
-            $this->selectedEmployees[] = $employeeId;
+            if (in_array($employeeId, $this->selectedEmployees)) {
+                $this->selectedEmployees = array_diff($this->selectedEmployees, [$employeeId]);
+            } else {
+                $this->selectedEmployees[] = $employeeId;
+            }
+
+            $this->selectAll = count($this->selectedEmployees) === $this->getEmployees()->count();
         }
-        
-        $this->selectAll = count($this->selectedEmployees) === $this->getEmployees()->count();
     }
 
     private function getEmployees()

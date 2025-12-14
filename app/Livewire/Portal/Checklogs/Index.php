@@ -274,8 +274,39 @@ class Index extends Component
         } else {
             $this->selectedChecklogsForDelete[] = $checklogId;
         }
-        
+
         $this->selectAllForDelete = count($this->selectedChecklogsForDelete) === $this->getChecklogs()->count();
+    }
+
+    public function selectAllVisible()
+    {
+        $this->selectedChecklogs = $this->getChecklogs()->pluck('id')->toArray();
+    }
+
+    public function selectAllVisibleForDelete()
+    {
+        $this->selectedChecklogsForDelete = $this->getChecklogs()->pluck('id')->toArray();
+    }
+
+    public function selectAllChecklogs()
+    {
+        $this->selectedChecklogs = match ($this->role) {
+            'supervisor' => Ticking::search($this->query)->supervisor()->with(['user'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            'manager' => Ticking::search($this->query)->manager()->with(['user'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            'admin' => Ticking::search($this->query)->with(['user'])->whereNull('deleted_at')->pluck('id')->toArray(),
+            default => [],
+        };
+        $this->updatedselectedChecklogs();
+    }
+
+    public function selectAllDeletedChecklogs()
+    {
+        $this->selectedChecklogsForDelete = match ($this->role) {
+            'supervisor' => Ticking::search($this->query)->supervisor()->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'manager' => Ticking::search($this->query)->manager()->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            'admin' => Ticking::search($this->query)->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
+            default => [],
+        };
     }
 
     private function getChecklogs()

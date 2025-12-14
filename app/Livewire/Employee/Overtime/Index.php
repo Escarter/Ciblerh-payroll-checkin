@@ -19,6 +19,16 @@ class Index extends Component
     use WithDataTable;
 
     public ?array $selected = [];
+    public bool $selectAll = false;
+
+    // Soft delete properties
+    public $activeTab = 'active';
+    public $selectedOvertimesForDelete = [];
+    public $selectAllForDelete = false;
+
+    // Reactive count properties
+    public $activeOvertimesCount = 0;
+    public $deletedOvertimesCount = 0;
 
     //Create, Edit, Delete, View Post props
     public ?string $start_time = null;
@@ -35,6 +45,9 @@ class Index extends Component
         $this->company = auth()->user()->company;
         $this->department = auth()->user()->department;
         $this->service = auth()->user()->service;
+
+        // Initialize counts
+        $this->updateCounts();
     }
 
     //Get & assign selected overtime props
@@ -114,12 +127,196 @@ class Index extends Component
         }
 
         if (!empty($this->overtime)) {
-
             $this->overtime->delete();
         }
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.overtime_deleted'), 'DeleteModal');
+
+        // Update counts
+        $this->updateCounts();
+    }
+
+    public function bulkDelete()
+    {
+        if (!Gate::allows('overtime-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selected)) {
+            Overtime::whereIn('id', $this->selected)
+                ->where('user_id', auth()->user()->id)
+                ->delete();
+
+            $this->selected = [];
+            $this->selectAll = false;
+
+            $this->closeModalAndFlashMessage(__('employees.selected_overtimes_deleted'), 'BulkDeleteModal');
+
+            // Update counts
+            $this->updateCounts();
+        }
+    }
+
+    public function restore($overtimeId)
+    {
+        if (!Gate::allows('overtime-delete')) {
+            return abort(401);
+        }
+
+        $overtime = Overtime::withTrashed()->findOrFail($overtimeId);
+
+        // Check if this overtime belongs to the current user
+        if ($overtime->user_id !== auth()->id()) {
+            return abort(403);
+        }
+
+        $overtime->restore();
+
+        $this->closeModalAndFlashMessage(__('employees.overtime_restored'), 'RestoreModal');
+
+        // Update counts
+        $this->updateCounts();
+    }
+
+    public function forceDelete($overtimeId)
+    {
+        if (!Gate::allows('overtime-delete')) {
+            return abort(401);
+        }
+
+        $overtime = Overtime::withTrashed()->findOrFail($overtimeId);
+
+        // Check if this overtime belongs to the current user
+        if ($overtime->user_id !== auth()->id()) {
+            return abort(403);
+        }
+
+        $overtime->forceDelete();
+
+        $this->closeModalAndFlashMessage(__('employees.overtime_permanently_deleted'), 'ForceDeleteModal');
+
+        // Update counts
+        $this->updateCounts();
+    }
+
+    public function bulkRestore()
+    {
+        if (!Gate::allows('overtime-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedOvertimesForDelete)) {
+            Overtime::withTrashed()
+                ->whereIn('id', $this->selectedOvertimesForDelete)
+                ->where('user_id', auth()->id()) // Ensure only user's own overtimes
+                ->restore();
+
+            $this->selectedOvertimesForDelete = [];
+
+            $this->closeModalAndFlashMessage(__('employees.selected_overtimes_restored'), 'BulkRestoreModal');
+
+            // Update counts
+            $this->updateCounts();
+        }
+    }
+
+    public function bulkForceDelete()
+    {
+        if (!Gate::allows('overtime-delete')) {
+            return abort(401);
+        }
+
+        if (!empty($this->selectedOvertimesForDelete)) {
+            Overtime::withTrashed()
+                ->whereIn('id', $this->selectedOvertimesForDelete)
+                ->where('user_id', auth()->id()) // Ensure only user's own overtimes
+                ->forceDelete();
+
+            $this->selectedOvertimesForDelete = [];
+
+            $this->closeModalAndFlashMessage(__('employees.selected_overtimes_permanently_deleted'), 'BulkForceDeleteModal');
+
+            // Update counts
+            $this->updateCounts();
+        }
+    }
+
+    //Toggle the $selectAll on or off based on the count of selected posts
+    public function updatedselectAll($value)
+    {
+        if ($value) {
+            $this->selected = $this->getOvertimes()->pluck('id')->toArray();
+        } else {
+            $this->selected = [];
+        }
+    }
+
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+        $this->selectedOvertimesForDelete = [];
+        $this->selectAllForDelete = false;
+    }
+
+    public function toggleSelectAllForDelete()
+    {
+        if ($this->selectAllForDelete) {
+            $this->selectedOvertimesForDelete = $this->getOvertimes()->pluck('id')->toArray();
+        } else {
+            $this->selectedOvertimesForDelete = [];
+        }
+    }
+
+    public function toggleOvertimeSelectionForDelete($overtimeId)
+    {
+        if (in_array($overtimeId, $this->selectedOvertimesForDelete)) {
+            $this->selectedOvertimesForDelete = array_diff($this->selectedOvertimesForDelete, [$overtimeId]);
+        } else {
+            $this->selectedOvertimesForDelete[] = $overtimeId;
+        }
+
+        $this->selectAllForDelete = count($this->selectedOvertimesForDelete) === $this->getOvertimes()->count();
+    }
+
+    public function selectAllVisible()
+    {
+        $this->selected = $this->getOvertimes()->pluck('id')->toArray();
+    }
+
+    public function selectAllVisibleForDelete()
+    {
+        $this->selectedOvertimesForDelete = $this->getOvertimes()->pluck('id')->toArray();
+    }
+
+    public function selectAllOvertimes()
+    {
+        $this->selected = auth()->user()->overtimes()->whereNull('deleted_at')->pluck('id')->toArray();
+    }
+
+    public function selectAllDeletedOvertimes()
+    {
+        $this->selectedOvertimesForDelete = auth()->user()->overtimes()->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
+    }
+
+    private function updateCounts()
+    {
+        $this->activeOvertimesCount = Overtime::where('user_id', auth()->user()->id)->whereNull('deleted_at')->count();
+        $this->deletedOvertimesCount = Overtime::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
+    }
+
+    private function getOvertimes()
+    {
+        $query = Overtime::search($this->query)->where('user_id', auth()->user()->id);
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
+        } else {
+            $query->whereNull('deleted_at');
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
     public function clearFields()
@@ -130,19 +327,21 @@ class Index extends Component
             'start_time',
             'end_time',
             'reason',
+            'selected',
+            'selectAll',
         ]);
     }
 
     public function render()
     {
-        $overtimes = Overtime::search($this->query)->where('user_id',auth()->user()->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
-        
-        return view('livewire.employee.overtime.index',[
-            'overtimes' => $overtimes,
-            'overtimes_count'=> Overtime::where('user_id', auth()->user()->id)->count(),
-            'pending_overtime' => Overtime::where('user_id', auth()->user()->id)->where('approval_status', Overtime::APPROVAL_STATUS_PENDING)->count(),
-            'approved_overtime' => Overtime::where('user_id', auth()->user()->id)->where('approval_status', Overtime::APPROVAL_STATUS_APPROVED)->count(),
-            'rejected_overtime' => Overtime::where('user_id', auth()->user()->id)->where('approval_status', Overtime::APPROVAL_STATUS_REJECTED)->count(),
-        ])->layout('components.layouts.employee.master');
+        $overtimes = $this->getOvertimes();
+
+        // Get counts from all overtimes, not just current page
+        $allOvertimes = Overtime::where('user_id', auth()->user()->id);
+        $pending_overtime = $allOvertimes->where('approval_status', Overtime::APPROVAL_STATUS_PENDING)->whereNull('deleted_at')->count();
+        $approved_overtime = $allOvertimes->where('approval_status', Overtime::APPROVAL_STATUS_APPROVED)->whereNull('deleted_at')->count();
+        $rejected_overtime = $allOvertimes->where('approval_status', Overtime::APPROVAL_STATUS_REJECTED)->whereNull('deleted_at')->count();
+
+        return view('livewire.employee.overtime.index', compact('overtimes', 'pending_overtime', 'approved_overtime', 'rejected_overtime'))->layout('components.layouts.employee.master');
     }
 }
