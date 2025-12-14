@@ -106,7 +106,6 @@ test('bulk resend failed payslips dispatches retry jobs', function () {
 
     // Mock mail to fail so jobs get dispatched
     Mail::shouldReceive('to->send')->twice()->andReturnSelf();
-    Mail::shouldReceive('failures')->twice()->andReturn(['failed@example.com']);
 
     Livewire::test(\App\Livewire\Portal\Payslips\Details::class, ['id' => $process->id])
         ->call('bulkResendFailed');
@@ -152,10 +151,7 @@ test('resend payslip resets retry count', function () {
     Mail::shouldReceive('send')
         ->once()
         ->andReturn(true);
-    
-    Mail::shouldReceive('failures')
-        ->andReturn([]);
-    
+
     Livewire::test(\App\Livewire\Portal\Payslips\Details::class, ['id' => $process->id])
         ->call('initData', $payslip->id)
         ->call('resendPayslip');

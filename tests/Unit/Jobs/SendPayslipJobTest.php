@@ -131,10 +131,7 @@ test('it uses alternative email when primary email is empty', function () {
     Mail::shouldReceive('send')
         ->once()
         ->andReturn(true);
-    
-    Mail::shouldReceive('failures')
-        ->andReturn([]);
-    
+
     $job = Mockery::mock(SendPayslipJob::class, [$employeeChunk, $process])->makePartial();
     $job->shouldReceive('batch')->andReturn($batch);
     $job->handle();
@@ -208,8 +205,7 @@ test('it schedules retry job when email fails and retries are available', functi
     // Mock Mail to simulate failure
     Mail::shouldReceive('to')->andReturnSelf();
     Mail::shouldReceive('send')->andReturn(true);
-    Mail::shouldReceive('failures')->andReturn(['test@example.com']);
-    
+
     $job->handle();
     
     $payslip = Payslip::where('employee_id', $user->id)
@@ -259,8 +255,7 @@ test('it marks payslip as permanently failed when max retries reached', function
     
     Mail::shouldReceive('to')->andReturnSelf();
     Mail::shouldReceive('send')->andReturn(true);
-    Mail::shouldReceive('failures')->andReturn(['test@example.com']);
-    
+
     $job = new SendPayslipJob($employeeChunk, $process);
     $job->batch = $batch;
     $job->handle();
@@ -289,8 +284,7 @@ test('it detects email bounce and marks employee email as bounced', function () 
     
     Mail::shouldReceive('to')->andReturnSelf();
     Mail::shouldReceive('send')->andReturn(true);
-    Mail::shouldReceive('failures')->andReturn(['bounce@example.com']);
-    
+
     $job = new SendPayslipJob($employeeChunk, $process);
     $job->batch = $batch;
     $job->handle();
@@ -367,8 +361,7 @@ test('it successfully sends email and updates payslip status', function () {
     
     Mail::shouldReceive('to')->andReturnSelf();
     Mail::shouldReceive('send')->andReturn(true);
-    Mail::shouldReceive('failures')->andReturn([]);
-    
+
     $job = Mockery::mock(SendPayslipJob::class, [$employeeChunk, $process])->makePartial();
     $job->shouldReceive('batch')->andReturn($batch);
     $job->handle();

@@ -309,4 +309,6 @@ return [
     'payslip_queued_for_resend' => 'Payslip queued for resend',
     'individual_payslips' => 'Individual Payslips',
     'disabled' => 'Disabled',
+    'process_already_running_or_completed' => 'A payslip process for this department and month is already running or has been completed.',
+    'payslip_already_sent_successfully' => 'This payslip has already been sent successfully.',
 ];

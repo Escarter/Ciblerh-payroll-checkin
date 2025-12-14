@@ -797,8 +797,15 @@ class Index extends Component
                     'batch_id' => ''
                 ]);
         } else {
-            $existing->update(['status' => 'processing', 'batch_id' => '']);
-            $payslip_process = $existing;
+            // Only restart if the process failed or was cancelled, not if it's successful or already processing
+            if (in_array($existing->status, ['failed', 'cancelled'])) {
+                $existing->update(['status' => 'processing', 'batch_id' => '']);
+                $payslip_process = $existing;
+            } else {
+                // Process is already successful or processing - don't restart
+                session()->flash('error', __('payslips.process_already_running_or_completed'));
+                return $this->redirect(route('portal.payslips.index'), navigate: true);
+            }
         }
 
         PayslipSendingPlan::start($payslip_process);

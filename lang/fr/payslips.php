@@ -309,4 +309,6 @@ return [
     'payslip_queued_for_resend' => 'Fiche de paie mise en file d\'attente pour renvoi',
     'individual_payslips' => 'Fiches de paie individuelles',
     'disabled' => 'Désactivé',
+    'process_already_running_or_completed' => 'Un processus de fiche de paie pour ce département et ce mois est déjà en cours ou a été terminé.',
+    'payslip_already_sent_successfully' => 'Cette fiche de paie a déjà été envoyée avec succès.',
 ];

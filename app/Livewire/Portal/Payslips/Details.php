@@ -80,6 +80,12 @@ class Details extends Component
     public function resendPayslip()
     {
         if (!empty($this->payslip)) {
+            // Check if already successfully sent
+            if ($this->payslip->email_sent_status === Payslip::STATUS_SUCCESSFUL && $this->payslip->sms_sent_status === Payslip::STATUS_SUCCESSFUL) {
+                $this->closeModalAndFlashMessage(__('payslips.payslip_already_sent_successfully'), 'resendPayslipModal');
+                return;
+            }
+
             $employee = User::findOrFail($this->payslip->employee->id);
 
 
@@ -270,8 +276,14 @@ class Details extends Component
         $skippedCount = 0;
 
         foreach ($failedPayslips as $payslip) {
+            // Skip if already successfully sent (double check in case status changed)
+            if ($payslip->email_sent_status === Payslip::STATUS_SUCCESSFUL && $payslip->sms_sent_status === Payslip::STATUS_SUCCESSFUL) {
+                $skippedCount++;
+                continue;
+            }
+
             $employee = User::find($payslip->employee_id);
-            
+
             if (empty($employee) || empty($employee->email)) {
                 $skippedCount++;
                 continue;

@@ -225,8 +225,8 @@
             @if(count($employees) > 0)
             @if($activeTab === 'active')
             <!-- Selection Controls -->
-            <div class="dropdown me-2">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+            <div class="dropdown me-2" style="position: relative;">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
@@ -235,19 +235,19 @@
                     <span class="badge bg-primary text-white ms-1">{{ count($selectedEmployees) }}</span>
                     @endif
                 </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" wire:click="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                    <li><a class="dropdown-item" wire:click="selectAllEmployees" href="#">{{__('employees.select_all_employees')}}</a></li>
+                <ul class="dropdown-menu shadow" style="z-index: 1050;">
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllVisible" type="button">{{__('absences.select_all_visible')}}</button></li>
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllEmployees" type="button">{{__('employees.select_all_employees')}}</button></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
-                    <li><a class="dropdown-item" wire:click="$set('selectedEmployees', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                    <li><button class="dropdown-item" wire:click.prevent="$set('selectedEmployees', [])" type="button">{{__('absences.deselect_all')}}</button></li>
                 </ul>
             </div>
             @else
             <!-- Selection Controls for Deleted Tab -->
-            <div class="dropdown me-2">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+            <div class="dropdown me-2" style="position: relative;">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                     </svg>
@@ -256,13 +256,13 @@
                     <span class="badge bg-primary text-white ms-1">{{ count($selectedEmployeesForDelete) }}</span>
                     @endif
                 </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" wire:click="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                    <li><a class="dropdown-item" wire:click="selectAllDeletedEmployees" href="#">{{__('employees.select_all_deleted_employees')}}</a></li>
+                <ul class="dropdown-menu shadow" style="z-index: 1050;">
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" type="button">{{__('absences.select_all_visible')}}</button></li>
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllDeletedEmployees" type="button">{{__('employees.select_all_deleted_employees')}}</button></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
-                    <li><a class="dropdown-item" wire:click="$set('selectedEmployeesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                    <li><button class="dropdown-item" wire:click.prevent="$set('selectedEmployeesForDelete', [])" type="button">{{__('absences.deselect_all')}}</button></li>
                 </ul>
             </div>
             @endif

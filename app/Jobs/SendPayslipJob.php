@@ -125,6 +125,24 @@ class SendPayslipJob implements ShouldQueue
         }
 
         foreach ($this->employee_chunk as $employee) {
+            // Early check: if there is already a successful payslip record for this employee/month/year, skip
+            $existingSuccessful = Payslip::where('employee_id', $employee->id)
+                ->where('month', $this->month)
+                ->where('year', now()->year)
+                ->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
+                ->where('sms_sent_status', Payslip::STATUS_SUCCESSFUL)
+                ->first();
+
+            if ($existingSuccessful) {
+                Log::info('Payslip already successfully sent for employee, skipping', [
+                    'employee_id' => $employee->id,
+                    'matricule' => $employee->matricule,
+                    'month' => $this->month,
+                    'year' => now()->year
+                ]);
+                continue;
+            }
+
             // Early check: if there is a payslip record with encryption failed, mark email/SMS as skipped
             $existingFailed = Payslip::where('employee_id', $employee->id)
                 ->where('month', $this->month)

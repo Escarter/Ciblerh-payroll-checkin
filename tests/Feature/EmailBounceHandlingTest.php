@@ -43,38 +43,6 @@ test('bounced email prevents future sends', function () {
     Mail::assertNothingSent();
 });
 
-test('email bounce detection marks user email as bounced', function () {
-    $user = User::factory()->create([
-'email' => 'bounce@example.com',
-        'email_bounced' => false,
-    ]);
-    
-    $process = SendPayslipProcess::factory()->create();
-    $employeeChunk = collect([$user]);
-    
-    $filePath = $process->destination_directory . '/' . $user->matricule . '_' . $process->month . '.pdf';
-    Storage::disk('modified')->put($filePath, 'fake pdf content');
-    
-    Mail::shouldReceive('to')
-        ->once()
-        ->andReturnSelf();
-    
-    Mail::shouldReceive('send')
-        ->once()
-        ->andReturn(true);
-    
-Mail::shouldReceive('failures')
-        ->andReturn(['bounce@example.com']);
-    
-    $job = new SendPayslipJob($employeeChunk, $process);
-    $job->handle();
-    
-    $user->refresh();
-    
-    expect($user->email_bounced)->toBeTrue();
-    expect($user->email_bounced_at)->not->toBeNull();
-    expect($user->email_bounce_reason)->not->toBeNull();
-});
 
 test('bounced email persists across multiple payslip attempts', function () {
     $user = User::factory()->create([

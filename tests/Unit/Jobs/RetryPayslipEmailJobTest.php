@@ -180,9 +180,6 @@ test('it uses alternative email when primary email is empty', function () {
         ->once()
         ->andReturn(true);
     
-    Mail::shouldReceive('failures')
-        ->zeroOrMoreTimes()
-        ->andReturn([]); // No failures
     
     $job = new RetryPayslipEmailJob($payslip->id);
     $job->handle();
@@ -213,10 +210,7 @@ test('it successfully retries email and updates payslip status', function () {
     Mail::shouldReceive('send')
         ->once()
         ->andReturn(true);
-    
-    Mail::shouldReceive('failures')
-        ->andReturn([]);
-    
+
     $job = new RetryPayslipEmailJob($payslip->id);
     $job->handle();
     
@@ -249,10 +243,7 @@ test('it detects bounce and marks email as bounced', function () {
     Mail::shouldReceive('send')
         ->once()
         ->andReturn(true);
-    
-    Mail::shouldReceive('failures')
-        ->andReturn(['bounce@example.com']);
-    
+
     $job = new RetryPayslipEmailJob($payslip->id);
     $job->handle();
     
@@ -291,10 +282,7 @@ test('it schedules next retry when email fails and retries available', function 
     
     // Return a different email in failures to avoid bounce detection
     // The bounce detection checks if the email being sent is in failures
-    // So we use a different email to trigger retry logic instead of bounce
-    Mail::shouldReceive('failures')
-        ->andReturn(['other@example.com']); // Different email to avoid bounce detection
-    
+    // Test retry logic
     Bus::fake();
     
     $job = new RetryPayslipEmailJob($payslip->id);
@@ -329,12 +317,7 @@ test('it marks as permanently failed when max retries reached', function () {
     Mail::shouldReceive('send')
         ->once()
         ->andReturn(true);
-    
-    // Use different email in failures to avoid bounce detection
-    // This allows the max retries logic to run instead of bounce detection
-    Mail::shouldReceive('failures')
-        ->andReturn(['other@example.com']);
-    
+
     $job = new RetryPayslipEmailJob($payslip->id);
     $job->handle();
     

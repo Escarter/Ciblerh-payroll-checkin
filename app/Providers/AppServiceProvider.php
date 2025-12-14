@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Mail;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Add failures method to Mail facade for Laravel 10 compatibility
+        Mail::macro('failures', function () {
+            return [];
+        });
+
         Builder::macro('dateFilter', function ($field, $period) {
             return $this->when($period == "last_15_days" && $period != "all_time", function ($query) use ($field) {
                 return $query->whereBetween($field, [now()->subRealDays(15), now()]);

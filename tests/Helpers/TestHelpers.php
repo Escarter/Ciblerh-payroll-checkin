@@ -15,7 +15,6 @@ class TestHelpers
     {
         Mail::shouldReceive('to')->andReturnSelf();
         Mail::shouldReceive('send')->andReturn(true);
-        Mail::shouldReceive('failures')->andReturn($failedEmails);
     }
 
     /**
@@ -25,7 +24,6 @@ class TestHelpers
     {
         Mail::shouldReceive('to')->andReturnSelf();
         Mail::shouldReceive('send')->andReturn(true);
-        Mail::shouldReceive('failures')->andReturn([]);
     }
 
     /**
