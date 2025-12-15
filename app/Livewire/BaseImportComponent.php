@@ -105,6 +105,7 @@ abstract class BaseImportComponent extends Component
             try {
                 $companyId = $this->getCompanyId();
                 $departmentId = $this->getDepartmentId();
+                $serviceId = $this->getServiceId();
 
                 \Log::info('BaseImportComponent dispatching ImportDataJob', [
                     'import_type' => $this->importType,
@@ -112,6 +113,7 @@ abstract class BaseImportComponent extends Component
                     'user_id' => auth()->id(),
                     'company_id' => $companyId,
                     'department_id' => $departmentId,
+                    'service_id' => $serviceId,
                     'auto_create_entities' => $this->autoCreateEntities ?? false
                 ]);
 
@@ -121,6 +123,7 @@ abstract class BaseImportComponent extends Component
                     auth()->id(),
                     $companyId,
                     $departmentId,
+                    $serviceId,
                     $this->autoCreateEntities ?? false,
                     $this->sendWelcomeEmails ?? false
                 );
@@ -269,6 +272,14 @@ abstract class BaseImportComponent extends Component
      * Get department ID for import (should be overridden by child classes)
      */
     protected function getDepartmentId(): ?int
+    {
+        return null;
+    }
+
+    /**
+     * Get service ID for import (should be overridden by child classes)
+     */
+    protected function getServiceId(): ?int
     {
         return null;
     }

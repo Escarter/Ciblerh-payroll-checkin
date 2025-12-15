@@ -41,6 +41,7 @@ class ImportDataJob implements ShouldQueue
     protected $userId;
     protected $companyId;
     protected $departmentId;
+    protected $serviceId;
     protected $autoCreateEntities;
     protected $sendWelcomeEmails;
     protected $importId;
@@ -51,13 +52,14 @@ class ImportDataJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(string $importType, string $filePath, int $userId, ?int $companyId = null, ?int $departmentId = null, bool $autoCreateEntities = false, bool $sendWelcomeEmails = false, ?int $importJobId = null)
+    public function __construct(string $importType, string $filePath, int $userId, ?int $companyId = null, ?int $departmentId = null, ?int $serviceId = null, bool $autoCreateEntities = false, bool $sendWelcomeEmails = false, ?int $importJobId = null)
     {
         $this->importType = $importType;
         $this->filePath = $filePath;
         $this->userId = $userId;
         $this->companyId = $companyId;
         $this->departmentId = $departmentId;
+        $this->serviceId = $serviceId;
         $this->autoCreateEntities = $autoCreateEntities;
         $this->sendWelcomeEmails = $sendWelcomeEmails;
         $this->importJobId = $importJobId;
@@ -444,7 +446,12 @@ class ImportDataJob implements ShouldQueue
                     }
 
                     $service = null;
-                    // Note: Service context would need to be added to ImportDataJob if needed
+                    if ($this->serviceId) {
+                        $service = \App\Models\Service::find($this->serviceId);
+                        if (!$service) {
+                            throw new \Exception('Service not found for employee import');
+                        }
+                    }
 
                     return new EmployeeImport($company, $department, $service, $this->autoCreateEntities, $this->userId, $this->sendWelcomeEmails);
                 } else {

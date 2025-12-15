@@ -1130,10 +1130,18 @@ class All extends BaseImportComponent
     }
 
     /**
-     * Get department ID (not needed for employee import)
+     * Get department ID for import context
      */
     protected function getDepartmentId(): ?int
     {
-        return null;
+        return $this->selectedDepartmentId;
+    }
+
+    /**
+     * Get service ID for import context
+     */
+    protected function getServiceId(): ?int
+    {
+        return $this->service_id;
     }
 }

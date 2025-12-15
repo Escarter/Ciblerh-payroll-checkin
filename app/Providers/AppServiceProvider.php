@@ -27,6 +27,27 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        // Register missing Laravel core Blade directives (upgrade issue)
+        $directives = \Blade::getCustomDirectives();
+        if (!isset($directives['can'])) {
+            \Blade::if('auth', function () {
+                return auth()->check();
+            });
+
+            \Blade::if('guest', function () {
+                return auth()->guest();
+            });
+
+            \Blade::if('can', function ($ability, $model = null) {
+                return auth()->check() && auth()->user()->can($ability, $model);
+            });
+
+            \Blade::if('cannot', function ($ability, $model = null) {
+                return auth()->check() && !auth()->user()->can($ability, $model);
+            });
+        }
+
         // Register custom @canany directive for Spatie Permission
         \Blade::directive('canany', function ($permissions) {
             return "<?php if(auth()->check() && auth()->user() && collect({$permissions})->contains(function(\$permission) { return auth()->user()->can(\$permission); })): ?>";

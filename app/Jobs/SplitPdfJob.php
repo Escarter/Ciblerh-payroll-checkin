@@ -18,11 +18,6 @@ class SplitPdfJob implements ShouldQueue
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The queue connection name
-     */
-    public $queue = 'pdf-processing';
-
     protected $process;
 
     /**
@@ -33,6 +28,7 @@ class SplitPdfJob implements ShouldQueue
     public function __construct(SendPayslipProcess $process)
     {
         $this->process = $process;
+        $this->onQueue('pdf-processing');
     }
 
     /**

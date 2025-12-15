@@ -115,15 +115,16 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             return null;
         }
 
-        // Handle department lookup (prioritize context over CSV)
+        // Handle department lookup (CSV priority with context fallback)
         $departmentResult = $this->findDepartment($row[9] ?? '');
         if (!$departmentResult['found']) {
             throw new \Exception('Department validation failed: ' . $departmentResult['error']);
         }
 
-        // Handle service lookup (prioritize context over CSV)
+        // Handle service lookup (CSV priority with context fallback)
         $serviceResult = $this->findService($row[10] ?? '', $departmentResult['department']->id);
-        if (!$serviceResult['found']) {
+        // Service is optional when no context service is provided
+        if (!$serviceResult['found'] && $this->service) {
             throw new \Exception('Service validation failed: ' . $serviceResult['error']);
         }
 
@@ -140,7 +141,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     'contract_end' => $this->transformDate($row[8]),
                     'company_id' => $this->company->id,
                     'department_id' => $departmentResult['department']->id,
-                    'service_id' => $serviceResult['service']->id,
+                    'service_id' => $serviceResult['found'] ? $serviceResult['service']->id : null,
                     'status' => $row[12],
                     'password' => bcrypt($row[13]),
                     'remaining_leave_days' => $row[14],
@@ -172,11 +173,49 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     }
 
     /**
-     * Find department by ID or name
+     * Find department by ID or name, with CSV priority but context fallback
      */
     private function findDepartment($departmentValue): array
     {
-        // If we have department context, use it
+        // If department value provided in CSV, try to use it first
+        if (!empty($departmentValue)) {
+            // Try to find by ID first (if it's numeric)
+            if (is_numeric($departmentValue)) {
+                $department = Department::where('id', $departmentValue)
+                    ->where('company_id', $this->company->id)
+                    ->first();
+
+                if ($department) {
+                    return [
+                        'found' => true,
+                        'department' => $department,
+                        'error' => null
+                    ];
+                }
+            }
+
+            // Try to find by name (using the helper function)
+            $result = findOrCreateDepartment($departmentValue, $this->company->id, $this->autoCreateEntities);
+
+            // If found, return it
+            if ($result['found']) {
+                return $result;
+            }
+
+            // If not found, fall back to context if available (don't throw error)
+            if ($this->department && $this->department->id) {
+                return [
+                    'found' => true,
+                    'department' => $this->department,
+                    'error' => null
+                ];
+            }
+
+            // If not found and no context fallback, return the error from helper
+            return $result;
+        }
+
+        // If no department value in CSV, use context if available
         if ($this->department && $this->department->id) {
             return [
                 'found' => true,
@@ -185,42 +224,58 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             ];
         }
 
-        // If no department value provided and no context, this is an error
-        if (empty($departmentValue)) {
-            return [
-                'found' => false,
-                'department' => null,
-                'error' => __('employees.department_required')
-            ];
-        }
-
-        // Try to find by ID first (if it's numeric)
-        if (is_numeric($departmentValue)) {
-            $department = Department::where('id', $departmentValue)
-                ->where('company_id', $this->company->id)
-                ->first();
-
-            if ($department) {
-                return [
-                    'found' => true,
-                    'department' => $department,
-                    'error' => null
-                ];
-            }
-        }
-
-        // Try to find by name (using the helper function)
-        $result = findOrCreateDepartment($departmentValue, $this->company->id, $this->autoCreateEntities);
-
-        return $result;
+        // If no CSV value and no context, this is an error
+        return [
+            'found' => false,
+            'department' => null,
+            'error' => __('employees.department_required')
+        ];
     }
 
     /**
-     * Find service by ID or name
+     * Find service by ID or name, with CSV priority but context fallback
      */
     private function findService($serviceValue, $departmentId): array
     {
-        // If we have service context, use it
+        // If service value provided in CSV, try to use it first
+        if (!empty($serviceValue)) {
+            // Try to find by ID first (if it's numeric)
+            if (is_numeric($serviceValue)) {
+                $service = Service::where('id', $serviceValue)
+                    ->where('department_id', $departmentId)
+                    ->first();
+
+                if ($service) {
+                    return [
+                        'found' => true,
+                        'service' => $service,
+                        'error' => null
+                    ];
+                }
+            }
+
+            // Try to find by name (using the helper function)
+            $result = findOrCreateService($serviceValue, $departmentId, $this->company->id, $this->autoCreateEntities);
+
+            // If found, return it
+            if ($result['found']) {
+                return $result;
+            }
+
+            // If not found, fall back to context if available (don't throw error)
+            if ($this->service && $this->service->id) {
+                return [
+                    'found' => true,
+                    'service' => $this->service,
+                    'error' => null
+                ];
+            }
+
+            // If not found and no context fallback, return the error from helper
+            return $result;
+        }
+
+        // If no service value in CSV, use context if available
         if ($this->service && $this->service->id) {
             return [
                 'found' => true,
@@ -229,34 +284,12 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             ];
         }
 
-        // If no service value provided and no context, this is an error
-        if (empty($serviceValue)) {
-            return [
-                'found' => false,
-                'service' => null,
-                'error' => __('employees.service_required')
-            ];
-        }
-
-        // Try to find by ID first (if it's numeric)
-        if (is_numeric($serviceValue)) {
-            $service = Service::where('id', $serviceValue)
-                ->where('department_id', $departmentId)
-                ->first();
-
-            if ($service) {
-                return [
-                    'found' => true,
-                    'service' => $service,
-                    'error' => null
-                ];
-            }
-        }
-
-        // Try to find by name (using the helper function)
-        $result = findOrCreateService($serviceValue, $departmentId, $this->company->id, $this->autoCreateEntities);
-
-        return $result;
+        // If no CSV value and no context, this is an error
+        return [
+            'found' => false,
+            'service' => null,
+            'error' => __('employees.service_required')
+        ];
     }
 
     /**
@@ -334,7 +367,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '6' => 'required|numeric', // net_salary
             '7' => 'required|string', // salary_grade
             '9' => 'required', // department (can be ID or name)
-            '10' => 'required', // service (can be ID or name)
+            '10' => $this->service ? 'required' : 'nullable', // service (can be ID or name) - optional when no context service
             '11' => function ($attribute, $value, $onFailure) {
                 $array = ['employee', 'supervisor', 'manager'];
                 if (!in_array(strtolower($value), $array)) {

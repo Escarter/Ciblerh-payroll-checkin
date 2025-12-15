@@ -340,7 +340,7 @@
                                             <input wire:model="from_email" id="from_email" type="text" class="form-control w-100 @error('from_email') is-invalid @enderror" required autofocus>
                                         </div>
                                         <div class="col">
-                                            <label for="from_name">{{ __('settings.smtp_from_name') }}</label>
+                                            <label for="from_name">{{ __('settings.from_name') }}</label>
                                             <input wire:model="from_name" id="from_name" type="text" class="form-control w-100 @error('from_name') is-invalid @enderror" required autofocus>
                                         </div>
                                     </div>

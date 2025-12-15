@@ -102,6 +102,40 @@
                                  <div class="invalid-feedback">{{$message}}</div>
                                  @enderror
                              </div>
+                             <div class="mb-3">
+                                 <label for="selectedDepartmentId" class="form-label">{{__('departments.select_department')}}</label>
+                                 <select wire:model.live="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror" id="selectedDepartmentId">
+                                     <option value="">{{__('common.select_option')}}</option>
+                                     @if($company ?? null)
+                                     @foreach($company->departments ?? [] as $department)
+                                     <option value="{{$department->id}}">{{$department->name}}</option>
+                                     @endforeach
+                                     @else
+                                     @foreach(\App\Models\Department::orderBy('name')->get() as $department)
+                                     <option value="{{$department->id}}">{{$department->name}}</option>
+                                     @endforeach
+                                     @endif
+                                 </select>
+                                 <div class="form-text">{{__('departments.select_department_for_import')}}</div>
+                                 @error('selectedDepartmentId')
+                                 <div class="invalid-feedback">{{$message}}</div>
+                                 @enderror
+                             </div>
+                             <div class="mb-3">
+                                 <label for="service_id" class="form-label">{{__('services.select_service')}}</label>
+                                 <select wire:model.live="service_id" class="form-select @error('service_id') is-invalid @enderror" id="service_id">
+                                     <option value="">{{__('common.select_option')}}</option>
+                                     @if($selectedDepartmentId ?? null)
+                                     @foreach(\App\Models\Department::find($selectedDepartmentId)?->services ?? [] as $service)
+                                     <option value="{{$service->id}}">{{$service->name}}</option>
+                                     @endforeach
+                                     @endif
+                                 </select>
+                                 <div class="form-text">{{__('services.select_service_for_import')}}</div>
+                                 @error('service_id')
+                                 <div class="invalid-feedback">{{$message}}</div>
+                                 @enderror
+                             </div>
                              <div class="mb-4">
                                  <label for="employee_file" class="form-label">{{__('common.select_file')}}</label>
                                  <input wire:model="employee_file" class="form-control @error('employee_file') is-invalid @enderror" type="file" name="employee_file" id="formFile" accept=".csv,.xlsx,.xls,.txt">

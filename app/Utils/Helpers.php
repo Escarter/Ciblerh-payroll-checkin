@@ -190,66 +190,24 @@ if (!function_exists('countPages')) {
 if (!function_exists('setSavedSmtpCredentials')) {
     function setSavedSmtpCredentials(): void
     {
+        // Debug: Log when this function is called
+        \Log::info('setSavedSmtpCredentials called', [
+            'backtrace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5)
+        ]);
+
         $setting = Setting::first();
 
         if(!empty($setting)){
-            $provider = $setting->smtp_provider ?: 'smtp';
-
-            // Set the default mailer
-            Config::set('mail.default', $provider);
-
-            // Set from address
+            Config::set('mail.mailers.smtp.host', $setting->smtp_host);
+            Config::set('mail.mailers.smtp.port', (int) $setting->smtp_port);
+            Config::set('mail.mailers.smtp.username', $setting->smtp_username);
+            Config::set('mail.mailers.smtp.password', $setting->smtp_password);
+            Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption);
             Config::set('mail.from.address', $setting->from_email);
             Config::set('mail.from.name', $setting->from_name);
-
-            // Configure based on provider
-            switch ($provider) {
-                case 'smtp':
-                    Config::set('mail.mailers.smtp.host', $setting->smtp_host);
-                    Config::set('mail.mailers.smtp.port', (int) $setting->smtp_port);
-                    Config::set('mail.mailers.smtp.username', $setting->smtp_username);
-                    Config::set('mail.mailers.smtp.password', $setting->smtp_password);
-                    Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption);
-                    break;
-
-                case 'mailgun':
-                    Config::set('services.mailgun.domain', $setting->mailgun_domain);
-                    Config::set('services.mailgun.secret', $setting->mailgun_secret);
-                    Config::set('services.mailgun.endpoint', $setting->mailgun_endpoint ?: 'api.mailgun.net');
-                    Config::set('services.mailgun.scheme', $setting->mailgun_scheme ?: 'https');
-                    break;
-
-                case 'ses':
-                    Config::set('services.ses.key', $setting->ses_key);
-                    Config::set('services.ses.secret', $setting->ses_secret);
-                    Config::set('services.ses.region', $setting->ses_region ?: 'us-east-1');
-                    break;
-
-                case 'postmark':
-                    Config::set('services.postmark.token', $setting->postmark_token);
-                    break;
-
-                case 'sendmail':
-                    Config::set('mail.mailers.sendmail.path', $setting->sendmail_path ?: '/usr/sbin/sendmail -bs -i');
-                    break;
-
-                case 'mailpit':
-                    Config::set('mail.mailers.smtp.host', $setting->mailpit_host ?: 'localhost');
-                    Config::set('mail.mailers.smtp.port', (int) ($setting->mailpit_port ?: 1025));
-                    Config::set('mail.mailers.smtp.username', null);
-                    Config::set('mail.mailers.smtp.password', null);
-                    Config::set('mail.mailers.smtp.encryption', null);
-                    break;
-
-                case 'log':
-                    Config::set('mail.mailers.log.channel', $setting->log_channel ?: env('MAIL_LOG_CHANNEL'));
-                    break;
-
-                case 'array':
-                    // Array driver doesn't need configuration
-                    break;
-            }
+            Config::set('mail.mailers.smtp.transport', !empty($setting->smtp_provider) ? $setting->smtp_provider : 'smtp');
         }
+
     }
 }
 
@@ -814,7 +772,7 @@ if (!function_exists('findServiceByName')) {
 if (!function_exists('validateEmail')) {
     /**
      * Validate email address with comprehensive checks
-     * 
+     *
      * @param string $email Email address to validate
      * @return array ['valid' => bool, 'error' => string|null]
      */
