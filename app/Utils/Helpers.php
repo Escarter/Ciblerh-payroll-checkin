@@ -769,6 +769,35 @@ if (!function_exists('findServiceByName')) {
     }
 }
 
+if (!function_exists('translateMonthName')) {
+    /**
+     * Translate English month name to current locale
+     *
+     * @param string $englishMonth English month name (e.g., 'January')
+     * @return string Translated month name
+     */
+    function translateMonthName(string $englishMonth): string
+    {
+        $monthMap = [
+            'january' => 'january',
+            'february' => 'february',
+            'march' => 'march',
+            'april' => 'april',
+            'may' => 'may',
+            'june' => 'june',
+            'july' => 'july',
+            'august' => 'august',
+            'september' => 'september',
+            'october' => 'october',
+            'november' => 'november',
+            'december' => 'december',
+        ];
+
+        $monthKey = strtolower($englishMonth);
+        return isset($monthMap[$monthKey]) ? __('common.' . $monthMap[$monthKey]) : $englishMonth;
+    }
+}
+
 if (!function_exists('validateEmail')) {
     /**
      * Validate email address with comprehensive checks
