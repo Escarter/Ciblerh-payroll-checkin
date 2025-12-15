@@ -320,4 +320,8 @@ return [
     'bulk_sms_resend_completed' => 'Renvoi en masse des SMS terminé : :resend réussis, :skipped ignorés',
     'this_will_resend_emails_to_count_selected_eligible_payslips' => 'Cela renverra les emails à :count fiches de paie éligibles sélectionnées',
     'this_will_resend_sms_to_count_selected_eligible_payslips' => 'Cela renverra les SMS à :count fiches de paie éligibles sélectionnées',
+    'sms_notifications_disabled_for_this_employee' => 'Notifications SMS désactivées pour cet employé',
+    'no_valid_phone_number_for_user' => 'Aucun numéro de téléphone valide pour l\'utilisateur',
+    'birthday_message_sent_successfully_to' => 'Message d\'anniversaire envoyé avec succès à ',
+    'birthday_message_failed_to_send_to' => 'Échec d\'envoi du message d\'anniversaire à ',
 ];

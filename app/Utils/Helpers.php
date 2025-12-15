@@ -66,7 +66,7 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
             // Persist a note to explain the Disabled status without polluting failure_reason
             $record->update([
                 'sms_sent_status' => Payslip::STATUS_DISABLED,
-                'sms_status_note' => __('SMS notifications disabled for this employee'),
+                'sms_status_note' => __('payslips.sms_notifications_disabled_for_this_employee'),
             ]);
             return;
         }
@@ -135,7 +135,7 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
             $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
             $record->update([
                 'sms_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . __('No valid phone number for user')
+                'failure_reason' => $existingReason . __('payslips.no_valid_phone_number_for_user')
             ]);
         }
     }
@@ -171,12 +171,12 @@ if (!function_exists('sendSmsBirthday')) {
             ]);
 
             if ($response['responsecode'] === 1) {
-                Log::info(__('Birthday message sent successfully to '.$emp->name));
+                Log::info(__('payslips.birthday_message_sent_successfully_to') . $emp->name);
             } else {
-                Log::info(__('Birthday message failed to sent to ' . $emp->name));
+                Log::info(__('payslips.birthday_message_failed_to_send_to') . $emp->name);
             }
         } else {
-            Log::info(__('No valid phone number for user'));
+            Log::info(__('payslips.no_valid_phone_number_for_user'));
         }
     }
 }
@@ -274,7 +274,7 @@ if (!function_exists('validatePhoneNumber')) {
             return [
                 'valid' => false,
                 'formatted' => null,
-                'error' => __('Phone number cannot be empty')
+                'error' => __('common.phone_number_cannot_be_empty')
             ];
         }
 
@@ -293,7 +293,7 @@ if (!function_exists('validatePhoneNumber')) {
                 return [
                     'valid' => false,
                     'formatted' => null,
-                    'error' => __('Country code cannot start with 0 in E.164 format')
+                    'error' => __('common.country_code_cannot_start_with_zero')
                 ];
             }
             
@@ -305,7 +305,7 @@ if (!function_exists('validatePhoneNumber')) {
                 return [
                     'valid' => false,
                     'formatted' => null,
-                    'error' => __('Phone number must contain at least one non-zero digit')
+                    'error' => __('common.phone_number_must_contain_non_zero_digit')
                 ];
             }
             
@@ -316,7 +316,7 @@ if (!function_exists('validatePhoneNumber')) {
                 return [
                     'valid' => false,
                     'formatted' => null,
-                    'error' => __('Invalid phone number format. Phone number must be in E.164 format (e.g., +1234567890)')
+                    'error' => __('common.invalid_phone_number_format_e164')
                 ];
             }
             
@@ -333,7 +333,7 @@ if (!function_exists('validatePhoneNumber')) {
             return [
                 'valid' => false,
                 'formatted' => null,
-                'error' => __('Phone number cannot be all zeros')
+                'error' => __('common.phone_number_cannot_be_all_zeros')
             ];
         }
 

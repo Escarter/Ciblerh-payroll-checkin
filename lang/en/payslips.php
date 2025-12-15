@@ -320,4 +320,8 @@ return [
     'bulk_sms_resend_completed' => 'Bulk SMS resend completed: :resend successful, :skipped skipped',
     'this_will_resend_emails_to_count_selected_eligible_payslips' => 'This will resend emails to :count selected eligible payslips',
     'this_will_resend_sms_to_count_selected_eligible_payslips' => 'This will resend SMS to :count selected eligible payslips',
+    'sms_notifications_disabled_for_this_employee' => 'SMS notifications disabled for this employee',
+    'no_valid_phone_number_for_user' => 'No valid phone number for user',
+    'birthday_message_sent_successfully_to' => 'Birthday message sent successfully to ',
+    'birthday_message_failed_to_send_to' => 'Birthday message failed to send to ',
 ];
