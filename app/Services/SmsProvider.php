@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Log;
 
 abstract class SmsProvider {
 
-    protected string $username;
-    protected string $password;
-    protected string $senderid;
+    protected ?string $username;
+    protected ?string $password;
+    protected ?string $senderid;
 
     public function __construct(Setting $setting)
     {

@@ -32,9 +32,59 @@
             </div>
         </div>
     </div>
+
+    <!-- Bulk Resend Emails Modal -->
+    <div class="modal fade" id="BulkResendFailedEmailsModal" tabindex="-1" aria-labelledby="BulkResendFailedEmailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="BulkResendFailedEmailsModalLabel">{{__('payslips.bulk_resend_emails')}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{{__('payslips.are_you_sure_bulk_resend_emails')}}</p>
+                    <p class="text-muted small">{{__('payslips.this_will_resend_emails_to_count_selected_eligible_payslips', ['count' => $this->getSelectedEligibleEmailsCount()])}}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{__('common.cancel')}}</button>
+                    <button type="button" class="btn btn-primary" wire:click="bulkResendFailedEmails" data-bs-dismiss="modal">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        {{__('payslips.bulk_resend_emails')}}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Resend SMS Modal -->
+    <div class="modal fade" id="BulkResendFailedSmsModal" tabindex="-1" aria-labelledby="BulkResendFailedSmsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="BulkResendFailedSmsModalLabel">{{__('payslips.bulk_resend_sms')}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{{__('payslips.are_you_sure_bulk_resend_sms')}}</p>
+                    <p class="text-muted small">{{__('payslips.this_will_resend_sms_to_count_selected_eligible_payslips', ['count' => $this->getSelectedEligibleSmsCount()])}}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{__('common.cancel')}}</button>
+                    <button type="button" class="btn btn-success" wire:click="bulkResendFailedSms" data-bs-dismiss="modal">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        {{__('payslips.bulk_resend_sms')}}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <x-alert />
     <div class='pt-2'>
-        <div class="d-flex justify-content-between w-100 flex-wrap mb-4 align-items-center">
+        <div class="d-flex justify-content-between w-100 mb-4 align-items-center flex-wrap flex-lg-nowrap">
             <div class="mb-lg-0">
                 <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
                     <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
@@ -50,9 +100,54 @@
                     <svg class="icon me-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path> 
                     </svg>
-                    {{!empty($job->department) ? ucfirst($job->department->name) .__(' Payslips Details') : __('Payslips Details')}}
+                    {{!empty($job->department) ? ucfirst($job->department->name) .' '.__('payslips.payslips_details') : __('payslips.payslips_details')}}
                 </h1>
                 <p class="mb-0">{{__('payslips.status_of_payslips_sending')}}</p>
+            </div>
+
+            <!-- Bulk Resend Buttons in Header (Right Aligned) -->
+            <div class="d-flex gap-2 align-items-center" style="min-width: fit-content;">
+                @can('payslip-sending')
+                <!-- Email Button -->
+                @if(count($selectedPayslips) > 0 && $this->getSelectedEligibleEmailsCount() > 0)
+                    <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center" title="{{ __('payslips.bulk_resend_emails') }}" data-bs-toggle="modal" data-bs-target="#BulkResendFailedEmailsModal">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        {{__('payslips.bulk_resend_emails')}}
+                        <span class="badge bg-primary text-white ms-1">{{ $this->getSelectedEligibleEmailsCount() }}</span>
+                    </button>
+                @else
+                    <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center" disabled title="{{ __('payslips.bulk_resend_emails') }}">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        {{__('payslips.bulk_resend_emails')}}
+                    </button>
+                @endif
+
+                <!-- SMS Button -->
+                @if(count($selectedPayslips) > 0 && $this->getSelectedEligibleSmsCount() > 0)
+                    <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center" title="{{ __('payslips.bulk_resend_sms') }}" data-bs-toggle="modal" data-bs-target="#BulkResendFailedSmsModal">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        {{__('payslips.bulk_resend_sms')}}
+                        <span class="badge bg-success text-white ms-1">{{ $this->getSelectedEligibleSmsCount() }}</span>
+                    </button>
+                @else
+                    <button type="button" class="btn btn-sm btn-outline-secondary d-flex align-items-center" disabled title="{{ __('payslips.bulk_resend_sms') }}">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        {{__('payslips.bulk_resend_sms')}}
+                    </button>
+                @endif
+                @else
+                    <div class="text-muted small">
+                        <em>No permission to send payslips</em>
+                    </div>
+                @endcan
             </div>
         </div>
     </div>
@@ -156,24 +251,6 @@
                     </div>
                     @endif
 
-                    <!-- Bulk Resend Failed Button -->
-                    @if($this->getFailedPayslipsCount() > 0)
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        @can('payslip-send')
-                        <button type="button"
-                            class="btn btn-sm btn-warning d-flex align-items-center"
-                            title="{{ __('payslips.resend_all_failed_payslips') }}"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#BulkResendFailedModal">
-                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                            {{__('payslips.resend_all_failed')}}
-                            <span class="badge bg-danger text-white ms-1">{{ $this->getFailedPayslipsCount() }}</span>
-                        </button>
-                        @endcan
-                    </div>
-                    @endif
                     
                     <!-- Soft Delete Bulk Actions (when items selected for delete) -->
                     @if(count($selectedPayslips) > 0)

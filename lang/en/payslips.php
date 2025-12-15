@@ -311,4 +311,13 @@ return [
     'disabled' => 'Disabled',
     'process_already_running_or_completed' => 'A payslip process for this department and month is already running or has been completed.',
     'payslip_already_sent_successfully' => 'This payslip has already been sent successfully.',
+    'payslips_details' => 'Payslips Details',
+    'bulk_resend_emails' => 'Bulk Resend Emails',
+    'bulk_resend_sms' => 'Bulk Resend SMS',
+    'are_you_sure_bulk_resend_emails' => 'Are you sure you want to bulk resend emails?',
+    'are_you_sure_bulk_resend_sms' => 'Are you sure you want to bulk resend SMS?',
+    'bulk_email_resend_completed' => 'Bulk email resend completed: :resend successful, :skipped skipped',
+    'bulk_sms_resend_completed' => 'Bulk SMS resend completed: :resend successful, :skipped skipped',
+    'this_will_resend_emails_to_count_selected_eligible_payslips' => 'This will resend emails to :count selected eligible payslips',
+    'this_will_resend_sms_to_count_selected_eligible_payslips' => 'This will resend SMS to :count selected eligible payslips',
 ];

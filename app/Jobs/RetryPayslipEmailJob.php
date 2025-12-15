@@ -160,17 +160,16 @@ class RetryPayslipEmailJob implements ShouldQueue
                 'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
                 'email_sent_at' => now(),
                 'email_retry_count' => 0, // Reset retry count on success
-                    'last_email_retry_at' => null,
-                    'failure_reason' => null // Clear failure reason on success
-                ]);
+                'last_email_retry_at' => null,
+                'failure_reason' => null // Clear failure reason on success
+            ]);
 
-                sendSmsAndUpdateRecord($employee, $payslip->month, $payslip);
+            sendSmsAndUpdateRecord($employee, $payslip->month, $payslip);
 
-                Log::info('RetryPayslipEmailJob: Email retry successful', [
-                    'payslip_id' => $this->payslip_id,
-                    'retry_count' => $payslip->email_retry_count
-                ]);
-            }
+            Log::info('RetryPayslipEmailJob: Email retry successful', [
+                'payslip_id' => $this->payslip_id,
+                'retry_count' => $payslip->email_retry_count
+            ]);
         } catch (\Swift_TransportException $e) {
             $existingReason = $payslip->failure_reason ?? '';
             $payslip->update([

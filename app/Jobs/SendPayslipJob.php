@@ -283,10 +283,9 @@ class SendPayslipJob implements ShouldQueue
                                 sendSmsAndUpdateRecord($employee, $pay_month, $record, $sms_balance);
 
                                 Log::info('mail-sent');
-                        }
-                            } catch (\Swift_TransportException $e) {
+                        } catch (\Swift_TransportException $e) {
 
-                                Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
+                            Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
                                 Log::info('' . PHP_EOL . '');
                             
                             // Preserve existing failure reason if encryption failed, append email failure

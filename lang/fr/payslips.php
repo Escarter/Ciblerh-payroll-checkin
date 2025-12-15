@@ -311,4 +311,13 @@ return [
     'disabled' => 'Désactivé',
     'process_already_running_or_completed' => 'Un processus de fiche de paie pour ce département et ce mois est déjà en cours ou a été terminé.',
     'payslip_already_sent_successfully' => 'Cette fiche de paie a déjà été envoyée avec succès.',
+    'payslips_details' => 'Détails des fiches de paie',
+    'bulk_resend_emails' => 'Renvoi en masse des emails',
+    'bulk_resend_sms' => 'Renvoi en masse des SMS',
+    'are_you_sure_bulk_resend_emails' => 'Êtes-vous sûr de vouloir renvoyer les emails en masse?',
+    'are_you_sure_bulk_resend_sms' => 'Êtes-vous sûr de vouloir renvoyer les SMS en masse?',
+    'bulk_email_resend_completed' => 'Renvoi en masse des emails terminé : :resend réussis, :skipped ignorés',
+    'bulk_sms_resend_completed' => 'Renvoi en masse des SMS terminé : :resend réussis, :skipped ignorés',
+    'this_will_resend_emails_to_count_selected_eligible_payslips' => 'Cela renverra les emails à :count fiches de paie éligibles sélectionnées',
+    'this_will_resend_sms_to_count_selected_eligible_payslips' => 'Cela renverra les SMS à :count fiches de paie éligibles sélectionnées',
 ];

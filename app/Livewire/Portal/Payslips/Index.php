@@ -698,6 +698,157 @@ class Index extends Component
         }
     }
 
+    public function bulkResendEmails($processId)
+    {
+        if (!Gate::allows('payslip-sending')) {
+            return abort(401);
+        }
+
+        $process = SendPayslipProcess::findOrFail($processId);
+
+        // Get all payslips that failed email sending but succeeded in encryption
+        $failedEmailPayslips = $process->payslips()
+            ->where('email_sent_status', 2) // Failed
+            ->where('encryption_status', 1) // Encryption successful
+            ->whereNotNull('file')
+            ->get();
+
+        if ($failedEmailPayslips->isEmpty()) {
+            session()->flash('error', __('payslips.no_failed_emails_to_resend'));
+            return;
+        }
+
+        $resendCount = 0;
+        $errorCount = 0;
+
+        foreach ($failedEmailPayslips as $payslip) {
+            try {
+                $employee = \App\Models\User::find($payslip->employee_id);
+
+                if (empty($employee) || empty($employee->email)) {
+                    $errorCount++;
+                    continue;
+                }
+
+                if (!Storage::disk('modified')->exists($payslip->file)) {
+                    $errorCount++;
+                    continue;
+                }
+
+                setSavedSmtpCredentials();
+
+                Mail::to(cleanString($employee->email))->send(new \App\Mail\SendPayslip($employee, $payslip->file, $payslip->month));
+
+                // Reset email status to allow reprocessing
+                $payslip->update([
+                    'email_sent_status' => 0,
+                    'email_delivery_status' => null,
+                    'email_sent_at' => null,
+                    'email_retry_count' => 0,
+                    'last_email_retry_at' => null,
+                    'failure_reason' => null,
+                ]);
+
+                $resendCount++;
+            } catch (\Exception $e) {
+                Log::error('Bulk email resend failed for payslip', [
+                    'payslip_id' => $payslip->id,
+                    'error' => $e->getMessage()
+                ]);
+                $errorCount++;
+            }
+        }
+
+        // Trigger reprocessing of the updated payslips
+        foreach ($failedEmailPayslips->where('email_sent_status', 0) as $payslip) {
+            \App\Jobs\Single\ResendFailedPayslipJob::dispatch($payslip);
+        }
+
+        $message = __('payslips.bulk_email_resend_completed', [
+            'resend' => $resendCount,
+            'errors' => $errorCount
+        ]);
+
+        session()->flash('message', $message);
+        $this->refreshTaskData();
+    }
+
+    public function bulkResendSms($processId)
+    {
+        if (!Gate::allows('payslip-sending')) {
+            return abort(401);
+        }
+
+        $process = SendPayslipProcess::findOrFail($processId);
+
+        // Get all payslips that failed SMS sending but succeeded in encryption
+        $failedSmsPayslips = $process->payslips()
+            ->where('sms_sent_status', 2) // Failed
+            ->where('encryption_status', 1) // Encryption successful
+            ->whereNotNull('file')
+            ->get();
+
+        if ($failedSmsPayslips->isEmpty()) {
+            session()->flash('error', __('payslips.no_failed_sms_to_resend'));
+            return;
+        }
+
+        $resendCount = 0;
+        $errorCount = 0;
+
+        foreach ($failedSmsPayslips as $payslip) {
+            try {
+                $employee = \App\Models\User::find($payslip->employee_id);
+
+                if (empty($employee) || empty($employee->phone)) {
+                    $errorCount++;
+                    continue;
+                }
+
+                if (!Storage::disk('modified')->exists($payslip->file)) {
+                    $errorCount++;
+                    continue;
+                }
+
+                // Check SMS balance
+                $sms_balance = null;
+                $setting = \App\Models\Setting::first();
+                if (!empty($setting->sms_provider)) {
+                    $sms_client = match ($setting->sms_provider) {
+                        'twilio' => new TwilioSMS($setting),
+                        'nexah' => new Nexah($setting),
+                        'aws_sns' => new AwsSnsSMS($setting),
+                        default => new Nexah($setting)
+                    };
+
+                    try {
+                        $sms_balance = $sms_client->getBalance();
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to check SMS balance in bulk SMS resend: ' . $e->getMessage());
+                    }
+                }
+
+                sendSmsAndUpdateRecord($employee, $payslip->month, $payslip, $sms_balance);
+
+                $resendCount++;
+            } catch (\Exception $e) {
+                Log::error('Bulk SMS resend failed for payslip', [
+                    'payslip_id' => $payslip->id,
+                    'error' => $e->getMessage()
+                ]);
+                $errorCount++;
+            }
+        }
+
+        $message = __('payslips.bulk_sms_resend_completed', [
+            'resend' => $resendCount,
+            'errors' => $errorCount
+        ]);
+
+        session()->flash('message', $message);
+        $this->refreshTaskData();
+    }
+
     public function mount()
     {
         // Initialize cache variables

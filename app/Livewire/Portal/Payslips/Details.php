@@ -256,7 +256,7 @@ class Details extends Component
 
     public function bulkResendFailed()
     {
-        if (!Gate::allows('payslip-send')) {
+        if (!Gate::allows('payslip-sending')) {
             return abort(401);
         }
 
@@ -344,6 +344,197 @@ class Details extends Component
         ]);
 
         $this->closeModalAndFlashMessage($message, 'BulkResendFailedModal');
+    }
+
+    public function bulkResendFailedEmails()
+    {
+        if (!Gate::allows('payslip-sending')) {
+            return abort(401);
+        }
+
+        if (empty($this->selectedPayslips)) {
+            $this->closeModalAndFlashMessage(__('payslips.no_payslips_selected'), 'BulkResendFailedEmailsModal');
+            return;
+        }
+
+        // Get selected payslips that have successful encryption
+        $eligiblePayslips = Payslip::whereIn('id', $this->selectedPayslips)
+            ->where('send_payslip_process_id', $this->job->id)
+            ->whereNotNull('file')
+            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->get();
+
+        if ($eligiblePayslips->isEmpty()) {
+            $this->closeModalAndFlashMessage(__('payslips.no_eligible_selected_payslips_for_email_resend'), 'BulkResendFailedEmailsModal');
+            return;
+        }
+
+        $resendCount = 0;
+        $skippedCount = 0;
+
+        foreach ($eligiblePayslips as $payslip) {
+            $employee = User::find($payslip->employee_id);
+
+            if (empty($employee) || empty($employee->email)) {
+                $skippedCount++;
+                continue;
+            }
+
+            if (!Storage::disk('modified')->exists($payslip->file)) {
+                $skippedCount++;
+                continue;
+            }
+
+            try {
+                setSavedSmtpCredentials();
+
+                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $payslip->file, $payslip->month));
+
+                // Email accepted by mail server - delivery will be confirmed via webhooks
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                    'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                    'email_sent_at' => now(),
+                    'email_retry_count' => 0,
+                    'last_email_retry_at' => null,
+                    'failure_reason' => null,
+                ]);
+
+                $resendCount++;
+            } catch (\Exception $e) {
+                Log::error('Bulk email resend failed for payslip', [
+                    'payslip_id' => $payslip->id,
+                    'error' => $e->getMessage()
+                ]);
+                $skippedCount++;
+            }
+        }
+
+        $message = __('payslips.bulk_email_resend_completed', [
+            'resend' => $resendCount,
+            'skipped' => $skippedCount
+        ]);
+
+        $this->closeModalAndFlashMessage($message, 'BulkResendFailedEmailsModal');
+    }
+
+    public function bulkResendFailedSms()
+    {
+        if (!Gate::allows('payslip-sending')) {
+            return abort(401);
+        }
+
+        if (empty($this->selectedPayslips)) {
+            $this->closeModalAndFlashMessage(__('payslips.no_payslips_selected'), 'BulkResendFailedSmsModal');
+            return;
+        }
+
+        // Get selected payslips that have successful encryption
+        $eligiblePayslips = Payslip::whereIn('id', $this->selectedPayslips)
+            ->where('send_payslip_process_id', $this->job->id)
+            ->whereNotNull('file')
+            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->get();
+
+        if ($eligiblePayslips->isEmpty()) {
+            $this->closeModalAndFlashMessage(__('payslips.no_eligible_selected_payslips_for_sms_resend'), 'BulkResendFailedSmsModal');
+            return;
+        }
+
+        $resendCount = 0;
+        $skippedCount = 0;
+
+        foreach ($eligiblePayslips as $payslip) {
+            $employee = User::find($payslip->employee_id);
+
+            if (empty($employee) || empty($employee->phone)) {
+                $skippedCount++;
+                continue;
+            }
+
+            if (!Storage::disk('modified')->exists($payslip->file)) {
+                $skippedCount++;
+                continue;
+            }
+
+            try {
+                // Check SMS balance for optimization
+                $sms_balance = null;
+                $setting = Setting::first();
+                if (!empty($setting->sms_provider)) {
+                    $sms_client = match ($setting->sms_provider) {
+                        'twilio' => new TwilioSMS($setting),
+                        'nexah' => new Nexah($setting),
+                        'aws_sns' => new AwsSnsSMS($setting),
+                        default => new Nexah($setting)
+                    };
+
+                    try {
+                        $sms_balance = $sms_client->getBalance();
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to check SMS balance in bulk SMS resend: ' . $e->getMessage());
+                    }
+                }
+
+                sendSmsAndUpdateRecord($employee, $payslip->month, $payslip, $sms_balance);
+                $resendCount++;
+            } catch (\Exception $e) {
+                Log::error('Bulk SMS resend failed for payslip', [
+                    'payslip_id' => $payslip->id,
+                    'error' => $e->getMessage()
+                ]);
+                $skippedCount++;
+            }
+        }
+
+        $message = __('payslips.bulk_sms_resend_completed', [
+            'resend' => $resendCount,
+            'skipped' => $skippedCount
+        ]);
+
+        $this->closeModalAndFlashMessage($message, 'BulkResendFailedSmsModal');
+    }
+
+    public function getFailedEmailsCount()
+    {
+        return Payslip::where('send_payslip_process_id', $this->job->id)
+            ->whereNotNull('file')
+            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->count();
+    }
+
+    public function getFailedSmsCount()
+    {
+        return Payslip::where('send_payslip_process_id', $this->job->id)
+            ->whereNotNull('file')
+            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->count();
+    }
+
+    public function getSelectedEligibleEmailsCount()
+    {
+        if (empty($this->selectedPayslips)) {
+            return 0;
+        }
+
+        return Payslip::whereIn('id', $this->selectedPayslips)
+            ->where('send_payslip_process_id', $this->job->id)
+            ->whereNotNull('file')
+            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->count();
+    }
+
+    public function getSelectedEligibleSmsCount()
+    {
+        if (empty($this->selectedPayslips)) {
+            return 0;
+        }
+
+        return Payslip::whereIn('id', $this->selectedPayslips)
+            ->where('send_payslip_process_id', $this->job->id)
+            ->whereNotNull('file')
+            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->count();
     }
 
     public function getFailedPayslipsCount()
