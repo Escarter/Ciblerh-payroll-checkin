@@ -311,6 +311,7 @@ return [
     'disabled' => 'Disabled',
     'process_already_running_or_completed' => 'A payslip process for this department and month is already running or has been completed.',
     'payslip_already_sent_successfully' => 'This payslip has already been sent successfully.',
+    'payslip_successfully_sent_to' => 'Payslip successfully sent to :name',
     'payslips_details' => 'Payslips Details',
     'bulk_resend_emails' => 'Bulk Resend Emails',
     'bulk_resend_sms' => 'Bulk Resend SMS',

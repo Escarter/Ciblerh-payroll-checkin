@@ -156,8 +156,22 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     'pdf_password' => Str::random(10),
                 ]);
 
-                // Assign employee role by default, plus the specific role from CSV (if different)
+                // Assign roles based on user permissions and CSV data
                 $csvRole = strtolower($row[11]);
+                $currentUserRole = auth()->user()->getRoleNames()->first();
+                $allowedRoles = match ($currentUserRole) {
+                    'admin' => ['admin', 'manager', 'supervisor', 'employee'],
+                    'manager' => ['employee', 'supervisor'],
+                    'supervisor' => ['employee'],
+                    default => ['employee'],
+                };
+
+                // Validate that the role from CSV is allowed for the current user
+                if (!in_array($csvRole, $allowedRoles)) {
+                    throw new \Exception("You don't have permission to assign the role: {$row[11]}");
+                }
+
+                // Assign roles
                 if ($csvRole === 'employee') {
                     $user->assignRole('employee');
                 } else {

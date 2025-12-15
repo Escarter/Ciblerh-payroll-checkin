@@ -176,20 +176,20 @@ class Index extends Component
         $job = DownloadJob::findOrFail($jobId);
 
         if (!$job->canBeDownloaded()) {
-            $this->dispatch("showToast", message: __('File is not available for download.'), type: "error");
+            $this->dispatch("showToast", message: __('reports.file_not_available'), type: "error");
             return;
         }
 
         // Check if file exists (file_path is relative to public disk)
         if (!Storage::disk('public')->exists($job->file_path)) {
-            $this->dispatch("showToast", message: __('File not found. Please contact your administrator.'), type: "error");
+            $this->dispatch("showToast", message: __('reports.file_not_found'), type: "error");
             return;
         }
 
         try {
             return Storage::disk('public')->download($job->file_path, $job->file_name);
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('Unable to download file. Please try again.'), type: "error");
+            $this->dispatch("showToast", message: __('reports.unable_to_download_file'), type: "error");
             \Log::error('Download error: ' . $e->getMessage());
         }
     }

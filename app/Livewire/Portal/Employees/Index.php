@@ -377,7 +377,7 @@ class Index extends BaseImportComponent
                            $employee->supDepartments()->count() > 0;
         
         if ($hasRelatedRecords) {
-            $this->showToast(__('employees.cannot_permanently_delete_employee'), 'danger');
+            $this->showToast(__('employees.cannot_permanently_delete_employee'), 'error');
             return;
         }
         
@@ -440,7 +440,7 @@ class Index extends BaseImportComponent
             
             if (!empty($employeesWithRelatedRecords)) {
                 $employeeNames = implode(', ', $employeesWithRelatedRecords);
-                $this->showToast(__('employees.cannot_permanently_delete_employees') . $employeeNames, 'danger');
+                $this->showToast(__('employees.cannot_permanently_delete_employees') . $employeeNames, 'error');
                 return;
             }
             
@@ -897,9 +897,15 @@ class Index extends BaseImportComponent
                 }
             }
 
-            // Validate role
+            // Validate role based on user permissions
             $role = strtolower($rowData[11] ?? '');
-            $validRoles = ['employee', 'supervisor', 'manager'];
+            $userRole = auth()->user()->getRoleNames()->first();
+            $validRoles = match ($userRole) {
+                'admin' => ['admin', 'manager', 'supervisor', 'employee'],
+                'manager' => ['employee', 'supervisor'],
+                'supervisor' => ['employee'],
+                default => ['employee'],
+            };
             if (empty($role) || !in_array($role, $validRoles)) {
                 $errors[] = __('employees.role_invalid');
             }

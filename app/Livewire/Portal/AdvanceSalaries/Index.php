@@ -122,7 +122,7 @@ class Index extends Component
             'approval_reason' => $this->approval_reason,
         ]);
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Advance salaries successfully updated!'), 'EditBulkAdvanceSalaryModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salaries_bulk_updated'), 'EditBulkAdvanceSalaryModal');
     }
 
 
@@ -146,7 +146,7 @@ class Index extends Component
         ]);
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Advance salary successfully updated!'), 'EditAdvanceSalaryModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_single_updated'), 'EditAdvanceSalaryModal');
     }
     public function delete()
     {
@@ -159,7 +159,7 @@ class Index extends Component
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Advance salary successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_moved_to_trash'), 'DeleteModal');
     }
 
     public function restore($advanceSalaryId)
@@ -171,7 +171,7 @@ class Index extends Component
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
         $advanceSalary->restore();
 
-        $this->closeModalAndFlashMessage(__('Advance salary successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_restored'), 'RestoreModal');
     }
 
     public function forceDelete($advanceSalaryId)
@@ -183,7 +183,7 @@ class Index extends Component
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
         $advanceSalary->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Advance salary permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -204,7 +204,7 @@ class Index extends Component
             $this->selectedAdvanceSalariesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected advance salary records moved to trash!'), 'BulkDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_advance_salaries_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
@@ -218,7 +218,7 @@ class Index extends Component
             $this->selectedAdvanceSalariesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected advance salary records restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_advance_salaries_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -232,7 +232,7 @@ class Index extends Component
             $this->selectedAdvanceSalariesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected advance salary records permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.selected_advance_salaries_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)

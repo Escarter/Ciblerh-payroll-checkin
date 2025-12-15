@@ -311,6 +311,7 @@ return [
     'disabled' => 'Désactivé',
     'process_already_running_or_completed' => 'Un processus de fiche de paie pour ce département et ce mois est déjà en cours ou a été terminé.',
     'payslip_already_sent_successfully' => 'Cette fiche de paie a déjà été envoyée avec succès.',
+    'payslip_successfully_sent_to' => 'Fiche de paie envoyée avec succès à :name',
     'payslips_details' => 'Détails des fiches de paie',
     'bulk_resend_emails' => 'Renvoi en masse des emails',
     'bulk_resend_sms' => 'Renvoi en masse des SMS',
