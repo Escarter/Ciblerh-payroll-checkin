@@ -17,9 +17,9 @@ abstract class SmsProvider {
 
     public function __construct(Setting $setting)
     {
-        $this->username = $setting->sms_provider_username ?? '';
-        $this->password = $setting->sms_provider_password ?? '';
-        $this->senderid = $setting->sms_provider_senderid ?? '';
+        $this->username = (string) ($setting->sms_provider_username ?? '');
+        $this->password = (string) ($setting->sms_provider_password ?? '');
+        $this->senderid = (string) ($setting->sms_provider_senderid ?? '');
     }
     
     abstract protected function sendSMS(array $data): array;
