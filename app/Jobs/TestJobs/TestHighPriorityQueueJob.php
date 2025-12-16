@@ -41,3 +41,4 @@ class TestHighPriorityQueueJob implements ShouldQueue
         Log::error("TestHighPriorityQueueJob failed - Test ID: {$this->testId}, Error: " . $exception->getMessage());
     }
 }
+

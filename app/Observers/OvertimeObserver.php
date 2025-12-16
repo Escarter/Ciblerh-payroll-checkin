@@ -18,7 +18,7 @@ class OvertimeObserver
             auth()->user(),
             'overtime_created',
             'web',
-            __('Created overtime record for the date ') . $overtime->start_time
+            __('audit_logs.created_overtime', ['date' => $overtime->start_time])
         );
     }
 
@@ -31,11 +31,13 @@ class OvertimeObserver
     public function updated(Overtime $overtime)
     {
         if ($overtime->approval_status !== $overtime->getOriginal('approval_status')) {
-            $changes = ($overtime->approval_status == 1 ? __('common.approved') : __('common.rejected')) . " " . __(' the overtime from ') . $overtime->user->name . __(' with date') . $overtime->overtime_date ;
+            $changes = ($overtime->approval_status == 1
+                ? __('audit_logs.approved_overtime', ['user' => $overtime->user->name, 'date' => $overtime->overtime_date])
+                : __('audit_logs.rejected_overtime', ['user' => $overtime->user->name, 'date' => $overtime->overtime_date]));
             $status = "overtime_" . ($overtime->approval_status == 1 ? "approved" : "rejected");
         } else {
             $status = "overtime_updated";
-            $changes =  __('Updated the overtime from') . $overtime->user->name . __(' with date ') . $overtime->overtime_date ; ;
+            $changes = __('audit_logs.updated_overtime', ['user' => $overtime->user->name, 'date' => $overtime->overtime_date]);
         }
 
         auditLog(
@@ -58,7 +60,7 @@ class OvertimeObserver
             auth()->user(),
             'overtime_deleted',
             'web',
-            __('Deleted overtime record for ') . $overtime->user->name . __(' for the date ') . $overtime->start_time
+            __('audit_logs.deleted_overtime', ['user' => $overtime->user->name, 'date' => $overtime->start_time])
         );
     }
 

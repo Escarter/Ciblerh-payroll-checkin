@@ -190,3 +190,4 @@ elif [ -n "$SPECIFIC_QUEUE" ]; then
 fi
 
 echo -e "\n${BLUE}📖 For more information, see QUEUE_TESTING_README.md${NC}"
+

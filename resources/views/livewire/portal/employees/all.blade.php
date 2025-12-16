@@ -327,7 +327,7 @@
 
     <div class="card pb-3">
         <div class="table-responsive  text-gray-700">
-            <table class="table employee-table table-hover  table-bordered align-items-center " id="">
+            <table class="table employee-table table-bordered table-hover align-items-center " id="">
                 <thead>
                     <tr>
                         <th class="border-bottom">
@@ -338,8 +338,9 @@
                         </th>
                         <th class="border-bottom">{{__('employees.employee')}}</th>
                         <th class="border-bottom">{{__('companies.company')}}</th>
-                        <th class="border-bottom">{{__(key: 'Details')}}</th>
-                        <th class="border-bottom">{{__('Roles & Status')}}</th>
+                        <th class="border-bottom">{{__('employees.employee_info')}}</th>
+                        <th class="border-bottom">{{__('common.roles_status')}}</th>
+                        <th class="border-bottom">{{__('employees.notifications')}}</th>
                         @canany(['employee-delete','employee-update'])
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
@@ -355,7 +356,7 @@
                                 class="form-check-input">
                         </td>
                         <td>
-                            <a href="{{ $employee->getRoleNames()->first() === 'employee' ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" wire:navigate class="d-flex align-items-center">
+                            <a href="{{ $employee->hasRole('employee') ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" class="d-flex align-items-center">
                                 <div class="avatar avatar-md d-flex align-items-center justify-content-center fw-bold fs-6 rounded bg-primary me-2"><span class="text-white">{{$employee->initials}}</span></div>
                                 <div class="d-block"><span class="fw-bolder fs-6">{{ucwords($employee->name)}}</span>
                                     <div class="small text-gray">
@@ -371,21 +372,21 @@
                                     <div class="small text-gray d-flex align-items-end">
                                         <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V7a2 2 0 012-2h2a2 2 0 012 2v0M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2"></path>
-                                        </svg> {{__('employees.created')}} : {{$employee->created_at->format('Y-m-d')}}
+                                        </svg> {{__('Created')}} : {{$employee->created_at->format('Y-m-d')}}
                                     </div>
                                 </div>
                             </a>
                         </td>
                         <td>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('companies.company')}} </span>: {{is_null($employee->company) ? __('employees.na'): ucfirst($employee->company->name) }}</span> <br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('departments.department')}}</span> : {{is_null($employee->department) ? __('employees.na'): ucfirst($employee->department->name) }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.service')}}</span> : {{is_null($employee->service) ? __('employees.na'): ucfirst($employee->service->name) }}</span>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('companies.company')}} </span>: {{is_null($employee->company) ? __('NA'): ucfirst($employee->company->name) }}</span> <br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('departments.department')}}</span> : {{is_null($employee->department) ? __('NA'): ucfirst($employee->department->name) }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.service')}}</span> : {{is_null($employee->service) ? __('NA'): ucfirst($employee->service->name) }}</span>
                         </td>
                         <td>
                             <span class="fs-normal"><span class="fw-bolder">{{__('employees.matricule')}} </span>: {{ $employee->matricule }}</span> <br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.pdf_password')}}</span> : {{ $employee->pdf_password }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.professional_phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.personal_phone')}}</span> : {{ $employee->personal_phone_number }}</span>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('payslips.pdf_password')}}</span> : {{ $employee->pdf_password }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('common.professional_phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('common.personal_phone')}}</span> : {{ $employee->personal_phone_number }}</span>
                         </td>
                         <td>
                             <div class="mb-2">
@@ -393,12 +394,12 @@
                                 <div class="d-flex flex-wrap align-items-center mt-1">
                                     @foreach($employee->roles as $role)
                                     <span class="fw-normal badge badge-lg bg-{{ match($role->name) {
-                                        'supervisor' => 'info',
-                                        'employee' => 'primary',
-                                        'manager' => 'success',
-                                        'admin' => 'warning',
-                                        default => 'danger'
-                                    } }} me-1 mb-1">{{$role->name}}</span>
+                                            'supervisor' => 'info',
+                                            'employee' => 'primary',
+                                            'manager' => 'success',
+                                            'admin' => 'warning',
+                                            default => 'danger'
+                                        } }} rounded me-1 mb-1">{{$role->name}}</span>
                                     @endforeach
                                 </div>
                             </div>
@@ -406,7 +407,59 @@
                             <div>
                                 <small class="text-muted fw-bold">{{__('common.status')}}:</small>
                                 <div class="mt-1">
-                                    <span class="fw-normal badge super-badge badge-lg bg-{{$employee->status_style}} rounded">{{$employee->status_text}}</span>
+                                    <span class="fw-normal badge badge-lg bg-{{$employee->status_style}} rounded">{{$employee->status_text}}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column align-items-start">
+                                <div class="mb-1">
+                                    <small class="text-muted fw-bold">{{__('employees.email_notifications')}}:</small>
+                                    <div class="d-flex align-items-center mt-1">
+                                        @if($employee->receive_email_notifications)
+                                            <span class="badge p-1 px-2 bg-success me-2">{{__('common.enabled')}}</span>
+                                        @else
+                                            <span class="badge p-1 px-2 bg-secondary me-2">{{__('common.disabled')}}</span>
+                                        @endif
+                                        @can('employee-update')
+                                        <button wire:click="toggleEmailNotifications({{ $employee->id }})"
+                                                class="btn btn-sm {{ $employee->receive_email_notifications ? 'btn-outline-danger' : 'btn-outline-success' }}"
+                                                style="padding: 0.125rem 0.25rem; font-size: 0.75rem; line-height: 1;"
+                                                title="{{ $employee->receive_email_notifications ? __('employees.disable_email_notifications') : __('employees.enable_email_notifications') }}">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                @if($employee->receive_email_notifications)
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                @else
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                @endif
+                                            </svg>
+                                        </button>
+                                        @endcan
+                                    </div>
+                                </div>
+                                <div>
+                                    <small class="text-muted fw-bold">{{__('employees.sms_notifications')}}:</small>
+                                    <div class="d-flex align-items-center mt-1">
+                                        @if($employee->receive_sms_notifications)
+                                            <span class="badge p-1 px-2 bg-info me-2">{{__('common.enabled')}}</span>
+                                        @else
+                                            <span class="badge p-1 px-2 bg-secondary me-2">{{__('common.disabled')}}</span>
+                                        @endif
+                                        @can('employee-update')
+                                        <button wire:click="toggleSmsNotifications({{ $employee->id }})"
+                                                class="btn btn-sm {{ $employee->receive_sms_notifications ? 'btn-outline-danger' : 'btn-outline-success' }}"
+                                                style="padding: 0.125rem 0.25rem; font-size: 0.75rem; line-height: 1;"
+                                                title="{{ $employee->receive_sms_notifications ? __('employees.disable_sms_notifications') : __('employees.enable_sms_notifications') }}">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                @if($employee->receive_sms_notifications)
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                @else
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                @endif
+                                            </svg>
+                                        </button>
+                                        @endcan
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -474,7 +527,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9">
+                        <td colspan="10">
                             <div class="text-center text-gray-800 mt-2">
                                 <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
                                 <p>{{__('common.no_employee_found')}}</p>

@@ -103,6 +103,37 @@ return [
     'login_contract_expired' => 'Tentative de connexion depuis l\'IP :ip mais le contrat a expiré !',
     'login_account_banned' => 'Tentative de connexion depuis l\'IP :ip mais le compte est banni !',
 
+    // Messages des observateurs
+    'created_absence' => 'Absence créée avec la date :date',
+    'updated_absence' => 'Absence mise à jour pour :user avec la date :date',
+    'deleted_absence' => 'Absence supprimée pour :user avec la date :date',
+    'approved_absence' => 'Absence approuvée pour :user avec la date :date',
+    'rejected_absence' => 'Absence rejetée pour :user avec la date :date',
+
+    'created_overtime' => 'Enregistrement d\'heures supplémentaires créé pour la date :date',
+    'updated_overtime' => 'Heures supplémentaires mises à jour pour :user avec la date :date',
+    'deleted_overtime' => 'Enregistrement d\'heures supplémentaires supprimé pour :user pour la date :date',
+    'approved_overtime' => 'Heures supplémentaires approuvées pour :user avec la date :date',
+    'rejected_overtime' => 'Heures supplémentaires rejetées pour :user avec la date :date',
+
+    'created_checkin' => 'Enregistrement de pointage créé pour :user pour la date :date',
+    'updated_checkin' => 'Pointage mis à jour pour :user pour la date :date',
+    'deleted_checkin' => 'Enregistrement de pointage supprimé pour :user pour la date :date',
+    'approved_checkin_supervisor' => 'Superviseur a approuvé le pointage pour :user pour la date :date',
+    'rejected_checkin_supervisor' => 'Superviseur a rejeté le pointage pour :user pour la date :date',
+    'approved_checkin_manager' => 'Manager a approuvé le pointage pour :user pour la date :date',
+    'rejected_checkin_manager' => 'Manager a rejeté le pointage pour :user pour la date :date',
+
+    'created_advance_salary' => 'Avance sur salaire créée d\'un montant :amount',
+    'updated_advance_salary' => 'Avance sur salaire mise à jour par :user d\'un montant :amount',
+    'deleted_advance_salary' => 'Avance sur salaire supprimée par :user d\'un montant :amount',
+    'approved_advance_salary' => 'Avance sur salaire approuvée par :user d\'un montant :amount',
+    'rejected_advance_salary' => 'Avance sur salaire rejetée par :user d\'un montant :amount',
+
+    'updated_service' => 'Service mis à jour avec le nom :name',
+    'deleted_service' => 'Service supprimé avec le nom :name',
+    'permanently_deleted_service' => 'Service supprimé définitivement avec le nom :name',
+
     // CRUD Operations
     'created_entity' => ':entity créé avec le nom :name',
     'updated_entity' => ':entity mis à jour avec le nom :name',

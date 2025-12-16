@@ -19,7 +19,7 @@ class AbsenceObserver
             auth()->user(),
             'absence_created',
             'web',
-            __('Created an absence with date '). $absence->absence_date
+            __('audit_logs.created_absence', ['date' => $absence->absence_date])
         );
     }
 
@@ -33,11 +33,13 @@ class AbsenceObserver
     {
         
         if ($absence->approval_status !== $absence->getOriginal('approval_status')) {
-            $changes = ($absence->approval_status == 1 ? __('common.approved') : __('common.rejected') ). " ". __(' the absence from '). $absence->user->name . __(' with date ') . $absence->absence_date; 
+            $changes = ($absence->approval_status == 1
+                ? __('audit_logs.approved_absence', ['user' => $absence->user->name, 'date' => $absence->absence_date])
+                : __('audit_logs.rejected_absence', ['user' => $absence->user->name, 'date' => $absence->absence_date])); 
             $status = "absence_". ($absence->approval_status == 1 ? "approved" : "rejected");
         }else{
             $status = "absence_updated";
-            $changes = __('Updated the absence from '). $absence->user->name . __(' with date ') . $absence->absence_date; 
+            $changes = __('audit_logs.updated_absence', ['user' => $absence->user->name, 'date' => $absence->absence_date]); 
         }
     
         auditLog(
@@ -60,7 +62,7 @@ class AbsenceObserver
             auth()->user(),
             'absence_deleted',
             'web',
-            __('Deleted absence from ') . $absence->user->name . __(' with date ') . $absence->absence_date 
+            __('audit_logs.deleted_absence', ['user' => $absence->user->name, 'date' => $absence->absence_date]) 
         );
     }
 

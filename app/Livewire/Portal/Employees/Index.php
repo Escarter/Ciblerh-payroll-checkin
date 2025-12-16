@@ -56,6 +56,7 @@ class Index extends BaseImportComponent
     public $password = null;
     public $salary_grade = null;
     public $department_id = null;
+    public $selectedDepartmentId = null;
     public $service_id;
     public $role_name = 'employee';
     public $selected_roles = ['employee'];
@@ -146,6 +147,14 @@ class Index extends BaseImportComponent
     public function updatedDepartmentId($department_id)
     {
         if(!is_null($department_id)){
+            $this->services = Service::where('department_id', $department_id)->get();
+        }
+    }
+
+    public function updatedSelectedDepartmentId($department_id)
+    {
+        if(!is_null($department_id)){
+            $this->department_id = $department_id;
             $this->services = Service::where('department_id', $department_id)->get();
         }
     }
@@ -615,6 +624,7 @@ class Index extends BaseImportComponent
         $this->date_of_birth = $employee->date_of_birth;
         $this->service_id = $employee->service_id;
         $this->department_id = $employee->department_id;
+        $this->selectedDepartmentId = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
         $this->selected_roles = $employee->getRoleNames()->toArray();
         $this->receive_sms_notifications = $employee->receive_sms_notifications ?? true;
@@ -766,6 +776,44 @@ class Index extends BaseImportComponent
         return (new EmployeeExport($this->company, $this->query))->download(ucfirst($this->company->name).'-Employees-' . Str::random(5) . '.xlsx');
     }
 
+
+    public function toggleEmailNotifications($employeeId)
+    {
+        if (!Gate::allows('employee-update')) {
+            return abort(401);
+        }
+
+        $employee = User::findOrFail($employeeId);
+        $employee->update([
+            'receive_email_notifications' => !$employee->receive_email_notifications
+        ]);
+
+        $this->showToast(
+            $employee->receive_email_notifications
+                ? __('employees.email_notifications_enabled')
+                : __('employees.email_notifications_disabled'),
+            'success'
+        );
+    }
+
+    public function toggleSmsNotifications($employeeId)
+    {
+        if (!Gate::allows('employee-update')) {
+            return abort(401);
+        }
+
+        $employee = User::findOrFail($employeeId);
+        $employee->update([
+            'receive_sms_notifications' => !$employee->receive_sms_notifications
+        ]);
+
+        $this->showToast(
+            $employee->receive_sms_notifications
+                ? __('employees.sms_notifications_enabled')
+                : __('employees.sms_notifications_disabled'),
+            'success'
+        );
+    }
 
     public function close()
     {
@@ -1063,6 +1111,8 @@ class Index extends BaseImportComponent
             'net_salary',
             'salary_grade',
             'contract_end',
+            'department_id',
+            'selectedDepartmentId',
             'service_id',
             'status',
             'work_start_time',

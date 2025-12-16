@@ -259,3 +259,4 @@ class MonitorQueuesCommand extends Command
         return 0;
     }
 }
+

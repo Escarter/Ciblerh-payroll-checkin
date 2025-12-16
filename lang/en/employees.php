@@ -72,11 +72,20 @@ return [
 
     // SMS/Email notifications
     'receive_sms_notifications' => 'Receive SMS notifications for payslips',
+    'sms_notifications' => 'SMS notifications',
     'sms_notifications_description' => 'Enable or disable SMS notifications when payslips are sent to this employee',
     'sms_notifications_disabled' => 'SMS notifications disabled for this employee',
+    'sms_notifications_enabled' => 'SMS notifications enabled for this employee',
+    'enable_sms_notifications' => 'Enable SMS notifications',
+    'disable_sms_notifications' => 'Disable SMS notifications',
     'receive_email_notifications' => 'Receive Email notifications for payslips',
+    'email_notifications' => 'Email notifications',
     'email_notifications_description' => 'Enable or disable Email notifications when payslips are sent to this employee',
     'email_notifications_disabled' => 'Email notifications disabled for this employee',
+    'email_notifications_enabled' => 'Email notifications enabled for this employee',
+    'enable_email_notifications' => 'Enable email notifications',
+    'disable_email_notifications' => 'Disable email notifications',
+    'notifications' => 'Notifications',
     'alternative_email' => 'Alternative Email',
     'alternative_email_description' => 'Optional backup email address',
     'alternative_email_note' => 'Optional: Backup email address to use if primary email fails',
@@ -95,7 +104,6 @@ return [
     'leave_reason' => 'Leave Reason',
     'repayment_from_month' => 'Which month will start repayment?',
     'repayment_to_month' => 'Which month will end repayment?',
-    'enable_sms_notifications' => 'Enable or disable SMS notifications when payslips are sent to this employee',
 
     // Beneficiary information
     'beneficiary_name' => 'Beneficiary Name',

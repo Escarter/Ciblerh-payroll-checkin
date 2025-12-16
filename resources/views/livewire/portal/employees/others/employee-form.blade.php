@@ -119,7 +119,7 @@
                         </div>
                         <div class="form-group mb-2">
                             <div class="form-check form-switch">
-                                <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" id="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
+                                <input wire:model="receive_sms_notifications" class="form-check-input" type="checkbox" value="1" id="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
                                 <label class="form-check-label" for="receive_sms_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
                                     {{__('employees.receive_sms_notifications')}}
                                 </label>
@@ -128,7 +128,7 @@
                         </div>
                         <div class="form-group mb-2">
                             <div class="form-check form-switch">
-                                <input wire:model.live="receive_email_notifications" class="form-check-input" type="checkbox" id="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
+                                <input wire:model="receive_email_notifications" class="form-check-input" type="checkbox" value="1" id="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
                                 <label class="form-check-label" for="receive_email_notifications_{{ $isEditMode ? 'edit' : 'create' }}">
                                     {{__('employees.receive_email_notifications')}}
                                 </label>

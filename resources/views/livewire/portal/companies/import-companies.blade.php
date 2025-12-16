@@ -166,7 +166,7 @@
                                                          $value = $row['data'][$key] ?? '';
                                                          $parsedValue = $row['validation']['parsed_data'][$key] ?? $value;
                                                      @endphp
-                                                     <span title="{{ $parsedValue !== $value ? 'Original: ' . $value : '' }}">
+                                                     <span title="{{ $parsedValue !== $value ? __('common.original') . ': ' . $value : '' }}">
                                                          {{ Str::limit($parsedValue, 30) }}
                                                      </span>
                                                  </td>

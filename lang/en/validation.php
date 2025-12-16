@@ -186,6 +186,13 @@ return [
     |
     */
 
+    // Custom validation messages
+    'checkin_checkout_same_day' => 'Checkin and Checkout times must be same day.',
+    'overtime_within_working_hours' => 'Overtime can\'t be within working hours',
+    'current_password_not_match' => 'The current password field does not match your password',
+    'checkout_time_must_be_greater' => 'Checkout time must be greater than or equal to :time',
+    'checkin_time_must_be_exact' => 'Checkin time must be exactly :time',
+
     'attributes' => [],
 
 ];

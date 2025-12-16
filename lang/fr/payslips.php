@@ -159,6 +159,7 @@ return [
     'download_payslip_title' => 'Télécharger le bulletin de salaire',
     'resend_email_title' => 'Renvoyer l\'email',
     'resend_sms_title' => 'Renvoyer le SMS',
+    'resend_payslip_title' => 'Renvoyer la fiche de paie',
     'delete_title' => 'Supprimer',
 
     // Additional UI labels

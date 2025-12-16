@@ -343,6 +343,7 @@
                         <th class="border-bottom">{{__('companies.company')}}</th>
                         <th class="border-bottom">{{__('employees.employee_info')}}</th>
                         <th class="border-bottom">{{__('common.roles_status')}}</th>
+                        <th class="border-bottom">{{__('employees.notifications')}}</th>
                         @canany(['employee-delete','employee-update'])
                         <th class="border-bottom">{{__('common.action')}}</th>
                         @endcanany
@@ -411,6 +412,58 @@
                                 <small class="text-muted fw-bold">{{__('common.status')}}:</small>
                                 <div class="mt-1">
                                     <span class="fw-normal badge badge-lg bg-{{$employee->status_style}} rounded">{{$employee->status_text}}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column align-items-start">
+                                <div class="mb-1">
+                                    <small class="text-muted fw-bold">{{__('employees.email_notifications')}}:</small>
+                                    <div class="d-flex align-items-center mt-1">
+                                        @if($employee->receive_email_notifications)
+                                            <span class="badge p-1 px-2 bg-success me-2">{{__('common.enabled')}}</span>
+                                        @else
+                                            <span class="badge p-1 px-2 bg-secondary me-2">{{__('common.disabled')}}</span>
+                                        @endif
+                                        @can('employee-update')
+                                        <button wire:click="toggleEmailNotifications({{ $employee->id }})"
+                                                class="btn btn-sm {{ $employee->receive_email_notifications ? 'btn-outline-danger' : 'btn-outline-success' }}"
+                                                style="padding: 0.125rem 0.25rem; font-size: 0.75rem; line-height: 1;"
+                                                title="{{ $employee->receive_email_notifications ? __('employees.disable_email_notifications') : __('employees.enable_email_notifications') }}">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                @if($employee->receive_email_notifications)
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                @else
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                @endif
+                                            </svg>
+                                        </button>
+                                        @endcan
+                                    </div>
+                                </div>
+                                <div>
+                                    <small class="text-muted fw-bold">{{__('employees.sms_notifications')}}:</small>
+                                    <div class="d-flex align-items-center mt-1">
+                                        @if($employee->receive_sms_notifications)
+                                            <span class="badge p-1 px-2 bg-info me-2">{{__('common.enabled')}}</span>
+                                        @else
+                                            <span class="badge p-1 px-2 bg-secondary me-2">{{__('common.disabled')}}</span>
+                                        @endif
+                                        @can('employee-update')
+                                        <button wire:click="toggleSmsNotifications({{ $employee->id }})"
+                                                class="btn btn-sm {{ $employee->receive_sms_notifications ? 'btn-outline-danger' : 'btn-outline-success' }}"
+                                                style="padding: 0.125rem 0.25rem; font-size: 0.75rem; line-height: 1;"
+                                                title="{{ $employee->receive_sms_notifications ? __('employees.disable_sms_notifications') : __('employees.enable_sms_notifications') }}">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                @if($employee->receive_sms_notifications)
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                @else
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                @endif
+                                            </svg>
+                                        </button>
+                                        @endcan
+                                    </div>
                                 </div>
                             </div>
                         </td>
@@ -487,7 +540,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9">
+                        <td colspan="10">
                             <div class="text-center text-gray-800 mt-2">
                                 <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
                                 <p>{{__('common.no_employee_found')}}</p>

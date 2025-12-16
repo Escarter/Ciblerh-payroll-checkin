@@ -83,16 +83,16 @@ class DownloadJob extends Model
     public function getJobTypeDisplayAttribute(): string
     {
         return match($this->job_type) {
-            self::TYPE_BULK_PAYSLIP_DOWNLOAD => __('Bulk Payslip Download'),
-            self::TYPE_PAYSLIP_REPORT => __('Payslip Report'),
-            self::TYPE_OVERTIME_REPORT => __('Overtime Report'),
-            self::TYPE_CHECKLOG_REPORT => __('Checklog Report'),
-            self::TYPE_EMPLOYEE_EXPORT => __('Employee Export'),
-            self::TYPE_SERVICE_EXPORT => __('Service Export'),
-            self::TYPE_COMPANY_EXPORT => __('Company Export'),
-            self::TYPE_DEPARTMENT_EXPORT => __('Department Export'),
-            self::TYPE_ADVANCE_SALARY_EXPORT => __('Advance Salary Export'),
-            self::TYPE_ABSENCES_EXPORT => __('Absences Export'),
+            self::TYPE_BULK_PAYSLIP_DOWNLOAD => __('reports.bulk_payslip_download'),
+            self::TYPE_PAYSLIP_REPORT => __('reports.payslip_report'),
+            self::TYPE_OVERTIME_REPORT => __('reports.overtime_report'),
+            self::TYPE_CHECKLOG_REPORT => __('reports.checklog_report'),
+            self::TYPE_EMPLOYEE_EXPORT => __('reports.employee_export'),
+            self::TYPE_SERVICE_EXPORT => __('reports.service_export'),
+            self::TYPE_COMPANY_EXPORT => __('reports.company_export'),
+            self::TYPE_DEPARTMENT_EXPORT => __('reports.department_export'),
+            self::TYPE_ADVANCE_SALARY_EXPORT => __('reports.advance_salary_export'),
+            self::TYPE_ABSENCES_EXPORT => __('reports.absences_export'),
             default => __('Unknown Report Type')
         };
     }
@@ -113,11 +113,11 @@ class DownloadJob extends Model
     {
         return match($this->status) {
             self::STATUS_PENDING => __('common.pending'),
-            self::STATUS_PROCESSING => __('Processing'),
-            self::STATUS_COMPLETED => __('Completed'),
+            self::STATUS_PROCESSING => __('common.processing'),
+            self::STATUS_COMPLETED => __('common.completed'),
             self::STATUS_FAILED => __('common.failed'),
-            self::STATUS_CANCELLED => __('Cancelled'),
-            default => __('Unknown')
+            self::STATUS_CANCELLED => __('common.cancelled'),
+            default => __('common.unknown')
         };
     }
 
@@ -130,11 +130,11 @@ class DownloadJob extends Model
         $duration = $this->started_at->diffInSeconds($this->completed_at);
         
         if ($duration < 60) {
-            return $duration . ' ' . __('seconds');
+            return $duration . ' ' . __('common.seconds');
         } elseif ($duration < 3600) {
-            return round($duration / 60) . ' ' . __('minutes');
+            return round($duration / 60) . ' ' . __('common.minutes');
         } else {
-            return round($duration / 3600) . ' ' . __('hours');
+            return round($duration / 3600) . ' ' . __('common.hours');
         }
     }
 

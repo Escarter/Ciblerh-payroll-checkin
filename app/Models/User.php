@@ -130,7 +130,7 @@ class User extends Authenticatable implements HasLocalePreference
     {
         return match($this->status){
             true => __('common.active'),
-            false => __('Banned'),
+            false => __('common.banned'),
             default => __('common.active'),
         };
     }

@@ -72,11 +72,20 @@ return [
 
     // SMS/Email notifications
     'receive_sms_notifications' => 'Recevoir les notifications SMS pour les fiches de paie',
+    'sms_notifications' => 'Notifications SMS',
     'sms_notifications_description' => 'Activer ou désactiver les notifications SMS lors de l\'envoi des fiches de paie à cet employé',
     'sms_notifications_disabled' => 'Notifications SMS désactivées pour cet employé',
+    'sms_notifications_enabled' => 'Notifications SMS activées pour cet employé',
+    'enable_sms_notifications' => 'Activer les notifications SMS',
+    'disable_sms_notifications' => 'Désactiver les notifications SMS',
     'receive_email_notifications' => 'Recevoir les notifications Email pour les fiches de paie',
+    'email_notifications' => 'Notifications Email',
     'email_notifications_description' => 'Activer ou désactiver les notifications Email lors de l\'envoi des fiches de paie à cet employé',
     'email_notifications_disabled' => 'Notifications Email désactivées pour cet employé',
+    'email_notifications_enabled' => 'Notifications Email activées pour cet employé',
+    'enable_email_notifications' => 'Activer les notifications Email',
+    'disable_email_notifications' => 'Désactiver les notifications Email',
+    'notifications' => 'Notifications',
     'alternative_email' => 'Email alternatif',
     'alternative_email_description' => 'Adresse email de sauvegarde optionnelle',
     'alternative_email_note' => 'Optionnel: Adresse email de sauvegarde à utiliser si l\'email principal échoue',
@@ -95,7 +104,6 @@ return [
     'leave_reason' => 'Raison du congé',
     'repayment_from_month' => 'Quel mois commencera le remboursement?',
     'repayment_to_month' => 'Quel mois terminera le remboursement?',
-    'enable_sms_notifications' => 'Activer ou désactiver les notifications SMS lors de l\'envoi des fiches de paie à cet employé',
 
     // Informations sur le bénéficiaire
     'beneficiary_name' => 'Nom du bénéficiaire',

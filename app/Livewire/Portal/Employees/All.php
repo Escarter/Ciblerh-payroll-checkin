@@ -62,8 +62,8 @@ class All extends BaseImportComponent
     public $employee_file = null;
     public $role = null;
     public $auth_role = null;
-    public bool $receive_sms_notifications = true;
-    public bool $receive_email_notifications = true;
+    public $receive_sms_notifications = true;
+    public $receive_email_notifications = true;
     public $alternative_email = null;
     public $isEditMode = false;
     
@@ -360,8 +360,8 @@ class All extends BaseImportComponent
             'date_of_birth' => $this->date_of_birth,
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ? true : false,
-            'receive_sms_notifications' => $this->receive_sms_notifications === true || $this->receive_sms_notifications === "true" || $this->receive_sms_notifications === 1,
-            'receive_email_notifications' => $this->receive_email_notifications === true || $this->receive_email_notifications === "true" || $this->receive_email_notifications === 1,
+            'receive_sms_notifications' => (bool) $this->receive_sms_notifications,
+            'receive_email_notifications' => (bool) $this->receive_email_notifications,
             'alternative_email' => $this->alternative_email,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
             // 'pdf_password' => Str::random(10),
@@ -734,8 +734,8 @@ class All extends BaseImportComponent
         $this->date_of_birth = $employee->date_of_birth;
         $this->selectedDepartmentId = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
-        $this->receive_sms_notifications = (bool) ($employee->receive_sms_notifications ?? true);
-        $this->receive_email_notifications = (bool) ($employee->receive_email_notifications ?? true);
+        $this->receive_sms_notifications = $employee->receive_sms_notifications ?? true;
+        $this->receive_email_notifications = $employee->receive_email_notifications ?? true;
         
         // Get the employee's actual roles and reset selected_roles
         $this->selected_roles = $employee->getRoleNames()->toArray();
@@ -773,6 +773,44 @@ class All extends BaseImportComponent
         $this->clearFields();
     }
 
+    public function toggleEmailNotifications($employeeId)
+    {
+        if (!Gate::allows('employee-update')) {
+            return abort(401);
+        }
+
+        $employee = User::findOrFail($employeeId);
+        $employee->update([
+            'receive_email_notifications' => !$employee->receive_email_notifications
+        ]);
+
+        $this->showToast(
+            $employee->receive_email_notifications
+                ? __('employees.email_notifications_enabled')
+                : __('employees.email_notifications_disabled'),
+            'success'
+        );
+    }
+
+    public function toggleSmsNotifications($employeeId)
+    {
+        if (!Gate::allows('employee-update')) {
+            return abort(401);
+        }
+
+        $employee = User::findOrFail($employeeId);
+        $employee->update([
+            'receive_sms_notifications' => !$employee->receive_sms_notifications
+        ]);
+
+        $this->showToast(
+            $employee->receive_sms_notifications
+                ? __('employees.sms_notifications_enabled')
+                : __('employees.sms_notifications_disabled'),
+            'success'
+        );
+    }
+
     public function clearFields()
     {
         parent::clearFields();
@@ -805,8 +843,8 @@ class All extends BaseImportComponent
         ]);
         // Reset to default roles (only employee role)
         $this->selected_roles = ['employee'];
-        $this->receive_sms_notifications = (bool) true;
-        $this->receive_email_notifications = (bool) true;
+        $this->receive_sms_notifications = true;
+        $this->receive_email_notifications = true;
         $this->alternative_email = null;
         $this->password = Str::random(15);
     }

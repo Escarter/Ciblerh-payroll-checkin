@@ -101,11 +101,11 @@ class ImportJob extends Model
     {
         return match($this->status) {
             self::STATUS_PENDING => __('common.pending'),
-            self::STATUS_PROCESSING => __('Processing'),
-            self::STATUS_COMPLETED => __('Completed'),
+            self::STATUS_PROCESSING => __('common.processing'),
+            self::STATUS_COMPLETED => __('common.completed'),
             self::STATUS_FAILED => __('common.failed'),
-            self::STATUS_CANCELLED => __('Cancelled'),
-            default => __('Unknown')
+            self::STATUS_CANCELLED => __('common.cancelled'),
+            default => __('common.unknown')
         };
     }
 
@@ -118,11 +118,11 @@ class ImportJob extends Model
         $duration = $this->started_at->diffInSeconds($this->completed_at);
 
         if ($duration < 60) {
-            return $duration . ' ' . __('seconds');
+            return $duration . ' ' . __('common.seconds');
         } elseif ($duration < 3600) {
-            return round($duration / 60) . ' ' . __('minutes');
+            return round($duration / 60) . ' ' . __('common.minutes');
         } else {
-            return round($duration / 3600) . ' ' . __('hours');
+            return round($duration / 3600) . ' ' . __('common.hours');
         }
     }
 

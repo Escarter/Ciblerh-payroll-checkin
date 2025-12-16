@@ -32,19 +32,23 @@ class CheckinObserver
     {
         if(auth()->user()->getRoleNames()->first() ===  "supervisor"){
             if ($ticking->supervisor_approval_status !== $ticking->getOriginal('supervisor_approval_status')) {
-                $changes = ($ticking->supervisor_approval_status == 1 ? __('common.approved') : __('common.rejected')) . " " . __(' the checkin for ') . $ticking->user->name . __(' for the date ') . $ticking->start_time;
+                $changes = ($ticking->supervisor_approval_status == 1
+                    ? __('audit_logs.approved_checkin_supervisor', ['user' => $ticking->user->name, 'date' => $ticking->start_time])
+                    : __('audit_logs.rejected_checkin_supervisor', ['user' => $ticking->user->name, 'date' => $ticking->start_time]));
                 $status = "checkin_" . ($ticking->supervisor_approval_status == 1 ? "approved" : "rejected");
             } else {
                 $status = "checkin_updated";
-                $changes = __('Updated the checkin for ') . $ticking->user->name . __(' for the date ') . $ticking->start_time;
+                $changes = __('audit_logs.updated_checkin', ['user' => $ticking->user->name, 'date' => $ticking->start_time]);
             }
         }else{
             if ($ticking->manager_approval_status !== $ticking->getOriginal('manager_approval_status')) {
-                $changes = ($ticking->manager_approval_status == 1 ? __('common.approved') : __('common.rejected')) . " " . __(' the checkin for ') . $ticking->user->name . __(' for the date ') . $ticking->start_time;
+                $changes = ($ticking->manager_approval_status == 1
+                    ? __('audit_logs.approved_checkin_manager', ['user' => $ticking->user->name, 'date' => $ticking->start_time])
+                    : __('audit_logs.rejected_checkin_manager', ['user' => $ticking->user->name, 'date' => $ticking->start_time]));
                 $status = "checkin_" . ($ticking->manager_approval_status == 1 ? "approved" : "rejected");
             } else {
                 $status = "checkin_updated";
-                $changes = __('Updated the checkin for ') . $ticking->user->name . __(' for the date ') . $ticking->start_time;
+                $changes = __('audit_logs.updated_checkin', ['user' => $ticking->user->name, 'date' => $ticking->start_time]);
             }
         }
         
@@ -69,7 +73,7 @@ class CheckinObserver
             auth()->user(),
             'checkin_deleted',
             'web',
-            __('Deleted checkin record for ') . $ticking->user->name . __(' for the date ') . $ticking->start_time
+            __('audit_logs.deleted_checkin', ['user' => $ticking->user->name, 'date' => $ticking->start_time])
         );
     }
 

@@ -201,3 +201,4 @@ php artisan queue:monitor --failed
 php artisan queue:test --queue=default --wait --timeout=10
 php artisan queue:monitor --queue=default
 ```
+

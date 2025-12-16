@@ -103,6 +103,37 @@ return [
     'login_contract_expired' => 'Tried to log in from IP :ip but contract has expired!',
     'login_account_banned' => 'Tried to log in from IP :ip but account is banned!',
 
+    // Observer messages
+    'created_absence' => 'Created an absence with date :date',
+    'updated_absence' => 'Updated the absence from :user with date :date',
+    'deleted_absence' => 'Deleted absence from :user with date :date',
+    'approved_absence' => 'Approved the absence from :user with date :date',
+    'rejected_absence' => 'Rejected the absence from :user with date :date',
+
+    'created_overtime' => 'Created overtime record for the date :date',
+    'updated_overtime' => 'Updated the overtime from :user with date :date',
+    'deleted_overtime' => 'Deleted overtime record for :user for the date :date',
+    'approved_overtime' => 'Approved the overtime from :user with date :date',
+    'rejected_overtime' => 'Rejected the overtime from :user with date :date',
+
+    'created_checkin' => 'Created checkin record for :user for the date :date',
+    'updated_checkin' => 'Updated the checkin for :user for the date :date',
+    'deleted_checkin' => 'Deleted checkin record for :user for the date :date',
+    'approved_checkin_supervisor' => 'Supervisor approved the checkin for :user for the date :date',
+    'rejected_checkin_supervisor' => 'Supervisor rejected the checkin for :user for the date :date',
+    'approved_checkin_manager' => 'Manager approved the checkin for :user for the date :date',
+    'rejected_checkin_manager' => 'Manager rejected the checkin for :user for the date :date',
+
+    'created_advance_salary' => 'Created advance salary of amount :amount',
+    'updated_advance_salary' => 'Updated the advance salary by :user of amount :amount',
+    'deleted_advance_salary' => 'Deleted advance salary by :user of amount :amount',
+    'approved_advance_salary' => 'Approved the advance salary by :user of amount :amount',
+    'rejected_advance_salary' => 'Rejected the advance salary by :user of amount :amount',
+
+    'updated_service' => 'Updated service with name :name',
+    'deleted_service' => 'Deleted service with name :name',
+    'permanently_deleted_service' => 'Permanently deleted service with name :name',
+
     // CRUD Operations
     'created_entity' => 'Created :entity with name :name',
     'updated_entity' => 'Updated :entity with name :name',

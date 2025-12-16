@@ -18,7 +18,7 @@ class AdvanceSalaryObserver
             auth()->user(),
             'advanceSalary_created',
             'web',
-            __('Created advance salary of amount') . ' <a href="/portal/advance-salaries?advance_salary_id="' . $advanceSalary->id . '>' . $advanceSalary->amount . '</a>'
+            __('audit_logs.created_advance_salary', ['amount' => $advanceSalary->amount]) . ' <a href="/portal/advance-salaries?advance_salary_id="' . $advanceSalary->id . '>' . $advanceSalary->amount . '</a>'
         );
     }
 
@@ -31,11 +31,13 @@ class AdvanceSalaryObserver
     public function updated(AdvanceSalary $advanceSalary)
     {
         if ($advanceSalary->approval_status !== $advanceSalary->getOriginal('approval_status')) {
-            $changes = ($advanceSalary->approval_status == 1 ? __('common.approved') : __('common.rejected')) . " " . __(' the advance salary by '). $advanceSalary->user->name . __(' of amount ') . number_format($advanceSalary->amount) . 'XAF';
+            $changes = ($advanceSalary->approval_status == 1
+                ? __('audit_logs.approved_advance_salary', ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) . 'XAF'])
+                : __('audit_logs.rejected_advance_salary', ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) . 'XAF']));
             $status = "advanceSalary_" . ($advanceSalary->approval_status == 1 ? "approved" : "rejected");
         } else {
             $status = "advanceSalary_updated";
-            $changes = __('Updated the advance salary by ') . $advanceSalary->user->name . __(' of amount '). number_format($advanceSalary->amount) .'XAF';
+            $changes = __('audit_logs.updated_advance_salary', ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) .'XAF']);
         }
 
         auditLog(
@@ -58,7 +60,7 @@ class AdvanceSalaryObserver
             auth()->user(),
             'advanceSalary_deleted',
             'web',
-            __('Deleted advance salary by ') . $advanceSalary->user->name . __(' of amount ') . number_format($advanceSalary->amount) . 'XAF'
+            __('audit_logs.deleted_advance_salary', ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) . 'XAF'])
         );
     }
 

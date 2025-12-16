@@ -159,6 +159,7 @@ return [
     'download_payslip_title' => 'Download Payslip',
     'resend_email_title' => 'Resend Email',
     'resend_sms_title' => 'Resend SMS',
+    'resend_payslip_title' => 'Resend Payslip',
     'delete_title' => 'Delete',
 
     // Additional UI labels

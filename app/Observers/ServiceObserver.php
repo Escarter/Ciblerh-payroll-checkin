@@ -34,7 +34,7 @@ class ServiceObserver
             auth()->user(),
             'service_updated',
             'web',
-           __('Updated service with name ') . $service->name
+           __('audit_logs.updated_service', ['name' => $service->name])
         );
     }
 
@@ -50,7 +50,7 @@ class ServiceObserver
             auth()->user(),
             'service_deleted',
             'web',
-           __('Deleted service with name ') . $service->name
+           __('audit_logs.deleted_service', ['name' => $service->name])
         );
     }
 
@@ -77,7 +77,7 @@ class ServiceObserver
             auth()->user(),
             'service_force_deleted',
             'web',
-           __('Permanently deleted service with name ') . $service->name
+           __('audit_logs.permanently_deleted_service', ['name' => $service->name])
         );
     }
 }
