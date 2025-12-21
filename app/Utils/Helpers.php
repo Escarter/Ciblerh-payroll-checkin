@@ -540,7 +540,7 @@ if (!function_exists('findOrCreateDepartment')) {
             return [
                 'found' => false,
                 'department' => null,
-                'error' => __('Department name cannot be empty')
+                'error' => __('common.department_name_cannot_be_empty')
             ];
         }
 
@@ -560,7 +560,7 @@ if (!function_exists('findOrCreateDepartment')) {
             return [
                 'found' => false,
                 'department' => null,
-                'error' => __('Department ":name" not found in company. Available departments: :departments', [
+                'error' => trans('common.department_not_found_in_company', [
                     'name' => $departmentName,
                     'departments' => \App\Models\Department::where('company_id', $companyId)->pluck('name')->join(', ')
                 ])
@@ -583,7 +583,7 @@ if (!function_exists('findOrCreateDepartment')) {
             return [
                 'found' => false,
                 'department' => null,
-                'error' => __('Failed to create department ":name": :error', [
+                'error' => __('common.failed_to_create_department', [
                     'name' => $departmentName,
                     'error' => $e->getMessage()
                 ])
@@ -608,7 +608,7 @@ if (!function_exists('findOrCreateService')) {
             return [
                 'found' => false,
                 'service' => null,
-                'error' => __('Service name cannot be empty')
+                'error' => __('service name cannot be empty')
             ];
         }
 

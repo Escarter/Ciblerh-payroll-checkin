@@ -94,6 +94,7 @@ return [
     'matricule_already_exists' => 'Le matricule existe déjà',
     'department_name_cannot_be_empty' => 'Le nom du département ne peut pas être vide',
     'department_not_found_in_company' => 'Département ":name" introuvable dans l\'entreprise. Départements disponibles : :departments',
+    'failed_to_create_department' => 'Échec de création du département ":name": :error',
     'position_too_short' => 'Le poste est trop court (minimum 2 caractères)',
     'invalid_personal_phone_format' => 'Format de numéro de téléphone personnel invalide',
     'invalid_alternative_email_format' => 'Format d\'email alternatif invalide',
