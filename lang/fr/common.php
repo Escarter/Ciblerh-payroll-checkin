@@ -92,6 +92,8 @@ return [
     'salary_seems_high' => 'Le salaire semble anormalement élevé',
     'matricule_too_short' => 'Le matricule est trop court (minimum 3 caractères)',
     'matricule_already_exists' => 'Le matricule existe déjà',
+    'department_name_cannot_be_empty' => 'Le nom du département ne peut pas être vide',
+    'department_not_found_in_company' => 'Département ":name" introuvable dans l\'entreprise. Départements disponibles : :departments',
     'position_too_short' => 'Le poste est trop court (minimum 2 caractères)',
     'invalid_personal_phone_format' => 'Format de numéro de téléphone personnel invalide',
     'invalid_alternative_email_format' => 'Format d\'email alternatif invalide',

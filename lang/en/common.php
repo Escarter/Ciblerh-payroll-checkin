@@ -92,6 +92,8 @@ return [
     'salary_seems_high' => 'Salary seems unusually high',
     'matricule_too_short' => 'Matricule is too short (minimum 3 characters)',
     'matricule_already_exists' => 'Matricule already exists',
+    'department_name_cannot_be_empty' => 'Department name cannot be empty',
+    'department_not_found_in_company' => 'Department ":name" not found in company. Available departments: :departments',
     'position_too_short' => 'Position is too short (minimum 2 characters)',
     'invalid_personal_phone_format' => 'Invalid personal phone number format',
     'invalid_alternative_email_format' => 'Invalid alternative email format',
