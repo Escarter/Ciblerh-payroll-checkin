@@ -328,6 +328,7 @@ return [
     'sms_provider_unhealthy_during_balance_check' => 'Fournisseur SMS défaillant lors de la vérification du solde',
     'sms_provider_configuration_error' => 'Erreur de configuration du fournisseur SMS',
     'null_value_in_provider_config' => 'Valeur nulle dans la configuration du fournisseur',
+    'sms_provider_initialization_failed' => 'Échec d\'initialisation du fournisseur SMS',
     'sms_unexpected_error' => 'Échec d\'envoi SMS avec erreur inattendue',
     'birthday_message_sent_successfully_to' => 'Message d\'anniversaire envoyé avec succès à ',
     'birthday_message_failed_to_send_to' => 'Échec d\'envoi du message d\'anniversaire à ',
