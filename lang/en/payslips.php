@@ -329,6 +329,7 @@ return [
     'sms_provider_configuration_error' => 'SMS provider configuration error',
     'null_value_in_provider_config' => 'Null value in provider configuration',
     'sms_provider_initialization_failed' => 'SMS provider initialization failed',
+    'sms_sending_exception' => 'SMS sending exception',
     'sms_unexpected_error' => 'SMS sending failed with unexpected error',
     'birthday_message_sent_successfully_to' => 'Birthday message sent successfully to ',
     'birthday_message_failed_to_send_to' => 'Birthday message failed to send to ',
