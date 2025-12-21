@@ -446,7 +446,7 @@ if (!function_exists('validatePhoneNumber')) {
             return [
                 'valid' => false,
                 'formatted' => null,
-                'error' => __('Invalid phone number format. Phone number must be in E.164 format (e.g., +1234567890)')
+                'error' => __('common.invalid_phone_number_format_e164')
             ];
         }
 
