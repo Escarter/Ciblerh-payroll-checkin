@@ -68,3 +68,4 @@ return [
     'employees_checklogs_report' => 'Employees Checklogs Report',
     'generate_monthly_employees_checklog_reports' => 'Generate monthly employees checklog reports!',
 ];
+

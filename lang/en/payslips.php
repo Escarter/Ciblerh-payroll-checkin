@@ -324,6 +324,11 @@ return [
     'this_will_resend_sms_to_count_selected_eligible_payslips' => 'This will resend SMS to :count selected eligible payslips',
     'sms_notifications_disabled_for_this_employee' => 'SMS notifications disabled for this employee',
     'no_valid_phone_number_for_user' => 'No valid phone number for user',
+    'sms_provider_balance_check_failed' => 'SMS provider balance check failed for :provider: :error',
+    'sms_provider_unhealthy_during_balance_check' => 'SMS provider unhealthy during balance check',
+    'sms_provider_configuration_error' => 'SMS provider configuration error',
+    'null_value_in_provider_config' => 'Null value in provider configuration',
+    'sms_unexpected_error' => 'SMS sending failed with unexpected error',
     'birthday_message_sent_successfully_to' => 'Birthday message sent successfully to ',
     'birthday_message_failed_to_send_to' => 'Birthday message failed to send to ',
 ];

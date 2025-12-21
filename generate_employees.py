@@ -228,3 +228,4 @@ with open("generated_employees.csv", "w", newline="", encoding="utf-8") as csvfi
         writer.writerow(employee)
 
 print("Generated 500 employees in generated_employees.csv")
+

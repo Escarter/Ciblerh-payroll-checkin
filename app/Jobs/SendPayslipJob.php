@@ -65,6 +65,11 @@ class SendPayslipJob implements ShouldQueue
     protected static $sms_balance_checked = false;
     protected static $sms_balance = null;
 
+    // SMS failure tracking
+    protected $sms_failure_count = 0;
+    protected $sms_success_count = 0;
+    protected $sms_disabled_count = 0;
+
     /**
      * Create a new job instance.
      *
@@ -102,23 +107,59 @@ class SendPayslipJob implements ShouldQueue
 
         // Check SMS balance once per job to avoid repeated API calls
         $sms_balance = null;
+        $sms_provider_healthy = true;
+        $sms_provider_error = null;
+
         if (!self::$sms_balance_checked) {
             $setting = \App\Models\Setting::first();
-            if (!empty($setting->sms_provider)) {
-                $sms_client = match ($setting->sms_provider) {
-                    'twilio' => new \App\Services\TwilioSMS($setting),
-                    'nexah' => new \App\Services\Nexah($setting),
-                    'aws_sns' => new \App\Services\AwsSnsSMS($setting),
-                    default => new \App\Services\Nexah($setting)
-                };
-
+            if (!empty($setting->sms_provider) && !empty($setting->sms_provider_username) && !empty($setting->sms_provider_password)) {
                 try {
+                    $sms_client = match ($setting->sms_provider) {
+                        'twilio' => new \App\Services\TwilioSMS($setting),
+                        'nexah' => new \App\Services\Nexah($setting),
+                        'aws_sns' => new \App\Services\AwsSnsSMS($setting),
+                        default => new \App\Services\Nexah($setting)
+                    };
+
                     $sms_balance = $sms_client->getBalance();
                     self::$sms_balance = $sms_balance;
                     self::$sms_balance_checked = true;
-                } catch (\Exception $e) {
-                    Log::warning('Failed to check SMS balance: ' . $e->getMessage());
+
+                    Log::info('SMS balance checked successfully', [
+                        'provider' => $setting->sms_provider,
+                        'balance_responsecode' => $sms_balance['responsecode'] ?? 'unknown',
+                        'balance_credit' => $sms_balance['credit'] ?? 'unknown'
+                    ]);
+                } catch (\Throwable $e) {
+                    $sms_provider_healthy = false;
+                    $sms_provider_error = $e->getMessage();
+
+                    Log::error('Failed to check SMS balance - SMS provider unhealthy', [
+                        'error' => $e->getMessage(),
+                        'provider' => $setting->sms_provider,
+                        'process_id' => $this->process_id,
+                        'trace' => $e->getTraceAsString()
+                    ]);
+
+                    // Record SMS provider failure in the process record
+                    $process = SendPayslipProcess::find($this->process_id);
+                    if ($process) {
+                        $existingReason = !empty($process->failure_reason) ? $process->failure_reason . ' | ' : '';
+                        $process->update([
+                            'failure_reason' => $existingReason . __('payslips.sms_provider_balance_check_failed', [
+                                'provider' => $setting->sms_provider,
+                                'error' => $e->getMessage()
+                            ])
+                        ]);
+                    }
                 }
+            } else {
+                $sms_provider_healthy = false;
+                $sms_provider_error = __('payslips.sms_provider_not_configured');
+
+                Log::warning('SMS provider not configured', [
+                    'process_id' => $this->process_id
+                ]);
             }
         } else {
             $sms_balance = self::$sms_balance;
@@ -280,9 +321,67 @@ class SendPayslipJob implements ShouldQueue
                             'failure_reason' => null // Clear failure reason on success
                         ]);
 
-                                sendSmsAndUpdateRecord($employee, $pay_month, $record, $sms_balance);
+                        // Send SMS and track results
+                        try {
+                            $job_context = [
+                                'job_id' => $this->process_id,
+                                'job_type' => 'SendPayslipJob',
+                                'sms_provider_healthy' => $sms_provider_healthy,
+                                'sms_provider_error' => $sms_provider_error
+                            ];
+                            sendSmsAndUpdateRecord($employee, $pay_month, $record, $sms_balance, $job_context);
 
-                                Log::info('mail-sent');
+                            // Track SMS sending results
+                            $smsStatus = $record->fresh()->sms_sent_status;
+                            if ($smsStatus === Payslip::STATUS_SUCCESSFUL) {
+                                $this->sms_success_count++;
+                                Log::info('SMS sent successfully', [
+                                    'job_id' => $this->process_id,
+                                    'employee_id' => $employee->id,
+                                    'matricule' => $employee->matricule,
+                                    'phone' => $employee->professional_phone_number ?? $employee->personal_phone_number
+                                ]);
+                            } elseif ($smsStatus === Payslip::STATUS_DISABLED) {
+                                $this->sms_disabled_count++;
+                                Log::info('SMS notifications disabled for employee', [
+                                    'job_id' => $this->process_id,
+                                    'employee_id' => $employee->id,
+                                    'matricule' => $employee->matricule
+                                ]);
+                            } else {
+                                $this->sms_failure_count++;
+                                Log::warning('SMS sending failed', [
+                                    'job_id' => $this->process_id,
+                                    'employee_id' => $employee->id,
+                                    'matricule' => $employee->matricule,
+                                    'phone' => $employee->professional_phone_number ?? $employee->personal_phone_number,
+                                    'sms_status' => $smsStatus,
+                                    'failure_reason' => $record->fresh()->failure_reason
+                                ]);
+                            }
+                        } catch (\Throwable $smsException) {
+                            $this->sms_failure_count++;
+                            Log::error('SMS sending threw unexpected exception', [
+                                'job_id' => $this->process_id,
+                                'employee_id' => $employee->id,
+                                'matricule' => $employee->matricule,
+                                'error' => $smsException->getMessage(),
+                                'trace' => $smsException->getTraceAsString()
+                            ]);
+
+                            // Update record with exception details
+                            $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                            $record->update([
+                                'sms_sent_status' => Payslip::STATUS_FAILED,
+                                'failure_reason' => $existingReason . __('payslips.sms_unexpected_error') . ': ' . $smsException->getMessage()
+                            ]);
+                        }
+
+                        Log::info('Email sent successfully', [
+                            'job_id' => $this->process_id,
+                            'employee_id' => $employee->id,
+                            'matricule' => $employee->matricule
+                        ]);
                         } catch (\Swift_TransportException $e) {
 
                             Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
@@ -395,6 +494,17 @@ class SendPayslipJob implements ShouldQueue
                 } // End if (strpos check)
             }); // End each
         } // End foreach
+
+        // Log SMS sending summary for this job chunk
+        Log::info('SMS sending summary for job chunk', [
+            'job_id' => $this->process_id,
+            'total_employees_processed' => count($this->employee_chunk),
+            'sms_success_count' => $this->sms_success_count,
+            'sms_failure_count' => $this->sms_failure_count,
+            'sms_disabled_count' => $this->sms_disabled_count,
+            'month' => $this->month,
+            'year' => now()->year
+        ]);
     }
 
     /**

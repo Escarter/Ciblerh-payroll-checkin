@@ -59,7 +59,7 @@ function createPayslipRecord($employee, $month, $process_id, $user_id, $file = n
     }
 }
 if (!function_exists('sendSmsAndUpdateRecord')) {
-    function sendSmsAndUpdateRecord($emp, $month, $record, $sms_balance = null)
+    function sendSmsAndUpdateRecord($emp, $month, $record, $sms_balance = null, $job_context = [])
     {
         // Check if employee has SMS notifications enabled
         if (isset($emp->receive_sms_notifications) && !$emp->receive_sms_notifications) {
@@ -85,12 +85,60 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 $year = '';
             }
 
-             $sms_client = match ($setting->sms_provider) {
-                'twilio' => new TwilioSMS($setting),
-                'nexah' =>  new Nexah($setting),
-                'aws_sns' => new AwsSnsSMS($setting),
-                default => new Nexah($setting)
-             };
+             // Check if SMS provider is known to be unhealthy from balance check
+             if (isset($job_context['sms_provider_healthy']) && $job_context['sms_provider_healthy'] === false) {
+                 $error_message = $job_context['sms_provider_error'] ?? __('payslips.sms_provider_unhealthy');
+                 Log::warning('Skipping SMS send - provider unhealthy', [
+                     'employee_id' => $emp->id,
+                     'employee_matricule' => $emp->matricule,
+                     'error' => $error_message,
+                     'job_context' => $job_context
+                 ]);
+
+                 // Preserve existing failure reason if any
+                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                 $record->update([
+                     'sms_sent_status' => Payslip::STATUS_FAILED,
+                     'failure_reason' => $existingReason . __('payslips.sms_provider_unhealthy_during_balance_check') . ': ' . $error_message
+                 ]);
+                 return;
+             }
+
+             // Validate SMS provider credentials before creating client
+             if (empty($setting->sms_provider_username) || empty($setting->sms_provider_password)) {
+                 // Preserve existing failure reason if any
+                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                 $record->update([
+                     'sms_sent_status' => Payslip::STATUS_FAILED,
+                     'failure_reason' => $existingReason . __('payslips.sms_provider_credentials_not_configured')
+                 ]);
+                 return;
+             }
+
+             try {
+                 $sms_client = match ($setting->sms_provider) {
+                     'twilio' => new TwilioSMS($setting),
+                     'nexah' =>  new Nexah($setting),
+                     'aws_sns' => new AwsSnsSMS($setting),
+                     default => new Nexah($setting)
+                 };
+             } catch (\Throwable $e) {
+                 Log::error('Failed to initialize SMS provider', [
+                     'provider' => $setting->sms_provider,
+                     'error' => $e->getMessage(),
+                     'employee_id' => $emp->id,
+                     'employee_matricule' => $emp->matricule,
+                     'job_context' => $job_context
+                 ]);
+
+                 // Preserve existing failure reason if any
+                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                 $record->update([
+                     'sms_sent_status' => Payslip::STATUS_FAILED,
+                     'failure_reason' => $existingReason . __('payslips.sms_provider_initialization_failed')
+                 ]);
+                 return;
+             }
 
             $message = '';
 
@@ -100,34 +148,76 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_fr);
             }
 
-            $response = $sms_client->sendSMS([
+            try {
+                $response = $sms_client->sendSMS([
                     'sms' =>  $message,
                     'mobiles' => $phone,
                 ]);
 
-            if ($response['responsecode'] === 1) {
-                $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
-            } else {
-                // Check if failure is due to insufficient balance
-                $failureReason = __('payslips.failed_sending_sms');
+                if ($response['responsecode'] === 1) {
+                    $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
+                } else {
+                    // Check if failure is due to insufficient balance
+                    $failureReason = __('payslips.failed_sending_sms');
 
-                // Use provided balance or check once per job if not provided
-                if ($sms_balance !== null) {
-                    if ($sms_balance['credit'] === 0) {
-                        $failureReason = __('payslips.insufficient_sms_balance');
+                    // Use provided balance or check once per job if not provided
+                    if ($sms_balance !== null) {
+                        if ($sms_balance['credit'] === 0) {
+                            $failureReason = __('payslips.insufficient_sms_balance');
+                        }
+                    } elseif (!empty($sms_client)) {
+                        try {
+                            $balance = $sms_client->getBalance();
+                            if ($balance['credit'] === 0) {
+                                $failureReason = __('payslips.insufficient_sms_balance');
+                            }
+                        } catch (\Throwable $balanceException) {
+                            Log::warning('Failed to check SMS balance', [
+                                'error' => $balanceException->getMessage(),
+                                'employee_id' => $emp->id
+                            ]);
+                        }
                     }
-                } elseif (!empty($sms_client)) {
-                    $balance = $sms_client->getBalance();
-                    if ($balance['credit'] === 0) {
-                        $failureReason = __('payslips.insufficient_sms_balance');
-                    }
+
+                    // Preserve existing failure reason if any
+                    $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                    $record->update([
+                        'sms_sent_status' => Payslip::STATUS_FAILED,
+                        'failure_reason' => $existingReason . $failureReason
+                    ]);
                 }
+            } catch (\Throwable $e) {
+                $error_details = [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'employee_id' => $emp->id,
+                    'employee_matricule' => $emp->matricule,
+                    'phone' => $phone,
+                    'provider' => $setting->sms_provider,
+                    'month' => $month,
+                    'message_length' => strlen($message),
+                    'job_context' => $job_context
+                ];
+
+                // Add stack trace only if in debug mode or if it's a critical error
+                if (config('app.debug') || strpos($e->getMessage(), 'Cannot assign null to property') !== false) {
+                    $error_details['stack_trace'] = $e->getTraceAsString();
+                }
+
+                Log::error('SMS sending failed with exception', $error_details);
 
                 // Preserve existing failure reason if any
                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+
+                // Create more specific error message based on exception type
+                $error_message = __('payslips.sms_sending_exception') . ': ' . $e->getMessage();
+                if (strpos($e->getMessage(), 'Cannot assign null to property') !== false) {
+                    $error_message = __('payslips.sms_provider_configuration_error') . ': ' . __('payslips.null_value_in_provider_config');
+                }
+
                 $record->update([
                     'sms_sent_status' => Payslip::STATUS_FAILED,
-                    'failure_reason' => $existingReason . $failureReason
+                    'failure_reason' => $existingReason . $error_message
                 ]);
             }
         } else {

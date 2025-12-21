@@ -324,6 +324,11 @@ return [
     'this_will_resend_sms_to_count_selected_eligible_payslips' => 'Cela renverra les SMS à :count fiches de paie éligibles sélectionnées',
     'sms_notifications_disabled_for_this_employee' => 'Notifications SMS désactivées pour cet employé',
     'no_valid_phone_number_for_user' => 'Aucun numéro de téléphone valide pour l\'utilisateur',
+    'sms_provider_balance_check_failed' => 'Échec de vérification du solde SMS pour :provider: :error',
+    'sms_provider_unhealthy_during_balance_check' => 'Fournisseur SMS défaillant lors de la vérification du solde',
+    'sms_provider_configuration_error' => 'Erreur de configuration du fournisseur SMS',
+    'null_value_in_provider_config' => 'Valeur nulle dans la configuration du fournisseur',
+    'sms_unexpected_error' => 'Échec d\'envoi SMS avec erreur inattendue',
     'birthday_message_sent_successfully_to' => 'Message d\'anniversaire envoyé avec succès à ',
     'birthday_message_failed_to_send_to' => 'Échec d\'envoi du message d\'anniversaire à ',
 ];
