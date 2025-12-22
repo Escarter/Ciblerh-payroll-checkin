@@ -73,6 +73,12 @@ return [
     'force_delete_payslip_process' => 'Supprimer Définitivement Processus Bulletin de Paie',
     'bulk_delete_payslip_process' => 'Suppression en Masse Processus Bulletin de Paie',
     'bulk_force_delete_payslip_process' => 'Suppression Définitivement en Masse Processus Bulletin de Paie',
+    'cancel_payslip_process' => 'Annuler Processus Bulletin de Paie',
+    'send_sms' => 'Envoyer SMS',
+    'send_email' => 'Envoyer Email',
+    'employee_exported' => 'Employé Exporté',
+    'service_exported' => 'Service Exporté',
+    'department_exported' => 'Département Exporté',
 
     // Leave type actions
     'leave_type_created' => 'Type de Congé Créé',
@@ -153,6 +159,17 @@ return [
     'payslip_process_bulk_deleted' => 'Suppression en masse des processus bulletins de paie',
     'payslip_process_bulk_force_deleted' => 'Suppression définitive en masse des processus bulletins de paie',
     'payslip_report_generated' => 'Rapport bulletin de paie généré',
+    'bulk_delete_payslip_process_for' => 'Suppression en masse du processus bulletin de paie pour :month-:year @ :time',
+    'bulk_permanently_delete_payslip_process_for' => 'Suppression définitive en masse du processus bulletin de paie pour :month-:year @ :time',
+    'cancel_payslip_process_for' => 'Processus bulletin de paie annulé pour :month-:year @ :time',
+    'payslip_sending_initiated' => 'L\'utilisateur :user a initié l\'envoi du bulletin de paie au département :department pour le mois de :month-:year :history_link',
+    'send_email_to_employee' => 'L\'utilisateur :user a envoyé un email à :employee',
+    'send_sms_to_employee' => 'L\'utilisateur :user a envoyé un SMS à :employee',
+    'exported_overtime' => 'Fichier Excel exporté pour les heures supplémentaires',
+    'exported_employees_for_company' => 'Fichier Excel exporté pour les employés de l\'entreprise :company',
+    'exported_services_for_department' => 'Fichier Excel exporté pour les services du département :department',
+    'exported_departments_for_company' => 'Fichier Excel exporté pour les départements de l\'entreprise :company',
+    'report_generated_for_payslips' => ':user a généré un rapport pour les bulletins de paie',
 
     // Approval Operations
     'advance_salary_approved' => 'Avance salaire approuvée pour :user d\'un montant :amount',
@@ -168,4 +185,14 @@ return [
 
     'checkin_approved' => 'Demande de pointage approuvée',
     'checkin_rejected' => 'Demande de pointage rejetée',
+
+    // Messages de gestion des journaux d'audit
+    'audit_log_not_found' => 'Journal d\'audit introuvable',
+    'audit_log_moved_to_trash' => 'Journal d\'audit déplacé vers la corbeille avec succès',
+    'audit_log_permanently_deleted' => 'Journal d\'audit supprimé définitivement',
+    'audit_log_restored' => 'Journal d\'audit restauré avec succès',
+    'selected_audit_logs_moved_to_trash' => 'Journaux d\'audit sélectionnés déplacés vers la corbeille avec succès',
+    'selected_audit_logs_restored' => 'Journaux d\'audit sélectionnés restaurés avec succès !',
+    'selected_audit_logs_permanently_deleted' => 'Journaux d\'audit sélectionnés supprimés définitivement !',
+    'danger_deleting_audit_log' => 'Erreur lors de la suppression du journal d\'audit : ',
 ];

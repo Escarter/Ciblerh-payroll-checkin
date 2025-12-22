@@ -109,6 +109,7 @@ return [
     'checkins' => 'Checkins',
     'overtime_hours' => 'Overtime Hours',
     'performance_score' => 'Performance Score',
+    'pending_requests' => 'Pending Requests',
     'checkin_time' => 'Checkin Time',
     'checkout_time' => 'Checkout Time',
     'hours_worked' => 'Hours Worked',

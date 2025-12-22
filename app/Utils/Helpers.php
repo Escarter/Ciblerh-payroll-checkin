@@ -560,7 +560,7 @@ if (!function_exists('findOrCreateDepartment')) {
             return [
                 'found' => false,
                 'department' => null,
-                'error' => trans('common.department_not_found_in_company', [
+                'error' => __('common.department_not_found_in_company', [
                     'name' => $departmentName,
                     'departments' => \App\Models\Department::where('company_id', $companyId)->pluck('name')->join(', ')
                 ])
@@ -608,7 +608,7 @@ if (!function_exists('findOrCreateService')) {
             return [
                 'found' => false,
                 'service' => null,
-                'error' => __('service name cannot be empty')
+                'error' => __('common.service_name_cannot_be_empty')
             ];
         }
 
@@ -628,7 +628,7 @@ if (!function_exists('findOrCreateService')) {
             return [
                 'found' => false,
                 'service' => null,
-                'error' => __('Service ":name" not found in department. Available services: :services', [
+                'error' => __('common.service_not_found_in_department', [
                     'name' => $serviceName,
                     'services' => \App\Models\Service::where('department_id', $departmentId)->pluck('name')->join(', ')
                 ])
@@ -652,7 +652,7 @@ if (!function_exists('findOrCreateService')) {
             return [
                 'found' => false,
                 'service' => null,
-                'error' => __('Failed to create service ":name": :error', [
+                'error' => __('common.failed_to_create_service', [
                     'name' => $serviceName,
                     'error' => $e->getMessage()
                 ])
@@ -675,7 +675,7 @@ if (!function_exists('findOrCreateCompany')) {
             return [
                 'found' => false,
                 'company' => null,
-                'error' => __('Company name cannot be empty')
+                'error' => __('common.company_name_cannot_be_empty')
             ];
         }
 
@@ -693,7 +693,7 @@ if (!function_exists('findOrCreateCompany')) {
             return [
                 'found' => false,
                 'company' => null,
-                'error' => __('Company ":name" not found. Available companies: :companies', [
+                'error' => __('common.company_not_found', [
                     'name' => $companyName,
                     'companies' => \App\Models\Company::pluck('name')->join(', ')
                 ])
@@ -715,7 +715,7 @@ if (!function_exists('findOrCreateCompany')) {
             return [
                 'found' => false,
                 'company' => null,
-                'error' => __('Failed to create company ":name": :error', [
+                'error' => __('common.failed_to_create_company', [
                     'name' => $companyName,
                     'error' => $e->getMessage()
                 ])
@@ -739,7 +739,7 @@ if (!function_exists('findDepartmentByName')) {
                 'found' => false,
                 'department' => null,
                 'suggestions' => [],
-                'error' => __('Department name cannot be empty')
+                'error' => __('common.department_name_cannot_be_empty')
             ];
         }
 
@@ -782,11 +782,11 @@ if (!function_exists('findDepartmentByName')) {
             'found' => false,
             'department' => null,
             'suggestions' => array_slice($suggestions, 0, 3), // Top 3 suggestions
-            'error' => __('Department ":name" not found. :suggestions', [
+            'error' => __('common.department_not_found', [
                 'name' => $departmentName,
                 'suggestions' => !empty($suggestions)
-                    ? __('Did you mean: :names?', ['names' => collect($suggestions)->pluck('name')->join(', ')])
-                    : __('Available departments: :names', ['names' => $departments->pluck('name')->join(', ')])
+                    ? __('common.did_you_mean', ['names' => collect($suggestions)->pluck('name')->join(', ')])
+                    : __('common.available_departments', ['names' => $departments->pluck('name')->join(', ')])
             ])
         ];
     }
@@ -807,7 +807,7 @@ if (!function_exists('findServiceByName')) {
                 'found' => false,
                 'service' => null,
                 'suggestions' => [],
-                'error' => __('Service name cannot be empty')
+                'error' => __('common.service_name_cannot_be_empty')
             ];
         }
 
@@ -849,11 +849,11 @@ if (!function_exists('findServiceByName')) {
             'found' => false,
             'service' => null,
             'suggestions' => array_slice($suggestions, 0, 3), // Top 3 suggestions
-            'error' => __('Service ":name" not found. :suggestions', [
+            'error' => __('common.service_not_found', [
                 'name' => $serviceName,
                 'suggestions' => !empty($suggestions)
-                    ? __('Did you mean: :names?', ['names' => collect($suggestions)->pluck('name')->join(', ')])
-                    : __('Available services: :names', ['names' => $services->pluck('name')->join(', ')])
+                    ? __('common.did_you_mean', ['names' => collect($suggestions)->pluck('name')->join(', ')])
+                    : __('common.available_services', ['names' => $services->pluck('name')->join(', ')])
             ])
         ];
     }
@@ -900,7 +900,7 @@ if (!function_exists('validateEmail')) {
         if (empty(trim($email))) {
             return [
                 'valid' => false,
-                'error' => __('Email address cannot be empty')
+                'error' => __('common.email_address_cannot_be_empty')
             ];
         }
 
@@ -908,7 +908,7 @@ if (!function_exists('validateEmail')) {
         if (strlen($email) > 320) {
             return [
                 'valid' => false,
-                'error' => __('Email address is too long (maximum 320 characters)')
+                'error' => __('common.email_address_is_too_long', ['maximum' => 320])
             ];
         }
 
@@ -917,7 +917,7 @@ if (!function_exists('validateEmail')) {
         if (count($parts) !== 2) {
             return [
                 'valid' => false,
-                'error' => __('Invalid email address format')
+                'error' => __('common.invalid_email_address_format')
             ];
         }
 
@@ -927,7 +927,7 @@ if (!function_exists('validateEmail')) {
         if (empty($localPart) || strlen($localPart) > 64) {
             return [
                 'valid' => false,
-                'error' => __('Email local part is invalid or too long')
+                'error' => __('common.email_local_part_is_invalid_or_too_long')
             ];
         }
 
@@ -935,7 +935,7 @@ if (!function_exists('validateEmail')) {
         if (empty($domain) || strlen($domain) > 255) {
             return [
                 'valid' => false,
-                'error' => __('Email domain is invalid or too long')
+                'error' => __('common.email_domain_is_invalid_or_too_long')
             ];
         }
 
@@ -943,7 +943,7 @@ if (!function_exists('validateEmail')) {
         if (strpos($localPart, '..') !== false || strpos($domain, '..') !== false) {
             return [
                 'valid' => false,
-                'error' => __('Email address cannot contain consecutive dots')
+                'error' => __('common.email_address_cannot_contain_consecutive_dots')
             ];
         }
 
@@ -951,7 +951,7 @@ if (!function_exists('validateEmail')) {
         if (strpos($domain, '.') === false) {
             return [
                 'valid' => false,
-                'error' => __('Email domain must contain a top-level domain')
+                'error' => __('common.email_domain_must_contain_a_top_level_domain')
             ];
         }
 
@@ -959,7 +959,7 @@ if (!function_exists('validateEmail')) {
         if (!preg_match('/^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/', $domain)) {
             return [
                 'valid' => false,
-                'error' => __('Email domain format is invalid')
+                'error' => __('common.email_domain_format_is_invalid')
             ];
         }
 
@@ -967,7 +967,7 @@ if (!function_exists('validateEmail')) {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return [
                 'valid' => false,
-                'error' => __('Invalid email address format')
+                'error' => __('common.invalid_email_address_format')
             ];
         }
 

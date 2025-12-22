@@ -459,6 +459,8 @@ return [
     'manage_employees_in_assigned_departments' => 'Gérer les employés dans vos départements assignés',
 
     // Bulk Operations
+    'select_all_employees' => 'Sélectionner tous les employés',
+    'select_all_deleted_employees' => 'Sélectionner tous les employés supprimés',
     'restore_selected_employees' => 'Restaurer les employés sélectionnés',
     'permanently_delete_selected_employees' => 'Supprimer définitivement les employés sélectionnés',
 
@@ -532,4 +534,7 @@ return [
     'email_is_empty' => 'L\'email du superviseur est vide',
     'not_found' => 'Superviseur avec l\'email :email introuvable',
     'does_not_have_role' => 'L\'utilisateur avec l\'email :email n\'a pas le rôle de superviseur ou manager',
+
+    // Messages de complétion d'import en arrière-plan
+    'background_import_completed' => 'Import en arrière-plan terminé avec succès. :count enregistrements importés.',
 ];

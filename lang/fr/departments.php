@@ -140,4 +140,7 @@ return [
     'supervisor_not_found' => 'Superviseur non trouvé avec l\'email fourni',
     'supervisor_wrong_company' => 'Le superviseur n\'appartient pas à la même société',
     'supervisor_wrong_role' => 'L\'utilisateur doit avoir le rôle de superviseur pour être assigné comme superviseur de département',
+
+    // Messages de complétion d'import en arrière-plan
+    'background_import_completed' => 'Import en arrière-plan terminé avec succès. :count enregistrements importés.',
 ];

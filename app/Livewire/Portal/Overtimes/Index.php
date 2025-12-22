@@ -317,7 +317,7 @@ class Index extends Component
             auth()->user(),
             'overtime_exported',
             'web',
-            ucfirst(auth()->user()->name) . __(' overtime.exported_excel_file_for_overtime')
+            __('audit_logs.exported_entities', ['entities' => 'overtime'])
         );
         return (new OvertimeExport($this->query))->download('Overtime-' . Str::random(5) . '.xlsx');
     }

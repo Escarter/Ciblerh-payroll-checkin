@@ -8,8 +8,8 @@ trait WithImportJobPermissions
     public $selectedImportJobPermissions = [];
     public $selectAllImportJobPermissions = false;
     public $ImportJobPermissions = [
-        'View Import Jobs' => 'import_job-read',
-        'Cancel Import Jobs' => 'import_job-cancel',
+        'View Import Jobs' => 'importjob-read',
+        'Cancel Import Jobs' => 'importjob-cancel',
     ];
 
     public function importJobPermissionClearFields()

@@ -118,4 +118,7 @@ return [
     'sector_required' => 'Company sector is required',
     'code_already_exists' => 'Company code already exists',
     'name_already_exists' => 'Company name already exists',
+
+    // Background import completion messages
+    'background_import_completed' => 'Background import completed successfully. :count records imported.',
 ];

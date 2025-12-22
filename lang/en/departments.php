@@ -140,4 +140,7 @@ return [
     'supervisor_not_found' => 'Supervisor not found with the provided email',
     'supervisor_wrong_company' => 'Supervisor does not belong to the same company',
     'supervisor_wrong_role' => 'User must have supervisor role to be assigned as department supervisor',
+
+    // Background import completion messages
+    'background_import_completed' => 'Background import completed successfully. :count records imported.',
 ];

@@ -165,7 +165,7 @@ class Edit extends Component
             $this->dispatch('cancel', modalId: 'EditRoleModal');
             
         } catch (\Throwable $th) {
-            $this->dispatch("showToast", message: __('common.something_went_wrong') . $th->getMessage(), type: "error");
+            $this->dispatch("showToast", message: __('common.something_went_wrong') . $th->getMessage(), type: "danger");
         }
     }
 

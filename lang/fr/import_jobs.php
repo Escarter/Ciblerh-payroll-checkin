@@ -135,4 +135,5 @@ return [
     // Éléments d'interface manquants
     'view_details' => 'Voir les détails',
     'cancel_job' => 'Annuler la tâche',
+    'unknown_import_type' => 'Type d\'importation inconnu',
 ];

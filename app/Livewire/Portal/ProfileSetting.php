@@ -51,7 +51,7 @@ class ProfileSetting extends Component
             'preferred_language' => $this->preferred_language,
         ]);
 
-        $this->refresh(__('Profile updated successfully!'));
+        $this->refresh(__('auth.profile_updated_successfully'));
     }
     public function saveSignature()
     {
@@ -65,7 +65,7 @@ class ProfileSetting extends Component
             auth()->user()->update(['signature_path' => $this->signature->storePublicly('signatures', 'attachments')]);
         }
 
-        $this->refresh(__('Signature saved successfully!'));
+        $this->refresh(__('auth.signature_saved_successfully'));
     }
     public function passwordReset()
     {
@@ -79,7 +79,7 @@ class ProfileSetting extends Component
 
         $this->reset(['current_password','password','password_confirmation']);
 
-        $this->refresh(__('Password reseted successfully!'));
+        $this->refresh(__('auth.password_reseted_successfully'));
     }
     public function refresh($message)
     {

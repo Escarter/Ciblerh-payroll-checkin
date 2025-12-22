@@ -192,6 +192,8 @@ return [
     'current_password_not_match' => 'The current password field does not match your password',
     'checkout_time_must_be_greater' => 'Checkout time must be greater than or equal to :time',
     'checkin_time_must_be_exact' => 'Checkin time must be exactly :time',
+    'phone_number_e164_format' => 'The :attribute must be a valid phone number in E.164 format (e.g., +1234567890)',
+    'field_cannot_be_empty' => 'The :attribute field cannot be empty',
 
     'attributes' => [],
 

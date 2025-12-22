@@ -57,7 +57,11 @@ class Index extends Component
                 auth()->user(),
                 'delete_payslip_process',
                 'web',
-                __('payslips.delete_payslip_process') . $process->month . "-" . $process->year . " @ " . now()
+                __('audit_logs.payslip_process_deleted', [
+                    'month' => $process->month,
+                    'year' => $process->year,
+                    'time' => now()->format('Y-m-d H:i:s')
+                ])
             );
             $process->payslips()->delete(); // Soft delete related payslips
             $process->delete(); // Soft delete the process
@@ -689,7 +693,11 @@ class Index extends Component
                 auth()->user(),
                 'cancel_payslip_process',
                 'web',
-                __('payslips.payslip_process_cancelled') . $process->month . "-" . $process->year . " @ " . now()
+                __('audit_logs.cancel_payslip_process_for', [
+                    'month' => $process->month,
+                    'year' => $process->year,
+                    'time' => now()->format('Y-m-d H:i:s')
+                ])
             );
 
             session()->flash('message', __('payslips.task_cancelled_successfully'));
@@ -965,7 +973,13 @@ class Index extends Component
             auth()->user(),
             'payslip_sending',
             'web',
-            'User <a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> initiated the sending of payslip to department <strong>' . $choosen_department->name . '</strong> for the month of ' . $this->month . ' - ' . now()->year . '<a href="/portal/payslips/history"> Go to Playslips details</a>'
+            __('audit_logs.payslip_sending_initiated', [
+                'user' => '<a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
+                'department' => '<strong>' . $choosen_department->name . '</strong>',
+                'month' => $this->month,
+                'year' => now()->year,
+                'history_link' => '<a href="/portal/payslips/history"> Go to Payslips details</a>'
+            ])
         );
 
         session()->flash('message', __('payslips.job_processing_status'));

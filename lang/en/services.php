@@ -93,4 +93,7 @@ return [
     // Import validation messages
     'name_required' => 'Service name is required',
     'name_already_exists' => 'Service name already exists in this department',
+
+    // Background import completion messages
+    'background_import_completed' => 'Background import completed successfully. :count records imported.',
 ];

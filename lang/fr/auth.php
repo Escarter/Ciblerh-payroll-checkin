@@ -15,6 +15,7 @@ return [
     'failed' => 'Ces identifiants ne correspondent pas à nos enregistrements.',
     'password' => 'Le mot de passe fourni est incorrect.',
     'throttle' => 'Trop de tentatives de connexion. Veuillez réessayer dans :seconds secondes.',
+    'password_placeholder' => 'Entrez votre mot de passe',
 
     /*
     |--------------------------------------------------------------------------
@@ -59,4 +60,16 @@ return [
     'language' => 'Langue',
     'fr' => 'FR',
     'en' => 'EN',
+
+    // Vérification d'email
+    'verify_email_address' => 'Vérifiez votre adresse email',
+    'fresh_verification_link_sent' => 'Un nouveau lien de vérification a été envoyé à votre adresse email.',
+    'check_email_for_verification_link' => 'Avant de continuer, veuillez vérifier votre email pour un lien de vérification.',
+    'if_did_not_receive_email' => 'Si vous n\'avez pas reçu l\'email',
+    'click_here_to_request_another' => 'cliquez ici pour en demander un autre',
+    'please_confirm_password' => 'Veuillez confirmer votre mot de passe avant de continuer.',
+
+    // Email de test
+    'test_email_subject' => 'Email de test Wima HR',
+
 ];

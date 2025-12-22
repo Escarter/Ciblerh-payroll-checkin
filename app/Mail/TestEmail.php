@@ -28,7 +28,7 @@ class TestEmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Wima HR Test Email'),
+            subject: __('auth.test_email_subject'),
         );
     }
 

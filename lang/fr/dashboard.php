@@ -109,6 +109,7 @@ return [
     'checkins' => 'Pointages',
     'overtime_hours' => 'Heures supplémentaires',
     'performance_score' => 'Score de performance',
+    'pending_requests' => 'Demandes en Attente',
     'checkin_time' => 'Heure d\'arrivée',
     'checkout_time' => 'Heure de départ',
     'hours_worked' => 'Heures travaillées',

@@ -111,9 +111,12 @@ class History extends Component
                             Log::info('mail-sent');
                             auditLog(
                                 auth()->user(),
-                                'send_sms',
+                                'send_email',
                                 'web',
-                                'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send email to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                                __('audit_logs.send_email_to_employee', [
+                                    'user' => '<a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
+                                    'employee' => '<a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                                ])
                             );
 
                             $this->closeModalAndFlashMessage(__('payslips.email_resent_successfully'), 'resendEmailModal');
@@ -194,7 +197,10 @@ class History extends Component
                     auth()->user(),
                     'send_sms',
                     'web',
-                    'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send sms to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                    __('audit_logs.send_sms_to_employee', [
+                        'user' => '<a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
+                        'employee' => '<a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                    ])
                 );
                 $this->closeModalAndFlashMessage(__('payslips.sms_sent_successfully', ['user' => $employee->name]), 'resendSMSModal');
     
@@ -425,6 +431,7 @@ class History extends Component
     public function closePayslipDetailsModal()
     {
         $this->selectedPayslip = null;
+        $this->dispatch('close-payslip-details-modal');
     }
 
     public function resendPayslip($payslipId)

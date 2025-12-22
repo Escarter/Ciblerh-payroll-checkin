@@ -84,7 +84,7 @@ class All extends Component
             $job->delete(); // Soft delete
         }
         $this->reset(['send_payslip_process']);
-        $this->closeModalAndFlashMessage(__('Payslip Process successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_process_moved_to_trash'), 'DeleteModal');
     }
 
     public function restore()
@@ -96,7 +96,7 @@ class All extends Component
         $job = SendPayslipProcess::withTrashed()->findOrFail($this->job_id);
         $job->restore();
 
-        $this->closeModalAndFlashMessage(__('Payslip Process successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_process_restored'), 'RestoreModal');
     }
 
     public function forceDelete($jobId)
@@ -121,7 +121,7 @@ class All extends Component
         $job->payslips()->forceDelete(); // Permanently delete related payslips
         $job->forceDelete(); // Permanently delete the process
 
-        $this->closeModalAndFlashMessage(__('Payslip Process permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_process_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
@@ -137,7 +137,11 @@ class All extends Component
                 auth()->user(),
                 'bulk_delete_payslip_process',
                 'web',
-                __('Bulk delete Payslip process for ') . $job->month . "-" . $job->year . " @ " . now()
+                __('audit_logs.bulk_delete_payslip_process_for', [
+                    'month' => $job->month,
+                    'year' => $job->year,
+                    'time' => now()->format('Y-m-d H:i:s')
+                ])
             );
             $job->delete(); // Soft delete
         }
@@ -177,7 +181,11 @@ class All extends Component
                 auth()->user(),
                 'bulk_force_delete_payslip_process',
                 'web',
-                __('Bulk permanently delete Payslip process for ') . $job->month . "-" . $job->year . " @ " . now()
+                __('audit_logs.bulk_permanently_delete_payslip_process_for', [
+                    'month' => $job->month,
+                    'year' => $job->year,
+                    'time' => now()->format('Y-m-d H:i:s')
+                ])
             );
             $job->payslips()->forceDelete(); // Permanently delete related payslips
             $job->forceDelete(); // Permanently delete the process
@@ -754,7 +762,11 @@ class All extends Component
                 auth()->user(),
                 'cancel_payslip_process',
                 'web',
-                __('payslips.payslip_process_cancelled') . $process->month . "-" . $process->year . " @ " . now()
+                __('audit_logs.cancel_payslip_process_for', [
+                    'month' => $process->month,
+                    'year' => $process->year,
+                    'time' => now()->format('Y-m-d H:i:s')
+                ])
             );
 
             session()->flash('message', __('payslips.task_cancelled_successfully'));

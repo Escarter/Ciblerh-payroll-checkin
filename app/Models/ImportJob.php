@@ -81,7 +81,7 @@ class ImportJob extends Model
             self::TYPE_COMPANIES => __('common.companies'),
             self::TYPE_SERVICES => __('common.services'),
             self::TYPE_LEAVE_TYPES => __('common.leave_types'),
-            default => __('Unknown Import Type')
+            default => __('import_jobs.unknown_import_type')
         };
     }
 

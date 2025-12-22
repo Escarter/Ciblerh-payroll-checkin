@@ -386,7 +386,7 @@ class Index extends BaseImportComponent
                            $employee->supDepartments()->count() > 0;
         
         if ($hasRelatedRecords) {
-            $this->showToast(__('employees.cannot_permanently_delete_employee'), 'error');
+            $this->showToast(__('employees.cannot_permanently_delete_employee'), 'danger');
             return;
         }
         
@@ -449,7 +449,7 @@ class Index extends BaseImportComponent
             
             if (!empty($employeesWithRelatedRecords)) {
                 $employeeNames = implode(', ', $employeesWithRelatedRecords);
-                $this->showToast(__('employees.cannot_permanently_delete_employees') . $employeeNames, 'error');
+                $this->showToast(__('employees.cannot_permanently_delete_employees') . $employeeNames, 'danger');
                 return;
             }
             
@@ -760,7 +760,7 @@ class Index extends BaseImportComponent
             $this->resetToUpload();
 
         } catch (\Exception $e) {
-            // Re-throw the exception to maintain error handling
+            // Re-throw the exception to maintain danger handling
             throw $e;
         }
     }
@@ -771,7 +771,7 @@ class Index extends BaseImportComponent
             auth()->user(),
             'employee_exported',
             'web',
-            __('Exported excel file for employees for company ') . $this->company->name
+            __('audit_logs.exported_employees_for_company', ['company' => $this->company->name])
         );
         return (new EmployeeExport($this->company, $this->query))->download(ucfirst($this->company->name).'-Employees-' . Str::random(5) . '.xlsx');
     }
@@ -865,67 +865,67 @@ class Index extends BaseImportComponent
      */
     protected function validatePreviewRow(array $rowData, int $rowNumber): array
     {
-        $errors = [];
+        $dangers = [];
         $warnings = [];
         $parsedData = [];
 
         try {
             // Validate required fields
             if (empty($rowData[0] ?? '')) {
-                $errors[] = __('employees.first_name_required');
+                $dangers[] = __('employees.first_name_required');
             }
             if (empty($rowData[1] ?? '')) {
-                $errors[] = __('employees.last_name_required');
+                $dangers[] = __('employees.last_name_required');
             }
             if (empty($rowData[2] ?? '')) {
-                $errors[] = __('employees.email_required');
+                $dangers[] = __('employees.email_required');
             } elseif (!validateEmail($rowData[2])['valid']) {
-                $errors[] = __('employees.email_invalid');
+                $dangers[] = __('employees.email_invalid');
             }
 
             // Validate professional phone number
             $phoneNumber = preg_replace('/\s+/', '', $rowData[3] ?? '');
             if (empty($phoneNumber)) {
-                $errors[] = __('employees.professional_phone_required');
+                $dangers[] = __('employees.professional_phone_required');
             } else {
                 $phoneValidation = validatePhoneNumber($phoneNumber);
                 if (!$phoneValidation['valid']) {
-                    $errors[] = __('employees.professional_phone_invalid');
+                    $dangers[] = __('employees.professional_phone_invalid');
                 }
             }
 
             // Validate matricule
             if (empty($rowData[4] ?? '')) {
-                $errors[] = __('employees.matricule_required');
+                $dangers[] = __('employees.matricule_required');
             }
 
             // Validate position
             if (empty($rowData[5] ?? '')) {
-                $errors[] = __('employees.position_required');
+                $dangers[] = __('employees.position_required');
             }
 
             // Validate net salary
             if (empty($rowData[6] ?? '') || !is_numeric($rowData[6])) {
-                $errors[] = __('employees.net_salary_required_numeric');
+                $dangers[] = __('employees.net_salary_required_numeric');
             }
 
             // Validate salary grade
             if (empty($rowData[7] ?? '')) {
-                $errors[] = __('employees.salary_grade_required');
+                $dangers[] = __('employees.salary_grade_required');
             }
 
             // Validate department (by name)
             $departmentName = $rowData[9] ?? '';
             if (empty($departmentName)) {
-                $errors[] = __('employees.department_required');
+                $dangers[] = __('employees.department_required');
             } else {
                 // Check if company is set before validating department
                 if (!$this->company) {
-                    $errors[] = __('employees.company_required_for_import');
+                    $dangers[] = __('employees.company_required_for_import');
                 } else {
                     $departmentResult = findDepartmentByName($departmentName, $this->company->id);
                     if (!$departmentResult['found']) {
-                        $errors[] = $departmentResult['error'];
+                        $dangers[] = $departmentResult['danger'];
                     } else {
                         $parsedData[9] = $departmentResult['department']->name;
                     }
@@ -935,11 +935,11 @@ class Index extends BaseImportComponent
             // Validate service (by name, requires valid department)
             $serviceName = $rowData[10] ?? '';
             if (empty($serviceName)) {
-                $errors[] = __('employees.service_required');
+                $dangers[] = __('employees.service_required');
             } elseif (isset($departmentResult) && $departmentResult['found']) {
                 $serviceResult = findServiceByName($serviceName, $departmentResult['department']->id);
                 if (!$serviceResult['found']) {
-                    $errors[] = $serviceResult['error'];
+                    $dangers[] = $serviceResult['danger'];
                 } else {
                     $parsedData[10] = $serviceResult['service']->name;
                 }
@@ -955,7 +955,7 @@ class Index extends BaseImportComponent
                 default => ['employee'],
             };
             if (empty($role) || !in_array($role, $validRoles)) {
-                $errors[] = __('employees.role_invalid');
+                $dangers[] = __('employees.role_invalid');
             }
 
             // Validate work times if provided
@@ -963,19 +963,19 @@ class Index extends BaseImportComponent
             $workEndTime = $rowData[19] ?? null;
 
             if ($workStartTime && !preg_match('/^\d{2}:\d{2}$/', $workStartTime)) {
-                $errors[] = __('employees.work_start_time_invalid_format');
+                $dangers[] = __('employees.work_start_time_invalid_format');
             }
             if ($workEndTime && !preg_match('/^\d{2}:\d{2}$/', $workEndTime)) {
-                $errors[] = __('employees.work_end_time_invalid_format');
+                $dangers[] = __('employees.work_end_time_invalid_format');
             }
             if ($workStartTime && $workEndTime && $workStartTime >= $workEndTime) {
-                $errors[] = __('employees.work_start_time_must_be_before_end');
+                $dangers[] = __('employees.work_start_time_must_be_before_end');
             }
 
             // Validate alternative email if provided
             $alternativeEmail = $rowData[21] ?? '';
             if (!empty($alternativeEmail) && !filter_var($alternativeEmail, FILTER_VALIDATE_EMAIL)) {
-                $errors[] = __('employees.alternative_email_invalid');
+                $dangers[] = __('employees.alternative_email_invalid');
             }
 
             // Validate personal phone number if provided
@@ -984,7 +984,7 @@ class Index extends BaseImportComponent
                 $personalPhoneClean = preg_replace('/\s+/', '', $personalPhone);
                 $personalPhoneValidation = validatePhoneNumber($personalPhoneClean);
                 if (!$personalPhoneValidation['valid']) {
-                    $errors[] = __('employees.personal_phone_invalid');
+                    $dangers[] = __('employees.personal_phone_invalid');
                 }
             }
 
@@ -994,12 +994,12 @@ class Index extends BaseImportComponent
             }
 
         } catch (\Exception $e) {
-            $errors[] = __('common.row_validation_error', ['error' => $e->getMessage()]);
+            $dangers[] = __('common.row_validation_danger', ['danger' => $e->getMessage()]);
         }
 
         return [
-            'valid' => empty($errors),
-            'errors' => $errors,
+            'valid' => empty($dangers),
+            'dangers' => $dangers,
             'warnings' => $warnings,
             'parsed_data' => $parsedData
         ];

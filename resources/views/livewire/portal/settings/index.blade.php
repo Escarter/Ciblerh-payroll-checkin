@@ -18,8 +18,8 @@
                                 <label for="sms_provider">{{ __('settings.sms_provider') }}</label>
                                 <select wire:model.live='sms_provider' id="sms_provider" class="form-control w-100 @error('sms_provider') is-invalid @enderror">
                                     <option value='nexah' selected>{{__('NEXAH')}}</option>
-                                    <option value='twilio'>{{__('Twilio')}}</option>
-                                    <option value='aws_sns'>{{__('AWS SNS')}}</option>
+                                    <option value='twilio'>{{__('settings.twilio')}}</option>
+                                    <option value='aws_sns'>{{__('settings.aws_sns')}}</option>
                                 </select>
                             </div>
 
@@ -46,19 +46,19 @@
                             <!-- Twilio Provider Configuration -->
                             <div x-show="$wire.sms_provider === 'twilio'" class="provider-config">
                                 <hr>
-                                <h6 class="text-primary mb-3">{{__('Twilio')}} {{__('settings.configuration')}}</h6>
+                                <h6 class="text-primary mb-3">{{__('settings.twilio')}} {{__('settings.configuration')}}</h6>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
-                                        <label for="twilio_account_sid">{{ __('Account SID') }}</label>
+                                        <label for="twilio_account_sid">{{ __('settings.account_sid') }}</label>
                                         <input wire:model="twilio_account_sid" id="twilio_account_sid" type="text" class="form-control w-100 @error('twilio_account_sid') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'twilio'" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
                                     </div>
                                     <div class="col">
-                                        <label for="twilio_auth_token">{{ __('Auth Token') }}</label>
+                                        <label for="twilio_auth_token">{{ __('settings.auth_token') }}</label>
                                         <input wire:model="twilio_auth_token" id="twilio_auth_token" type="password" class="form-control w-100 @error('twilio_auth_token') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'twilio'" placeholder="your_auth_token">
                                     </div>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label for="twilio_phone_number">{{ __('Phone Number') }}</label>
+                                    <label for="twilio_phone_number">{{ __('settings.phone_number') }}</label>
                                     <input wire:model="twilio_phone_number" id="twilio_phone_number" type="text" class="form-control w-100 @error('twilio_phone_number') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'twilio'" placeholder="+1234567890">
                                 </div>
                             </div>
@@ -66,20 +66,20 @@
                             <!-- AWS SNS Provider Configuration -->
                             <div x-show="$wire.sms_provider === 'aws_sns'" class="provider-config">
                                 <hr>
-                                <h6 class="text-primary mb-3">{{__('AWS SNS')}} {{__('settings.configuration')}}</h6>
+                                <h6 class="text-primary mb-3">{{__('settings.aws_sns')}} {{__('settings.configuration')}}</h6>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
-                                        <label for="sns_access_key">{{ __('Access Key ID') }}</label>
+                                        <label for="sns_access_key">{{ __('settings.access_key_id') }}</label>
                                         <input wire:model="sns_access_key" id="sns_access_key" type="text" class="form-control w-100 @error('sns_access_key') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'aws_sns'" placeholder="AKIA...">
                                     </div>
                                     <div class="col">
-                                        <label for="sns_secret_key">{{ __('Secret Access Key') }}</label>
+                                        <label for="sns_secret_key">{{ __('settings.secret_access_key') }}</label>
                                         <input wire:model="sns_secret_key" id="sns_secret_key" type="password" class="form-control w-100 @error('sns_secret_key') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'aws_sns'" placeholder="your_secret_key">
                                     </div>
                                 </div>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
-                                        <label for="sns_region">{{ __('Region') }}</label>
+                                        <label for="sns_region">{{ __('settings.region') }}</label>
                                         <select wire:model="sns_region" id="sns_region" class="form-control w-100 @error('sns_region') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'aws_sns'">
                                             <option value="us-east-1">US East (N. Virginia)</option>
                                             <option value="us-east-2">US East (Ohio)</option>
@@ -94,7 +94,7 @@
                                         </select>
                                     </div>
                                     <div class="col">
-                                        <label for="sns_senderid">{{ __('Sender ID (Optional)') }}</label>
+                                        <label for="sns_senderid">{{ __('settings.sender_id_optional') }}</label>
                                         <input wire:model="sns_senderid" id="sns_senderid" type="text" class="form-control w-100 @error('sns_senderid') is-invalid @enderror" placeholder="Country code (e.g., 237)">
                                     </div>
                                 </div>
@@ -191,14 +191,14 @@
                                     <div class='form-group mb-2'>
                                         <label for='smtp_provider'>{{__('settings.email_provider')}}</label>
                                         <select wire:model.live='smtp_provider' id='smtp_provider' class="form-control @error('smtp_provider') is-invalid @enderror">
-                                            <option value='smtp'>{{__('SMTP')}}</option>
-                                            <option value='mailgun'>{{__('Mailgun')}}</option>
-                                            <option value='ses'>{{__('Amazon SES')}}</option>
-                                            <option value='postmark'>{{__('Postmark')}}</option>
-                                            <option value='sendmail'>{{__('Sendmail')}}</option>
-                                            <option value='mailpit'>{{__('Mailpit (Development)')}}</option>
-                                            <option value='log'>{{__('Log (Development)')}}</option>
-                                            <option value='array'>{{__('Array (Testing)')}}</option>
+                                            <option value='smtp'>{{__('settings.smtp')}}</option>
+                                            <option value='mailgun'>{{__('settings.mailgun')}}</option>
+                                            <option value='ses'>{{__('settings.ses')}}</option>
+                                            <option value='postmark'>{{__('settings.postmark')}}</option>
+                                            <option value='sendmail'>{{__('settings.sendmail')}}</option>
+                                            <option value='mailpit'>{{__('settings.mailpit')}}</option>
+                                            <option value='log'>{{__('settings.log')}}</option>
+                                            <option value='array'>{{__('settings.array')}}</option>
                                         </select>
                                     </div>
 
@@ -235,24 +235,24 @@
                                     <!-- Mailgun Configuration -->
                                     <div x-show="$wire.smtp_provider === 'mailgun'" class="provider-config">
                                         <hr>
-                                        <h6 class="text-primary mb-3">{{__('Mailgun Configuration')}}</h6>
+                                        <h6 class="text-primary mb-3">{{__('settings.mailgun_configuration')}}</h6>
                                         <div class='form-group row mb-2'>
                                             <div class="col">
-                                                <label for="mailgun_domain">{{ __('Domain') }}</label>
+                                                <label for="mailgun_domain">{{ __('settings.domain') }}</label>
                                                 <input wire:model="mailgun_domain" id="mailgun_domain" type="text" class="form-control w-100 @error('mailgun_domain') is-invalid @enderror" placeholder="yourdomain.com">
                                             </div>
                                             <div class="col">
-                                                <label for="mailgun_secret">{{ __('API Secret') }}</label>
+                                                <label for="mailgun_secret">{{ __('settings.api_secret') }}</label>
                                                 <input wire:model="mailgun_secret" id="mailgun_secret" type="password" class="form-control w-100 @error('mailgun_secret') is-invalid @enderror" placeholder="key-...">
                                             </div>
                                         </div>
                                         <div class='form-group row mb-2'>
                                             <div class="col">
-                                                <label for="mailgun_endpoint">{{ __('Endpoint (Optional)') }}</label>
+                                                <label for="mailgun_endpoint">{{ __('settings.endpoint_optional') }}</label>
                                                 <input wire:model="mailgun_endpoint" id="mailgun_endpoint" type="text" class="form-control w-100 @error('mailgun_endpoint') is-invalid @enderror" placeholder="api.mailgun.net">
                                             </div>
                                             <div class="col">
-                                                <label for="mailgun_scheme">{{ __('Scheme (Optional)') }}</label>
+                                                <label for="mailgun_scheme">{{ __('settings.scheme_optional') }}</label>
                                                 <input wire:model="mailgun_scheme" id="mailgun_scheme" type="text" class="form-control w-100 @error('mailgun_scheme') is-invalid @enderror" placeholder="https">
                                             </div>
                                         </div>
@@ -261,19 +261,19 @@
                                     <!-- AWS SES Configuration -->
                                     <div x-show="$wire.smtp_provider === 'ses'" class="provider-config">
                                         <hr>
-                                        <h6 class="text-primary mb-3">{{__('Amazon SES Configuration')}}</h6>
+                                        <h6 class="text-primary mb-3">{{__('settings.amazon_ses_configuration')}}</h6>
                                         <div class='form-group row mb-2'>
                                             <div class="col">
-                                                <label for="ses_key">{{ __('Access Key ID') }}</label>
+                                                <label for="ses_key">{{ __('settings.access_key_id') }}</label>
                                                 <input wire:model="ses_key" id="ses_key" type="text" class="form-control w-100 @error('ses_key') is-invalid @enderror" placeholder="AKIA...">
                                             </div>
                                             <div class="col">
-                                                <label for="ses_secret">{{ __('Secret Access Key') }}</label>
+                                                <label for="ses_secret">{{ __('settings.secret_access_key') }}</label>
                                                 <input wire:model="ses_secret" id="ses_secret" type="password" class="form-control w-100 @error('ses_secret') is-invalid @enderror" placeholder="...">
                                             </div>
                                         </div>
                                         <div class="form-group mb-2">
-                                            <label for="ses_region">{{ __('Region') }}</label>
+                                            <label for="ses_region">{{ __('settings.region') }}</label>
                                             <select wire:model="ses_region" id="ses_region" class="form-control w-100 @error('ses_region') is-invalid @enderror">
                                                 <option value="us-east-1">US East (N. Virginia)</option>
                                                 <option value="us-east-2">US East (Ohio)</option>
@@ -292,9 +292,9 @@
                                     <!-- Postmark Configuration -->
                                     <div x-show="$wire.smtp_provider === 'postmark'" class="provider-config">
                                         <hr>
-                                        <h6 class="text-primary mb-3">{{__('Postmark Configuration')}}</h6>
+                                        <h6 class="text-primary mb-3">{{__('settings.postmark_configuration')}}</h6>
                                         <div class="form-group mb-2">
-                                            <label for="postmark_token">{{ __('Server Token') }}</label>
+                                            <label for="postmark_token">{{ __('settings.server_token') }}</label>
                                             <input wire:model="postmark_token" id="postmark_token" type="password" class="form-control w-100 @error('postmark_token') is-invalid @enderror" placeholder="server-token-...">
                                         </div>
                                     </div>

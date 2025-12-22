@@ -251,7 +251,7 @@ class Index extends BaseImportComponent
             auth()->user(),
             'service_exported',
             'web',
-            __('services.exported_excel_file_for_services') . $this->department->name
+            __('audit_logs.exported_services_for_department', ['department' => $this->department->name])
         );
         return (new ServiceExport($this->department, $this->query))->download(ucfirst($this->department->name) . '-Services-' . Str::random(5) . '.xlsx');
     }

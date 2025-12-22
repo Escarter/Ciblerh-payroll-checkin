@@ -93,7 +93,7 @@ class DownloadJob extends Model
             self::TYPE_DEPARTMENT_EXPORT => __('reports.department_export'),
             self::TYPE_ADVANCE_SALARY_EXPORT => __('reports.advance_salary_export'),
             self::TYPE_ABSENCES_EXPORT => __('reports.absences_export'),
-            default => __('Unknown Report Type')
+            default => __('reports.unknown_report_type')
         };
     }
 

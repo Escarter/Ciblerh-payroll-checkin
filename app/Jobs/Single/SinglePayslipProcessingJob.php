@@ -17,6 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Exception;
 
 class SinglePayslipProcessingJob implements ShouldQueue
 {
@@ -129,6 +130,55 @@ class SinglePayslipProcessingJob implements ShouldQueue
             ->where('year', now()->year)
             ->first();
 
+        // Check if employee has email notifications enabled BEFORE creating/updating record
+        // Refresh employee to ensure we have the latest notification preferences
+        $employee->refresh();
+        if ($employee->receive_email_notifications === false) {
+            // Update SMS status to skipped with clear message (SMS not attempted when email notifications disabled)
+            $smsStatusNote = __('payslips.sms_not_attempted_email_disabled');
+            
+            if ($record_exists === null) {
+                // Create record with correct statuses from the start
+                $record = $this->createPayslipRecord($employee, $month);
+                $record->update([
+                    'file' => $destination,
+                    'email_sent_status' => Payslip::STATUS_DISABLED,
+                    'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee'),
+                    'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                    'sms_status_note' => $smsStatusNote
+                ]);
+            } else {
+                if ($record_exists->successful()) {
+                    return;
+                }
+                // Update existing record using direct database update to ensure persistence
+                Payslip::where('id', $record_exists->id)->update([
+                    'email_sent_status' => Payslip::STATUS_DISABLED,
+                    'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee'),
+                    'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                    'sms_status_note' => $smsStatusNote
+                ]);
+                
+                // Verify the update was successful
+                $record_exists->refresh();
+                if ($record_exists->sms_sent_status !== Payslip::STATUS_SKIPPED) {
+                    Log::warning('SinglePayslipProcessingJob: SMS status update failed for email disabled - retrying with model update', [
+                        'payslip_id' => $record_exists->id,
+                        'employee_id' => $employee->id,
+                        'expected_status' => Payslip::STATUS_SKIPPED,
+                        'actual_status' => $record_exists->sms_sent_status
+                    ]);
+                    // Fallback: try model update
+                    $record_exists->sms_sent_status = Payslip::STATUS_SKIPPED;
+                    $record_exists->sms_status_note = $smsStatusNote;
+                    $record_exists->email_sent_status = Payslip::STATUS_DISABLED;
+                    $record_exists->email_status_note = __('payslips.email_notifications_disabled_for_this_employee');
+                    $record_exists->save();
+                }
+            }
+            return;
+        }
+
         if ($record_exists === null) {
             $record = $this->createPayslipRecord($employee, $month);
         } else {
@@ -138,9 +188,41 @@ class SinglePayslipProcessingJob implements ShouldQueue
             $record = $record_exists;
         }
 
-        if (!empty($employee->email)) {
+        // Check if email has bounced previously
+        if ($employee->email_bounced) {
+            // Update SMS status to skipped with clear message (SMS not attempted when email bounces)
+            $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+            
+            $record->update([
+                'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
+                'email_bounced' => true,
+                'email_bounced_at' => now(),
+                'email_bounce_reason' => __('payslips.email_previously_bounced') . ': ' . ($employee->email_bounce_reason ?? 'Unknown'),
+                'failure_reason' => __('payslips.email_address_has_bounced_previously')
+            ]);
+            return;
+        }
 
-            Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination, $month));
+        // Use alternative email if primary email is empty
+        $emailToUse = !empty($employee->email) ? $employee->email : $employee->alternative_email;
+        
+        if (empty($emailToUse)) {
+            // Update SMS status to skipped with clear message (SMS not attempted when no email)
+            $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+            
+            $record->update([
+                'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
+                'failure_reason' => __('payslips.no_valid_email_address')
+            ]);
+            return;
+        }
+
+        try {
+            Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination, $month));
 
             // Email accepted by mail server - delivery will be confirmed via webhooks
             $record->update([
@@ -149,11 +231,15 @@ class SinglePayslipProcessingJob implements ShouldQueue
                 'email_sent_at' => now(),
             ]);
             sendSmsAndUpdateRecord($employee, $month, $record, $this->sms_balance);
-        } else {
+        } catch (\Exception $e) {
+            // Update SMS status to skipped with clear message (SMS not attempted when email fails)
+            $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+            
             $record->update([
-                'email_sent_status' => 'failed',
-                'sms_sent_status' => 'failed',
-                'failure_reason' => __('payslips.no_valid_email_address')
+                'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
+                'failure_reason' => __('payslips.email_error') . ': ' . $e->getMessage()
             ]);
         }
     }

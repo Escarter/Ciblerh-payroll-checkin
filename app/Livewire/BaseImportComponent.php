@@ -79,13 +79,13 @@ abstract class BaseImportComponent extends Component
         // Validate file exists
         $file = $this->getFileProperty();
         if (!$file) {
-            $this->dispatch("showToast", message: __('common.no_file_selected'), type: "error");
+            $this->dispatch("showToast", message: __('common.no_file_selected'), type: "danger");
             return;
         }
 
         // Validate company selection if needed
         if (!$this->getCompanyId()) {
-            $this->dispatch("showToast", message: __('companies.select_company_required'), type: "error");
+            $this->dispatch("showToast", message: __('companies.select_company_required'), type: "danger");
             return;
         }
 
@@ -140,9 +140,9 @@ abstract class BaseImportComponent extends Component
                 return;
 
             } catch (\Exception $queueException) {
-                // Queue failed, log the error
+                // Queue failed, log the danger
                 \Log::warning("Queue dispatch failed, falling back to sync import", [
-                    'error' => $queueException->getMessage(),
+                    'danger' => $queueException->getMessage(),
                     'user_id' => auth()->id(),
                     'import_type' => $this->importType
                 ]);
@@ -153,20 +153,20 @@ abstract class BaseImportComponent extends Component
                     return;
                 }
 
-                // For large files, show error
+                // For large files, show danger
                 $this->dispatch("showToast", message: __('common.import_queue_failed_sync_fallback', [
-                    'error' => $queueException->getMessage()
-                ]), type: "error");
+                    'danger' => $queueException->getMessage()
+                ]), type: "danger");
                 return;
             }
 
         } catch (\Exception $e) {
-            \Log::error("Import setup failed for {$this->importType}", [
-                'error' => $e->getMessage(),
+            \Log::danger("Import setup failed for {$this->importType}", [
+                'danger' => $e->getMessage(),
                 'user_id' => auth()->id()
             ]);
 
-            $this->dispatch("showToast", message: __('common.import_setup_failed', ['error' => $e->getMessage()]), type: "error");
+            $this->dispatch("showToast", message: __('common.import_setup_failed', ['danger' => $e->getMessage()]), type: "danger");
         }
     }
 
@@ -207,17 +207,17 @@ abstract class BaseImportComponent extends Component
             );
 
         } catch (\Exception $e) {
-            // Restore timeout even on error
+            // Restore timeout even on danger
             if (isset($originalTimeout)) {
                 set_time_limit($originalTimeout);
             }
 
-            \Log::error("Synchronous import failed for {$this->importType}", [
-                'error' => $e->getMessage(),
+            \Log::danger("Synchronous import failed for {$this->importType}", [
+                'danger' => $e->getMessage(),
                 'user_id' => auth()->id()
             ]);
 
-            $this->dispatch("showToast", message: __('common.import_sync_failed', ['error' => $e->getMessage()]), type: "error");
+            $this->dispatch("showToast", message: __('common.import_sync_failed', ['danger' => $e->getMessage()]), type: "danger");
         }
     }
 
@@ -293,7 +293,7 @@ abstract class BaseImportComponent extends Component
         $setting = \App\Models\Setting::first();
 
         if (!$setting) {
-            $this->dispatch("showToast", message: __('common.smtp_not_configured'), type: "error");
+            $this->dispatch("showToast", message: __('common.smtp_not_configured'), type: "danger");
             return false;
         }
 
@@ -307,7 +307,7 @@ abstract class BaseImportComponent extends Component
         }
 
         if (!empty($missingFields)) {
-            $this->dispatch("showToast", message: __('common.smtp_missing_fields', ['fields' => implode(', ', $missingFields)]), type: "error");
+            $this->dispatch("showToast", message: __('common.smtp_missing_fields', ['fields' => implode(', ', $missingFields)]), type: "danger");
             return false;
         }
 

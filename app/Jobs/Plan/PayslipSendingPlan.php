@@ -41,14 +41,16 @@ class PayslipSendingPlan
                 return new  RenameEncryptPdfJob($chunk, $payslip_process->id);
             });
 
-            Bus::batch($jobs)->then(function ($batch) use ($payslip_process) {
-                // Reconciliation: Create failed records for employees whose matricule wasn't found
-                static::reconcileUnmatchedEmployees($payslip_process);
-                
-                $payslip_process->update(['status' => 'successful', 'percentage_completion' => $batch->progress()]);
-            })->catch(function () use ($payslip_process) {
-                static::failed($payslip_process);
-            })->allowFailures()->name('Rename, Encrypt and record payslip')->dispatch();
+            Bus::batch($jobs)
+                ->onQueue('pdf-processing')
+                ->then(function ($batch) use ($payslip_process) {
+                    // Reconciliation: Create failed records for employees whose matricule wasn't found
+                    static::reconcileUnmatchedEmployees($payslip_process);
+                    
+                    $payslip_process->update(['status' => 'successful', 'percentage_completion' => $batch->progress()]);
+                })->catch(function () use ($payslip_process) {
+                    static::failed($payslip_process);
+                })->allowFailures()->name('Rename, Encrypt and record payslip')->dispatch();
         }
     }
     private static function step3($payslip_process)
@@ -62,6 +64,7 @@ class PayslipSendingPlan
             });
 
             $batch = Bus::batch($email_jobs)
+                ->onQueue('emails')
                 ->then(function ($batch) use ($payslip_process) {
                     // Store batch ID for tracking
                     $payslip_process->update(['batch_id' => $batch->id]);

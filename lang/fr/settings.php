@@ -19,6 +19,7 @@ return [
 
     // Email Settings
     'email_provider' => 'Fournisseur d\'email',
+    'email_configuration' => 'Configuration Email',
     'smtp_configuration' => 'Configuration SMTP',
     'smtp' => 'SMTP',
     'mailgun' => 'Mailgun',
@@ -28,6 +29,16 @@ return [
     'mailpit' => 'Mailpit',
     'log' => 'Journal',
     'array' => 'Tableau',
+
+    // Provider Categories
+    'basic_smtp_provider' => 'Serveur SMTP de base',
+    'transactional_email_provider' => 'Service email transactionnel',
+    'cloud_email_provider' => 'Service email cloud',
+    'deliverability_focused_provider' => 'Service axé sur la délivrabilité',
+    'local_server_provider' => 'Serveur local',
+    'recommended_local_provider' => 'Fournisseur local recommandé',
+    'global_sms_provider' => 'Fournisseur SMS mondial',
+    'cloud_sms_provider' => 'Fournisseur SMS cloud',
 
     // SMTP Settings
     'smtp_host' => 'Hôte SMTP',
@@ -313,4 +324,24 @@ return [
     'enter_welcome_email_content_french' => 'Saisir le contenu de l\'email de bienvenue en français',
     'do_not_remove_welcome_placeholders' => 'Ne pas supprimer ou modifier les valeurs de',
     'welcome_placeholders_note' => 'car ceux-ci sont utilisés comme espaces réservés',
+
+    // Labels de champs de fournisseur
+    'account_sid' => 'Account SID',
+    'auth_token' => 'Jeton d\'authentification',
+    'phone_number' => 'Numéro de téléphone',
+    'access_key_id' => 'ID de clé d\'accès',
+    'secret_access_key' => 'Clé d\'accès secrète',
+    'region' => 'Région',
+    'configuration' => 'Configuration',
+    'domain' => 'Domaine',
+    'api_secret' => 'Secret API',
+    'endpoint' => 'Point de terminaison',
+    'endpoint_optional' => 'Point de terminaison (Optionnel)',
+    'scheme' => 'Schéma',
+    'scheme_optional' => 'Schéma (Optionnel)',
+    'server_token' => 'Jeton serveur',
+    'sender_id_optional' => 'ID expéditeur (Optionnel)',
+    'mailgun_configuration' => 'Configuration Mailgun',
+    'amazon_ses_configuration' => 'Configuration Amazon SES',
+    'postmark_configuration' => 'Configuration Postmark',
 ];

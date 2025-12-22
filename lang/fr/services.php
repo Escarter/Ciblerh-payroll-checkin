@@ -93,4 +93,7 @@ return [
     // Import validation messages
     'name_required' => 'Le nom du service est requis',
     'name_already_exists' => 'Le nom du service existe déjà dans ce département',
+
+    // Messages de complétion d'import en arrière-plan
+    'background_import_completed' => 'Import en arrière-plan terminé avec succès. :count enregistrements importés.',
 ];

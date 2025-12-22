@@ -68,7 +68,7 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="phone_number">{{__('Phone Number')}}</label>
+                                <label for="phone_number">{{__('common.phone_number')}}</label>
                                 <input wire:model="phone_number" id="phone_number" type="text" class="form-control  @error('phone_number') is-invalid @enderror" value="{{auth()->user()->phone}}" name="phone_number">
                                 @error('phone_number')
                                 <div class="invalid-feedback">{{$message}}</div>

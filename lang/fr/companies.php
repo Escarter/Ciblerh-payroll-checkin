@@ -22,6 +22,7 @@ return [
     'selected_companies_permanently_deleted' => 'Sociétés sélectionnées supprimées définitivement!',
 
     // Company fields
+    'name' => 'Nom',
     'company_name' => 'Nom de la société',
     'company_code' => 'Code société',
     'address' => 'Adresse',
@@ -117,4 +118,7 @@ return [
     'sector_required' => 'Le secteur de la société est requis',
     'code_already_exists' => 'Le code société existe déjà',
     'name_already_exists' => 'Le nom de la société existe déjà',
+
+    // Messages de complétion d'import en arrière-plan
+    'background_import_completed' => 'Import en arrière-plan terminé avec succès. :count enregistrements importés.',
 ];

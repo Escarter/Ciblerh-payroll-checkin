@@ -47,6 +47,7 @@ return [
 
     // Leave fields
     'leave_type' => 'Type de congé',
+    'leaves_type' => 'Types de congé',
     'start_date' => 'Date de début',
     'end_date' => 'Date de fin',
     'duration' => 'Durée',

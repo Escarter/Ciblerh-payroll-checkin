@@ -37,6 +37,6 @@ class CheckStartAndEndTimeAreSameDayRule implements Rule
      */
     public function message()
     {
-        return __('Checkin and Checkout times must be same day.');
+        return __('validation.checkin_checkout_same_day');
     }
 }

@@ -73,6 +73,12 @@ return [
     'force_delete_payslip_process' => 'Force Delete Payslip Process',
     'bulk_delete_payslip_process' => 'Bulk Delete Payslip Process',
     'bulk_force_delete_payslip_process' => 'Bulk Force Delete Payslip Process',
+    'cancel_payslip_process' => 'Cancel Payslip Process',
+    'send_sms' => 'Send SMS',
+    'send_email' => 'Send Email',
+    'employee_exported' => 'Employee Exported',
+    'service_exported' => 'Service Exported',
+    'department_exported' => 'Department Exported',
 
     // Leave type actions
     'leave_type_created' => 'Leave Type Created',
@@ -153,6 +159,17 @@ return [
     'payslip_process_bulk_deleted' => 'Bulk deleted payslip processes',
     'payslip_process_bulk_force_deleted' => 'Bulk force deleted payslip processes',
     'payslip_report_generated' => 'Generated payslip report',
+    'bulk_delete_payslip_process_for' => 'Bulk delete Payslip process for :month-:year @ :time',
+    'bulk_permanently_delete_payslip_process_for' => 'Bulk permanently delete Payslip process for :month-:year @ :time',
+    'cancel_payslip_process_for' => 'Cancelled payslip process for :month-:year @ :time',
+    'payslip_sending_initiated' => 'User :user initiated the sending of payslip to department :department for the month of :month-:year :history_link',
+    'send_email_to_employee' => 'User :user sent email to :employee',
+    'send_sms_to_employee' => 'User :user sent SMS to :employee',
+    'exported_overtime' => 'Exported excel file for overtime',
+    'exported_employees_for_company' => 'Exported excel file for employees for company :company',
+    'exported_services_for_department' => 'Exported excel file for services for department :department',
+    'exported_departments_for_company' => 'Exported excel file for departments for company :company',
+    'report_generated_for_payslips' => ':user generated report for payslips',
 
     // Approval Operations
     'advance_salary_approved' => 'Approved the advance salary by :user of amount :amount',
@@ -168,4 +185,14 @@ return [
 
     'checkin_approved' => 'Approved check-in request',
     'checkin_rejected' => 'Rejected check-in request',
+
+    // Audit Log Management Messages
+    'audit_log_not_found' => 'Audit log not found',
+    'audit_log_moved_to_trash' => 'Audit log successfully moved to trash',
+    'audit_log_permanently_deleted' => 'Audit log permanently deleted',
+    'audit_log_restored' => 'Audit log successfully restored',
+    'selected_audit_logs_moved_to_trash' => 'Selected audit logs successfully moved to trash',
+    'selected_audit_logs_restored' => 'Selected audit logs successfully restored!',
+    'selected_audit_logs_permanently_deleted' => 'Selected audit logs permanently deleted!',
+    'danger_deleting_audit_log' => 'Error deleting audit log: ',
 ];

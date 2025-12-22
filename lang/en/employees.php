@@ -534,4 +534,7 @@ return [
     'email_is_empty' => 'Supervisor email is empty',
     'not_found' => 'Supervisor with email :email not found',
     'does_not_have_role' => 'User with email :email does not have supervisor or manager role',
+
+    // Background import completion messages
+    'background_import_completed' => 'Background import completed successfully. :count records imported.',
 ];

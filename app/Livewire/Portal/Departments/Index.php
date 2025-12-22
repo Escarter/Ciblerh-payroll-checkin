@@ -340,7 +340,7 @@ class Index extends BaseImportComponent
             auth()->user(),
             'department_exported',
             'web',
-            __('departments.exported_excel_file_for_departments') . $this->company->name
+            __('audit_logs.exported_departments_for_company', ['company' => $this->company->name])
         );
         return (new DepartmentExport($this->company, $this->query))->download(ucfirst($this->company->name) . '-Department-' . Str::random(5) . '.xlsx');
     }

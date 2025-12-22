@@ -135,4 +135,5 @@ return [
     // Missing UI elements
     'view_details' => 'View Details',
     'cancel_job' => 'Cancel Job',
+    'unknown_import_type' => 'Unknown Import Type',
 ];

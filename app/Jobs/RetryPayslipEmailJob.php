@@ -49,12 +49,25 @@ class RetryPayslipEmailJob implements ShouldQueue
      */
     public function handle(): void
     {
+        Log::info('RetryPayslipEmailJob: Starting execution', [
+            'payslip_id' => $this->payslip_id,
+            'job_id' => $this->job->getJobId() ?? 'unknown',
+            'queue' => $this->queue ?? 'unknown'
+        ]);
+
         $payslip = Payslip::find($this->payslip_id);
         
         if (empty($payslip)) {
             Log::warning('RetryPayslipEmailJob: Payslip not found', ['payslip_id' => $this->payslip_id]);
             return;
         }
+
+        Log::info('RetryPayslipEmailJob: Payslip found', [
+            'payslip_id' => $this->payslip_id,
+            'email_sent_status' => $payslip->email_sent_status,
+            'email_retry_count' => $payslip->email_retry_count,
+            'encryption_status' => $payslip->encryption_status
+        ]);
 
         // Don't retry if encryption failed - no point
         if ($payslip->encryption_status === Payslip::STATUS_FAILED) {
@@ -104,15 +117,22 @@ class RetryPayslipEmailJob implements ShouldQueue
         }
 
         // Check if employee has email notifications enabled
-        if (isset($employee->receive_email_notifications) && !$employee->receive_email_notifications) {
+        // Refresh employee to ensure we have the latest notification preferences
+        $employee->refresh();
+        if ($employee->receive_email_notifications === false) {
             Log::info('RetryPayslipEmailJob: Email notifications disabled', [
                 'payslip_id' => $this->payslip_id,
                 'employee_id' => $employee->id
             ]);
             
+            // Update SMS status to skipped with clear message (SMS not attempted when email notifications disabled)
+            $smsStatusNote = __('payslips.sms_not_attempted_email_disabled');
+            
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_DISABLED,
-                'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee')
+                'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee'),
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote
             ]);
             return;
         }
@@ -124,8 +144,13 @@ class RetryPayslipEmailJob implements ShouldQueue
                 'employee_id' => $employee->id
             ]);
             
+            // Update SMS status to skipped with clear message (SMS not attempted when email bounces)
+            $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+            
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
                 'email_bounced' => true,
                 'failure_reason' => __('payslips.email_bounced_update_address')
             ]);
@@ -140,14 +165,26 @@ class RetryPayslipEmailJob implements ShouldQueue
                 'payslip_id' => $this->payslip_id,
                 'employee_id' => $payslip->employee_id
             ]);
-            
+
+            // Update SMS status to skipped with clear message (SMS not attempted when no email)
+            $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
             $existingReason = $payslip->failure_reason ?? '';
+            
             $payslip->update([
                 'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
                 'failure_reason' => $existingReason . ' | ' . __('payslips.retry_failed_no_valid_email')
             ]);
             return;
         }
+
+        Log::info('RetryPayslipEmailJob: Attempting to send email', [
+            'payslip_id' => $this->payslip_id,
+            'email' => $emailToUse,
+            'employee_id' => $employee->id,
+            'current_retry_count' => $payslip->email_retry_count
+        ]);
 
         try {
             setSavedSmtpCredentials();
@@ -171,38 +208,102 @@ class RetryPayslipEmailJob implements ShouldQueue
                 'retry_count' => $payslip->email_retry_count
             ]);
         } catch (\Swift_TransportException $e) {
-            $existingReason = $payslip->failure_reason ?? '';
-            $payslip->update([
-                'email_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . ' | ' . __('payslips.retry_error', ['error' => $e->getMessage()])
-            ]);
-            
-            Log::error('RetryPayslipEmailJob: Swift Transport Exception', [
-                'payslip_id' => $this->payslip_id,
-                'error' => $e->getMessage()
-            ]);
+            $this->handleRetryFailure($e, 'Swift Transport Exception');
         } catch (\Swift_RfcComplianceException $e) {
-            $existingReason = $payslip->failure_reason ?? '';
-            $payslip->update([
-                'email_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . ' | ' . __('payslips.retry_rfc_error', ['error' => $e->getMessage()])
-            ]);
-            
-            Log::error('RetryPayslipEmailJob: Swift RFC Exception', [
-                'payslip_id' => $this->payslip_id,
-                'error' => $e->getMessage()
-            ]);
+            $this->handleRetryFailure($e, 'Swift RFC Exception', true);
         } catch (Exception $e) {
-            $existingReason = $payslip->failure_reason ?? '';
-            $payslip->update([
-                'email_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . ' | ' . __('payslips.retry_error', ['error' => $e->getMessage()])
+            $this->handleRetryFailure($e, 'General Exception');
+        }
+    }
+
+    /**
+     * Handle retry failure and schedule next retry if max retries not reached
+     */
+    private function handleRetryFailure($exception, $exceptionType, $isRfcError = false)
+    {
+        // Reload payslip from database to ensure we have latest data
+        $payslip = Payslip::find($this->payslip_id);
+        if (empty($payslip)) {
+            Log::error("RetryPayslipEmailJob: Payslip not found during exception handling", [
+                'payslip_id' => $this->payslip_id
             ]);
+            return;
+        }
+
+        $maxRetries = config('ciblerh.email_retry_attempts', 3);
+        $currentRetryCount = $payslip->email_retry_count ?? 0;
+
+        // Update SMS status to skipped with clear message (SMS not attempted when email retry fails)
+        $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+        $existingReason = $payslip->failure_reason ?? '';
+        
+        $errorMessage = $isRfcError 
+            ? __('payslips.retry_rfc_error', ['error' => $exception->getMessage()])
+            : __('payslips.retry_error', ['error' => $exception->getMessage()]);
+
+        if ($currentRetryCount < $maxRetries) {
+            // Schedule next retry
+            $nextRetryCount = $currentRetryCount + 1;
+            $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
             
-            Log::error('RetryPayslipEmailJob: General Exception', [
-                'payslip_id' => $this->payslip_id,
-                'error' => $e->getMessage()
+            // Use direct database update to ensure persistence
+            Payslip::where('id', $this->payslip_id)->update([
+                'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
+                'email_retry_count' => $nextRetryCount,
+                'last_email_retry_at' => now(),
+                'failure_reason' => $existingReason . ' | ' . $errorMessage . '. ' . __('payslips.retry_scheduled', [
+                    'error' => $exception->getMessage(),
+                    'retry' => $nextRetryCount,
+                    'max' => $maxRetries
+                ])
             ]);
+
+            // Schedule next retry job
+            RetryPayslipEmailJob::dispatch($this->payslip_id)
+                ->delay(now()->addSeconds($retryDelay));
+
+            Log::warning("RetryPayslipEmailJob: {$exceptionType} - Scheduling retry {$nextRetryCount}/{$maxRetries}", [
+                'payslip_id' => $this->payslip_id,
+                'error' => $exception->getMessage(),
+                'current_retry_count' => $currentRetryCount,
+                'next_retry_count' => $nextRetryCount,
+                'max_retries' => $maxRetries,
+                'retry_delay_seconds' => $retryDelay
+            ]);
+        } else {
+            // Max retries reached - mark as failed permanently
+            Payslip::where('id', $this->payslip_id)->update([
+                'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
+                'failure_reason' => $existingReason . ' | ' . ($isRfcError 
+                    ? __('payslips.email_rfc_error_after_max_retries', ['max' => $maxRetries, 'error' => $exception->getMessage()])
+                    : __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $exception->getMessage()])
+                )
+            ]);
+
+            Log::error("RetryPayslipEmailJob: {$exceptionType} - Max retries ({$maxRetries}) reached", [
+                'payslip_id' => $this->payslip_id,
+                'error' => $exception->getMessage(),
+                'retry_count' => $currentRetryCount,
+                'max_retries' => $maxRetries
+            ]);
+        }
+
+        // Verify the update was successful
+        $payslip = Payslip::find($this->payslip_id);
+        if ($payslip && $payslip->sms_sent_status !== Payslip::STATUS_SKIPPED) {
+            Log::warning('RetryPayslipEmailJob: SMS status update failed - retrying with model update', [
+                'payslip_id' => $this->payslip_id,
+                'expected_status' => Payslip::STATUS_SKIPPED,
+                'actual_status' => $payslip->sms_sent_status
+            ]);
+            // Fallback: try model update
+            $payslip->sms_sent_status = Payslip::STATUS_SKIPPED;
+            $payslip->sms_status_note = $smsStatusNote;
+            $payslip->save();
         }
     }
 

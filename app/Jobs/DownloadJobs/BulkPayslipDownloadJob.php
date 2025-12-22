@@ -105,6 +105,7 @@ class BulkPayslipDownloadJob implements ShouldQueue
     private function getFilteredPayslips()
     {
         $query = Payslip::query()
+            ->with('employee')
             ->when($this->downloadJob->filters['selectedCompanyId'] != "all", function ($q) {
                 return $q->where('company_id', $this->downloadJob->filters['selectedCompanyId']);
             })->when($this->downloadJob->filters['selectedDepartmentId'] != "all", function ($q) {
@@ -144,18 +145,30 @@ class BulkPayslipDownloadJob implements ShouldQueue
 
         foreach ($payslips as $payslip) {
             try {
-                if (Storage::disk('modified')->exists($payslip->file)) {
+                // Check if file path exists and is not null (explicit type check)
+                $filePath = $payslip->file ?? null;
+                if ($filePath !== null && is_string($filePath) && trim($filePath) !== '' && Storage::disk('modified')->exists($filePath)) {
                     $fileName = $payslip->matricule . '_' . $payslip->year . '_' . $payslip->month . '.pdf';
                     $zip->addFile(
-                        Storage::disk('modified')->path($payslip->file),
+                        Storage::disk('modified')->path($filePath),
                         $fileName
                     );
+
+                    // Create and add TXT file with PDF password
+                    if ($payslip->employee && $payslip->employee->pdf_password) {
+                        $passwordFileName = $payslip->matricule . '_' . $payslip->year . '_' . $payslip->month . '_password.txt';
+                        $passwordContent = $payslip->employee->pdf_password;
+                        
+                        // Add password file directly to zip using addFromString (no temporary file needed)
+                        $zip->addFromString($passwordFileName, $passwordContent);
+                    }
+
                     $processed++;
                 } else {
                     $failed++;
                     \Log::warning("Payslip file not found", [
                         'payslip_id' => $payslip->id,
-                        'file_path' => $payslip->file
+                        'file_path' => $filePath
                     ]);
                 }
             } catch (\Exception $e) {
@@ -174,6 +187,7 @@ class BulkPayslipDownloadJob implements ShouldQueue
         }
 
         $zip->close();
+
         return $zipPath;
     }
 

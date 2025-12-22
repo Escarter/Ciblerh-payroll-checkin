@@ -463,7 +463,7 @@ class Index extends Component
             $this->hideRetryModal();
 
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('import_jobs.error_retrying_job') . ': ' . $e->getMessage(), type: "danger");
+            $this->dispatch("showToast", message: __('import_jobs.danger_retrying_job') . ': ' . $e->getMessage(), type: "danger");
         }
     }
 
@@ -651,7 +651,7 @@ class Index extends Component
             $this->job_id = null;
             $this->dispatch('hide-force-delete-modal');
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('import_jobs.unable_to_delete_job'), type: "error");
+            $this->dispatch("showToast", message: __('import_jobs.unable_to_delete_job'), type: "danger");
         }
     }
 
@@ -694,7 +694,7 @@ class Index extends Component
         $setting = \App\Models\Setting::first();
 
         if (!$setting) {
-            $this->dispatch("showToast", message: __('common.smtp_not_configured'), type: "error");
+            $this->dispatch("showToast", message: __('common.smtp_not_configured'), type: "danger");
             return false;
         }
 
@@ -840,7 +840,7 @@ class Index extends Component
             }
 
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage(), type: "danger");
+            $this->dispatch("showToast", message: __('import_jobs.danger_creating_import_job') . ': ' . $e->getMessage(), type: "danger");
         }
     }
 
@@ -890,7 +890,7 @@ class Index extends Component
             $this->dispatch("showToast", message: __('import_jobs.import_job_created_successfully'), type: "success");
 
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('import_jobs.error_creating_import_job') . ': ' . $e->getMessage(), type: "danger");
+            $this->dispatch("showToast", message: __('import_jobs.danger_creating_import_job') . ': ' . $e->getMessage(), type: "danger");
         }
     }
 
@@ -993,8 +993,8 @@ class Index extends Component
             ]);
 
             if ($job->failed_imports > 0) {
-                $message .= ' ' . __('import_jobs.import_with_errors_toast', [
-                    'errors' => $job->failed_imports
+                $message .= ' ' . __('import_jobs.import_with_dangers_toast', [
+                    'dangers' => $job->failed_imports
                 ]);
             }
 
@@ -1002,7 +1002,7 @@ class Index extends Component
         } elseif ($job->isFailed()) {
             $message = __('import_jobs.import_failed_toast', [
                 'type' => $type,
-                'error' => $job->error_message ?? __('common.unknown_error')
+                'danger' => $job->danger_message ?? __('common.unknown_danger')
             ]);
 
             $this->showToast($message, 'danger');
@@ -1054,10 +1054,10 @@ class Index extends Component
     protected function validatePreviewRow(array $rowData, int $rowNumber): array
     {
         if (!$this->currentImportType) {
-            return ['valid' => false, 'errors' => [__('common.no_import_type_selected')], 'warnings' => []];
+            return ['valid' => false, 'dangers' => [__('common.no_import_type_selected')], 'warnings' => []];
         }
 
-        $errors = [];
+        $dangers = [];
         $warnings = [];
 
         // Get expected columns for this import type
@@ -1078,36 +1078,36 @@ class Index extends Component
         // Check for missing required columns
         foreach ($requiredColumns as $column) {
             if (!isset($rowData[$column]) || trim($rowData[$column]) === '') {
-                $errors[] = __('common.missing_required_field', ['field' => $column]);
+                $dangers[] = __('common.missing_required_field', ['field' => $column]);
             }
         }
 
         // Comprehensive validation based on import type
         switch ($this->currentImportType) {
             case ImportJob::TYPE_EMPLOYEES:
-                $parsedData = $this->validateEmployeeRow($rowData, $errors, $warnings);
+                $parsedData = $this->validateEmployeeRow($rowData, $dangers, $warnings);
                 break;
 
             case ImportJob::TYPE_COMPANIES:
-                $parsedData = $this->validateCompanyRow($rowData, $errors, $warnings);
+                $parsedData = $this->validateCompanyRow($rowData, $dangers, $warnings);
                 break;
 
             case ImportJob::TYPE_DEPARTMENTS:
-                $parsedData = $this->validateDepartmentRow($rowData, $errors, $warnings);
+                $parsedData = $this->validateDepartmentRow($rowData, $dangers, $warnings);
                 break;
 
             case ImportJob::TYPE_SERVICES:
-                $parsedData = $this->validateServiceRow($rowData, $errors, $warnings);
+                $parsedData = $this->validateServiceRow($rowData, $dangers, $warnings);
                 break;
 
             case ImportJob::TYPE_LEAVE_TYPES:
-                $parsedData = $this->validateLeaveTypeRow($rowData, $errors, $warnings);
+                $parsedData = $this->validateLeaveTypeRow($rowData, $dangers, $warnings);
                 break;
         }
 
         return [
-            'valid' => empty($errors),
-            'errors' => $errors,
+            'valid' => empty($dangers),
+            'dangers' => $dangers,
             'warnings' => $warnings,
             'parsed_data' => $parsedData
         ];
@@ -1116,7 +1116,7 @@ class Index extends Component
     /**
      * Validate employee row data
      */
-    protected function validateEmployeeRow(array $rowData, array &$errors, array &$warnings): array
+    protected function validateEmployeeRow(array $rowData, array &$dangers, array &$warnings): array
     {
         $parsedData = $rowData;
 
@@ -1126,23 +1126,23 @@ class Index extends Component
 
         foreach ($requiredFields as $field) {
             if (!isset($rowData[$field]) || trim($rowData[$field]) === '') {
-                $errors[] = __('common.missing_required_field', ['field' => __('common.' . $field)]);
+                $dangers[] = __('common.missing_required_field', ['field' => __('common.' . $field)]);
             }
         }
 
         // Validate names
         if (isset($rowData['first_name']) && strlen(trim($rowData['first_name'])) < 2) {
-            $errors[] = __('common.first_name_too_short');
+            $dangers[] = __('common.first_name_too_short');
         }
         if (isset($rowData['last_name']) && strlen(trim($rowData['last_name'])) < 2) {
-            $errors[] = __('common.last_name_too_short');
+            $dangers[] = __('common.last_name_too_short');
         }
 
         // Validate email
         if (isset($rowData['email'])) {
             $email = trim($rowData['email']);
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $errors[] = __('common.invalid_email_format');
+                $dangers[] = __('common.invalid_email_format');
             } elseif (\App\Models\User::where('email', $email)->exists()) {
                 $warnings[] = __('common.email_already_exists');
             }
@@ -1152,7 +1152,7 @@ class Index extends Component
         if (isset($rowData['professional_phone_number'])) {
             $phone = trim($rowData['professional_phone_number']);
             if (!$this->isValidPhoneNumber($phone)) {
-                $errors[] = __('common.invalid_phone_format');
+                $dangers[] = __('common.invalid_phone_format');
             } else {
                 $parsedData['professional_phone_number'] = $this->formatPhoneNumber($phone);
             }
@@ -1162,7 +1162,7 @@ class Index extends Component
         if (isset($rowData['net_salary'])) {
             $salary = $rowData['net_salary'];
             if (!is_numeric($salary) || $salary < 0) {
-                $errors[] = __('common.invalid_salary_amount');
+                $dangers[] = __('common.invalid_salary_amount');
             } elseif ($salary > 10000000) { // Unreasonably high salary
                 $warnings[] = __('common.salary_seems_high');
             }
@@ -1173,7 +1173,7 @@ class Index extends Component
             $validRoles = ['employee', 'supervisor', 'manager'];
             $role = strtolower(trim($rowData['role']));
             if (!in_array($role, $validRoles)) {
-                $errors[] = __('common.invalid_role_must_be', ['roles' => implode(', ', $validRoles)]);
+                $dangers[] = __('common.invalid_role_must_be', ['roles' => implode(', ', $validRoles)]);
             }
             $parsedData['role'] = $role;
         }
@@ -1182,7 +1182,7 @@ class Index extends Component
         if (isset($rowData['matricule'])) {
             $matricule = trim($rowData['matricule']);
             if (strlen($matricule) < 3) {
-                $errors[] = __('common.matricule_too_short');
+                $dangers[] = __('common.matricule_too_short');
             } elseif (\App\Models\User::where('matricule', $matricule)->exists()) {
                 $warnings[] = __('common.matricule_already_exists');
             }
@@ -1190,7 +1190,7 @@ class Index extends Component
 
         // Validate position
         if (isset($rowData['position']) && strlen(trim($rowData['position'])) < 2) {
-            $errors[] = __('common.position_too_short');
+            $dangers[] = __('common.position_too_short');
         }
 
         // Store parsed data temporarily for cross-field validation
@@ -1205,7 +1205,7 @@ class Index extends Component
         } elseif (isset($rowData['department'])) {
             $deptResult = $this->validateEntityReference('department', $rowData['department']);
             if (!$deptResult['valid']) {
-                $errors[] = $deptResult['error'];
+                $dangers[] = $deptResult['danger'];
             } else {
                 $parsedData['department_id'] = $deptResult['id'];
                 $this->parsedRowData['department_id'] = $deptResult['id'];
@@ -1218,7 +1218,7 @@ class Index extends Component
         } elseif (isset($rowData['service'])) {
             $serviceResult = $this->validateEntityReference('service', $rowData['service']);
             if (!$serviceResult['valid']) {
-                $errors[] = $serviceResult['error'];
+                $dangers[] = $serviceResult['danger'];
             } else {
                 $parsedData['service_id'] = $serviceResult['id'];
             }
@@ -1228,7 +1228,7 @@ class Index extends Component
         if (isset($rowData['personal_phone_number']) && !empty(trim($rowData['personal_phone_number']))) {
             $phone = trim($rowData['personal_phone_number']);
             if (!$this->isValidPhoneNumber($phone)) {
-                $errors[] = __('common.invalid_personal_phone_format');
+                $dangers[] = __('common.invalid_personal_phone_format');
             } else {
                 $parsedData['personal_phone_number'] = $this->formatPhoneNumber($phone);
             }
@@ -1236,14 +1236,14 @@ class Index extends Component
 
         if (isset($rowData['alternative_email']) && !empty(trim($rowData['alternative_email']))) {
             if (!filter_var(trim($rowData['alternative_email']), FILTER_VALIDATE_EMAIL)) {
-                $errors[] = __('common.invalid_alternative_email_format');
+                $dangers[] = __('common.invalid_alternative_email_format');
             }
         }
 
         // Validate dates
         if (isset($rowData['date_of_birth']) && !empty($rowData['date_of_birth'])) {
             if (!$this->isValidDate($rowData['date_of_birth'])) {
-                $errors[] = __('common.invalid_date_of_birth');
+                $dangers[] = __('common.invalid_date_of_birth');
             } else {
                 $parsedData['date_of_birth'] = $this->parseDate($rowData['date_of_birth']);
             }
@@ -1251,7 +1251,7 @@ class Index extends Component
 
         if (isset($rowData['contract_end']) && !empty($rowData['contract_end'])) {
             if (!$this->isValidDate($rowData['contract_end'])) {
-                $errors[] = __('common.invalid_contract_end_date');
+                $dangers[] = __('common.invalid_contract_end_date');
             } else {
                 $parsedDate = $this->parseDate($rowData['contract_end']);
                 $parsedData['contract_end'] = $parsedDate;
@@ -1268,22 +1268,22 @@ class Index extends Component
     /**
      * Validate company row data
      */
-    protected function validateCompanyRow(array $rowData, array &$errors, array &$warnings): array
+    protected function validateCompanyRow(array $rowData, array &$dangers, array &$warnings): array
     {
         $parsedData = $rowData;
 
         // Validate required fields
         if (!isset($rowData['name']) || trim($rowData['name']) === '') {
-            $errors[] = __('common.missing_required_field', ['field' => __('common.name')]);
+            $dangers[] = __('common.missing_required_field', ['field' => __('common.name')]);
         }
 
         // Validate company name
         if (isset($rowData['name'])) {
             $name = trim($rowData['name']);
             if (strlen($name) < 2) {
-                $errors[] = __('common.company_name_too_short');
+                $dangers[] = __('common.company_name_too_short');
             } elseif (strlen($name) > 255) {
-                $errors[] = __('common.company_name_too_long');
+                $dangers[] = __('common.company_name_too_long');
             } elseif (\App\Models\Company::where('name', $name)->exists()) {
                 $warnings[] = __('common.company_already_exists');
             }
@@ -1293,7 +1293,7 @@ class Index extends Component
         if (isset($rowData['email']) && !empty(trim($rowData['email']))) {
             $email = trim($rowData['email']);
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $errors[] = __('common.invalid_email_format');
+                $dangers[] = __('common.invalid_email_format');
             } elseif (\App\Models\Company::where('email', $email)->exists()) {
                 $warnings[] = __('common.company_email_already_exists');
             }
@@ -1303,7 +1303,7 @@ class Index extends Component
         if (isset($rowData['phone']) && !empty(trim($rowData['phone']))) {
             $phone = trim($rowData['phone']);
             if (!$this->isValidPhoneNumber($phone)) {
-                $errors[] = __('common.invalid_phone_format');
+                $dangers[] = __('common.invalid_phone_format');
             } else {
                 $parsedData['phone'] = $this->formatPhoneNumber($phone);
             }
@@ -1311,7 +1311,7 @@ class Index extends Component
 
         // Validate address if provided
         if (isset($rowData['address']) && strlen(trim($rowData['address'])) > 500) {
-            $errors[] = __('common.address_too_long');
+            $dangers[] = __('common.address_too_long');
         }
 
         return $parsedData;
@@ -1320,7 +1320,7 @@ class Index extends Component
     /**
      * Validate department row data
      */
-    protected function validateDepartmentRow(array $rowData, array &$errors, array &$warnings): array
+    protected function validateDepartmentRow(array $rowData, array &$dangers, array &$warnings): array
     {
         $parsedData = $rowData;
 
@@ -1328,7 +1328,7 @@ class Index extends Component
         if (isset($rowData['name'])) {
             $name = trim($rowData['name']);
             if (strlen($name) < 2) {
-                $errors[] = __('common.department_name_too_short');
+                $dangers[] = __('common.department_name_too_short');
             }
         }
 
@@ -1357,7 +1357,7 @@ class Index extends Component
             }
 
             if (!$company) {
-                $errors[] = __('common.company_not_found');
+                $dangers[] = __('common.company_not_found');
             } else {
                 $parsedData['company_id'] = $company->id;
 
@@ -1375,7 +1375,7 @@ class Index extends Component
     /**
      * Validate service row data
      */
-    protected function validateServiceRow(array $rowData, array &$errors, array &$warnings): array
+    protected function validateServiceRow(array $rowData, array &$dangers, array &$warnings): array
     {
         $parsedData = $rowData;
 
@@ -1383,7 +1383,7 @@ class Index extends Component
         if (isset($rowData['name'])) {
             $name = trim($rowData['name']);
             if (strlen($name) < 2) {
-                $errors[] = __('common.service_name_too_short');
+                $dangers[] = __('common.service_name_too_short');
             }
         }
 
@@ -1414,7 +1414,7 @@ class Index extends Component
             }
 
             if (!$department) {
-                $errors[] = __('common.department_not_found');
+                $dangers[] = __('common.department_not_found');
             } else {
                 $parsedData['department_id'] = $department->id;
 
@@ -1432,7 +1432,7 @@ class Index extends Component
     /**
      * Validate leave type row data
      */
-    protected function validateLeaveTypeRow(array $rowData, array &$errors, array &$warnings): array
+    protected function validateLeaveTypeRow(array $rowData, array &$dangers, array &$warnings): array
     {
         $parsedData = $rowData;
 
@@ -1440,7 +1440,7 @@ class Index extends Component
         if (isset($rowData['name'])) {
             $name = trim($rowData['name']);
             if (strlen($name) < 2) {
-                $errors[] = __('common.leave_type_name_too_short');
+                $dangers[] = __('common.leave_type_name_too_short');
             } elseif (\App\Models\LeaveType::where('name', $name)->exists()) {
                 $warnings[] = __('common.leave_type_already_exists');
             }
@@ -1450,7 +1450,7 @@ class Index extends Component
         if (isset($rowData['days'])) {
             $days = $rowData['days'];
             if (!is_numeric($days) || $days < 0 || $days > 365) {
-                $errors[] = __('common.invalid_leave_days');
+                $dangers[] = __('common.invalid_leave_days');
             }
         }
 
@@ -1491,7 +1491,7 @@ class Index extends Component
     protected function validateEntityReference(string $entityType, string $value): array
     {
         if (empty(trim($value))) {
-            return ['valid' => false, 'id' => null, 'error' => __('common.' . $entityType . '_is_required')];
+            return ['valid' => false, 'id' => null, 'danger' => __('common.' . $entityType . '_is_required')];
         }
 
         $value = trim($value);
@@ -1500,7 +1500,7 @@ class Index extends Component
         $companyId = $this->newImport['company_id'] ?? null;
 
         if (!$companyId) {
-            return ['valid' => false, 'id' => null, 'error' => __('common.company_context_required')];
+            return ['valid' => false, 'id' => null, 'danger' => __('common.company_context_required')];
         }
 
         switch ($entityType) {
@@ -1511,7 +1511,7 @@ class Index extends Component
                         ->where('company_id', $companyId)
                         ->first();
                     if ($entity) {
-                        return ['valid' => true, 'id' => $entity->id, 'error' => null];
+                        return ['valid' => true, 'id' => $entity->id, 'danger' => null];
                     }
                 }
 
@@ -1521,10 +1521,10 @@ class Index extends Component
                     ->first();
 
                 if ($entity) {
-                    return ['valid' => true, 'id' => $entity->id, 'error' => null];
+                    return ['valid' => true, 'id' => $entity->id, 'danger' => null];
                 }
 
-                return ['valid' => false, 'id' => null, 'error' => __('common.department_not_found')];
+                return ['valid' => false, 'id' => null, 'danger' => __('common.department_not_found')];
 
             case 'service':
                 // Get department ID from parsed data if available
@@ -1534,7 +1534,7 @@ class Index extends Component
                 }
 
                 if (!$departmentId) {
-                    return ['valid' => false, 'id' => null, 'error' => __('common.department_required_for_service')];
+                    return ['valid' => false, 'id' => null, 'danger' => __('common.department_required_for_service')];
                 }
 
                 // Try to find by ID first
@@ -1543,7 +1543,7 @@ class Index extends Component
                         ->where('department_id', $departmentId)
                         ->first();
                     if ($entity) {
-                        return ['valid' => true, 'id' => $entity->id, 'error' => null];
+                        return ['valid' => true, 'id' => $entity->id, 'danger' => null];
                     }
                 }
 
@@ -1553,13 +1553,13 @@ class Index extends Component
                     ->first();
 
                 if ($entity) {
-                    return ['valid' => true, 'id' => $entity->id, 'error' => null];
+                    return ['valid' => true, 'id' => $entity->id, 'danger' => null];
                 }
 
-                return ['valid' => false, 'id' => null, 'error' => __('common.service_not_found')];
+                return ['valid' => false, 'id' => null, 'danger' => __('common.service_not_found')];
 
             default:
-                return ['valid' => false, 'id' => null, 'error' => __('common.invalid_entity_type')];
+                return ['valid' => false, 'id' => null, 'danger' => __('common.invalid_entity_type')];
         }
     }
 
@@ -1667,7 +1667,7 @@ class Index extends Component
                     $fileInput['name'] ?? 'uploaded_file',
                     $fileInput['type'] ?? 'application/octet-stream',
                     $fileInput['size'] ?? null,
-                    $fileInput['error'] ?? UPLOAD_ERR_OK
+                    $fileInput['danger'] ?? UPLOAD_ERR_OK
                 );
             }
         }
@@ -1921,12 +1921,12 @@ class Index extends Component
                 'skip_preview' => false
             ];
         } catch (\Exception $e) {
-            // Restore original timeout even on error
+            // Restore original timeout even on danger
             if (isset($originalTimeout)) {
                 set_time_limit($originalTimeout);
             }
 
-            throw new \Exception(__('common.file_structure_error', ['error' => $e->getMessage()]));
+            throw new \Exception(__('common.file_structure_danger', ['danger' => $e->getMessage()]));
         }
     }
 
@@ -2079,12 +2079,12 @@ class Index extends Component
                 'skip_preview' => false
             ];
         } catch (\Exception $e) {
-            // Restore original timeout even on error
+            // Restore original timeout even on danger
             if (isset($originalTimeout)) {
                 set_time_limit($originalTimeout);
             }
 
-            throw new \Exception(__('common.file_structure_error', ['error' => $e->getMessage()]));
+            throw new \Exception(__('common.file_structure_danger', ['danger' => $e->getMessage()]));
         }
     }
 }

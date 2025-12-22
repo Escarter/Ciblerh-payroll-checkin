@@ -487,8 +487,10 @@
                             <td>
                                 @if($payslip->email_sent_status == 1)
                                 <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
-                                @elseif($payslip->email_sent_status == 2 )
+                                @elseif($payslip->email_sent_status == 2)
                                 <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
+                                @elseif($payslip->email_sent_status == 3)
+                                <span class="badge badge-lg text-md bg-gray-400">{{__('payslips.disabled')}}</span>
                                 @else
                                 <span class="badge badge-lg text-md text-gray bg-warning">{{__('common.pending')}}</span>
                                 @endif
@@ -499,7 +501,9 @@
                                 @elseif($payslip->sms_sent_status == 2)
                                 <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                 @elseif($payslip->sms_sent_status == 3)
-                                <span class="badge badge-lg text-md bg-info">{{__('common.disabled')}}</span>
+                                <span class="badge badge-lg text-md bg-gray-400">{{__('payslips.disabled')}}</span>
+                                @elseif($payslip->sms_sent_status == 4)
+                                <span class="badge badge-lg text-md bg-info">{{__('payslips.skipped')}}</span>
                                 @else
                                 <span class="badge badge-lg text-md text-dark bg-warning">{{__('common.pending')}}</span>
                                 @endif

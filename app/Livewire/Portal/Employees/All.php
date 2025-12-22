@@ -763,7 +763,7 @@ class All extends BaseImportComponent
             auth()->user(),
             'employee_exported',
             'web',
-            __('employees.exported_excel_for_all_employees')
+            __('audit_logs.exported_entities', ['entities' => 'employees'])
         );
         return (new EmployeeExport($this->company, $this->query))->download('All-Employees-' . Str::random(5) . '.xlsx');
     }

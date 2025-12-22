@@ -37,14 +37,14 @@ class Index extends Component
             $auditLog = $auditLogId ? AuditLog::findOrFail($auditLogId) : $this->audit_log;
 
             if (!$auditLog) {
-                $this->dispatch("showToast", message: __('audit_logs.audit_log_not_found'), type: "error");
+                $this->dispatch("showToast", message: __('audit_logs.audit_log_not_found'), type: "danger");
                 return;
             }
 
             $auditLog->delete(); // Soft delete
             $this->closeModalAndFlashMessage(__('audit_logs.audit_log_moved_to_trash'), 'DeleteModal');
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('audit_logs.error_deleting_audit_log') . $e->getMessage(), type: "error");
+            $this->dispatch("showToast", message: __('audit_logs.danger_deleting_audit_log') . $e->getMessage(), type: "danger");
         }
         
         $this->clearFields();
@@ -56,14 +56,14 @@ class Index extends Component
             $auditLog = $auditLogId ? AuditLog::withTrashed()->findOrFail($auditLogId) : $this->audit_log;
 
             if (!$auditLog) {
-                $this->dispatch("showToast", message: __('audit_logs.audit_log_not_found'), type: "error");
+                $this->dispatch("showToast", message: __('audit_logs.audit_log_not_found'), type: "danger");
                 return;
             }
 
             $auditLog->forceDelete();
             $this->closeModalAndFlashMessage(__('audit_logs.audit_log_permanently_deleted'), 'ForceDeleteModal');
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('audit_logs.error_deleting_audit_log') . $e->getMessage(), type: "error");
+            $this->dispatch("showToast", message: __('audit_logs.danger_deleting_audit_log') . $e->getMessage(), type: "danger");
         }
         
         $this->clearFields();
@@ -108,7 +108,7 @@ class Index extends Component
             $this->selectedAuditLogs = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected audit logs restored!'), 'BulkRestoreModal');
+        $this->closeModalAndFlashMessage(__('audit_logs.selected_audit_logs_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
@@ -118,7 +118,7 @@ class Index extends Component
             $this->selectedAuditLogs = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected audit logs permanently deleted!'), 'BulkForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('audit_logs.selected_audit_logs_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)

@@ -19,7 +19,7 @@ class Index extends Component
         if (!Storage::disk('modified')->exists($payslip->file)) {
             $this->dispatch('show-toast', [
                 'type' => 'error',
-                'message' => __('Payslip file not found. Please contact your administrator.')
+                'message' => __('payslips.payslip_file_not_found')
             ]);
             return;
         }
@@ -33,7 +33,7 @@ class Index extends Component
         } catch (\Exception $e) {
             $this->dispatch('show-toast', [
                 'type' => 'error',
-                'message' => __('Unable to download payslip. Please contact your administrator.')
+                'message' => __('payslips.unable_to_download_payslip')
             ]);
         }
     }

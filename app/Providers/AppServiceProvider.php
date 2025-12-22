@@ -103,8 +103,8 @@ class AppServiceProvider extends ServiceProvider
                 if ($type === 'boolean') {
                     $match = match ($model->is_active) {
                         true => __('common.active'),
-                        false => __('Inactive'),
-                        default => __('Inactive'),
+                        false => __('common.inactive'),
+                        default => __('common.inactive'),
                     };
                 } else {
                     $match = match ($model->approval_status) {

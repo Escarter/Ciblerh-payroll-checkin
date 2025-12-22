@@ -176,21 +176,21 @@ class Index extends Component
         $job = DownloadJob::findOrFail($jobId);
 
         if (!$job->canBeDownloaded()) {
-            $this->dispatch("showToast", message: __('reports.file_not_available'), type: "error");
+            $this->dispatch("showToast", message: __('reports.file_not_available'), type: "danger");
             return;
         }
 
         // Check if file exists (file_path is relative to public disk)
         if (!Storage::disk('public')->exists($job->file_path)) {
-            $this->dispatch("showToast", message: __('reports.file_not_found'), type: "error");
+            $this->dispatch("showToast", message: __('reports.file_not_found'), type: "danger");
             return;
         }
 
         try {
             return Storage::disk('public')->download($job->file_path, $job->file_name);
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('reports.unable_to_download_file'), type: "error");
-            \Log::error('Download error: ' . $e->getMessage());
+            $this->dispatch("showToast", message: __('reports.unable_to_download_file'), type: "danger");
+            \Log::danger('Download danger: ' . $e->getMessage());
         }
     }
 
@@ -199,7 +199,7 @@ class Index extends Component
         $job = DownloadJob::findOrFail($jobId);
 
         if (!$job->canBeCancelled()) {
-            $this->dispatch("showToast", message: __('download_jobs.job_cannot_be_cancelled'), type: "error");
+            $this->dispatch("showToast", message: __('download_jobs.job_cannot_be_cancelled'), type: "danger");
             return;
         }
 
@@ -208,7 +208,7 @@ class Index extends Component
             $this->dispatch("showToast", message: __('download_jobs.job_cancelled_successfully'), type: "success");
             $this->loadStats();
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('download_jobs.unable_to_cancel_job'), type: "error");
+            $this->dispatch("showToast", message: __('download_jobs.unable_to_cancel_job'), type: "danger");
         }
     }
 
@@ -217,7 +217,7 @@ class Index extends Component
         $job = DownloadJob::findOrFail($jobId);
 
         if (!$job->canBeDeleted()) {
-            $this->dispatch("showToast", message: __('download_jobs.report_cannot_be_deleted'), type: "error");
+            $this->dispatch("showToast", message: __('download_jobs.report_cannot_be_deleted'), type: "danger");
             return;
         }
 
@@ -228,7 +228,7 @@ class Index extends Component
     public function delete()
     {
         if (!$this->jobToDelete) {
-            $this->dispatch("showToast", message: __('download_jobs.report_not_found'), type: "error");
+            $this->dispatch("showToast", message: __('download_jobs.report_not_found'), type: "danger");
             return;
         }
 
@@ -242,7 +242,7 @@ class Index extends Component
             $this->dispatch("showToast", message: __('download_jobs.report_deleted_successfully'), type: "success");
             $this->loadStats();
         } catch (\Exception $e) {
-            $this->dispatch("showToast", message: __('download_jobs.unable_to_delete_report'), type: "error");
+            $this->dispatch("showToast", message: __('download_jobs.unable_to_delete_report'), type: "danger");
         } finally {
             $this->showDeleteModal = false;
             $this->jobToDelete = null;
@@ -261,7 +261,7 @@ class Index extends Component
     public function bulkCancel()
     {
         if (empty($this->selectedJobs)) {
-            $this->dispatch("showToast", message: __('download_jobs.please_select_jobs_to_cancel'), type: "error");
+            $this->dispatch("showToast", message: __('download_jobs.please_select_jobs_to_cancel'), type: "danger");
             return;
         }
 
@@ -288,7 +288,7 @@ class Index extends Component
     public function confirmBulkDelete()
     {
         if (empty($this->selectedJobs)) {
-            $this->dispatch("showToast", message: __('download_jobs.please_select_reports_to_delete'), type: "error");
+            $this->dispatch("showToast", message: __('download_jobs.please_select_reports_to_delete'), type: "danger");
             return;
         }
 
@@ -298,7 +298,7 @@ class Index extends Component
     public function bulkDelete()
     {
         if (empty($this->selectedJobs)) {
-            $this->dispatch("showToast", message: __('download_jobs.please_select_reports_to_delete'), type: "error");
+            $this->dispatch("showToast", message: __('download_jobs.please_select_reports_to_delete'), type: "danger");
             return;
         }
 
@@ -428,8 +428,8 @@ class Index extends Component
 
             $this->dispatch("showToast", message: __('download_jobs.report_generation_started'), type: "success");
         } catch (\Exception $e) {
-            logger('Error in generateNewReport:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            $this->dispatch("showToast", message: __('download_jobs.error_starting_report_generation') . $e->getMessage(), type: "error");
+            logger('Error in generateNewReport:', ['danger' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            $this->dispatch("showToast", message: __('download_jobs.danger_starting_report_generation') . $e->getMessage(), type: "danger");
         }
     }
 

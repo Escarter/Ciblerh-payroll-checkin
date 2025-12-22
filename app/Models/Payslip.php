@@ -15,6 +15,7 @@ class Payslip extends Model
     const STATUS_SUCCESSFUL = 1;
     const STATUS_FAILED = 2;
     const STATUS_DISABLED = 3; // SMS notifications disabled for employee
+    const STATUS_SKIPPED = 4; // SMS skipped (not attempted) when email fails/is disabled
     //used only for reporting view
     const SMS_STATUS_PENDING = 3;
     const SMS_STATUS_SUCCESSFUL = 4;
@@ -33,6 +34,7 @@ class Payslip extends Model
         'email_bounced' => 'boolean',
         'email_bounced_at' => 'datetime',
         'email_retry_count' => 'integer',
+        'last_email_retry_at' => 'datetime',
         'sms_status_note' => 'string',
         'email_status_note' => 'string',
         'encryption_status_note' => 'string',
