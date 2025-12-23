@@ -220,7 +220,7 @@
                                     @if(!empty($selectedPayslip->failure_reason))
                                     <div class="mb-3">
                                         <strong class="text-danger small">{{__('common.error')}}:</strong>
-                                        <p class="text-muted small mb-0">{{ $selectedPayslip->failure_reason }}</p>
+                                        <p class="text-muted small mb-0">{{ $this->getTranslatedFailureReason($selectedPayslip->failure_reason) }}</p>
                                     </div>
                                     @endif
 

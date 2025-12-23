@@ -536,10 +536,37 @@ class ImportDataJob implements ShouldQueue
                 ]);
             }
 
-            auditLog($user, $this->importType . '_imported', 'background', $message);
+            auditLog(
+                $user, 
+                $this->importType . '_imported', 
+                'background', 
+                $message,
+                null, // No specific model for bulk imports
+                [], // No old values
+                [], // No new values
+                [
+                    'import_type' => $this->importType,
+                    'import_id' => $this->importId ?? null,
+                    'import_job_id' => $this->importJob->id ?? null,
+                    'imported_count' => $this->importResults['imported_count'] ?? 0,
+                    'failed_count' => $this->importResults['failed_count'] ?? 0,
+                ] // Enhanced metadata
+            );
         } else {
-            auditLog($user, $this->importType . '_import_failed', 'background',
-                __('common.import_failed_detailed', ['error' => $this->importResults['error']])
+            auditLog(
+                $user, 
+                $this->importType . '_import_failed', 
+                'background',
+                __('common.import_failed_detailed', ['error' => $this->importResults['error']]),
+                null, // No specific model
+                [], // No old values
+                [], // No new values
+                [
+                    'import_type' => $this->importType,
+                    'import_id' => $this->importId ?? null,
+                    'import_job_id' => $this->importJob->id ?? null,
+                    'error' => $this->importResults['error'] ?? null,
+                ] // Enhanced metadata with error details
             );
         }
 

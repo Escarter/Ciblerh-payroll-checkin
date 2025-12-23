@@ -195,6 +195,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -273,7 +274,7 @@
             <div class="d-flex align-items-center gap-2">
 
                 @if($activeTab === 'active')
-                @can('employee-delete')
+                @can('employee-bulkdelete')
                 <button type="button"
                     class="btn btn-sm btn-danger d-flex align-items-center me-2"
                     data-bs-toggle="modal"
@@ -286,7 +287,7 @@
                 </button>
                 @endcan
                 @else
-                @can('employee-delete')
+                @can('employee-bulkrestore')
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('employees.restore_selected_employees') }}">
@@ -324,25 +325,26 @@
             @endif
         </div>
     </div>
+    @endif
 
     <div class="card pb-3">
         <div class="table-responsive  text-gray-700">
             <table class="table employee-table table-bordered table-hover align-items-center " id="">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <input type="checkbox"
                                 wire:model="selectAll"
                                 wire:change="toggleSelectAll"
                                 class="form-check-input">
                         </th>
-                        <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('companies.company')}}</th>
-                        <th class="border-bottom">{{__('employees.employee_info')}}</th>
-                        <th class="border-bottom">{{__('common.roles_status')}}</th>
-                        <th class="border-bottom">{{__('employees.notifications')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('companies.company')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee_info')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.roles_status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.notifications')}}</th>
                         @canany(['employee-delete','employee-update'])
-                        <th class="border-bottom">{{__('common.action')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>

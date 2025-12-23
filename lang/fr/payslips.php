@@ -333,6 +333,7 @@ return [
     'sms_provider_balance_check_failed' => 'Échec de vérification du solde SMS pour :provider: :error',
     'sms_provider_unhealthy' => 'Le fournisseur SMS est défaillant',
     'sms_provider_unhealthy_during_balance_check' => 'Fournisseur SMS défaillant lors de la vérification du solde',
+    'sms_provider_not_configured' => 'Fournisseur SMS non configuré',
     'sms_provider_credentials_not_configured' => 'Les identifiants du fournisseur SMS ne sont pas configurés',
     'sms_provider_configuration_error' => 'Erreur de configuration du fournisseur SMS',
     'null_value_in_provider_config' => 'Valeur nulle dans la configuration du fournisseur',

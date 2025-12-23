@@ -9,6 +9,7 @@
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => __('payslips.payslip')])
 
     <!-- Bulk Resend Failed Modal -->
+    @canany(['payslip-bulkresend-email', 'payslip-bulkresend-sms'])
     <div class="modal fade" id="BulkResendFailedModal" tabindex="-1" aria-labelledby="BulkResendFailedModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -22,18 +23,24 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{__('common.cancel')}}</button>
+                    @can('payslip-bulkresend-email')
+                    @can('payslip-bulkresend-sms')
                     <button type="button" class="btn btn-warning" wire:click="bulkResendFailed" data-bs-dismiss="modal">
                         <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                         </svg>
                         {{__('payslips.resend_all_failed')}}
                     </button>
+                    @endcan
+                    @endcan
                 </div>
             </div>
         </div>
     </div>
+    @endcanany
 
     <!-- Bulk Resend Emails Modal -->
+    @can('payslip-bulkresend-email')
     <div class="modal fade" id="BulkResendFailedEmailsModal" tabindex="-1" aria-labelledby="BulkResendFailedEmailsModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -57,8 +64,10 @@
             </div>
         </div>
     </div>
+    @endcan
 
     <!-- Bulk Resend SMS Modal -->
+    @can('payslip-bulkresend-sms')
     <div class="modal fade" id="BulkResendFailedSmsModal" tabindex="-1" aria-labelledby="BulkResendFailedSmsModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -82,6 +91,7 @@
             </div>
         </div>
     </div>
+    @endcan
     <x-alert />
     <div class='pt-2'>
         <div class="d-flex justify-content-between w-100 mb-4 align-items-center flex-wrap flex-lg-nowrap">
@@ -107,7 +117,7 @@
 
             <!-- Bulk Resend Buttons in Header (Right Aligned) -->
             <div class="d-flex gap-2 align-items-center" style="min-width: fit-content;">
-                @can('payslip-sending')
+                @can('payslip-bulkresend-email')
                 <!-- Email Button -->
                 @if(count($selectedPayslips) > 0 && $this->getSelectedEligibleEmailsCount() > 0)
                     <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center" title="{{ __('payslips.bulk_resend_emails') }}" data-bs-toggle="modal" data-bs-target="#BulkResendFailedEmailsModal">
@@ -125,7 +135,9 @@
                         {{__('payslips.bulk_resend_emails')}}
                     </button>
                 @endif
+                @endcan
 
+                @can('payslip-bulkresend-sms')
                 <!-- SMS Button -->
                 @if(count($selectedPayslips) > 0 && $this->getSelectedEligibleSmsCount() > 0)
                     <button type="button" class="btn btn-sm btn-outline-success d-flex align-items-center" title="{{ __('payslips.bulk_resend_sms') }}" data-bs-toggle="modal" data-bs-target="#BulkResendFailedSmsModal">
@@ -143,10 +155,6 @@
                         {{__('payslips.bulk_resend_sms')}}
                     </button>
                 @endif
-                @else
-                    <div class="text-muted small">
-                        <em>No permission to send payslips</em>
-                    </div>
                 @endcan
             </div>
         </div>
@@ -189,6 +197,7 @@
         </div>
 
         <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+        @if(auth()->user()->can('payslip-bulkdelete') && auth()->user()->can('payslip-bulkrestore'))
         <div class="d-flex justify-content-between align-items-center mb-3">
 
             <!-- Tab Buttons (Right) -->
@@ -252,15 +261,15 @@
                     @endif
 
                     
-                    <!-- Soft Delete Bulk Actions (when items selected for delete) -->
-                    @if(count($selectedPayslips) > 0)
-                    <div class="d-flex align-items-center gap-2">
-                        @can('payslip-delete')
-                        <button type="button"
-                            class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                            title="{{ __('payslips.move_selected_payslips_to_trash') }}"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#BulkDeleteModal">
+                        <!-- Soft Delete Bulk Actions (when items selected for delete) -->
+                        @if(count($selectedPayslips) > 0)
+                        <div class="d-flex align-items-center gap-2">
+                            @can('payslip-bulkdelete')
+                            <button type="button"
+                                class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                                title="{{ __('payslips.move_selected_payslips_to_trash') }}"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#BulkDeleteModal">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -282,7 +291,7 @@
                     <!-- Deleted Tab Bulk Actions -->
                     @if(count($selectedPayslips) > 0)
                     <div class="d-flex align-items-center gap-2">
-                        @can('payslip-delete')
+                        @can('payslip-bulkrestore')
                         <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                             class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                             title="{{ __('payslips.restore_selected_payslips') }}">
@@ -318,6 +327,7 @@
                 @endif
             </div>
         </div>
+        @endif
 
         @if($showUnmatched && $unmatchedEmployees)
         <!-- Unmatched Employees Section -->
@@ -335,12 +345,12 @@
         <div class="card">
             <div class="table-responsive pb-4">
                 <table class="table user-table table-bordered table-hover align-items-center dataTable">
-                    <thead>
+                    <thead class="">
                         <tr>
-                            <th class="border-bottom">{{__('common.name')}}</th>
-                            <th class="border-bottom">{{__('employees.employee_info')}}</th>
-                            <th class="border-bottom">{{__('common.failure_reason')}}</th>
-                            <th class="border-bottom">{{__('common.created_at')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.name')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee_info')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.failure_reason')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_at')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -382,7 +392,7 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="text-danger">{{ $payslip->failure_reason ?? __('payslips.unknown_error') }}</span>
+                                <span class="text-danger">{{ !empty($payslip->failure_reason) ? $this->getTranslatedFailureReason($payslip->failure_reason) : __('payslips.unknown_error') }}</span>
                             </td>
                             <td>{{ $payslip->created_at->format('Y-m-d H:i') }}</td>
                         </tr>
@@ -405,9 +415,9 @@
         <div class="card">
             <div class="table-responsive pb-4">
                 <table class="table user-table table-bordered table-hover align-items-center dataTable" id="datatable">
-                    <thead>
+                    <thead class="">
                         <tr>
-                            <th class="border-bottom">
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">
                                 <div class="form-check d-flex justify-content-center align-items-center">
                                     <input class="form-check-input p-2" 
                                         wire:model.live="selectAll" 
@@ -415,14 +425,14 @@
                                         wire:click="toggleSelectAll">
                                 </div>
                             </th>
-                            <th class="border-bottom">{{__('common.name')}}</th>
-                            <th class="border-bottom">{{__('employees.employee_info')}}</th>
-                            <th class="border-bottom">{{__('common.timeline')}}</th>
-                            <th class="border-bottom">{{__('payslips.encryption_status')}}</th>
-                            <th class="border-bottom">{{__('payslips.email_status')}}</th>
-                            <th class="border-bottom">{{__('payslips.sms_status')}}</th>
-                            <th class="border-bottom">{{__('common.failure_reason')}}</th>
-                            <th class="border-bottom">{{__('common.action')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.name')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee_info')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.timeline')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.encryption_status')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.email_status')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.sms_status')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.failure_reason')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -510,13 +520,16 @@
                             </td>
                             <td>
                                 @if(!empty($payslip->failure_reason))
-                                    <div class="d-flex align-items-center" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $payslip->failure_reason }}">
+                                    @php
+                                        $translatedReason = $this->getTranslatedFailureReason($payslip->failure_reason);
+                                    @endphp
+                                    <div class="d-flex align-items-center" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $translatedReason }}">
                                         <span class="badge bg-danger text-white me-1">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                             </svg>
                                         </span>
-                                        <span class="text-danger small text-truncate" style="max-width: 200px;">{{ strlen($payslip->failure_reason) > 50 ? substr($payslip->failure_reason, 0, 50) . '...' : $payslip->failure_reason }}</span>
+                                        <span class="text-danger small text-truncate" style="max-width: 200px;">{{ strlen($translatedReason) > 50 ? substr($translatedReason, 0, 50) . '...' : $translatedReason }}</span>
                                     </div>
                                 @else
                                     <span class="text-muted small">{{__('common.no_errors')}}</span>

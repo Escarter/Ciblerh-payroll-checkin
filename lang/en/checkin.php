@@ -63,3 +63,5 @@ return [
     'employees_checkins_report' => 'Employees Checkins Report',
     'generate_monthly_employees_checkin_reports' => 'Generate monthly employees checkin reports!',
 ];
+
+

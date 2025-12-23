@@ -537,4 +537,10 @@ return [
 
     // Background import completion messages
     'background_import_completed' => 'Background import completed successfully. :count records imported.',
+
+    // Report translations
+    'employee_name' => 'Employee Name',
+    'qualification' => 'Qualification',
+    't_hours_worked' => 'Total Hours Worked',
+    'signature' => 'Signature',
 ];

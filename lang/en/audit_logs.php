@@ -24,17 +24,23 @@ return [
     'company_deleted' => 'Company Deleted',
     'company_imported' => 'Company Imported',
     'company_exported' => 'Company Exported',
+    'companies_imported' => 'Companies Imported',
+    'companies_import_failed' => 'Companies Import Failed',
 
     // Department actions
     'department_created' => 'Department Created',
     'department_updated' => 'Department Updated',
     'department_deleted' => 'Department Deleted',
+    'departments_imported' => 'Departments Imported',
+    'departments_import_failed' => 'Departments Import Failed',
 
     // Service actions
     'service_created' => 'Service Created',
     'service_updated' => 'Service Updated',
     'service_deleted' => 'Service Deleted',
     'service_force_deleted' => 'Service Force Deleted',
+    'services_imported' => 'Services Imported',
+    'services_import_failed' => 'Services Import Failed',
 
     // Advance Salary actions
     'advanceSalary_created' => 'Advance Salary Created',
@@ -77,6 +83,9 @@ return [
     'send_sms' => 'Send SMS',
     'send_email' => 'Send Email',
     'employee_exported' => 'Employee Exported',
+    'employees_exported' => 'Employees Exported',
+    'employees_imported' => 'Employees Imported',
+    'employees_import_failed' => 'Employees Import Failed',
     'service_exported' => 'Service Exported',
     'department_exported' => 'Department Exported',
 
@@ -84,8 +93,19 @@ return [
     'leave_type_created' => 'Leave Type Created',
     'leave_type_updated' => 'Leave Type Updated',
     'leave_type_deleted' => 'Leave Type Deleted',
+    'leave_type_force_deleted' => 'Leave Type Force Deleted',
     'leave_type_imported' => 'Leave Type Imported',
     'leave_type_exported' => 'Leave Type Exported',
+    'leave_types_imported' => 'Leave Types Imported',
+    'leave_types_import_failed' => 'Leave Types Import Failed',
+    
+    // Leave actions
+    'leave_created' => 'Leave Created',
+    'leave_updated' => 'Leave Updated',
+    'leave_deleted' => 'Leave Deleted',
+    'leave_force_deleted' => 'Leave Force Deleted',
+    'leave_approved' => 'Leave Approved',
+    'leave_rejected' => 'Leave Rejected',
 
     // Report actions
     'report_generated' => 'Report Generated',
@@ -100,6 +120,7 @@ return [
     'role_created' => 'Role Created',
     'role_updated' => 'Role Updated',
     'role_deleted' => 'Role Deleted',
+    'role_force_deleted' => 'Role Force Deleted',
 
     // Action Perform Messages
 
@@ -186,6 +207,24 @@ return [
     'checkin_approved' => 'Approved check-in request',
     'checkin_rejected' => 'Rejected check-in request',
 
+    // Bulk Operations
+    'bulk_approved_absences' => 'Bulk approved :count absence(s)',
+    'bulk_rejected_absences' => 'Bulk rejected :count absence(s)',
+    'bulk_approved_overtimes' => 'Bulk approved :count overtime(s)',
+    'bulk_rejected_overtimes' => 'Bulk rejected :count overtime(s)',
+    'bulk_approved_leaves' => 'Bulk approved :count leave(s)',
+    'bulk_rejected_leaves' => 'Bulk rejected :count leave(s)',
+    'bulk_approved_advance_salaries' => 'Bulk approved :count advance salary(ies)',
+    'bulk_rejected_advance_salaries' => 'Bulk rejected :count advance salary(ies)',
+    'bulk_approved_checklogs' => 'Bulk approved :count checklog(s)',
+    'bulk_rejected_checklogs' => 'Bulk rejected :count checklog(s)',
+
+    // Audit Log Permissions
+    'view_own_logs_only' => 'View own logs only',
+    'read_all' => 'Read All',
+    'read_own_only' => 'Read Own Only',
+    'audit_log' => 'Audit Log',
+    
     // Audit Log Management Messages
     'audit_log_not_found' => 'Audit log not found',
     'audit_log_moved_to_trash' => 'Audit log successfully moved to trash',
@@ -195,4 +234,49 @@ return [
     'selected_audit_logs_restored' => 'Selected audit logs successfully restored!',
     'selected_audit_logs_permanently_deleted' => 'Selected audit logs permanently deleted!',
     'danger_deleting_audit_log' => 'Error deleting audit log: ',
+
+    // Action Filter Options
+    'action_created' => 'Created',
+    'action_updated' => 'Updated',
+    'action_deleted' => 'Deleted',
+    'action_login' => 'Login',
+    'action_logout' => 'Logout',
+    'action_exported' => 'Exported',
+    'action_imported' => 'Imported',
+
+    // Detail Modal
+    'log_details' => 'Log Details',
+    'basic_information' => 'Basic Information',
+    'timestamp_info' => 'Timestamp Information',
+    'system' => 'System',
+    'model_information' => 'Model Information',
+    'model_type' => 'Model Type',
+    'model_id' => 'Model ID',
+    'model_name' => 'Model Name',
+    'changes' => 'Changes',
+    'field_changes' => 'field changes',
+    'field' => 'Field',
+    'old_value' => 'Old Value',
+    'new_value' => 'New Value',
+    'metadata' => 'Metadata',
+    'ip_address' => 'IP Address',
+    'url' => 'URL',
+    'method' => 'HTTP Method',
+    'n_a' => 'N/A',
+    'logs_list' => 'Logs List',
+    'total_logs_lowercase' => 'total logs',
+    'no_logs_found' => 'No logs found',
+    'try_adjusting_filters' => 'Try adjusting your filters',
+    'description' => 'Description',
+    
+    // Table Headers
+    'user' => 'User',
+    'action' => 'Action',
+    'model' => 'Model',
+    'date' => 'Date',
+    'actions' => 'Actions',
+    
+    // Title and Description
+    'title' => 'Audit Logs',
+    'description_page' => 'View and manage all system activity logs',
 ];

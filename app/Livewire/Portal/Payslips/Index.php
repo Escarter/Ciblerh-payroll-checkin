@@ -52,6 +52,14 @@ class Index extends Component
 
         $process = $processId ? SendPayslipProcess::findOrFail($processId) : $this->send_payslip_process;
         
+        // Validate supervisor access
+        if ($this->role === 'supervisor' && $process) {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($process->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
+        
         if (!empty($process)) {
             auditLog(
                 auth()->user(),
@@ -61,7 +69,11 @@ class Index extends Component
                     'month' => $process->month,
                     'year' => $process->year,
                     'time' => now()->format('Y-m-d H:i:s')
-                ])
+                ]),
+                $process, // Pass model for enhanced tracking
+                $process->getAttributes(), // Old values before deletion
+                [], // No new values for deletes
+                ['process_id' => $process->id, 'month' => $process->month, 'year' => $process->year] // Metadata
             );
             $process->payslips()->delete(); // Soft delete related payslips
             $process->delete(); // Soft delete the process
@@ -72,11 +84,19 @@ class Index extends Component
 
     public function restore($processId)
     {
-        if (!Gate::allows('payslip-delete')) {
+        if (!Gate::allows('payslip-restore')) {
             return abort(401);
         }
 
         $process = SendPayslipProcess::withTrashed()->findOrFail($processId);
+        
+        // Validate supervisor access
+        if ($this->role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($process->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
         $process->restore();
 
         $this->closeModalAndFlashMessage(__('payslips.payslip_process_restored'), 'RestoreModal');
@@ -89,6 +109,14 @@ class Index extends Component
         }
 
         $process = SendPayslipProcess::withTrashed()->findOrFail($processId);
+        
+        // Validate supervisor access
+        if ($this->role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($process->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
         $process->payslips()->forceDelete(); // Force delete related payslips
         $process->forceDelete(); // Force delete the process
 
@@ -97,12 +125,20 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
+        if (!Gate::allows('payslip-bulkdelete')) {
             return abort(401);
         }
 
         if (!empty($this->selectedSendPayslipProcesses)) {
-            $processes = SendPayslipProcess::whereIn('id', $this->selectedSendPayslipProcesses);
+            $query = SendPayslipProcess::whereIn('id', $this->selectedSendPayslipProcesses);
+            
+            // Validate supervisor access - only allow deleting processes from their departments
+            if ($this->role === 'supervisor') {
+                $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+                $query->whereIn('department_id', $validDepartmentIds);
+            }
+            
+            $processes = $query;
             foreach ($processes->get() as $process) {
                 $process->payslips()->delete(); // Soft delete related payslips
             }
@@ -115,12 +151,20 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('payslip-delete')) {
+        if (!Gate::allows('payslip-bulkrestore')) {
             return abort(401);
         }
 
         if (!empty($this->selectedSendPayslipProcesses)) {
-            SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedSendPayslipProcesses)->restore();
+            $query = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedSendPayslipProcesses);
+            
+            // Validate supervisor access - only allow restoring processes from their departments
+            if ($this->role === 'supervisor') {
+                $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+                $query->whereIn('department_id', $validDepartmentIds);
+            }
+            
+            $query->restore();
             $this->selectedSendPayslipProcesses = [];
         }
 
@@ -134,7 +178,15 @@ class Index extends Component
         }
 
         if (!empty($this->selectedSendPayslipProcesses)) {
-            $processes = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedSendPayslipProcesses);
+            $query = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedSendPayslipProcesses);
+            
+            // Validate supervisor access - only allow force deleting processes from their departments
+            if ($this->role === 'supervisor') {
+                $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+                $query->whereIn('department_id', $validDepartmentIds);
+            }
+            
+            $processes = $query;
             foreach ($processes->get() as $process) {
                 $process->payslips()->forceDelete(); // Force delete related payslips
             }
@@ -176,7 +228,7 @@ class Index extends Component
     {
         $query = match (auth()->user()->getRoleNames()->first()) {
             'manager' => SendPayslipProcess::manager(),
-            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id')),
+            'supervisor' => SendPayslipProcess::supervisor(),
             'admin' => SendPayslipProcess::query(),
             default => SendPayslipProcess::query(),
         };
@@ -193,7 +245,17 @@ class Index extends Component
 
     public function showTaskDetails($processId)
     {
-        $this->selectedProcess = SendPayslipProcess::with(['department', 'owner', 'payslips'])->findOrFail($processId);
+        $process = SendPayslipProcess::with(['department', 'owner', 'payslips'])->findOrFail($processId);
+        
+        // Validate supervisor access
+        if ($this->role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($process->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
+        
+        $this->selectedProcess = $process;
 
         // Clear cached statistics when loading a new process
         $this->cachedTaskStatistics = null;
@@ -213,7 +275,17 @@ class Index extends Component
 
     public function showPayslipDetails($payslipId)
     {
-        $this->selectedPayslip = \App\Models\Payslip::with(['sendPayslipProcess.department', 'sendPayslipProcess.owner'])->findOrFail($payslipId);
+        $payslip = \App\Models\Payslip::with(['sendPayslipProcess.department', 'sendPayslipProcess.owner'])->findOrFail($payslipId);
+        
+        // Validate supervisor access
+        if ($this->role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($payslip->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
+        
+        $this->selectedPayslip = $payslip;
     }
 
     public function closePayslipDetailsModal()
@@ -250,6 +322,14 @@ class Index extends Component
     public function resendPayslip($payslipId)
     {
         $payslip = \App\Models\Payslip::findOrFail($payslipId);
+        
+        // Validate supervisor access
+        if ($this->role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($payslip->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
 
         // Reset statuses to allow reprocessing
         $payslip->update([
@@ -669,7 +749,18 @@ class Index extends Component
     {
         // Refresh the selected process data if modal is open
         if ($this->selectedProcess) {
-            $this->selectedProcess = SendPayslipProcess::with(['department', 'owner', 'payslips'])->find($this->selectedProcess->id);
+            $process = SendPayslipProcess::with(['department', 'owner', 'payslips'])->find($this->selectedProcess->id);
+            
+            // Validate supervisor access
+            if ($this->role === 'supervisor' && $process) {
+                $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+                if (!in_array($process->department_id, $validDepartmentIds)) {
+                    $this->selectedProcess = null;
+                    return;
+                }
+            }
+            
+            $this->selectedProcess = $process;
 
             // Clear cached statistics to force recalculation
             $this->cachedTaskStatistics = null;
@@ -685,6 +776,14 @@ class Index extends Component
         }
 
         $process = SendPayslipProcess::findOrFail($processId);
+        
+        // Validate supervisor access
+        if ($this->role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($process->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
 
         if ($process->status === 'processing') {
             $process->update(['status' => 'cancelled']);
@@ -708,11 +807,19 @@ class Index extends Component
 
     public function bulkResendEmails($processId)
     {
-        if (!Gate::allows('payslip-sending')) {
+        if (!Gate::allows('payslip-bulkresend-email')) {
             return abort(401);
         }
 
         $process = SendPayslipProcess::findOrFail($processId);
+        
+        // Validate supervisor access
+        if ($this->role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($process->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
 
         // Get all payslips that failed email sending but succeeded in encryption
         $failedEmailPayslips = $process->payslips()
@@ -783,7 +890,7 @@ class Index extends Component
 
     public function bulkResendSms($processId)
     {
-        if (!Gate::allows('payslip-sending')) {
+        if (!Gate::allows('payslip-bulkresend-sms')) {
             return abort(401);
         }
 
@@ -926,6 +1033,15 @@ class Index extends Component
         $raw_file_path = $this->payslip_file->store(auth()->user()->id, 'raw');
 
         $choosen_department = Department::findOrFail($this->department_id);
+        
+        // Validate supervisor can only send to their managed departments
+        if ($this->role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($this->department_id, $validDepartmentIds)) {
+                session()->flash('error', __('common.unauthorized_department_access'));
+                return $this->redirect(route('portal.payslips.index'), navigate: true);
+            }
+        }
 
         $raw_file = Storage::disk('raw')->path($raw_file_path);
 
@@ -997,14 +1113,14 @@ class Index extends Component
         // Get counts for active processes (non-deleted)
         $active_processes = match (auth()->user()->getRoleNames()->first()) {
             'manager' => SendPayslipProcess::manager()->whereNull('deleted_at')->count(),
-            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->whereNull('deleted_at')->count(),
+            'supervisor' => SendPayslipProcess::supervisor()->whereNull('deleted_at')->count(),
             'admin' => SendPayslipProcess::whereNull('deleted_at')->count(),
             default => 0,
         };
 
         $deleted_processes = match (auth()->user()->getRoleNames()->first()) {
             'manager' => SendPayslipProcess::manager()->withTrashed()->whereNotNull('deleted_at')->count(),
-            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->withTrashed()->whereNotNull('deleted_at')->count(),
+            'supervisor' => SendPayslipProcess::supervisor()->withTrashed()->whereNotNull('deleted_at')->count(),
             'admin' => SendPayslipProcess::withTrashed()->whereNotNull('deleted_at')->count(),
             default => 0,
         };

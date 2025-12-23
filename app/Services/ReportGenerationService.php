@@ -84,7 +84,7 @@ class ReportGenerationService
     public static function validateJobConfiguration(string $jobType, string $format): bool
     {
         $validCombinations = [
-            DownloadJob::TYPE_BULK_PAYSLIP_DOWNLOAD => [DownloadJob::FORMAT_ZIP],
+            DownloadJob::TYPE_BULK_PAYSLIP_DOWNLOAD => [DownloadJob::FORMAT_ZIP, DownloadJob::FORMAT_PDF],
             DownloadJob::TYPE_PAYSLIP_REPORT => [DownloadJob::FORMAT_XLSX],
             DownloadJob::TYPE_OVERTIME_REPORT => [DownloadJob::FORMAT_XLSX],
             DownloadJob::TYPE_CHECKLOG_REPORT => [DownloadJob::FORMAT_XLSX],
@@ -162,11 +162,34 @@ class ReportGenerationService
         }
 
         // Add employee name if employee_id is present
-        if (isset($filters['employee_id']) && $filters['employee_id'] !== 'all') {
-            $employee = User::find($filters['employee_id']);
-            if ($employee) {
-                $enhanced['employee_name'] = $employee->name;
-                $enhanced['employee_email'] = $employee->email;
+        // Handle both single ID (string/int) and array of IDs
+        if (isset($filters['employee_id'])) {
+            if (is_array($filters['employee_id']) && !empty($filters['employee_id'])) {
+                // Multiple employees selected
+                $employeeIds = array_filter($filters['employee_id']);
+                if (!empty($employeeIds)) {
+                    $employees = User::whereIn('id', $employeeIds)->get();
+                    if ($employees->isNotEmpty()) {
+                        // Use map() instead of pluck() to access the name accessor
+                        $enhanced['employee_names'] = $employees->map(function($employee) {
+                            return $employee->name;
+                        })->toArray();
+                        $enhanced['employee_count'] = $employees->count();
+                    }
+                }
+            } elseif (!is_array($filters['employee_id']) && 
+                     $filters['employee_id'] !== 'all' && 
+                     $filters['employee_id'] !== null && 
+                     $filters['employee_id'] !== '') {
+                // Single employee (backward compatibility) - ensure it's not an array
+                $employeeId = is_numeric($filters['employee_id']) ? (int)$filters['employee_id'] : null;
+                if ($employeeId) {
+                    $employee = User::find($employeeId);
+                    if ($employee) {
+                        $enhanced['employee_name'] = $employee->name;
+                        $enhanced['employee_email'] = $employee->email;
+                    }
+                }
             }
         }
 
@@ -176,7 +199,7 @@ class ReportGenerationService
     /**
      * Dispatch the appropriate job to the queue
      */
-    private static function dispatchJob(DownloadJob $job): void
+    public static function dispatchJob(DownloadJob $job): void
     {
         $jobClass = match($job->job_type) {
             DownloadJob::TYPE_BULK_PAYSLIP_DOWNLOAD => \App\Jobs\DownloadJobs\BulkPayslipDownloadJob::class,

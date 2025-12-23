@@ -125,6 +125,7 @@
 
         <div class='col-md-8'>
             <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+            @if(auth()->user()->can('payslip-bulkdelete') && auth()->user()->can('payslip-bulkrestore'))
             <div class="d-flex justify-content-between align-items-center mb-3">
 
                 <!-- Tab Buttons (Right) -->
@@ -156,7 +157,7 @@
                     <!-- Soft Delete Bulk Actions (when items selected for delete) -->
                     @if(count($selectedSendPayslipProcesses) > 0)
                     <div class="d-flex align-items-center gap-2">
-                        @can('payslip-delete')
+                        @can('payslip-bulkdelete')
                         <button type="button"
                             id="bulk-delete-payslips-btn"
                             class="btn btn-sm btn-outline-danger d-flex align-items-center"
@@ -184,7 +185,7 @@
                     <!-- Deleted Tab Bulk Actions -->
                     @if(count($selectedSendPayslipProcesses) > 0)
                     <div class="d-flex align-items-center gap-2">
-                        @can('payslip-delete')
+                        @can('payslip-bulkrestore')
                         <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                             class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                             title="{{ __('payslips.restore_selected_payslip_processes') }}">
@@ -220,14 +221,15 @@
                     @endif
                 </div>
             </div>
+            @endif
 
             <div class="card">
                 @if(count($jobs)>0)
                 <div class="table-responsive pb-4">
                     <table class="table user-table table-bordered table-hover align-items-center dataTable">
-                        <thead>
+                        <thead class="">
                             <tr>
-                                <th class="border-bottom">
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">
                                     <div class="form-check d-flex justify-content-center align-items-center">
                                         <input id="select-all-payslips"
                                             class="form-check-input p-2"
@@ -236,10 +238,10 @@
                                             wire:click="toggleSelectAll">
                                     </div>
                                 </th>
-                                <th class="border-bottom">{{__('departments.department')}}</th>
-                                <th class="border-bottom">{{__('common.details')}}</th>
-                                <th class="border-bottom">{{__('common.status')}}</th>
-                                <th class="border-bottom">{{__('common.action')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('departments.department')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.details')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.status')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                             </tr>
                         </thead>
                         <tbody>

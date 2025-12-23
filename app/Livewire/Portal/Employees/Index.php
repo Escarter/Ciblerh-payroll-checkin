@@ -358,7 +358,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('employee-delete')) {
+        if (!Gate::allows('employee-restore')) {
             return abort(401);
         }
 
@@ -368,10 +368,24 @@ class Index extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('employees.employee_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($employeeId)
+    public function forceDelete($employeeId = null)
     {
         if (!Gate::allows('employee-delete')) {
             return abort(401);
+        }
+
+        // If no employeeId provided, try to get it from selectedEmployees or selectedEmployeesForDelete
+        if (!$employeeId) {
+            if (!empty($this->selectedEmployees) && is_array($this->selectedEmployees)) {
+                $employeeId = $this->selectedEmployees[0] ?? null;
+            } elseif (!empty($this->selectedEmployeesForDelete) && is_array($this->selectedEmployeesForDelete)) {
+                $employeeId = $this->selectedEmployeesForDelete[0] ?? null;
+            } elseif ($this->employee_id) {
+                $employeeId = $this->employee_id;
+            } else {
+                $this->showToast(__('employees.no_employee_selected'), 'danger');
+                return;
+            }
         }
 
         $employee = User::withTrashed()->findOrFail($employeeId);
@@ -392,12 +406,21 @@ class Index extends BaseImportComponent
         
         $employee->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($employeeId, $this->selectedEmployees ?? [])) {
+            $this->selectedEmployees = array_diff($this->selectedEmployees, [$employeeId]);
+        }
+        if (in_array($employeeId, $this->selectedEmployeesForDelete ?? [])) {
+            $this->selectedEmployeesForDelete = array_diff($this->selectedEmployeesForDelete, [$employeeId]);
+        }
+        $this->employee_id = null;
+
         $this->closeModalAndFlashMessage(__('employees.employee_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('employee-delete')) {
+        if (!Gate::allows('employee-bulkdelete')) {
             return abort(401);
         }
 
@@ -411,7 +434,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('employee-delete')) {
+        if (!Gate::allows('employee-bulkrestore')) {
             return abort(401);
         }
 

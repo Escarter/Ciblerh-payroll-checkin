@@ -145,4 +145,13 @@ return [
     'overtimes_filename_prefix' => 'Heures-supplémentaires-',
     'checkins_filename_prefix' => 'Pointages-',
     'journal_d_audit' => 'Journal d\'audit',
+    
+    // Traductions du modèle de rapport
+    'attachment' => 'PIÈCE JOINTE',
+    'period_from' => 'Période du',
+    'client' => 'Client',
+    'generated_by' => 'Généré par',
+    'on_the' => 'le',
+    'copyright' => 'Copyright',
+    'overtimes_recorded' => 'Heures supplémentaires enregistrées',
 ];

@@ -96,11 +96,31 @@
                             const rawValues = this.selectInstance.getValue(true);
                             let normalized = [];
                             if (Array.isArray(rawValues)) {
-                                normalized = rawValues.map(item => (typeof item === 'object' && item !== null && item.value) ? String(item.value) : String(item));
+                                // Map and normalize values - handle both object format {value: "1"} and direct values
+                                normalized = rawValues.map(item => {
+                                    if (typeof item === 'object' && item !== null && item.value !== undefined) {
+                                        return String(item.value);
+                                    }
+                                    return String(item);
+                                }).filter(val => val !== '' && val !== 'undefined' && val !== 'null');
                             } else if (rawValues != null) {
                                 normalized = [String(rawValues)];
                             }
-                            this.$wire.set(wireModel, normalized);
+                            
+                            // Use the dedicated method for employee_id (more reliable for nested properties)
+                            if (wireModel === 'newReport.filters.employee_id') {
+                                // Call the dedicated method to update employee IDs
+                                this.$wire.call('updateEmployeeIds', normalized).then(() => {
+                                    // Verify the update worked (optional debugging)
+                                    const currentValue = this.$wire.get('newReport.filters.employee_id');
+                                    console.log('Employee IDs updated:', currentValue, 'Sent:', normalized);
+                                });
+                            } else if (wireModel.includes('.')) {
+                                // For other nested properties, use dot notation (Livewire 3 supports this)
+                                this.$wire.set(wireModel, normalized);
+                            } else {
+                                this.$wire.set(wireModel, normalized);
+                            }
                         });
 
                         // Remove any existing event listener to avoid duplicates
@@ -131,12 +151,24 @@
                                 // Clear all selected items in UI and in Livewire model
                                 this.selectInstance.removeActiveItems();
                                 this.selectInstance.setValue([]);
-                                this.$wire.set(wireModel, []);
+                                
+                                // Clear Livewire model using the appropriate method
+                                if (wireModel === 'newReport.filters.employee_id') {
+                                    this.$wire.call('updateEmployeeIds', []);
+                                } else {
+                                    this.$wire.set(wireModel, []);
+                                }
 
                                 // Set selected values if provided in the event
                                 if (event.detail.selected && Array.isArray(event.detail.selected)) {
                                     this.selectInstance.setChoiceByValue(event.detail.selected);
-                                    this.$wire.set(wireModel, event.detail.selected);
+                                    
+                                    // Use the appropriate method to update Livewire model
+                                    if (wireModel === 'newReport.filters.employee_id') {
+                                        this.$wire.call('updateEmployeeIds', event.detail.selected);
+                                    } else {
+                                        this.$wire.set(wireModel, event.detail.selected);
+                                    }
                                 }
                             }
                         };

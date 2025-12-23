@@ -117,7 +117,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('service-delete')) {
+        if (!Gate::allows('service-restore')) {
             return abort(401);
         }
 
@@ -127,10 +127,22 @@ class Index extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('services.service_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($serviceId)
+    public function forceDelete($serviceId = null)
     {
         if (!Gate::allows('service-delete')) {
             return abort(401);
+        }
+
+        // If no serviceId provided, try to get it from selectedServices
+        if (!$serviceId) {
+            if (!empty($this->selectedServices) && is_array($this->selectedServices)) {
+                $serviceId = $this->selectedServices[0] ?? null;
+            } elseif ($this->service_id) {
+                $serviceId = $this->service_id;
+            } else {
+                $this->showToast(__('services.no_service_selected'), 'danger');
+                return;
+            }
         }
 
         $service = Service::withTrashed()->findOrFail($serviceId);
@@ -143,12 +155,18 @@ class Index extends BaseImportComponent
         
         $service->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($serviceId, $this->selectedServices ?? [])) {
+            $this->selectedServices = array_diff($this->selectedServices, [$serviceId]);
+        }
+        $this->service_id = null;
+
         $this->closeModalAndFlashMessage(__('services.service_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('service-delete')) {
+        if (!Gate::allows('service-bulkdelete')) {
             return abort(401);
         }
 
@@ -162,7 +180,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('service-delete')) {
+        if (!Gate::allows('service-bulkrestore')) {
             return abort(401);
         }
 

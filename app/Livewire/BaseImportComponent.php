@@ -232,7 +232,17 @@ abstract class BaseImportComponent extends Component
             'web',
             __($this->importType . '.import_completed', [
                 'count' => $result['imported_count'] ?? 0
-            ])
+            ]),
+            null, // No specific model for bulk imports
+            [], // No old values
+            [], // No new values
+            [
+                'import_type' => $this->importType,
+                'imported_count' => $result['imported_count'] ?? 0,
+                'company_id' => $this->getCompanyId(),
+                'department_id' => $this->getDepartmentId(),
+                'auto_create_entities' => $this->autoCreateEntities ?? false,
+            ] // Enhanced metadata
         );
     }
 

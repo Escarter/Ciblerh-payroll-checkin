@@ -118,18 +118,84 @@ class Index extends Component
     //Bulk update
     public function bulkApproval()
     {
+        // Check permission based on approval status
+        if ($this->bulk_approval_status) {
+            if (!Gate::allows('leave-bulkapproval')) {
+                return abort(401);
+            }
+        } else {
+            if (!Gate::allows('leave-bulkrejection')) {
+                return abort(401);
+            }
+        }
+
+        // Fetch records before updating for audit logging
+        $leaves = Leave::whereIn('id', $this->selectedLeaves)->with('user')->get();
+        
+        // Capture old values for all records
+        $affectedRecords = [];
+        foreach ($leaves as $leave) {
+            if ($this->role === "supervisor") {
+                $affectedRecords[] = [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date->format('Y-m-d'),
+                    'old_supervisor_approval_status' => $leave->supervisor_approval_status,
+                    'old_supervisor_approval_reason' => $leave->supervisor_approval_reason,
+                ];
+            } else {
+                $affectedRecords[] = [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date->format('Y-m-d'),
+                    'old_manager_approval_status' => $leave->manager_approval_status,
+                    'old_manager_approval_reason' => $leave->manager_approval_reason,
+                ];
+            }
+        }
+
+        // Perform bulk update
         if ($this->role === "supervisor") {
             Leave::whereIn('id', $this->selectedLeaves)->update([
                 'supervisor_approval_status' => $this->supervisor_approval_status,
                 'supervisor_approval_reason' => $this->supervisor_approval_reason,
             ]);
         } else {
-
             Leave::whereIn('id', $this->selectedLeaves)->update([
                 'manager_approval_status' => $this->manager_approval_status,
                 'manager_approval_reason' => $this->manager_approval_reason,
             ]);
         }
+
+        // Create a single audit log entry for the bulk operation
+        $actionType = $this->bulk_approval_status ? 'leave_approved' : 'leave_rejected';
+        $user = auth()->user();
+        
+        $newValues = $this->role === "supervisor" 
+            ? ['supervisor_approval_status' => $this->supervisor_approval_status, 'supervisor_approval_reason' => $this->supervisor_approval_reason]
+            : ['manager_approval_status' => $this->manager_approval_status, 'manager_approval_reason' => $this->manager_approval_reason];
+        
+        auditLog(
+            $user,
+            $actionType,
+            'web',
+            $this->bulk_approval_status 
+                ? __('audit_logs.bulk_approved_leaves', ['count' => count($leaves)])
+                : __('audit_logs.bulk_rejected_leaves', ['count' => count($leaves)]),
+            null, // No single model for bulk operations
+            [], // Old values aggregated in metadata
+            $newValues,
+            [
+                'bulk_operation' => true,
+                'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
+                'affected_count' => count($leaves),
+                'affected_ids' => $leaves->pluck('id')->toArray(),
+                'affected_records' => $affectedRecords,
+                'role' => $this->role,
+                'new_values' => $newValues,
+            ]
+        );
+
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('leaves.leave_successfully_updated'), 'EditBulkLeaveModal');
     }
@@ -183,7 +249,7 @@ class Index extends Component
 
     public function restore()
     {
-        if (!Gate::allows('leave-delete')) {
+        if (!Gate::allows('leave-restore')) {
             return abort(401);
         }
 
@@ -193,21 +259,39 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('leaves.leave_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($leaveId)
+    public function forceDelete($leaveId = null)
     {
         if (!Gate::allows('leave-delete')) {
             return abort(401);
         }
 
+        // If no leaveId provided, try to get it from selectedLeavesForDelete
+        if (!$leaveId) {
+            if (!empty($this->selectedLeavesForDelete) && is_array($this->selectedLeavesForDelete)) {
+                $leaveId = $this->selectedLeavesForDelete[0] ?? null;
+            } elseif ($this->leave_id) {
+                $leaveId = $this->leave_id;
+            } else {
+                $this->showToast(__('leaves.no_leave_selected'), 'danger');
+                return;
+            }
+        }
+
         $leave = Leave::withTrashed()->findOrFail($leaveId);
         $leave->forceDelete();
+
+        // Clear selection after deletion
+        if (in_array($leaveId, $this->selectedLeavesForDelete ?? [])) {
+            $this->selectedLeavesForDelete = array_diff($this->selectedLeavesForDelete, [$leaveId]);
+        }
+        $this->leave_id = null;
 
         $this->closeModalAndFlashMessage(__('leaves.leave_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('leave-delete')) {
+        if (!Gate::allows('leave-bulkdelete')) {
             return abort(401);
         }
 
@@ -228,7 +312,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('leave-delete')) {
+        if (!Gate::allows('leave-bulkrestore')) {
             return abort(401);
         }
 

@@ -161,7 +161,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('company-delete')) {
+        if (!Gate::allows('company-restore')) {
             return abort(401);
         }
 
@@ -171,10 +171,22 @@ class Index extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('companies.company_restored_successfully'), 'RestoreModal');
     }
 
-    public function forceDelete($companyId)
+    public function forceDelete($companyId = null)
     {
         if (!Gate::allows('company-delete')) {
             return abort(401);
+        }
+
+        // If no companyId provided, try to get it from selectedCompanies
+        if (!$companyId) {
+            if (!empty($this->selectedCompanies) && is_array($this->selectedCompanies)) {
+                $companyId = $this->selectedCompanies[0] ?? null;
+            } elseif ($this->company_id) {
+                $companyId = $this->company_id;
+            } else {
+                $this->showToast(__('companies.no_company_selected'), 'danger');
+                return;
+            }
         }
 
         $company = Company::withTrashed()->findOrFail($companyId);
@@ -193,12 +205,18 @@ class Index extends BaseImportComponent
         
         $company->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($companyId, $this->selectedCompanies ?? [])) {
+            $this->selectedCompanies = array_diff($this->selectedCompanies, [$companyId]);
+        }
+        $this->company_id = null;
+
         $this->closeModalAndFlashMessage(__('companies.company_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('company-delete')) {
+        if (!Gate::allows('company-bulkdelete')) {
             return abort(401);
         }
 
@@ -212,7 +230,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('company-delete')) {
+        if (!Gate::allows('company-bulkrestore')) {
             return abort(401);
         }
 

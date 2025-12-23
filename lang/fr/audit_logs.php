@@ -24,17 +24,23 @@ return [
     'company_deleted' => 'Entreprise Supprimée',
     'company_imported' => 'Entreprise Importée',
     'company_exported' => 'Entreprise Exportée',
+    'companies_imported' => 'Entreprises Importées',
+    'companies_import_failed' => 'Échec de l\'Importation des Entreprises',
 
     // Department actions
     'department_created' => 'Département Créé',
     'department_updated' => 'Département Mis à Jour',
     'department_deleted' => 'Département Supprimé',
+    'departments_imported' => 'Départements Importés',
+    'departments_import_failed' => 'Échec de l\'Importation des Départements',
 
     // Service actions
     'service_created' => 'Service Créé',
     'service_updated' => 'Service Mis à Jour',
     'service_deleted' => 'Service Supprimé',
     'service_force_deleted' => 'Service Supprimé Définitivement',
+    'services_imported' => 'Services Importés',
+    'services_import_failed' => 'Échec de l\'Importation des Services',
 
     // Advance Salary actions
     'advanceSalary_created' => 'Avance Salaire Créée',
@@ -77,6 +83,9 @@ return [
     'send_sms' => 'Envoyer SMS',
     'send_email' => 'Envoyer Email',
     'employee_exported' => 'Employé Exporté',
+    'employees_exported' => 'Employés Exportés',
+    'employees_imported' => 'Employés Importés',
+    'employees_import_failed' => 'Échec de l\'Importation des Employés',
     'service_exported' => 'Service Exporté',
     'department_exported' => 'Département Exporté',
 
@@ -84,8 +93,19 @@ return [
     'leave_type_created' => 'Type de Congé Créé',
     'leave_type_updated' => 'Type de Congé Mis à Jour',
     'leave_type_deleted' => 'Type de Congé Supprimé',
+    'leave_type_force_deleted' => 'Type de Congé Supprimé Définitivement',
     'leave_type_imported' => 'Type de Congé Importé',
     'leave_type_exported' => 'Type de Congé Exporté',
+    'leave_types_imported' => 'Types de Congé Importés',
+    'leave_types_import_failed' => 'Échec de l\'Importation des Types de Congé',
+    
+    // Leave actions
+    'leave_created' => 'Congé Créé',
+    'leave_updated' => 'Congé Mis à Jour',
+    'leave_deleted' => 'Congé Supprimé',
+    'leave_force_deleted' => 'Congé Supprimé Définitivement',
+    'leave_approved' => 'Congé Approuvé',
+    'leave_rejected' => 'Congé Rejeté',
 
     // Report actions
     'report_generated' => 'Rapport Généré',
@@ -100,6 +120,7 @@ return [
     'role_created' => 'Rôle Créé',
     'role_updated' => 'Rôle Mis à Jour',
     'role_deleted' => 'Rôle Supprimé',
+    'role_force_deleted' => 'Rôle Supprimé Définitivement',
 
     // Action Perform Messages
 
@@ -186,6 +207,24 @@ return [
     'checkin_approved' => 'Demande de pointage approuvée',
     'checkin_rejected' => 'Demande de pointage rejetée',
 
+    // Opérations en Masse
+    'bulk_approved_absences' => ':count absence(s) approuvée(s) en masse',
+    'bulk_rejected_absences' => ':count absence(s) rejetée(s) en masse',
+    'bulk_approved_overtimes' => ':count heure(s) supplémentaire(s) approuvée(s) en masse',
+    'bulk_rejected_overtimes' => ':count heure(s) supplémentaire(s) rejetée(s) en masse',
+    'bulk_approved_leaves' => ':count congé(s) approuvé(s) en masse',
+    'bulk_rejected_leaves' => ':count congé(s) rejeté(s) en masse',
+    'bulk_approved_advance_salaries' => ':count avance(s) sur salaire approuvée(s) en masse',
+    'bulk_rejected_advance_salaries' => ':count avance(s) sur salaire rejetée(s) en masse',
+    'bulk_approved_checklogs' => ':count pointage(s) approuvé(s) en masse',
+    'bulk_rejected_checklogs' => ':count pointage(s) rejeté(s) en masse',
+
+    // Audit Log Permissions
+    'view_own_logs_only' => 'Voir uniquement ses propres journaux',
+    'read_all' => 'Lire Tout',
+    'read_own_only' => 'Lire Uniquement les Siens',
+    'audit_log' => 'Journal d\'Audit',
+    
     // Messages de gestion des journaux d'audit
     'audit_log_not_found' => 'Journal d\'audit introuvable',
     'audit_log_moved_to_trash' => 'Journal d\'audit déplacé vers la corbeille avec succès',
@@ -195,4 +234,49 @@ return [
     'selected_audit_logs_restored' => 'Journaux d\'audit sélectionnés restaurés avec succès !',
     'selected_audit_logs_permanently_deleted' => 'Journaux d\'audit sélectionnés supprimés définitivement !',
     'danger_deleting_audit_log' => 'Erreur lors de la suppression du journal d\'audit : ',
+
+    // Action Filter Options
+    'action_created' => 'Créé',
+    'action_updated' => 'Mis à Jour',
+    'action_deleted' => 'Supprimé',
+    'action_login' => 'Connexion',
+    'action_logout' => 'Déconnexion',
+    'action_exported' => 'Exporté',
+    'action_imported' => 'Importé',
+
+    // Detail Modal
+    'log_details' => 'Détails du Journal',
+    'basic_information' => 'Informations de Base',
+    'timestamp_info' => 'Informations de Date et Heure',
+    'system' => 'Système',
+    'model_information' => 'Informations sur le Modèle',
+    'model_type' => 'Type de Modèle',
+    'model_id' => 'ID du Modèle',
+    'model_name' => 'Nom du Modèle',
+    'changes' => 'Modifications',
+    'field_changes' => 'modifications de champs',
+    'field' => 'Champ',
+    'old_value' => 'Ancienne Valeur',
+    'new_value' => 'Nouvelle Valeur',
+    'metadata' => 'Métadonnées',
+    'ip_address' => 'Adresse IP',
+    'url' => 'URL',
+    'method' => 'Méthode HTTP',
+    'n_a' => 'N/A',
+    'logs_list' => 'Liste des Journaux',
+    'total_logs_lowercase' => 'journaux au total',
+    'no_logs_found' => 'Aucun journal trouvé',
+    'try_adjusting_filters' => 'Essayez d\'ajuster vos filtres',
+    'description' => 'Description',
+    
+    // Table Headers
+    'user' => 'Utilisateur',
+    'action' => 'Action',
+    'model' => 'Modèle',
+    'date' => 'Date',
+    'actions' => 'Actions',
+    
+    // Title and Description
+    'title' => 'Journaux d\'Audit',
+    'description_page' => 'Voir et gérer tous les journaux d\'activité du système',
 ];

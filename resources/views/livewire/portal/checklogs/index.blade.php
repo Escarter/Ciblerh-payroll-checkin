@@ -75,7 +75,7 @@
                                     <h2 class="h5">{{__('employees.total_checkins')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($checklogs_count)}}</h3>
                                 </a>
-                                
+
                             </div>
                         </div>
                     </div>
@@ -206,6 +206,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('ticking-bulkdelete') && auth()->user()->can('ticking-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -234,30 +235,32 @@
         <!-- Bulk Actions (Left) -->
         <div class="d-flex align-items-center gap-2">
             @if($activeTab === 'active')
-                <!-- Selection Controls -->
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        {{__('common.select')}}
-                        @if(count($selectedChecklogs) > 0)
-                            <span class="badge bg-primary text-white ms-1">{{ count($selectedChecklogs) }}</span>
-                        @endif
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllChecklogs" href="#">{{__('checklog.select_all_checklogs')}}</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedChecklogs', [])" href="#">{{__('absences.deselect_all')}}</a></li>
-                    </ul>
-                </div>
+            <!-- Selection Controls -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    {{__('common.select')}}
+                    @if(count($selectedChecklogs) > 0)
+                    <span class="badge bg-primary text-white ms-1">{{ count($selectedChecklogs) }}</span>
+                    @endif
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllChecklogs" href="#">{{__('checklog.select_all_checklogs')}}</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" wire:click.prevent="$set('selectedChecklogs', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                </ul>
+            </div>
 
-                <!-- Bulk Actions when items are selected -->
-                @if(!$bulkDisabled && count($selectedChecklogs) > 0)
+            <!-- Bulk Actions when items are selected -->
+            @if(!$bulkDisabled && count($selectedChecklogs) > 0)
             <div class="d-flex align-items-center gap-2">
                 <!-- Bulk Approval Actions -->
-                @can('ticking-update')
+                @can('ticking-bulkapproval')
                 <button wire:click.prevent="initDataBulk('approve')"
                     data-bs-toggle="modal"
                     data-bs-target="#EditBulkChecklogModal"
@@ -268,7 +271,8 @@
                     {{__('common.bulk_approve')}}
                     <span class="badge bg-light text-dark ms-1">{{ count($selectedChecklogs) }}</span>
                 </button>
-
+                @endcan
+                @can('ticking-bulkrejection')
                 <button wire:click.prevent="initDataBulk('reject')"
                     data-bs-toggle="modal"
                     data-bs-target="#EditBulkChecklogModal"
@@ -282,7 +286,7 @@
                 @endcan
 
                 <!-- Soft Delete Actions -->
-                @can('ticking-delete')
+                @can('ticking-bulkdelete')
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
                     title="{{ __('common.move_to_trash') }}"
@@ -307,29 +311,31 @@
             </div>
             @endif
             @else
-                <!-- Selection Controls for Deleted Tab -->
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        {{__('common.select')}}
-                        @if(count($selectedChecklogsForDelete) > 0)
-                            <span class="badge bg-primary text-white ms-1">{{ count($selectedChecklogsForDelete) }}</span>
-                        @endif
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedChecklogs" href="#">{{__('checklog.select_all_deleted_checklogs')}}</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedChecklogsForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
-                    </ul>
-                </div>
+            <!-- Selection Controls for Deleted Tab -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    {{__('common.select')}}
+                    @if(count($selectedChecklogsForDelete) > 0)
+                    <span class="badge bg-primary text-white ms-1">{{ count($selectedChecklogsForDelete) }}</span>
+                    @endif
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedChecklogs" href="#">{{__('checklog.select_all_deleted_checklogs')}}</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" wire:click.prevent="$set('selectedChecklogsForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                </ul>
+            </div>
 
-                <!-- Deleted Tab Bulk Actions -->
-                @if(count($selectedChecklogsForDelete) > 0)
+            <!-- Deleted Tab Bulk Actions -->
+            @if(count($selectedChecklogsForDelete) > 0)
             <div class="d-flex align-items-center gap-2">
-                @can('ticking-delete')
+                @can('ticking-bulkrestore')
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('common.restore_selected') }}">
@@ -365,13 +371,14 @@
             @endif
         </div>
     </div>
+    @endif
 
     <div class="card">
         <div class="table-responsive pb-4 text-gray-700">
             <table class="table table-hover table-bordered align-items-center dataTable">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 @if($activeTab === 'active')
                                 <!-- For active tab, use existing bulk approval selection -->
@@ -385,13 +392,13 @@
                                 @endif
                             </div>
                         </th>
-                        <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('employees.check_period')}}</th>
-                        <th class="border-bottom">{{__('common.sup_approval')}}</th>
-                        <th class="border-bottom">{{__('common.mgr_approval')}}</th>
-                        <th class="border-bottom">{{__('common.created_date')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.check_period')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sup_approval')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.mgr_approval')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
                         @canany(['ticking-update','ticking-delete'])
-                        <th class="border-bottom">{{__('common.action')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>

@@ -238,7 +238,7 @@ class History extends Component
 
     public function restore($payslipId)
     {
-        if (!Gate::allows('payslip-delete')) {
+        if (!Gate::allows('payslip-restore')) {
             return abort(401);
         }
 
@@ -272,7 +272,7 @@ class History extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
+        if (!Gate::allows('payslip-bulkdelete')) {
             return abort(401);
         }
 
@@ -286,7 +286,7 @@ class History extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('payslip-delete')) {
+        if (!Gate::allows('payslip-bulkrestore')) {
             return abort(401);
         }
 
@@ -331,6 +331,176 @@ class History extends Component
         if ($this->selectedPayslip) {
             $this->selectedPayslip->refresh();
         }
+    }
+
+    public function getTranslatedFailureReason($failureReason)
+    {
+        if (empty($failureReason)) {
+            return '';
+        }
+
+        // Translate the "Email/SMS skipped: Encryption failed." prefix
+        $encryptionSkippedPrefix = __('payslips.encryption_failed_email_sms_skipped');
+        
+        // Check if failure reason starts with the encryption skipped prefix (in any language)
+        // We need to check both English and French versions
+        $englishPrefix = 'Email/SMS skipped: Encryption failed. ';
+        $frenchPrefix = 'Email/SMS ignoré: Échec du cryptage. ';
+        
+        $remainingReason = $failureReason;
+        $hasPrefix = false;
+        
+        if (strpos($failureReason, $englishPrefix) === 0) {
+            $remainingReason = substr($failureReason, strlen($englishPrefix));
+            $hasPrefix = true;
+        } elseif (strpos($failureReason, $frenchPrefix) === 0) {
+            $remainingReason = substr($failureReason, strlen($frenchPrefix));
+            $hasPrefix = true;
+        } elseif (strpos($failureReason, $encryptionSkippedPrefix) === 0) {
+            $remainingReason = substr($failureReason, strlen($encryptionSkippedPrefix));
+            $hasPrefix = true;
+        }
+        
+        // Translate the remaining reason if it matches known patterns
+        $translatedReason = $remainingReason;
+        
+        // Helper function to normalize month name to English for translation
+        $normalizeMonthName = function($monthName) {
+            $monthName = trim($monthName);
+            // French to English month mapping
+            $frenchToEnglish = [
+                'janvier' => 'January',
+                'février' => 'February',
+                'mars' => 'March',
+                'avril' => 'April',
+                'mai' => 'May',
+                'juin' => 'June',
+                'juillet' => 'July',
+                'août' => 'August',
+                'septembre' => 'September',
+                'octobre' => 'October',
+                'novembre' => 'November',
+                'décembre' => 'December',
+            ];
+            
+            $lowerMonth = mb_strtolower($monthName);
+            if (isset($frenchToEnglish[$lowerMonth])) {
+                return $frenchToEnglish[$lowerMonth];
+            }
+            // If it's already in English or not found, return as-is
+            return $monthName;
+        };
+        
+        // Pattern: "Matricule :matricule not found in any PDF file for month :month"
+        // English pattern
+        if (preg_match('/Matricule\s+([A-Z0-9]+)\s+not found in any PDF file for month\s+(.+)/i', $remainingReason, $matches)) {
+            $matricule = $matches[1];
+            $monthName = trim($matches[2]);
+            // Normalize month name to English, then translate to current locale
+            $normalizedMonth = $normalizeMonthName($monthName);
+            $translatedMonth = translateMonthName($normalizedMonth);
+            $translatedReason = __('payslips.matricule_not_found_in_pdf', [
+                'matricule' => $matricule,
+                'month' => $translatedMonth
+            ]);
+        }
+        // French pattern: "Matricule :matricule introuvable dans tout fichier PDF pour le mois :month"
+        elseif (preg_match('/Matricule\s+([A-Z0-9]+)\s+introuvable dans tout fichier PDF pour le mois\s+(.+)/i', $remainingReason, $matches)) {
+            $matricule = $matches[1];
+            $monthName = trim($matches[2]);
+            // Normalize month name to English, then translate to current locale
+            $normalizedMonth = $normalizeMonthName($monthName);
+            $translatedMonth = translateMonthName($normalizedMonth);
+            $translatedReason = __('payslips.matricule_not_found_in_pdf', [
+                'matricule' => $matricule,
+                'month' => $translatedMonth
+            ]);
+        }
+        // Also handle "User matricule is empty" pattern
+        elseif (preg_match('/User matricule is empty/i', $remainingReason) || 
+                preg_match('/Le matricule de l\'utilisateur est vide/i', $remainingReason)) {
+            $translatedReason = __('payslips.user_matricule_empty');
+        }
+        // Handle SMS provider error messages
+        elseif (preg_match('/SMS provider credentials are not configured/i', $remainingReason) ||
+                preg_match('/Les identifiants du fournisseur SMS ne sont pas configurés/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_credentials_not_configured');
+        }
+        elseif (preg_match('/SMS provider not configured/i', $remainingReason) ||
+                preg_match('/Fournisseur SMS non configuré/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_not_configured');
+        }
+        elseif (preg_match('/SMS provider initialization failed/i', $remainingReason) ||
+                preg_match('/Échec d\'initialisation du fournisseur SMS/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_initialization_failed');
+        }
+        elseif (preg_match('/SMS provider balance check failed for (.+): (.+)/i', $remainingReason, $matches) ||
+                preg_match('/Échec de vérification du solde SMS pour (.+): (.+)/i', $remainingReason, $matches)) {
+            $translatedReason = __('payslips.sms_provider_balance_check_failed', [
+                'provider' => trim($matches[1]),
+                'error' => trim($matches[2])
+            ]);
+        }
+        elseif (preg_match('/SMS provider unhealthy during balance check/i', $remainingReason) ||
+                preg_match('/Fournisseur SMS défaillant lors de la vérification du solde/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_unhealthy_during_balance_check');
+        }
+        elseif (preg_match('/SMS provider is unhealthy/i', $remainingReason) ||
+                preg_match('/Le fournisseur SMS est défaillant/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_unhealthy');
+        }
+        elseif (preg_match('/SMS sending exception/i', $remainingReason) ||
+                preg_match('/Exception d\'envoi SMS/i', $remainingReason)) {
+            // Extract the error message after the colon if present
+            if (preg_match('/SMS sending exception:\s*(.+)/i', $remainingReason, $matches) ||
+                preg_match('/Exception d\'envoi SMS:\s*(.+)/i', $remainingReason, $matches)) {
+                $translatedReason = __('payslips.sms_sending_exception') . ': ' . trim($matches[1]);
+            } else {
+                $translatedReason = __('payslips.sms_sending_exception');
+            }
+        }
+        elseif (preg_match('/SMS sending failed with unexpected error/i', $remainingReason) ||
+                preg_match('/Échec d\'envoi SMS avec erreur inattendue/i', $remainingReason)) {
+            // Extract the error message after the colon if present
+            if (preg_match('/SMS sending failed with unexpected error:\s*(.+)/i', $remainingReason, $matches) ||
+                preg_match('/Échec d\'envoi SMS avec erreur inattendue:\s*(.+)/i', $remainingReason, $matches)) {
+                $translatedReason = __('payslips.sms_unexpected_error') . ': ' . trim($matches[1]);
+            } else {
+                $translatedReason = __('payslips.sms_unexpected_error');
+            }
+        }
+        elseif (preg_match('/No valid phone number for user/i', $remainingReason) ||
+                preg_match('/Aucun numéro de téléphone valide pour l\'utilisateur/i', $remainingReason)) {
+            $translatedReason = __('payslips.no_valid_phone_number_for_user');
+        }
+        elseif (preg_match('/Failed sending SMS/i', $remainingReason) ||
+                preg_match('/Échec d\'envoi de SMS/i', $remainingReason)) {
+            $translatedReason = __('payslips.failed_sending_sms');
+        }
+        elseif (preg_match('/Insufficient SMS Balance/i', $remainingReason) ||
+                preg_match('/Solde SMS insuffisant/i', $remainingReason)) {
+            $translatedReason = __('payslips.insufficient_sms_balance');
+        }
+        elseif (preg_match('/SMS provider configuration error/i', $remainingReason) ||
+                preg_match('/Erreur de configuration du fournisseur SMS/i', $remainingReason)) {
+            // Check if there's a specific error message after
+            if (preg_match('/SMS provider configuration error:\s*(.+)/i', $remainingReason, $matches) ||
+                preg_match('/Erreur de configuration du fournisseur SMS:\s*(.+)/i', $remainingReason, $matches)) {
+                $errorDetail = trim($matches[1]);
+                // Check if it's the null value error
+                if (preg_match('/Null value in provider configuration/i', $errorDetail) ||
+                    preg_match('/Valeur nulle dans la configuration du fournisseur/i', $errorDetail)) {
+                    $translatedReason = __('payslips.sms_provider_configuration_error') . ': ' . __('payslips.null_value_in_provider_config');
+                } else {
+                    $translatedReason = __('payslips.sms_provider_configuration_error') . ': ' . $errorDetail;
+                }
+            } else {
+                $translatedReason = __('payslips.sms_provider_configuration_error');
+            }
+        }
+        
+        // Return the translated prefix + translated reason if prefix exists, otherwise just the translated reason
+        return $hasPrefix ? $encryptionSkippedPrefix . $translatedReason : $translatedReason;
     }
 
     public function getPayslipOverallStatus($payslip)

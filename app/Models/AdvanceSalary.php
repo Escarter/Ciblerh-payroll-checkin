@@ -33,6 +33,15 @@ class AdvanceSalary extends Model
         }
         return $query;
     }
+
+    public function scopeSupervisor($query)
+    {
+        $user = auth()->user();
+        if ($user && $user->hasRole('supervisor')) {
+            return $query->whereIn('department_id', $user->supDepartments->pluck('department_id'));
+        }
+        return $query->where('id', 0); // Return no results if no supervisor context
+    }
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');

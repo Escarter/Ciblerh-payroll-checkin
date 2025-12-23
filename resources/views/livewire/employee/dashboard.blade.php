@@ -250,12 +250,12 @@
             <div class="card mt-2">
                 <div class="table-responsive text-gray-700">
                     <table class="table employee-table table-hover align-items-center ">
-                        <thead>
+                        <thead class="">
                             <tr>
-                                <!-- <th class="border-bottom">{{__('employees.employee')}}</th> -->
-                                <th class="border-bottom">{{__('employees.action_type')}}</th>
-                                <th class="border-bottom">{{__('employees.action_performed')}}</th>
-                                <th class="border-bottom">{{__('employees.date')}}</th>
+                                <!-- <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th> -->
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.action_type')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.action_performed')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.date')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -270,13 +270,13 @@
                                     </a>
                                 </td> -->
                                 <td>
-                                    <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->translated_action_type}}</span>
+                                    <span class="badge badge-lg bg-{{$log->action_color}} text-white">{{$log->translated_action_type}}</span>
                                 </td>
                                 <td>
-                                    <span class="fs-normal">{!! $log->translated_action_perform !!}</span>
+                                    <span class="fs-normal">{!! \Illuminate\Support\Str::limit(strip_tags($log->translated_action_perform), 50) !!}</span>
                                 </td>
                                 <td>
-                                    <span class="fw-normal">{{$log->created_at}}</span>
+                                    <span class="fw-normal">{{$log->created_at->format('M d, Y H:i')}}</span>
                                 </td>
                             </tr>
                             @empty

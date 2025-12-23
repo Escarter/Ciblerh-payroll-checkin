@@ -76,4 +76,5 @@ return [
     'leave_permissions' => 'Permissions des congés',
     'payslips_processing_permissions' => 'Permissions de traitement des fiches de paie',
     'roles_and_audit_log_features_permissions' => 'Permissions des rôles et fonctionnalités du journal d\'audit',
+    'settings' => 'Paramètres',
 ];

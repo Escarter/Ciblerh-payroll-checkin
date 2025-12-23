@@ -121,18 +121,84 @@ class Index extends Component
     //Bulk update
     public function bulkApproval()
     {
+        // Check permission based on approval status
+        if ($this->bulk_approval_status) {
+            if (!Gate::allows('ticking-bulkapproval')) {
+                return abort(401);
+            }
+        } else {
+            if (!Gate::allows('ticking-bulkrejection')) {
+                return abort(401);
+            }
+        }
+
+        // Fetch records before updating for audit logging
+        $checklogs = Ticking::whereIn('id', $this->selectedChecklogs)->with('user')->get();
+        
+        // Capture old values for all records
+        $affectedRecords = [];
+        foreach ($checklogs as $checklog) {
+            if ($this->role === "supervisor") {
+                $affectedRecords[] = [
+                    'id' => $checklog->id,
+                    'user_name' => $checklog->user->name ?? 'User',
+                    'date' => $checklog->start_time,
+                    'old_supervisor_approval_status' => $checklog->supervisor_approval_status,
+                    'old_supervisor_approval_reason' => $checklog->supervisor_approval_reason,
+                ];
+            } else {
+                $affectedRecords[] = [
+                    'id' => $checklog->id,
+                    'user_name' => $checklog->user->name ?? 'User',
+                    'date' => $checklog->start_time,
+                    'old_manager_approval_status' => $checklog->manager_approval_status,
+                    'old_manager_approval_reason' => $checklog->manager_approval_reason,
+                ];
+            }
+        }
+
+        // Perform bulk update
         if($this->role === "supervisor"){
             Ticking::whereIn('id', $this->selectedChecklogs)->update([
                 'supervisor_approval_status' => $this->supervisor_approval_status,
                 'supervisor_approval_reason' => $this->supervisor_approval_reason,
             ]);
         }else{
-
             Ticking::whereIn('id', $this->selectedChecklogs)->update([
                 'manager_approval_status' => $this->manager_approval_status,
                 'manager_approval_reason' => $this->manager_approval_reason,
             ]);
         }
+
+        // Create a single audit log entry for the bulk operation
+        $actionType = $this->bulk_approval_status ? 'checkin_approved' : 'checkin_rejected';
+        $user = auth()->user();
+        
+        $newValues = $this->role === "supervisor"
+            ? ['supervisor_approval_status' => $this->supervisor_approval_status, 'supervisor_approval_reason' => $this->supervisor_approval_reason]
+            : ['manager_approval_status' => $this->manager_approval_status, 'manager_approval_reason' => $this->manager_approval_reason];
+        
+        auditLog(
+            $user,
+            $actionType,
+            'web',
+            $this->bulk_approval_status 
+                ? __('audit_logs.bulk_approved_checklogs', ['count' => count($checklogs)])
+                : __('audit_logs.bulk_rejected_checklogs', ['count' => count($checklogs)]),
+            null, // No single model for bulk operations
+            [], // Old values aggregated in metadata
+            $newValues,
+            [
+                'bulk_operation' => true,
+                'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
+                'affected_count' => count($checklogs),
+                'affected_ids' => $checklogs->pluck('id')->toArray(),
+                'affected_records' => $affectedRecords,
+                'role' => $this->role,
+                'new_values' => $newValues,
+            ]
+        );
+
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.checkin_successfully_updated'), 'EditBulkChecklogModal');
     }
@@ -180,7 +246,7 @@ class Index extends Component
 
     public function restore($checklogId)
     {
-        if (!Gate::allows('ticking-delete')) {
+        if (!Gate::allows('ticking-restore')) {
             return abort(401);
         }
 
@@ -190,21 +256,39 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('employees.checkin_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($checklogId)
+    public function forceDelete($checklogId = null)
     {
         if (!Gate::allows('ticking-delete')) {
             return abort(401);
         }
 
+        // If no checklogId provided, try to get it from selectedChecklogsForDelete
+        if (!$checklogId) {
+            if (!empty($this->selectedChecklogsForDelete) && is_array($this->selectedChecklogsForDelete)) {
+                $checklogId = $this->selectedChecklogsForDelete[0] ?? null;
+            } elseif ($this->checklog_id) {
+                $checklogId = $this->checklog_id;
+            } else {
+                $this->showToast(__('employees.no_checklog_selected'), 'danger');
+                return;
+            }
+        }
+
         $checklog = Ticking::withTrashed()->findOrFail($checklogId);
         $checklog->forceDelete();
+
+        // Clear selection after deletion
+        if (in_array($checklogId, $this->selectedChecklogsForDelete ?? [])) {
+            $this->selectedChecklogsForDelete = array_diff($this->selectedChecklogsForDelete, [$checklogId]);
+        }
+        $this->checklog_id = null;
 
         $this->closeModalAndFlashMessage(__('employees.checkin_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('ticking-delete')) {
+        if (!Gate::allows('ticking-bulkdelete')) {
             return abort(401);
         }
 
@@ -225,7 +309,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('ticking-delete')) {
+        if (!Gate::allows('ticking-bulkrestore')) {
             return abort(401);
         }
 

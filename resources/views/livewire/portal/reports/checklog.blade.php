@@ -105,15 +105,15 @@
     <div class="card">
         <div class="table-responsive pb-4 text-gray-700">
             <table class="table table-hover table-bordered align-items-center dataTable">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('employees.checkin_time')}}</th>
-                        <th class="border-bottom">{{__('employees.checkout_time')}}</th>
-                        <th class="border-bottom">{{__('overtime.hours_worked')}}</th>
-                        <th class="border-bottom">{{__('common.sup_approval')}}</th>
-                        <th class="border-bottom">{{__('common.mgr_approval')}}</th>
-                        <th class="border-bottom">{{__('common.created_date')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.checkin_time')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.checkout_time')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('overtime.hours_worked')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sup_approval')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.mgr_approval')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
                     </tr>
                 </thead>
                 <tbody>

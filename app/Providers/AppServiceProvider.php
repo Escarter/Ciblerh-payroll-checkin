@@ -3,14 +3,34 @@
 namespace App\Providers;
 
 use App\Models\Leave;
+use App\Models\LeaveType;
+use App\Models\Role;
+use App\Models\Company;
+use App\Models\User;
+use App\Models\Department;
+use App\Models\Service;
+use App\Models\Absence;
+use App\Models\Ticking;
+use App\Models\AdvanceSalary;
+use App\Models\Overtime;
 use DatePeriod;
 use DateInterval;
-use App\Models\Ticking;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Mail;
+use App\Observers\CompanyObserver;
+use App\Observers\UserObserver;
+use App\Observers\DepartmentObserver;
+use App\Observers\ServiceObserver;
+use App\Observers\AbsenceObserver;
+use App\Observers\CheckinObserver;
+use App\Observers\AdvanceSalaryObserver;
+use App\Observers\OvertimeObserver;
+use App\Observers\LeaveTypeObserver;
+use App\Observers\RoleObserver;
+use App\Observers\LeaveObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -153,6 +173,19 @@ class AppServiceProvider extends ServiceProvider
             }
             return $match;
         });
+
+        // Register Model Observers for Audit Logging
+        Company::observe(CompanyObserver::class);
+        User::observe(UserObserver::class);
+        Department::observe(DepartmentObserver::class);
+        Service::observe(ServiceObserver::class);
+        Absence::observe(AbsenceObserver::class);
+        Ticking::observe(CheckinObserver::class);
+        AdvanceSalary::observe(AdvanceSalaryObserver::class);
+        Overtime::observe(OvertimeObserver::class);
+        LeaveType::observe(LeaveTypeObserver::class);
+        Role::observe(RoleObserver::class);
+        Leave::observe(LeaveObserver::class);
     }
     
 }

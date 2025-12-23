@@ -65,12 +65,12 @@
         <div class="card">
             <div class="table-responsive pb-4 text-gray-700">
                 <table class="table table-bordered table-hover align-items-center dataTable">
-                    <thead>
+                    <thead class="">
                         <tr>
-                            <th class="border-bottom">{{__('employees.year')}}</th>
-                            <th class="border-bottom">{{__('employees.month')}}</th>
-                            <th class="border-bottom">{{__('employees.sent_date')}}</th>
-                            <th class="border-bottom d-flex justify-content-center">{{__('employees.download')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.year')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.month')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.sent_date')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium d-flex justify-content-center">{{__('employees.download')}}</th>
                         </tr>
                     </thead>
                     <tbody>

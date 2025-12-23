@@ -139,7 +139,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('overtime-delete')) {
+        if (!Gate::allows('overtime-bulkdelete')) {
             return abort(401);
         }
 
@@ -160,7 +160,7 @@ class Index extends Component
 
     public function restore($overtimeId)
     {
-        if (!Gate::allows('overtime-delete')) {
+        if (!Gate::allows('overtime-restore')) {
             return abort(401);
         }
 
@@ -179,10 +179,20 @@ class Index extends Component
         $this->updateCounts();
     }
 
-    public function forceDelete($overtimeId)
+    public function forceDelete($overtimeId = null)
     {
         if (!Gate::allows('overtime-delete')) {
             return abort(401);
+        }
+
+        // If no overtimeId provided, try to get it from selectedOvertimesForDelete
+        if (!$overtimeId) {
+            if (!empty($this->selectedOvertimesForDelete) && is_array($this->selectedOvertimesForDelete)) {
+                $overtimeId = $this->selectedOvertimesForDelete[0] ?? null;
+            } else {
+                $this->showToast(__('employees.no_overtime_selected'), 'danger');
+                return;
+            }
         }
 
         $overtime = Overtime::withTrashed()->findOrFail($overtimeId);
@@ -194,6 +204,11 @@ class Index extends Component
 
         $overtime->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($overtimeId, $this->selectedOvertimesForDelete ?? [])) {
+            $this->selectedOvertimesForDelete = array_diff($this->selectedOvertimesForDelete, [$overtimeId]);
+        }
+
         $this->closeModalAndFlashMessage(__('employees.overtime_permanently_deleted'), 'ForceDeleteModal');
 
         // Update counts
@@ -202,7 +217,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('overtime-delete')) {
+        if (!Gate::allows('overtime-bulkrestore')) {
             return abort(401);
         }
 

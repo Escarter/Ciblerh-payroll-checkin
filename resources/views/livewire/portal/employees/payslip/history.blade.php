@@ -154,6 +154,7 @@
             </div>
 
             <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+            @if(auth()->user()->can('payslip-bulkdelete') && auth()->user()->can('payslip-bulkrestore'))
             <div class="d-flex justify-content-between align-items-center mb-3">
 
                 <!-- Tab Buttons (Right) -->
@@ -206,7 +207,7 @@
                         <!-- Soft Delete Bulk Actions (when items selected for delete) -->
                         @if(count($selectedPayslips) > 0)
                         <div class="d-flex align-items-center gap-2">
-                            @can('payslip-delete')
+                            @can('payslip-bulkdelete')
                             <button type="button"
                                 class="btn btn-sm btn-outline-danger d-flex align-items-center"
                                 title="{{ __('payslips.move_selected_payslips_to_trash') }}"
@@ -251,10 +252,10 @@
                     </div>
                     @endif
 
-                    <!-- Deleted Tab Bulk Actions -->
+                        <!-- Deleted Tab Bulk Actions -->
                         @if(count($selectedPayslips) > 0)
                         <div class="d-flex align-items-center gap-2">
-                            @can('payslip-delete')
+                            @can('payslip-bulkrestore')
                             <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                                 class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                                 title="{{ __('payslips.restore_selected_payslips') }}">
@@ -290,13 +291,14 @@
                     @endif
                 </div>
             </div>
+            @endif
 
             <div class="card">
                 <div class="table-responsive pb-4">
                     <table class="table employee-table table-bordered table-hover align-items-center dataTable" id="datatable">
-                        <thead>
+                        <thead class="">
                             <tr>
-                                <th class="border-bottom">
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">
                                     <div class="form-check d-flex justify-content-center align-items-center">
                                         <input class="form-check-input p-2" 
                                             wire:model.live="selectAll" 
@@ -304,14 +306,14 @@
                                             wire:click="toggleSelectAll">
                                     </div>
                                 </th>
-                                <th class="border-bottom">{{__('common.name')}}</th>
-                                <th class="border-bottom">{{__('employees.employee_info')}}</th>
-                                <th class="border-bottom">{{__('payslips.category')}}</th>
-                                <th class="border-bottom">{{__('payslips.timeline')}}</th>
-                                <th class="border-bottom">{{__('payslips.encryption_status')}}</th>
-                                <th class="border-bottom">{{__('payslips.email_status')}}</th>
-                                <th class="border-bottom">{{__('payslips.sms_status')}}</th>
-                                <th class="border-bottom">{{__('common.action')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.name')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee_info')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.category')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.timeline')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.encryption_status')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.email_status')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.sms_status')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                             </tr>
                         </thead>
                         <tbody>

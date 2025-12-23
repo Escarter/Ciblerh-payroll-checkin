@@ -206,6 +206,7 @@
     <!-- Table Controls: Tab Buttons + Bulk Actions + Select All -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <!-- Tab Buttons (Left) -->
+        @if(auth()->user()->can('department-bulkdelete') && auth()->user()->can('department-bulkrestore'))
         <div class="d-flex gap-2">
             <button id="active-departments-tab" class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
@@ -244,7 +245,7 @@
             <!-- Bulk Actions -->
             @if(count($selectedDepartments) > 0)
             @if($activeTab === 'active')
-            @can('department-delete')
+            @can('department-bulkdelete')
             <button id="bulk-delete-departments-btn" type="button"
                 class="btn btn-sm btn-danger d-flex align-items-center"
                 data-bs-toggle="modal"
@@ -257,7 +258,7 @@
             </button>
             @endcan
             @else
-            @can('department-delete')
+            @can('department-bulkrestore')
             <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                 class="btn btn-sm btn-outline-success d-flex align-items-center"
                 title="{{ __('departments.restore_selected_departments') }}">
@@ -267,7 +268,9 @@
                 {{__('common.restore_selected')}}
                 <span class="badge bg-success text-white ms-1">{{ count($selectedDepartments) }}</span>
             </button>
+            @endcan
 
+            @can('department-delete')
             <button type="button"
                 class="btn btn-sm btn-outline-danger d-flex align-items-center"
                 title="{{ __('departments.permanently_delete_selected_departments') }}"
@@ -291,6 +294,7 @@
             </button>
             @endif
         </div>
+        @endif
     </div>
 
     <div class='row row-cols-1 @if(count($departments) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>

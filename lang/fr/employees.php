@@ -537,4 +537,10 @@ return [
 
     // Messages de complétion d'import en arrière-plan
     'background_import_completed' => 'Import en arrière-plan terminé avec succès. :count enregistrements importés.',
+
+    // Traductions de rapport
+    'employee_name' => 'Nom de l\'employé',
+    'qualification' => 'Qualification',
+    't_hours_worked' => 'Heures totales travaillées',
+    'signature' => 'Signature',
 ];

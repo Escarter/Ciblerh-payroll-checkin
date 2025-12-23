@@ -21,7 +21,7 @@ class Dashboard extends Component
         $total_absences = $user->absences()->count();
         $total_checklogs = $user->tickings()->count();
         $total_payslips = $user->payslips()->count();
-        $logs = AuditLog::where('user_id', $user->id)->orderBy('created_at', 'desc')->get()->take(10);
+        $logs = AuditLog::with('user')->where('user_id', $user->id)->orderBy('created_at', 'desc')->get()->take(10);
         
         // Enhanced metrics for employee dashboard
         $monthly_checkins = $user->tickings()->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()])->count();

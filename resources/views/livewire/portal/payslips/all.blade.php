@@ -115,6 +115,7 @@
     <x-alert />
 
     <!-- Tabs and Bulk Actions -->
+    @if(auth()->user()->can('payslip-bulkdelete') && auth()->user()->can('payslip-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
@@ -139,6 +140,7 @@
         <div>
             @if($activeTab === 'active')
             @if(count($selectedJobs) > 0)
+            @can('payslip-bulkdelete')
             <button type="button" class="btn btn-sm btn-outline-danger me-2" data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -151,8 +153,10 @@
                 {{__('common.clear_selection')}}
             </button>
             @endif
+            @endcan
             @else
             @if(count($selectedJobs) > 0)
+            @can('payslip-bulkrestore')
             <button type="button" class="btn btn-sm btn-outline-success me-2" data-bs-toggle="modal" data-bs-target="#BulkRestoreModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -172,26 +176,28 @@
                 {{__('common.clear_selection')}}
             </button>
             @endif
+            @endcan
             @endif
         </div>
 
     </div>
+    @endif
 
     <div class="card">
         @if(count($jobs)>0)
 
         <div class="table-responsive ">
             <table class="table user-table table-hover table-bordered align-items-center dataTable" id="datatable">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <input type="checkbox" class="form-check-input" wire:click="toggleSelectAll" {{ $selectAll ? 'checked' : '' }}>
                         </th>
-                        <th class="border-bottom">{{__('departments.department')}}</th>
-                        <th class="border-bottom">{{__('By')}}</th>
-                        <th class="border-bottom">{{__('Details')}}</th>
-                        <th class="border-bottom text-center">{{__('common.status')}}</th>
-                        <th class="border-bottom text-center">{{__('common.action')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('departments.department')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('By')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('Details')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium text-center">{{__('common.status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium text-center">{{__('common.action')}}</th>
                     </tr>
                 </thead>
                 <tbody>

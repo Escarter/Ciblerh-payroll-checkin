@@ -216,7 +216,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('ticking-delete')) {
+        if (!Gate::allows('ticking-bulkdelete')) {
             return abort(401);
         }
 
@@ -237,7 +237,7 @@ class Index extends Component
 
     public function restore($checklogId)
     {
-        if (!Gate::allows('ticking-delete')) {
+        if (!Gate::allows('ticking-restore')) {
             return abort(401);
         }
 
@@ -256,10 +256,20 @@ class Index extends Component
         $this->updateCounts();
     }
 
-    public function forceDelete($checklogId)
+    public function forceDelete($checklogId = null)
     {
         if (!Gate::allows('ticking-delete')) {
             return abort(401);
+        }
+
+        // If no checklogId provided, try to get it from selectedChecklogsForDelete
+        if (!$checklogId) {
+            if (!empty($this->selectedChecklogsForDelete) && is_array($this->selectedChecklogsForDelete)) {
+                $checklogId = $this->selectedChecklogsForDelete[0] ?? null;
+            } else {
+                $this->showToast(__('employees.no_checklog_selected'), 'danger');
+                return;
+            }
         }
 
         $checklog = Ticking::withTrashed()->findOrFail($checklogId);
@@ -271,6 +281,11 @@ class Index extends Component
 
         $checklog->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($checklogId, $this->selectedChecklogsForDelete ?? [])) {
+            $this->selectedChecklogsForDelete = array_diff($this->selectedChecklogsForDelete, [$checklogId]);
+        }
+
         $this->closeModalAndFlashMessage(__('employees.checkin_permanently_deleted'), 'ForceDeleteModal');
 
         // Update counts
@@ -279,7 +294,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('ticking-delete')) {
+        if (!Gate::allows('ticking-bulkrestore')) {
             return abort(401);
         }
 

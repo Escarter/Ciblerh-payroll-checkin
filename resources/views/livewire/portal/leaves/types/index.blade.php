@@ -188,6 +188,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('leave_type-bulkdelete') && auth()->user()->can('leave_type-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -219,7 +220,7 @@
                 <!-- Soft Delete Bulk Actions (when items selected for delete) -->
                 @if(count($selectedLeaveTypes) > 0)
                 <div class="d-flex align-items-center gap-2">
-                    @can('leave_type-delete')
+                    @can('leave_type-bulkdelete')
                     <button type="button"
                         class="btn btn-sm btn-outline-danger d-flex align-items-center"
                         title="{{ __('leaves.move_selected_leave_types_to_trash') }}"
@@ -246,7 +247,7 @@
                 <!-- Deleted Tab Bulk Actions -->
                 @if(count($selectedLeaveTypes) > 0)
                 <div class="d-flex align-items-center gap-2">
-                    @can('leave_type-delete')
+                    @can('leave_type-bulkrestore')
                     <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                         class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                         title="{{ __('leaves.restore_selected_leave_types') }}">
@@ -282,13 +283,14 @@
             @endif
         </div>
     </div>
+    @endif
 
     <div class="card pb-3">
         <div class="table-responsive text-gray-700">
             <table class="table employee-table table-bordered table-hover align-items-center " id="">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 <input class="form-check-input p-2" 
                                     wire:model.live="selectAll" 
@@ -296,13 +298,13 @@
                                     wire:click="toggleSelectAll">
                             </div>
                         </th>
-                        <th class="border-bottom">{{__('leaves.leave_type_id')}}</th>
-                        <th class="border-bottom">{{__('leaves.leave_type')}}</th>
-                        <th class="border-bottom">{{__('leaves.default_number_of_days')}}</th>
-                        <th class="border-bottom">{{__('common.status')}}</th>
-                        <th class="border-bottom">{{__('common.created_date')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('leaves.leave_type_id')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('leaves.leave_type')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('leaves.default_number_of_days')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
                         @canany(['leave_type-update','leave_type-delete'])
-                        <th class="border-bottom">{{__('common.action')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>

@@ -211,7 +211,7 @@ class Index extends Component
 
     public function restore($absenceId)
     {
-        if (!Gate::allows('absence-delete')) {
+        if (!Gate::allows('absence-restore')) {
             return abort(401);
         }
 
@@ -230,10 +230,20 @@ class Index extends Component
         $this->updateCounts();
     }
 
-    public function forceDelete($absenceId)
+    public function forceDelete($absenceId = null)
     {
         if (!Gate::allows('absence-delete')) {
             return abort(401);
+        }
+
+        // If no absenceId provided, try to get it from selectedAbsencesForDelete
+        if (!$absenceId) {
+            if (!empty($this->selectedAbsencesForDelete) && is_array($this->selectedAbsencesForDelete)) {
+                $absenceId = $this->selectedAbsencesForDelete[0] ?? null;
+            } else {
+                $this->showToast(__('employees.no_absence_selected'), 'danger');
+                return;
+            }
         }
 
         $absence = Absence::withTrashed()->findOrFail($absenceId);
@@ -244,6 +254,11 @@ class Index extends Component
         }
 
         $absence->forceDelete();
+
+        // Clear selection after deletion
+        if (in_array($absenceId, $this->selectedAbsencesForDelete ?? [])) {
+            $this->selectedAbsencesForDelete = array_diff($this->selectedAbsencesForDelete, [$absenceId]);
+        }
 
         $this->closeModalAndFlashMessage(__('employees.absence_permanently_deleted'), 'ForceDeleteModal');
 
@@ -286,7 +301,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('absence-delete')) {
+        if (!Gate::allows('absence-bulkdelete')) {
             return abort(401);
         }
 
@@ -308,7 +323,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('absence-delete')) {
+        if (!Gate::allows('absence-bulkrestore')) {
             return abort(401);
         }
 

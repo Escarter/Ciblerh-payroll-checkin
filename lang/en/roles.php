@@ -76,4 +76,13 @@ return [
     'leave_permissions' => 'Leave Permissions',
     'payslips_processing_permissions' => 'Payslips Processing Permissions',
     'roles_and_audit_log_features_permissions' => 'Roles and Audit Log Features Permissions',
+    'settings' => 'Settings',
+    
+    // Additional translations for unified modal
+    'currently_editing' => 'Currently Editing',
+    'permissions_currently_assigned' => 'permissions currently assigned',
+    'search_permissions' => 'Search permissions...',
+    'selected_permissions' => 'Selected Permissions',
+    'no_permissions_selected' => 'No permissions selected',
+    'no_permissions_found' => 'No permissions found',
 ];

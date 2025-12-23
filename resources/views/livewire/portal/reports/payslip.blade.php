@@ -135,15 +135,15 @@
     <div class="card pb-3 ">
         <div class="table-responsive">
             <table class="table employee-table table-bordered table-hover align-items-center dataTable" id="datatable">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">{{__('common.name')}}</th>
-                        <th class="border-bottom">{{__('employees.matricule')}}</th>
-                        <th class="border-bottom">{{__('common.contacts')}}</th>
-                        <th class="border-bottom">{{__('common.period')}}</th>
-                        <th class="border-bottom">{{__('common.when')}}</th>
-                        <th class="border-bottom">{{__('reports.email_status')}}</th>
-                        <th class="border-bottom">{{__('common.sms_status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.name')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.matricule')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.contacts')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.period')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.when')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('reports.email_status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sms_status')}}</th>
                     </tr>
                 </thead>
                 <tbody>

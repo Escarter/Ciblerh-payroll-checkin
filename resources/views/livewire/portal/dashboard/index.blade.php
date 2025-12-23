@@ -912,13 +912,13 @@
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover align-items-center">
-                                <thead>
+                                <thead class="">
                                     <tr>
-                                        <th class="border-bottom">{{__('employees.employee')}}</th>
-                                        <th class="border-bottom">{{__('departments.department')}}</th>
-                                        <th class="border-bottom">{{__('dashboard.checkins')}}</th>
-                                        <th class="border-bottom">{{__('dashboard.overtime_hours')}}</th>
-                                        <th class="border-bottom">{{__('dashboard.performance_score')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('departments.department')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.checkins')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.overtime_hours')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.performance_score')}}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -981,15 +981,15 @@
             <div class="card mt-2">
                 <div class="table-responsive text-gray-700">
                     <table class="table table-hover align-items-center dataTable">
-                        <thead>
+                        <thead class="">
                             <tr>
-                                <th class="border-bottom">{{__('employees.employee')}}</th>
-                                <th class="border-bottom">{{__('dashboard.checkin_time')}}</th>
-                                <th class="border-bottom">{{__('dashboard.checkout_time')}}</th>
-                                <th class="border-bottom">{{__('dashboard.hours_worked')}}</th>
-                                <th class="border-bottom">{{__('dashboard.sup_approval')}}</th>
-                                <th class="border-bottom">{{__('dashboard.mgr_approval')}}</th>
-                                <th class="border-bottom">{{__('dashboard.date_created')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.checkin_time')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.checkout_time')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.hours_worked')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.sup_approval')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.mgr_approval')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.date_created')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1056,30 +1056,37 @@
             <div class="card mt-2">
                 <div class="table-responsive text-gray-700">
                     <table class="table employee-table table-hover align-items-center ">
-                        <thead>
+                        <thead class="">
                             <tr>
-                                <th class="border-bottom">{{__('employees.employee')}}</th>
-                                <th class="border-bottom">{{__('employees.action_type')}}</th>
-                                <th class="border-bottom">{{__('employees.action_performed')}}</th>
-                                <th class="border-bottom">{{__('dashboard.date_created')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.action_type')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.action_performed')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.date_created')}}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($logs as $log)
+                            @php
+                                $userModel = $log->relationLoaded('user') ? $log->getRelation('user') : null;
+                                $userName = $userModel ? $userModel->name : ($log->getAttribute('user') ?? __('audit_logs.system'));
+                                $userEmail = $userModel ? $userModel->email : null;
+                            @endphp
                             <tr>
                                 <td>
                                     <a href="#" class="d-flex align-items-center">
-                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($log->user)}}</span></div>
-                                        <div class="d-block"><span class="fw-bold">{{$log->user}}</span>
-                                            <div class="small text-gray">{{$log->user}}</div>
+                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($userName)}}</span></div>
+                                        <div class="d-block"><span class="fw-bold">{{$userName}}</span>
+                                            @if($userEmail)
+                                            <div class="small text-gray">{{$userEmail}}</div>
+                                            @endif
                                         </div>
                                     </a>
                                 </td>
                                 <td>
-                                    <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->translated_action_type}}</span>
+                                    <span class="badge badge-lg bg-{{$log->action_color}} text-white">{{$log->translated_action_type}}</span>
                                 </td>
                                 <td>
-                                    <span class="fs-normal">{!! $log->translated_action_perform !!}</span>
+                                    <span class="fs-normal">{!! \Illuminate\Support\Str::limit(strip_tags($log->translated_action_perform), 50) !!}</span>
                                 </td>
                                 <td>
                                     <span class="fw-normal">{{$log->created_at->locale(app()->getLocale())->isoFormat(__('dashboard.date_format_short'))}}</span>

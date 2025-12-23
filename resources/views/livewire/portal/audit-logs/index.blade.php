@@ -207,42 +207,65 @@
     
     <x-alert />
 
-    <div class="row p-3">
-        <div class="col-md-3">
-            <label for="search">{{__('common.search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
-            <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
-        </div>
-        <div class="col-md-3">
-            <label for="orderBy">{{__('common.order_by')}}: </label>
-            <select wire:model.live="orderBy" id="orderBy" class="form-select">
-                <option value="user">{{__('common.user')}}</option>
-                <option value="action_type">{{__('common.action_type')}}</option>
-                <option value="created_at">{{__('common.created_date')}}</option>
-            </select>
-        </div>
-
-        <div class="col-md-3">
-            <label for="direction">{{__('common.order_direction')}}: </label>
-            <select wire:model.live="orderAsc" id="direction" class="form-select">
-                <option value="asc">{{__('common.ascending')}}</option>
-                <option value="desc">{{__('common.descending')}}</option>
-            </select>
-        </div>
-
-        <div class="col-md-3">
-            <label for="perPage">{{__('common.items_per_page')}}: </label>
-            <select wire:model.live="perPage" id="perPage" class="form-select">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
-                <option value="25">25</option>
-            </select>
+    <!-- Enhanced Filters Card (similar to StratagemAI) -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-lg-4">
+                    <label class="form-label small text-muted fw-medium">{{__('common.search')}}</label>
+                    <div class="position-relative">
+                        <svg class="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" class="form-control ps-5" placeholder="{{__('common.search_placeholder')}}"
+                            wire:model.live.debounce.500ms="query">
+                    </div>
+                </div>
+                @if(count($users) > 0)
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label class="form-label small text-muted fw-medium">{{__('common.user')}}</label>
+                    <select class="form-select" wire:model.live="userFilter">
+                        <option value="">{{__('common.all_users')}}</option>
+                        @foreach($users as $user)
+                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="form-label small text-muted fw-medium">{{__('common.action_type')}}</label>
+                    <select class="form-select" wire:model.live="actionFilter">
+                        <option value="">{{__('common.all_actions')}}</option>
+                        @foreach($actionOptions as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label class="form-label small text-muted fw-medium">{{__('common.date_from')}}</label>
+                    <input type="date" class="form-control" wire:model.live="dateFrom">
+                </div>
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label class="form-label small text-muted fw-medium">{{__('common.date_to')}}</label>
+                    <input type="date" class="form-control" wire:model.live="dateTo">
+                </div>
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label class="form-label small text-muted fw-medium">{{__('common.items_per_page')}}</label>
+                    <select class="form-select" wire:model.live="perPage">
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('audit_log-bulkdelete') && auth()->user()->can('audit_log-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3 px-3">
 
         <!-- Tab Buttons (Right) -->
@@ -274,6 +297,7 @@
             <!-- Soft Delete Bulk Actions (when items selected for delete) -->
             @if(count($selectedAuditLogs) > 0)
             <div class="d-flex align-items-center gap-2">
+                @can('audit_log-bulkdelete')
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
                     title="{{ __('common.move_selected_audit_logs_to_trash') }}"
@@ -285,6 +309,7 @@
                     {{__('common.move_to_trash')}}
                     <span class="badge bg-danger text-white ms-1">{{ count($selectedAuditLogs) }}</span>
                 </button>
+                @endcan
 
                 <button wire:click="$set('selectedAuditLogs', [])"
                     class="btn btn-sm btn-outline-secondary d-flex align-items-center">
@@ -299,6 +324,7 @@
             <!-- Deleted Tab Bulk Actions -->
             @if(count($selectedAuditLogs) > 0)
             <div class="d-flex align-items-center gap-2">
+                @can('audit_log-bulkrestore')
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('common.restore_selected_audit_logs') }}">
@@ -308,7 +334,9 @@
                     {{__('common.restore_selected')}}
                     <span class="badge bg-success text-white ms-1">{{ count($selectedAuditLogs) }}</span>
                 </button>
+                @endcan
 
+                @can('audit_log-delete')
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
                     title="{{ __('common.permanently_delete_selected_audit_logs') }}"
@@ -320,6 +348,7 @@
                     {{__('common.delete_forever')}}
                     <span class="badge bg-danger text-white ms-1">{{ count($selectedAuditLogs) }}</span>
                 </button>
+                @endcan
 
                 <button wire:click="$set('selectedAuditLogs', [])"
                     class="btn btn-sm btn-outline-secondary d-flex align-items-center">
@@ -333,109 +362,376 @@
             @endif
         </div>
     </div>
+    @endif
 
-    <div class="card pb-3">
-        <div class="table-responsive  text-gray-700">
-            <table class="table employee-table table-bordered table-hover align-items-center ">
-                <thead>
-                    <tr>
-                        <th class="border-bottom">
-                            <div class="form-check d-flex justify-content-center align-items-center">
-                                <input class="form-check-input p-2"
-                                    wire:model.live="selectAll"
-                                    type="checkbox"
-                                    wire:click="toggleSelectAll">
-                            </div>
-                        </th>
-                        <th class="border-bottom">{{__('common.logger')}}</th>
-                        <th class="border-bottom">{{__('common.task')}}</th>
-                        <th class="border-bottom">{{__('common.task_performed_and_date')}}</th>
-                        <th class="border-bottom">{{__('common.action')}}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($logs as $log)
-                    <tr>
-                        <td>
-                            <div class="form-check d-flex justify-content-center align-items-center">
-                                <input class="form-check-input"
-                                    type="checkbox"
-                                    wire:click="toggleAuditLogSelection({{ $log->id }})"
-                                    {{ in_array($log->id, $selectedAuditLogs) ? 'checked' : '' }}>
-                            </div>
-                        </td>
-                        <td>
-                            <a href="#" class="d-flex align-items-center">
-                                <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($log->user)}}</span></div>
-                                <div class="d-block"><span class="fw-bold">{{$log->user}}</span>
-                                    <div class="small text-gray">{{$log->user}}</div>
+    <!-- Main Table Card -->
+    <div class="card border-0 shadow-sm">
+    
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered mb-0">
+                    <thead class="">
+                        <tr>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">
+                                <input type="checkbox" class="form-check-input" wire:model.live="selectAll" wire:click="toggleSelectAll">
+                            </th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.user') }}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.action') }}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.model') }}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.description') }}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.date') }}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($logs as $log)
+                        <tr class="border-bottom border-opacity-25">
+                            <td class="px-4 py-2">
+                                <input type="checkbox" class="form-check-input" wire:click="toggleAuditLogSelection({{ $log->id }})" {{ in_array($log->id, $selectedAuditLogs) ? 'checked' : '' }}>
+                            </td>
+                            <td class="px-4 py-2">
+                                @php
+                                    $userModel = $log->relationLoaded('user') && $log->getRelation('user') ? $log->getRelation('user') : null;
+                                    $userName = $userModel ? $userModel->name : ($log->getAttribute('user') ?? 'System');
+                                    $userEmail = $userModel ? $userModel->email : null;
+                                @endphp
+                                @if($userModel || $log->getAttribute('user'))
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar bg-primary text-white me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10%;">
+                                        {{ initials($userName) }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium text-dark">{{ $userName }}</div>
+                                        @if($userEmail)
+                                        <small class="text-muted">{{ $userEmail }}</small>
+                                        @endif
+                                    </div>
                                 </div>
-                            </a>
-                        </td>
-                        <td>
-                            <div class="d-flex flex-column">
-                                <div class="mb-2">
-                                    <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->translated_action_type}}</span>
+                                @else
+                                <span class="text-muted">{{ __('audit_logs.system') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                                <span class="badge badge-lg bg-{{$log->action_color}} text-white">
+                                    {{ $log->translated_action_type }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-2">
+                                @if($log->model_type)
+                                <span class="text-muted small">{{ class_basename($log->model_type) }}</span>
+                                @if($log->model_name)
+                                <br><small class="text-dark">{{ \Illuminate\Support\Str::limit($log->model_name, 30) }}</small>
+                                @endif
+                                @else
+                                <span class="text-muted small">-</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2">
+                                <div class="text-dark small">{{ \Illuminate\Support\Str::limit(strip_tags($log->translated_action_perform), 50) }}</div>
+                            </td>
+                            <td class="px-4 py-2">
+                                <div class="text-muted small">{{ $log->created_at->format('M d, Y H:i') }}</div>
+                            </td>
+                            <td class="px-4 py-2">
+                                <div class="d-flex align-items-center justify-content-center gap-1">
+                                    @if($activeTab === 'active')
+                                        <!-- Active View Actions -->
+                                        <button class="btn btn-link p-0 text-primary" wire:click="openDetailModal({{ $log->id }})" title="{{__('common.view_details')}}">
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                        @can('audit_log-delete')
+                                        <button class="btn btn-link p-0 text-danger" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#DeleteAuditLogModal" title="{{__('common.delete')}}">
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                        @endcan
+                                    @else
+                                        <!-- Deleted View Actions -->
+                                        @can('audit_log-restore')
+                                        <button class="btn btn-link p-0 text-success" wire:click.prevent="$set('audit_log_id', {{ $log->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('common.restore')}}">
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                        </button>
+                                        @endcan
+                                        @can('audit_log-delete')
+                                        <button class="btn btn-link p-0 text-danger" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#ForceDeleteAuditLogModal" title="{{__('common.delete_forever')}}">
+                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                        @endcan
+                                    @endif
                                 </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted">
+                                    <svg class="mb-3 opacity-50" width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                    </svg>
+                                    <p class="mb-0 fw-medium">{{ __('audit_logs.no_logs_found') }}</p>
+                                    <p class="small text-muted">{{ __('audit_logs.try_adjusting_filters') }}</p>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @if($logs->hasPages())
+        <div class="card-footer bg-white border-top">
+            {{ $logs->links() }}
+        </div>
+        @endif
+    </div>
 
+    <!-- Audit Log Detail Modal -->
+    @if($showDetailModal && $selectedLog)
+    <div class="modal-backdrop fade show" wire:click="closeDetailModal"></div>
+    <div wire:ignore.self class="modal side-layout-modal fade show" id="DetailModal" tabindex="-1" role="dialog" aria-labelledby="detailModal" data-bs-backdrop="static" data-bs-keyboard="false" style="display: block;" aria-hidden="false">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width:50%; max-height: 100vh;">
+            <div class="modal-content" style="max-height: 100vh; display: flex; flex-direction: column;">
+                <div class="modal-header border-0 pb-2 flex-shrink-0">
+                    <h1 class="mb-0 h4 fw-bold">{{__('audit_logs.log_details')}}</h1>
+                    <button type="button" class="btn-close" wire:click="closeDetailModal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-3 flex-grow-1" style="overflow-y: auto; min-height: 0;">
+                    <div class="p-2 p-lg-3">
+                    <!-- Basic Information -->
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+                            <svg width="18" height="18" fill="currentColor" class="text-primary" viewBox="0 0 24 24">
+                                <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{__('audit_logs.basic_information')}}
+                        </h6>
+                        <div class="card border shadow-sm">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('common.user')}}</label>
+                                        <div>
+                                            @php
+                                                $userModel = $selectedLog->relationLoaded('user') && $selectedLog->getRelation('user') ? $selectedLog->getRelation('user') : null;
+                                                $userName = $userModel ? $userModel->name : ($selectedLog->getAttribute('user') ?? 'System');
+                                            @endphp
+                                            @if($userModel || $selectedLog->getAttribute('user'))
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar bg-primary text-white me-2 d-flex align-items-center justify-content-center fw-bold rounded" style="width: 40px; height: 40px;">
+                                                    {{initials($userName)}}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium text-dark">{{ $userName }}</div>
+                                                    @if($userModel && $userModel->email)
+                                                    <small class="text-muted">{{ $userModel->email }}</small>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            @else
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-3 py-2">
+                                                {{__('audit_logs.system')}}
+                                            </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('common.action')}}</label>
+                                        <div>
+                                            <span class="badge badge-lg bg-{{$selectedLog->action_color}} text-white px-3 py-2 fw-medium">
+                                                {{$selectedLog->translated_action_type}}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('common.task_performed_and_date')}}</label>
+                                        <div class="text-dark fw-medium" style="line-height: 1.6;">{!! $selectedLog->translated_action_perform !!}</div>
+                                    </div>
+                                </div>
                             </div>
-                        </td>
-                        <td>
-                            <div class="small text-muted">
-                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                                </svg>
-                                <span class="fs-normal">{!! $log->translated_action_perform !!}</span>
+                        </div>
+                    </div>
+
+                    <!-- Timestamp Information -->
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+                            <svg width="18" height="18" fill="currentColor" class="text-secondary" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-.5-13H10v6l5.25 3.15.75-1.23-4.5-2.67z"></path>
+                            </svg>
+                            {{__('audit_logs.timestamp_info')}}
+                        </h6>
+                        <div class="card border shadow-sm">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('common.date')}}</label>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <span class="fw-medium text-dark">{{ $selectedLog->created_at->format('M d, Y H:i') }}</span>
+                                            <span class="text-muted small">({{ $selectedLog->created_at->diffForHumans() }})</span>
+                                        </div>
+                                    </div>
+                                    @if($selectedLog->channel)
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('common.channel')}}</label>
+                                        <div>
+                                            <code class="bg-light px-2 py-1 rounded text-dark">{{ $selectedLog->channel }}</code>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    @if($selectedLog->ip_address)
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('audit_logs.ip_address')}}</label>
+                                        <div>
+                                            <code class="bg-light px-2 py-1 rounded text-dark">{{ $selectedLog->ip_address }}</code>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    @if($selectedLog->url)
+                                    <div class="col-12">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('audit_logs.url')}}</label>
+                                        <div>
+                                            <code class="bg-light px-2 py-1 rounded text-dark text-break" style="word-break: break-all; font-size: 0.85rem;">{{ $selectedLog->url }}</code>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    @if($selectedLog->method)
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('audit_logs.method')}}</label>
+                                        <div>
+                                            <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2">{{ $selectedLog->method }}</span>
+                                        </div>
+                                    </div>
+                                    @endif
+                                </div>
                             </div>
-                            <div class="small text-muted">
-                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                                {{$log->created_at->format('M d, Y')}}
+                        </div>
+                    </div>
+
+                    <!-- Model Information -->
+                    @if($selectedLog->model_type)
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+                            <svg width="18" height="18" fill="currentColor" class="text-info" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
+                            </svg>
+                            {{__('audit_logs.model_information')}}
+                        </h6>
+                        <div class="card border shadow-sm">
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('audit_logs.model_type')}}</label>
+                                        <div>
+                                            <code class="bg-light px-2 py-1 rounded text-dark">{{ class_basename($selectedLog->model_type) }}</code>
+                                        </div>
+                                    </div>
+                                    @if($selectedLog->model_id)
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('audit_logs.model_id')}}</label>
+                                        <div>
+                                            <code class="bg-light px-2 py-1 rounded text-dark">{{ $selectedLog->model_id }}</code>
+                                        </div>
+                                    </div>
+                                    @endif
+                                    @if($selectedLog->model_name)
+                                    <div class="col-12">
+                                        <label class="form-label small text-muted fw-medium mb-2">{{__('audit_logs.model_name')}}</label>
+                                        <div class="text-dark fw-medium">{{ $selectedLog->model_name }}</div>
+                                    </div>
+                                    @endif
+                                </div>
                             </div>
-                            <div class="small text-muted">
-                                <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                {{$log->created_at->format('H:i')}}
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Changes -->
+                    @if($selectedLog->changes && count($selectedLog->changes) > 0)
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+                            <svg width="18" height="18" fill="currentColor" class="text-warning" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                            {{__('audit_logs.changes')}}
+                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 small ms-2">
+                                {{ count($selectedLog->changes) }} {{__('audit_logs.field_changes')}}
+                            </span>
+                        </h6>
+                        <div class="card border shadow-sm">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="px-3 py-2 fw-medium">{{__('audit_logs.field')}}</th>
+                                                <th class="px-3 py-2 fw-medium">{{__('audit_logs.old_value')}}</th>
+                                                <th class="px-3 py-2 fw-medium">{{__('audit_logs.new_value')}}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($selectedLog->changes as $field => $change)
+                                            <tr>
+                                                <td class="px-3 py-2">
+                                                    <code class="bg-light px-2 py-1 rounded text-dark">{{ $field }}</code>
+                                                </td>
+                                                <td class="px-3 py-2">
+                                                    <div class="text-danger small" style="word-break: break-word;">
+                                                        @if(is_array($change['old'] ?? null))
+                                                            <pre class="mb-0 small" style="white-space: pre-wrap;">{{ json_encode($change['old'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                                        @else
+                                                            {{ $change['old'] ?? __('audit_logs.n_a') }}
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td class="px-3 py-2">
+                                                    <div class="text-success small" style="word-break: break-word;">
+                                                        @if(is_array($change['new'] ?? null))
+                                                            <pre class="mb-0 small" style="white-space: pre-wrap;">{{ json_encode($change['new'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                                                        @else
+                                                            {{ $change['new'] ?? __('audit_logs.n_a') }}
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </td>
-                        <td>
-                            @if($activeTab === 'active')
-                            <a href="#" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#DeleteAuditLogModal" class="text-danger" title="{{__('common.delete')}}">
-                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </a>
-                            @else
-                            <a href="#" wire:click.prevent="$set('{{ $log->id }}', {{ $log->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('common.restore')}}">
-                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                </svg>
-                            </a>
-                            <a href="#" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#ForceDeleteAuditLogModal" class="text-danger" title="{{__('common.delete_forever')}}">
-                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </a>
-                            @endif
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="5" class="text-center">
-                            <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
-                                <p>{{__('common.no_records_found')}}</p>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Metadata -->
+                    @if($selectedLog->metadata)
+                    <div class="mb-4">
+                        <h6 class="fw-semibold mb-3 d-flex align-items-center gap-2">
+                            <svg width="18" height="18" fill="currentColor" class="text-info" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
+                            </svg>
+                            {{__('audit_logs.metadata')}}
+                        </h6>
+                        <div class="card border shadow-sm">
+                            <div class="card-body">
+                                <pre class="bg-light p-3 rounded small mb-0" style="max-height: 300px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">{{ json_encode($selectedLog->metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) }}</pre>
                             </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            <div class='pt-3 px-3 '>
-                {{ $logs->links() }}
+                        </div>
+                    </div>
+                    @endif
+                    </div>
+                </div>
+                <div class="modal-footer border-1 pt-2 flex-shrink-0">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="closeDetailModal">{{__('common.close')}}</button>
+                </div>
             </div>
         </div>
     </div>
+    @endif
 </div>

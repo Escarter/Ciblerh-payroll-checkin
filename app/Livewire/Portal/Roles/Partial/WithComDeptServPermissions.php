@@ -8,34 +8,43 @@ trait WithComDeptServPermissions
     public $selectedCompanyPermissions = [];
     public $selectAllCompanyPermissions = false;
     public $CompanyPermissions = [
-        'View' => 'company-read',
-        'Update' => 'company-update',
-        'Delete' => 'company-delete',
-        'Create' => 'company-create',
-        'Import' => 'company-import',
-        'Export' => 'company-export',
+        'common.view' => 'company-read',
+        'common.update' => 'company-update',
+        'common.delete' => 'company-delete',
+        'common.create' => 'company-create',
+        'common.import' => 'company-import',
+        'common.export' => 'company-export',
+        'common.restore' => 'company-restore',
+        'common.bulk_delete' => 'company-bulkdelete',
+        'common.bulk_restore' => 'company-bulkrestore',
     ];
 
     public $selectedDepartmentPermissions = [];
     public $selectAllDepartmentPermissions = false;
     public $DepartmentPermissions = [
-        'View' => 'department-read',
-        'Update' => 'department-update',
-        'Delete' => 'department-delete',
-        'Create' => 'department-create',
-        'Import' => 'department-import',
-        'Export' => 'department-export',
+        'common.view' => 'department-read',
+        'common.update' => 'department-update',
+        'common.delete' => 'department-delete',
+        'common.create' => 'department-create',
+        'common.import' => 'department-import',
+        'common.export' => 'department-export',
+        'common.restore' => 'department-restore',
+        'common.bulk_delete' => 'department-bulkdelete',
+        'common.bulk_restore' => 'department-bulkrestore',
     ];
 
     public $selectedServicePermissions = [];
     public $selectAllServicePermissions = false;
     public $ServicePermissions = [
-        'View' => 'service-read',
-        'Update' => 'service-update',
-        'Delete' => 'service-delete',
-        'Create' => 'service-create',
-        'Import' => 'service-import',
-        'Export' => 'service-export',
+        'common.view' => 'service-read',
+        'common.update' => 'service-update',
+        'common.delete' => 'service-delete',
+        'common.create' => 'service-create',
+        'common.import' => 'service-import',
+        'common.export' => 'service-export',
+        'common.restore' => 'service-restore',
+        'common.bulk_delete' => 'service-bulkdelete',
+        'common.bulk_restore' => 'service-bulkrestore',
     ];
 
     public function compDeptServPermissionClearFields()

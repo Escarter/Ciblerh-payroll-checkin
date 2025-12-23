@@ -125,7 +125,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('leave_type-delete')) {
+        if (!Gate::allows('leave_type-restore')) {
             return abort(401);
         }
 
@@ -135,21 +135,39 @@ class Index extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('leaves.leavetype_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($leaveTypeId)
+    public function forceDelete($leaveTypeId = null)
     {
         if (!Gate::allows('leave_type-delete')) {
             return abort(401);
         }
 
+        // If no leaveTypeId provided, try to get it from selectedLeaveTypes
+        if (!$leaveTypeId) {
+            if (!empty($this->selectedLeaveTypes) && is_array($this->selectedLeaveTypes)) {
+                $leaveTypeId = $this->selectedLeaveTypes[0] ?? null;
+            } elseif ($this->leave_type_id) {
+                $leaveTypeId = $this->leave_type_id;
+            } else {
+                $this->showToast(__('leaves.no_leave_type_selected'), 'danger');
+                return;
+            }
+        }
+
         $leaveType = LeaveType::withTrashed()->findOrFail($leaveTypeId);
         $leaveType->forceDelete();
+
+        // Clear selection after deletion
+        if (in_array($leaveTypeId, $this->selectedLeaveTypes ?? [])) {
+            $this->selectedLeaveTypes = array_diff($this->selectedLeaveTypes, [$leaveTypeId]);
+        }
+        $this->leave_type_id = null;
 
         $this->closeModalAndFlashMessage(__('leaves.leavetype_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('leave_type-delete')) {
+        if (!Gate::allows('leave_type-bulkdelete')) {
             return abort(401);
         }
 
@@ -163,7 +181,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('leave_type-delete')) {
+        if (!Gate::allows('leave_type-bulkrestore')) {
             return abort(401);
         }
 

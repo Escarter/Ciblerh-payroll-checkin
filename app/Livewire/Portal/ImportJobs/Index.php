@@ -345,6 +345,10 @@ class Index extends Component
 
     public function cancelJob($jobId)
     {
+        if (!Gate::allows('importjob-cancel')) {
+            abort(403);
+        }
+
         $job = ImportJob::findOrFail($jobId);
 
         if (!$job->canBeCancelled()) {
@@ -372,6 +376,10 @@ class Index extends Component
 
     public function bulkCancel()
     {
+        if (!Gate::allows('importjob-cancel')) {
+            abort(403);
+        }
+
         if (empty($this->selectedJobs)) {
             $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_cancel'), type: "danger");
             return;
@@ -399,6 +407,10 @@ class Index extends Component
 
     public function retryModal($jobId = null)
     {
+        if (!Gate::allows('importjob-update')) {
+            abort(403);
+        }
+
         // Validate job ID
         if (!$jobId) {
             $this->dispatch("showToast", message: 'Job ID is required', type: "danger");
@@ -436,6 +448,10 @@ class Index extends Component
 
     public function confirmRetry()
     {
+        if (!Gate::allows('importjob-update')) {
+            abort(403);
+        }
+
         if (!$this->jobToRetry) {
             $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "danger");
             return;
@@ -469,6 +485,10 @@ class Index extends Component
 
     public function bulkRetry()
     {
+        if (!Gate::allows('importjob-update')) {
+            abort(403);
+        }
+
         if (empty($this->selectedJobs)) {
             $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_retry'), type: "danger");
             return;
@@ -506,6 +526,10 @@ class Index extends Component
 
     public function bulkDelete()
     {
+        if (!Gate::allows('importjob-bulkdelete')) {
+            abort(403);
+        }
+
         if (empty($this->selectedJobs)) {
             $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_delete'), type: "danger");
             return;
@@ -532,6 +556,10 @@ class Index extends Component
 
     public function bulkRestore()
     {
+        if (!Gate::allows('importjob-bulkrestore')) {
+            abort(403);
+        }
+
         if (empty($this->selectedJobs)) {
             $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_restore'), type: "danger");
             return;
@@ -559,6 +587,10 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
+        if (!Gate::allows('importjob-delete')) {
+            abort(403);
+        }
+
         if (empty($this->selectedJobs)) {
             $this->dispatch("showToast", message: __('import_jobs.please_select_jobs_to_delete'), type: "danger");
             return;
@@ -608,6 +640,10 @@ class Index extends Component
 
     public function delete()
     {
+        if (!Gate::allows('importjob-delete')) {
+            abort(403);
+        }
+
         if (!$this->job_id) {
             $this->dispatch("showToast", message: __('import_jobs.job_not_found'), type: "danger");
             return;
@@ -633,6 +669,10 @@ class Index extends Component
 
     public function forceDelete()
     {
+        if (!Gate::allows('importjob-delete')) {
+            abort(403);
+        }
+
         $job = ImportJob::withTrashed()->findOrFail($this->job_id);
 
         if ($job->user_id !== auth()->id()) {
@@ -677,6 +717,10 @@ class Index extends Component
 
     public function openCreateModal()
     {
+        if (!Gate::allows('importjob-create')) {
+            abort(403);
+        }
+
         $this->showCreateModal = true;
         $this->currentStep = 'upload'; // Ensure we start with upload step
         $this->resetNewImport();
@@ -846,6 +890,10 @@ class Index extends Component
 
     public function confirmImport()
     {
+        if (!Gate::allows('importjob-create')) {
+            abort(403);
+        }
+
         \Log::info('ImportJobs/Index confirmImport called', [
             'import_type' => $this->newImport['import_type'] ?? 'unknown',
             'company_id' => $this->newImport['company_id'] ?? 'not set',

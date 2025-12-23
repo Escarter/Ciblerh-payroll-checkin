@@ -188,6 +188,7 @@
     <!-- Table Controls: Tab Buttons + Bulk Actions + Select All -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <!-- Tab Buttons (Left) -->
+        @if(auth()->user()->can('service-bulkdelete') && auth()->user()->can('service-bulkrestore'))
         <div class="d-flex gap-2">
             <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
@@ -229,7 +230,7 @@
             <!-- Bulk Actions -->
             @if(count($selectedServices) > 0)
             @if($activeTab === 'active')
-            @can('service-delete')
+            @can('service-bulkdelete')
             <button type="button"
                 id="bulk-delete-services-btn"
                 class="btn btn-sm btn-danger d-flex align-items-center"
@@ -243,7 +244,7 @@
             </button>
             @endcan
             @else
-            @can('service-delete')
+            @can('service-bulkrestore')
             <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                 class="btn btn-sm btn-outline-success d-flex align-items-center"
                 title="{{ __('services.restore_selected_services') }}">
@@ -253,7 +254,9 @@
                 {{__('common.restore_selected')}}
                 <span class="badge bg-success text-white ms-1">{{ count($selectedServices) }}</span>
             </button>
+            @endcan
 
+            @can('service-delete')
             <button type="button"
                 class="btn btn-sm btn-outline-danger d-flex align-items-center"
                 title="{{ __('services.permanently_delete_selected_services') }}"
@@ -277,6 +280,7 @@
             </button>
             @endif
         </div>
+        @endif
     </div>
 
     <div class='row row-cols-1 @if(count($services) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>

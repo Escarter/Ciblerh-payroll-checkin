@@ -117,10 +117,63 @@ class Index extends Component
     //Bulk update
     public function bulkApproval()
     {
+        // Check permission based on approval status
+        if ($this->bulk_approval_status) {
+            if (!Gate::allows('advance_salary-bulkapproval')) {
+                return abort(401);
+            }
+        } else {
+            if (!Gate::allows('advance_salary-bulkrejection')) {
+                return abort(401);
+            }
+        }
+
+        // Fetch records before updating for audit logging
+        $advanceSalaries = AdvanceSalary::whereIn('id', $this->selectedAdvanceSalaries)->with('user')->get();
+        
+        // Capture old values for all records
+        $affectedRecords = [];
+        foreach ($advanceSalaries as $advanceSalary) {
+            $affectedRecords[] = [
+                'id' => $advanceSalary->id,
+                'user_name' => $advanceSalary->user->name ?? 'User',
+                'amount' => number_format($advanceSalary->amount) . 'XAF',
+                'old_approval_status' => $advanceSalary->approval_status,
+                'old_approval_reason' => $advanceSalary->approval_reason,
+            ];
+        }
+
+        // Perform bulk update
         AdvanceSalary::whereIn('id', $this->selectedAdvanceSalaries)->update([
             'approval_status' => $this->approval_status,
             'approval_reason' => $this->approval_reason,
         ]);
+
+        // Create a single audit log entry for the bulk operation
+        $actionType = $this->bulk_approval_status ? 'advanceSalary_approved' : 'advanceSalary_rejected';
+        $user = auth()->user();
+        
+        auditLog(
+            $user,
+            $actionType,
+            'web',
+            $this->bulk_approval_status 
+                ? __('audit_logs.bulk_approved_advance_salaries', ['count' => count($advanceSalaries)])
+                : __('audit_logs.bulk_rejected_advance_salaries', ['count' => count($advanceSalaries)]),
+            null, // No single model for bulk operations
+            [], // Old values aggregated in metadata
+            ['approval_status' => $this->approval_status, 'approval_reason' => $this->approval_reason],
+            [
+                'bulk_operation' => true,
+                'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
+                'affected_count' => count($advanceSalaries),
+                'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                'affected_records' => $affectedRecords,
+                'new_approval_status' => $this->approval_status,
+                'new_approval_reason' => $this->approval_reason,
+            ]
+        );
+
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.advance_salaries_bulk_updated'), 'EditBulkAdvanceSalaryModal');
     }
@@ -164,7 +217,7 @@ class Index extends Component
 
     public function restore($advanceSalaryId)
     {
-        if (!Gate::allows('ticking-delete')) {
+        if (!Gate::allows('advance_salary-restore')) {
             return abort(401);
         }
 
@@ -174,21 +227,39 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('employees.advance_salary_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($advanceSalaryId)
+    public function forceDelete($advanceSalaryId = null)
     {
         if (!Gate::allows('ticking-delete')) {
             return abort(401);
         }
 
+        // If no advanceSalaryId provided, try to get it from selectedAdvanceSalariesForDelete
+        if (!$advanceSalaryId) {
+            if (!empty($this->selectedAdvanceSalariesForDelete) && is_array($this->selectedAdvanceSalariesForDelete)) {
+                $advanceSalaryId = $this->selectedAdvanceSalariesForDelete[0] ?? null;
+            } elseif ($this->advance_salary_id) {
+                $advanceSalaryId = $this->advance_salary_id;
+            } else {
+                $this->showToast(__('employees.no_advance_salary_selected'), 'danger');
+                return;
+            }
+        }
+
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
         $advanceSalary->forceDelete();
+
+        // Clear selection after deletion
+        if (in_array($advanceSalaryId, $this->selectedAdvanceSalariesForDelete ?? [])) {
+            $this->selectedAdvanceSalariesForDelete = array_diff($this->selectedAdvanceSalariesForDelete, [$advanceSalaryId]);
+        }
+        $this->advance_salary_id = null;
 
         $this->closeModalAndFlashMessage(__('employees.advance_salary_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('advance_salary-delete')) {
+        if (!Gate::allows('advance_salary-bulkdelete')) {
             return abort(401);
         }
 
@@ -209,7 +280,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('ticking-delete')) {
+        if (!Gate::allows('advance_salary-bulkrestore')) {
             return abort(401);
         }
 

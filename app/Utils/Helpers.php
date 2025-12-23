@@ -21,18 +21,131 @@ function initials($string)
 }
 
 if (!function_exists('auditLog')) {
-    function auditLog(User $user, string $action_type, string $channel, string $action_performed)
-    {
-        AuditLog::create([
-            'user_id' => $user->id,
-            'user' => $user->name,
-            'action_type' => $action_type,
-            'channel' => $channel,
-            'action_perform' => $action_performed,
-            'company_id' => $user->company_id,
-            'department_id' => $user->department_id ,
-            'author_id' => $user->author_id ,
-        ]);
+    /**
+     * Enhanced audit log function
+     * 
+     * @param User $user The user performing the action
+     * @param string $action_type The action type (e.g., 'company_created', 'user_updated')
+     * @param string $channel The channel (e.g., 'web', 'api')
+     * @param string $action_performed Description of the action
+     * @param mixed $model Optional: The model instance being affected
+     * @param array $oldValues Optional: Old values for updates
+     * @param array $newValues Optional: New values for creates/updates
+     * @param array $metadata Optional: Additional metadata
+     */
+    function auditLog(
+        ?User $user, 
+        string $action_type, 
+        string $channel, 
+        string $action_performed,
+        $model = null,
+        array $oldValues = [],
+        array $newValues = [],
+        array $metadata = []
+    ) {
+        // If no user provided, try to get authenticated user or use system user
+        if (!$user) {
+            $user = auth()->user();
+            if (!$user) {
+                // Log error and return early if no user available
+                Log::warning('Audit log attempted without user', [
+                    'action_type' => $action_type,
+                    'channel' => $channel,
+                    'action_performed' => $action_performed,
+                ]);
+                return;
+            }
+        }
+        
+        $request = request();
+        
+        // Extract model information if provided
+        $modelType = null;
+        $modelId = null;
+        $modelName = null;
+        
+        if ($model) {
+            $modelType = get_class($model);
+            $modelId = $model->id ?? $model->uuid ?? null;
+            
+            // Try to get a human-readable name
+            if (method_exists($model, 'getNameAttribute') || isset($model->name)) {
+                $modelName = $model->name ?? null;
+            } elseif (method_exists($model, '__toString')) {
+                $modelName = (string) $model;
+            } elseif (isset($model->title)) {
+                $modelName = $model->title;
+            } elseif (isset($model->first_name) && isset($model->last_name)) {
+                $modelName = $model->first_name . ' ' . $model->last_name;
+            }
+        }
+        
+        // Calculate changes if both old and new values are provided
+        $changes = [];
+        if (!empty($oldValues) && !empty($newValues)) {
+            foreach ($newValues as $key => $newValue) {
+                $oldValue = $oldValues[$key] ?? null;
+                if ($oldValue !== $newValue) {
+                    $changes[$key] = [
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+            }
+        } elseif ($model && method_exists($model, 'getDirty')) {
+            // Auto-detect changes from model if it's an update
+            $dirty = $model->getDirty();
+            if (!empty($dirty)) {
+                $original = $model->getOriginal();
+                foreach ($dirty as $key => $newValue) {
+                    $oldValue = $original[$key] ?? null;
+                    $changes[$key] = [
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+                $oldValues = array_intersect_key($original, $dirty);
+                $newValues = $dirty;
+            }
+        }
+        
+        try {
+            AuditLog::create([
+                'user_id' => $user->id,
+                'user' => $user->name,
+                'action_type' => $action_type,
+                'channel' => $channel,
+                'action_perform' => $action_performed,
+                'company_id' => $user->company_id,
+                'department_id' => $user->department_id,
+                'author_id' => $user->author_id ?? null,
+                'model_type' => $modelType,
+                'model_id' => $modelId ? (string) $modelId : null,
+                'model_name' => $modelName,
+                'old_values' => !empty($oldValues) ? $oldValues : null,
+                'new_values' => !empty($newValues) ? $newValues : null,
+                'changes' => !empty($changes) ? $changes : null,
+                'ip_address' => $request ? $request->ip() : null,
+                'user_agent' => $request ? $request->userAgent() : null,
+                'url' => $request ? $request->fullUrl() : null,
+                'method' => $request ? $request->method() : null,
+                'metadata' => !empty($metadata) ? $metadata : null,
+            ]);
+        } catch (\Exception $e) {
+            // Log the error instead of failing silently
+            Log::error('Failed to create audit log', [
+                'user_id' => $user->id,
+                'action_type' => $action_type,
+                'channel' => $channel,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            // Re-throw in development to help debug, but suppress in production
+            if (config('app.debug')) {
+                throw $e;
+            }
+        }
     }
 }
 if (!function_exists('createPayslipRecord')) {

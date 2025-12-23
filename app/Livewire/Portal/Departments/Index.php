@@ -181,7 +181,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('department-delete')) {
+        if (!Gate::allows('department-restore')) {
             return abort(401);
         }
 
@@ -191,10 +191,22 @@ class Index extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('departments.department_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($departmentId)
+    public function forceDelete($departmentId = null)
     {
         if (!Gate::allows('department-delete')) {
             return abort(401);
+        }
+
+        // If no departmentId provided, try to get it from selectedDepartments
+        if (!$departmentId) {
+            if (!empty($this->selectedDepartments) && is_array($this->selectedDepartments)) {
+                $departmentId = $this->selectedDepartments[0] ?? null;
+            } elseif ($this->department_id) {
+                $departmentId = $this->department_id;
+            } else {
+                $this->showToast(__('departments.no_department_selected'), 'danger');
+                return;
+            }
         }
 
         $department = Department::withTrashed()->findOrFail($departmentId);
@@ -210,12 +222,18 @@ class Index extends BaseImportComponent
         
         $department->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($departmentId, $this->selectedDepartments ?? [])) {
+            $this->selectedDepartments = array_diff($this->selectedDepartments, [$departmentId]);
+        }
+        $this->department_id = null;
+
         $this->closeModalAndFlashMessage(__('departments.department_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('department-delete')) {
+        if (!Gate::allows('department-bulkdelete')) {
             return abort(401);
         }
 
@@ -229,7 +247,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('department-delete')) {
+        if (!Gate::allows('department-bulkrestore')) {
             return abort(401);
         }
 

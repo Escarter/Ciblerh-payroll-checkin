@@ -164,6 +164,7 @@
         <x-alert />
 
         <!-- Tab Buttons and Bulk Actions (Same Line) -->
+        @if(auth()->user()->can('leave-bulkdelete') && auth()->user()->can('leave-bulkrestore'))
         <div class="d-flex justify-content-between align-items-center mb-3">
             <!-- Tab Buttons (Left) -->
             <div class="d-flex gap-2">
@@ -213,7 +214,7 @@
                     <!-- Active Tab Bulk Actions -->
                     @if(count($selectedLeaves) > 0)
                     <div class="d-flex align-items-center gap-2">
-                        @can('leave-delete')
+                        @can('leave-bulkdelete')
                         <button type="button"
                             class="btn btn-sm btn-outline-danger d-flex align-items-center"
                             data-bs-toggle="modal"
@@ -258,7 +259,7 @@
                     <!-- Deleted Tab Bulk Actions -->
                     @if(count($selectedLeavesForDelete) > 0)
                     <div class="d-flex align-items-center gap-2">
-                        @can('leave-delete')
+                        @can('leave-bulkrestore')
                         <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                             class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                             title="{{ __('absences.restore_selected_absence_records') }}">
@@ -294,14 +295,15 @@
                 @endif
             @endif
         </div>
+        @endif
 
         @if(count($leaves) > 0)
         <div class="card">
             <div class="table-responsive py-4 text-gray-700">
                 <table class="table employee-table table-hover align-items-center dataTable" id="datatable">
-                    <thead>
+                    <thead class="">
                         <tr>
-                            <th class="border-bottom">
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">
                                 <div class="form-check d-flex justify-content-center align-items-center">
                                     @if($activeTab === 'active')
                                         <input class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
@@ -313,13 +315,13 @@
                                     @endif
                                 </div>
                             </th>
-                            <th class="border-bottom">{{__('employees.leave_type')}}</th>
-                            <th class="border-bottom">{{__('employees.period')}}</th>
-                            <th class="border-bottom">{{__('common.reason')}}</th>
-                            <th class="border-bottom">{{__('common.sup_approval')}}</th>
-                            <th class="border-bottom">{{__('common.mgr_approval')}}</th>
-                            <th class="border-bottom">{{__('common.created_date')}}</th>
-                            <th class="border-bottom">{{__('common.action')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.leave_type')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.period')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.reason')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sup_approval')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.mgr_approval')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         </tr>
                     </thead>
                     <tbody>

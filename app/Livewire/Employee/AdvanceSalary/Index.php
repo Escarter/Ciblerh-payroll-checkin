@@ -152,7 +152,7 @@ class Index extends Component
 
     public function restore($advanceSalaryId)
     {
-        if (!Gate::allows('advance_salary--delete')) {
+        if (!Gate::allows('advance_salary-restore')) {
             return abort(401);
         }
 
@@ -171,10 +171,20 @@ class Index extends Component
         $this->updateCounts();
     }
 
-    public function forceDelete($advanceSalaryId)
+    public function forceDelete($advanceSalaryId = null)
     {
-        if (!Gate::allows('advance_salary--delete')) {
+        if (!Gate::allows('advance_salary-delete')) {
             return abort(401);
+        }
+
+        // If no advanceSalaryId provided, try to get it from selectedAdvanceSalariesForDelete
+        if (!$advanceSalaryId) {
+            if (!empty($this->selectedAdvanceSalariesForDelete) && is_array($this->selectedAdvanceSalariesForDelete)) {
+                $advanceSalaryId = $this->selectedAdvanceSalariesForDelete[0] ?? null;
+            } else {
+                $this->showToast(__('employees.no_advance_salary_selected'), 'danger');
+                return;
+            }
         }
 
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
@@ -186,6 +196,11 @@ class Index extends Component
 
         $advanceSalary->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($advanceSalaryId, $this->selectedAdvanceSalariesForDelete ?? [])) {
+            $this->selectedAdvanceSalariesForDelete = array_diff($this->selectedAdvanceSalariesForDelete, [$advanceSalaryId]);
+        }
+
         $this->closeModalAndFlashMessage(__('employees.advance_salary_permanently_deleted'), 'ForceDeleteModal');
 
         // Update counts
@@ -194,7 +209,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('advance_salary--delete')) {
+        if (!Gate::allows('advance_salary-bulkdelete')) {
             return abort(401);
         }
 
@@ -215,7 +230,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('advance_salary--delete')) {
+        if (!Gate::allows('advance_salary-bulkrestore')) {
             return abort(401);
         }
 

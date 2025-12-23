@@ -213,6 +213,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('company-bulkdelete') && auth()->user()->can('company-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -254,7 +255,7 @@
                 @if(count($selectedCompanies) > 0)
 
                 @if($activeTab === 'active')
-                @can('company-delete')
+                @can('company-bulkdelete')
                 <button id="bulk-delete-companies-btn" type="button"
                     class="btn btn-sm btn-danger d-flex align-items-center"
                     data-bs-toggle="modal"
@@ -267,7 +268,7 @@
                 </button>
                 @endcan
                 @else
-                @can('company-delete')
+                @can('company-bulkrestore')
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('companies.restore_selected_companies') }}">
@@ -304,6 +305,7 @@
             @endif
         </div>
     </div>
+    @endif
 
     <div class='row row-cols-1 @if(count($companies) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>
         @forelse ($companies as $company)

@@ -84,7 +84,7 @@ class All extends BaseImportComponent
         'selectedCompanyId' => 'required_if:!company,null',
     ];
 
-    public function mount()
+    public function mount($employeeId = null)
     {
         $this->initializePreview();
 
@@ -412,7 +412,7 @@ class All extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('employee-delete')) {
+        if (!Gate::allows('employee-restore')) {
             return abort(401);
         }
 
@@ -422,10 +422,22 @@ class All extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('employees.employee_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($employeeId)
+    public function forceDelete($employeeId = null)
     {
         if (!Gate::allows('employee-delete')) {
             return abort(401);
+        }
+
+        // If no employeeId provided, try to get it from selectedEmployees or employee_id
+        if (!$employeeId) {
+            if (!empty($this->selectedEmployees) && is_array($this->selectedEmployees)) {
+                $employeeId = $this->selectedEmployees[0] ?? null;
+            } elseif ($this->employee_id) {
+                $employeeId = $this->employee_id;
+            } else {
+                $this->showToast('No employee selected', 'danger');
+                return;
+            }
         }
 
         $employee = User::withTrashed()->findOrFail($employeeId);
@@ -446,12 +458,16 @@ class All extends BaseImportComponent
         
         $employee->forceDelete();
 
+        // Clear selection after deletion
+        $this->selectedEmployees = [];
+        $this->employee_id = null;
+
         $this->closeModalAndFlashMessage(__('employees.employee_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('employee-delete')) {
+        if (!Gate::allows('employee-bulkdelete')) {
             return abort(401);
         }
 
@@ -471,7 +487,7 @@ class All extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('employee-delete')) {
+        if (!Gate::allows('employee-bulkrestore')) {
             return abort(401);
         }
 

@@ -76,7 +76,7 @@
                                     <h2 class="h5">{{__('common.total')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat(count($advance_salaries))}}</h3>
                                 </a>
-                               
+
                             </div>
                         </div>
                     </div>
@@ -102,7 +102,7 @@
                                     <h2 class="h5">{{__('common.approved')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($approved_advance_salaries_count)}}</h3>
                                 </a>
-                                
+
                             </div>
                         </div>
                     </div>
@@ -128,7 +128,7 @@
                                     <h2 class="h5">{{__('common.pending')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($pending_advance_salaries_count)}}</h3>
                                 </a>
-                             
+
                             </div>
                         </div>
                     </div>
@@ -154,7 +154,7 @@
                                     <h2 class="h5"> {{__('common.rejected')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($rejected_advance_salaries_count)}} </h3>
                                 </a>
-                              
+
                             </div>
                         </div>
                     </div>
@@ -200,6 +200,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('advance_salary-bulkdelete') && auth()->user()->can('advance_salary-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -230,165 +231,172 @@
         <!-- Bulk Actions (Left) -->
         <div class="d-flex align-items-center gap-2">
             @if($activeTab === 'active')
-                <!-- Selection Controls -->
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        {{__('common.select')}}
-                        @if(count($selectedAdvanceSalaries) > 0)
-                            <span class="badge bg-primary text-white ms-1">{{ count($selectedAdvanceSalaries) }}</span>
-                        @endif
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllAdvanceSalaries" href="#">{{__('advance_salary.select_all_advance_salaries')}}</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedAdvanceSalaries', [])" href="#">{{__('absences.deselect_all')}}</a></li>
-                    </ul>
-                </div>
+            <!-- Selection Controls -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    {{__('common.select')}}
+                    @if(count($selectedAdvanceSalaries) > 0)
+                    <span class="badge bg-primary text-white ms-1">{{ count($selectedAdvanceSalaries) }}</span>
+                    @endif
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllAdvanceSalaries" href="#">{{__('advance_salary.select_all_advance_salaries')}}</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" wire:click.prevent="$set('selectedAdvanceSalaries', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                </ul>
+            </div>
 
-                <!-- Bulk Actions when items are selected -->
-                @if(!$bulkDisabled && count($selectedAdvanceSalaries) > 0)
-                <div class="d-flex align-items-center gap-2">
-                    <!-- Bulk Approval Actions -->
-                    @can('advance_salary-update')
-                    <button id="bulk-approve-advance-salaries-btn" wire:click.prevent="initDataBulk('approve')"
-                        data-bs-toggle="modal"
-                        data-bs-target="#EditBulkAdvanceSalaryModal" 
-                        class="btn btn-sm btn-success d-flex align-items-center">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        {{__('common.bulk_approve')}}
-                        <span class="badge bg-light text-dark ms-1">{{ count($selectedAdvanceSalaries) }}</span>
-                    </button>
+            <!-- Bulk Actions when items are selected -->
+            @if(!$bulkDisabled && count($selectedAdvanceSalaries) > 0)
+            <div class="d-flex align-items-center gap-2">
+                <!-- Bulk Approval Actions -->
+                @can('advance_salary-bulkapproval')
+                <button id="bulk-approve-advance-salaries-btn" wire:click.prevent="initDataBulk('approve')"
+                    data-bs-toggle="modal"
+                    data-bs-target="#EditBulkAdvanceSalaryModal"
+                    class="btn btn-sm btn-success d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{__('common.bulk_approve')}}
+                    <span class="badge bg-light text-dark ms-1">{{ count($selectedAdvanceSalaries) }}</span>
+                </button>
+                @endcan
+                @can('advance_salary-bulkrejection')
+                <button id="bulk-reject-advance-salaries-btn" wire:click.prevent="initDataBulk('reject')"
+                    data-bs-toggle="modal"
+                    data-bs-target="#EditBulkAdvanceSalaryModal"
+                    class="btn btn-sm btn-danger d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    {{__('common.bulk_reject')}}
+                    <span class="badge bg-light text-dark ms-1">{{ count($selectedAdvanceSalaries) }}</span>
+                </button>
 
-                    <button id="bulk-reject-advance-salaries-btn" wire:click.prevent="initDataBulk('reject')"
-                        data-bs-toggle="modal"
-                        data-bs-target="#EditBulkAdvanceSalaryModal" 
-                        class="btn btn-sm btn-danger d-flex align-items-center">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        {{__('common.bulk_reject')}}
-                        <span class="badge bg-light text-dark ms-1">{{ count($selectedAdvanceSalaries) }}</span>
-                    </button>
-                    @endcan
+                @endcan
 
-                    <!-- Soft Delete Actions -->
-                    @can('advance_salary-delete')
-                    <button type="button"
-                        class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                        title="{{ __('common.move_to_trash') }}"
-                        data-bs-toggle="modal" 
-                        data-bs-target="#BulkDeleteModal">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                        {{__('common.move_to_trash')}}
-                        <span class="badge bg-danger text-white ms-1">{{ count($selectedAdvanceSalaries) }}</span>
-                    </button>
-                    @endcan
+                <!-- Soft Delete Actions -->
+                @can('advance_salary-bulkdelete')
+                <button type="button"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                    title="{{ __('common.move_to_trash') }}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#BulkDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('common.move_to_trash')}}
+                    <span class="badge bg-danger text-white ms-1">{{ count($selectedAdvanceSalaries) }}</span>
+                </button>
+                @endcan
 
-                    <!-- Clear Selection -->
-                    <button wire:click="$set('selectedAdvanceSalaries', [])"
-                        class="btn btn-sm btn-outline-secondary d-flex align-items-center">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        {{__('common.clear')}}
-                    </button>
-                </div>
-                @endif
+                <!-- Clear Selection -->
+                <button wire:click="$set('selectedAdvanceSalaries', [])"
+                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {{__('common.clear')}}
+                </button>
+            </div>
+            @endif
             @else
-                <!-- Selection Controls for Deleted Tab -->
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        {{__('common.select')}}
-                        @if(count($selectedAdvanceSalariesForDelete) > 0)
-                            <span class="badge bg-primary text-white ms-1">{{ count($selectedAdvanceSalariesForDelete) }}</span>
-                        @endif
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedAdvanceSalaries" href="#">{{__('advance_salary.select_all_deleted_advance_salaries')}}</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedAdvanceSalariesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
-                    </ul>
-                </div>
+            <!-- Selection Controls for Deleted Tab -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    {{__('common.select')}}
+                    @if(count($selectedAdvanceSalariesForDelete) > 0)
+                    <span class="badge bg-primary text-white ms-1">{{ count($selectedAdvanceSalariesForDelete) }}</span>
+                    @endif
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedAdvanceSalaries" href="#">{{__('advance_salary.select_all_deleted_advance_salaries')}}</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" wire:click.prevent="$set('selectedAdvanceSalariesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                </ul>
+            </div>
 
-                <!-- Deleted Tab Bulk Actions -->
-                @if(count($selectedAdvanceSalariesForDelete) > 0)
-                <div class="d-flex align-items-center gap-2">
-                    @can('advance_salary-delete')
-                    <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
-                        class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
-                        title="{{ __('common.restore_selected') }}"
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
-                        {{__('common.restore_selected')}}
-                        <span class="badge bg-success text-white ms-1">{{ count($selectedAdvanceSalariesForDelete) }}</span>
-                    </button>
+            <!-- Deleted Tab Bulk Actions -->
+            @if(count($selectedAdvanceSalariesForDelete) > 0)
+            <div class="d-flex align-items-center gap-2">
+                @can('advance_salary-bulkrestore')
+                <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
+                    class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
+                    title="{{ __('common.restore_selected') }}"
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    {{__('common.restore_selected')}}
+                    <span class="badge bg-success text-white ms-1">{{ count($selectedAdvanceSalariesForDelete) }}</span>
+                </button>
 
-                    <button type="button"
-                        class="btn btn-sm btn-outline-danger d-flex align-items-center"
-                        title="{{ __('common.delete_forever') }}"
-                        data-bs-toggle="modal" 
-                        data-bs-target="#BulkForceDeleteModal">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                        {{__('common.delete_forever')}}
-                        <span class="badge bg-danger text-white ms-1">{{ count($selectedAdvanceSalariesForDelete) }}</span>
-                    </button>
-                    @endcan
+                <button type="button"
+                    class="btn btn-sm btn-outline-danger d-flex align-items-center"
+                    title="{{ __('common.delete_forever') }}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#BulkForceDeleteModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    {{__('common.delete_forever')}}
+                    <span class="badge bg-danger text-white ms-1">{{ count($selectedAdvanceSalariesForDelete) }}</span>
+                </button>
+                @endcan
 
-                    <button wire:click="$set('selectedAdvanceSalariesForDelete', [])"
-                        class="btn btn-sm btn-outline-secondary d-flex align-items-center">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                        {{__('common.clear')}}
-                    </button>
-                </div>
-                @endif
+                <button wire:click="$set('selectedAdvanceSalariesForDelete', [])"
+                    class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {{__('common.clear')}}
+                </button>
+            </div>
+            @endif
             @endif
         </div>
     </div>
+    @endif
 
     <div class="card pb-3">
         <div class="table-responsive  text-gray-700">
             <table class="table employee-table table-bordered table-hover align-items-center ">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 @if($activeTab === 'active')
-                                    <!-- For active tab, use existing bulk approval selection -->
-                                    <input id="select-all-advance-salaries-checkbox" class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
+                                <!-- For active tab, use existing bulk approval selection -->
+                                <input id="select-all-advance-salaries-checkbox" class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
                                 @else
-                                    <!-- For deleted tab, use soft delete selection -->
-                                    <input class="form-check-input p-2" 
-                                        wire:model.live="selectAllForDelete" 
-                                        type="checkbox"
-                                        wire:click="toggleSelectAllForDelete">
+                                <!-- For deleted tab, use soft delete selection -->
+                                <input class="form-check-input p-2"
+                                    wire:model.live="selectAllForDelete"
+                                    type="checkbox"
+                                    wire:click="toggleSelectAllForDelete">
                                 @endif
                             </div>
                         </th>
-                        <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('common.amount')}}</th>
-                        <th class="border-bottom">{{__('Beneficiary')}}</th>
-                        <th class="border-bottom">{{__('employees.repayment_period')}}</th>
-                        <th class="border-bottom">{{__('common.status')}}</th>
-                        <th class="border-bottom">{{__('common.created_date')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.amount')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('Beneficiary')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.repayment_period')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
                         @canany(['advance_salary-update','advance_salary-delete'])
-                        <th class="border-bottom">{{__('common.action')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>
@@ -398,14 +406,14 @@
                         <td>
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 @if($activeTab === 'active')
-                                    <!-- For active tab, use existing bulk approval selection -->
-                                    <input class="form-check-input" wire:model.live="selectedAdvanceSalaries" value="{{$advance_salary->id}}" type="checkbox">
+                                <!-- For active tab, use existing bulk approval selection -->
+                                <input class="form-check-input" wire:model.live="selectedAdvanceSalaries" value="{{$advance_salary->id}}" type="checkbox">
                                 @else
-                                    <!-- For deleted tab, use soft delete selection -->
-                                    <input class="form-check-input" 
-                                        type="checkbox"
-                                        wire:click="toggleAdvanceSalarySelectionForDelete({{ $advance_salary->id }})"
-                                        {{ in_array($advance_salary->id, $selectedAdvanceSalariesForDelete) ? 'checked' : '' }}>
+                                <!-- For deleted tab, use soft delete selection -->
+                                <input class="form-check-input"
+                                    type="checkbox"
+                                    wire:click="toggleAdvanceSalarySelectionForDelete({{ $advance_salary->id }})"
+                                    {{ in_array($advance_salary->id, $selectedAdvanceSalariesForDelete) ? 'checked' : '' }}>
                                 @endif
                             </div>
                         </td>
@@ -452,47 +460,47 @@
                         @canany(['advance_salary-update','advance_salary-delete','advance_salary-export'])
                         <td>
                             @if($activeTab === 'active')
-                                @can('advance_salary-export')
-                                <a href='#' class="text-info" wire:click="generatePDF({{ $advance_salary->id }})" wire:loading.remove>
-                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                    </svg>
-                                </a>
-                                <div class="text-center" wire:loading wire:target="generatePDF">
-                                    <div class="text-center">
-                                        <div class="spinner-grow text-grey-300" style="width: 0.5rem; height: 0.5rem;" role="status"></div>
-                                        <div class="spinner-grow text-grey-300" style="width: 0.5rem; height: 0.5rem;" role="status"></div>
-                                        <div class="spinner-grow text-grey-300" style="width: 0.5rem; height: 0.5rem;" role="status"></div>
-                                    </div>
+                            @can('advance_salary-export')
+                            <a href='#' class="text-info" wire:click="generatePDF({{ $advance_salary->id }})" wire:loading.remove>
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                </svg>
+                            </a>
+                            <div class="text-center" wire:loading wire:target="generatePDF">
+                                <div class="text-center">
+                                    <div class="spinner-grow text-grey-300" style="width: 0.5rem; height: 0.5rem;" role="status"></div>
+                                    <div class="spinner-grow text-grey-300" style="width: 0.5rem; height: 0.5rem;" role="status"></div>
+                                    <div class="spinner-grow text-grey-300" style="width: 0.5rem; height: 0.5rem;" role="status"></div>
                                 </div>
-                                @endcan
-                                @can('advance_salary-update')
-                                <a href='#' wire:click="initData({{ $advance_salary->id }})" data-bs-toggle="modal" data-bs-target="#EditAdvanceSalaryModal" id="edit-advance-salary-{{$advance_salary->id}}">
-                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                    </svg>
-                                </a>
-                                @endcan
-                                @can('advance_salary-delete')
-                                <a href='#' wire:click="initData({{ $advance_salary->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal" id="delete-advance-salary-{{$advance_salary->id}}">
-                                    <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </a>
-                                @endcan
+                            </div>
+                            @endcan
+                            @can('advance_salary-update')
+                            <a href='#' wire:click="initData({{ $advance_salary->id }})" data-bs-toggle="modal" data-bs-target="#EditAdvanceSalaryModal" id="edit-advance-salary-{{$advance_salary->id}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
+                            @endcan
+                            @can('advance_salary-delete')
+                            <a href='#' wire:click="initData({{ $advance_salary->id }})" data-bs-toggle="modal" data-bs-target="#DeleteModal" id="delete-advance-salary-{{$advance_salary->id}}">
+                                <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                            @endcan
                             @else
-                                @can('advance_salary-delete')
-                                <a href="#" wire:click.prevent="$set('{{ $advance_salary->id }}', {{ $advance_salary->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}" id="restore-advance-salary-{{$advance_salary->id}}">
-                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                    </svg>
-                                </a>
-                                <a href="#" wire:click.prevent="$set('selectedAdvanceSalariesForDelete', [{{ $advance_salary->id }}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('common.delete_forever')}}">
-                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                    </svg>
-                                </a>
-                                @endcan
+                            @can('advance_salary-delete')
+                            <a href="#" wire:click.prevent="$set('{{ $advance_salary->id }}', {{ $advance_salary->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('Restore')}}" id="restore-advance-salary-{{$advance_salary->id}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </a>
+                            <a href="#" wire:click.prevent="$set('selectedAdvanceSalariesForDelete', [{{ $advance_salary->id }}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" class="text-danger" title="{{__('common.delete_forever')}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                            @endcan
                             @endif
                         </td>
                         @endcanany

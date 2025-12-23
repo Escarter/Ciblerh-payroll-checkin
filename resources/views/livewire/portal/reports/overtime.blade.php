@@ -110,14 +110,14 @@
     <div class="card pb-3 ">
         <div class="table-responsive text-gray-700">
             <table class="table table-hover table-bordered align-items-center dataTable">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('common.start_time')}}</th>
-                        <th class="border-bottom">{{__('common.end_time')}}</th>
-                        <th class="border-bottom">{{__('overtime.hours_worked')}}</th>
-                        <th class="border-bottom">{{__('Approval')}}</th>
-                        <th class="border-bottom">{{__('common.created_date')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.start_time')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.end_time')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('overtime.hours_worked')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('Approval')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
                     </tr>
                 </thead>
                 <tbody>

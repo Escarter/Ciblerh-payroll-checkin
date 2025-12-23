@@ -158,7 +158,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('leave-delete')) {
+        if (!Gate::allows('leave-bulkdelete')) {
             return abort(401);
         }
 
@@ -179,7 +179,7 @@ class Index extends Component
 
     public function restore($leaveId)
     {
-        if (!Gate::allows('leave-delete')) {
+        if (!Gate::allows('leave-restore')) {
             return abort(401);
         }
 
@@ -198,10 +198,20 @@ class Index extends Component
         $this->updateCounts();
     }
 
-    public function forceDelete($leaveId)
+    public function forceDelete($leaveId = null)
     {
         if (!Gate::allows('leave-delete')) {
             return abort(401);
+        }
+
+        // If no leaveId provided, try to get it from selectedLeavesForDelete
+        if (!$leaveId) {
+            if (!empty($this->selectedLeavesForDelete) && is_array($this->selectedLeavesForDelete)) {
+                $leaveId = $this->selectedLeavesForDelete[0] ?? null;
+            } else {
+                $this->showToast(__('employees.no_leave_selected'), 'danger');
+                return;
+            }
         }
 
         $leave = Leave::withTrashed()->findOrFail($leaveId);
@@ -213,6 +223,11 @@ class Index extends Component
 
         $leave->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($leaveId, $this->selectedLeavesForDelete ?? [])) {
+            $this->selectedLeavesForDelete = array_diff($this->selectedLeavesForDelete, [$leaveId]);
+        }
+
         $this->closeModalAndFlashMessage(__('employees.leave_permanently_deleted'), 'ForceDeleteModal');
 
         // Update counts
@@ -221,7 +236,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('leave-delete')) {
+        if (!Gate::allows('leave-bulkrestore')) {
             return abort(401);
         }
 

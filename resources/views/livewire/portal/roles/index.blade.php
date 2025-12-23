@@ -1,6 +1,5 @@
 <div>
     @include('livewire.portal.roles.create-role')
-    @include('livewire.portal.roles.edit-role')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => count($selectedRoles) === 1 ? __('roles.role') : __('roles.roles')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedRoles, 'itemType' => count($selectedRoles) === 1 ? __('roles.role') : __('roles.roles')])
@@ -34,11 +33,11 @@
             </div>
             <div class="d-flex justify-content-between mb-2">
                 @can('role-create')
-                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateRoleModal" id="create-role-btn" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
+                <button type="button" wire:click="openCreateModal" id="create-role-btn" class="btn btn-sm btn-primary py-2 d-inline-flex align-items-center mx-2">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg> {{__('common.new')}}
-                </a>
+                </button>
                 @endcan
 
                 @can('role-export')
@@ -72,7 +71,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label for="direction">{{__('Direction')}}: </label>
+                    <label for="direction">{{__('common.direction')}}: </label>
                     <select wire:model="orderAsc" id="direction" class="form-select">
                         <option value="asc">{{__('common.ascending')}}</option>
                         <option value="desc">{{__('common.descending')}}</option>
@@ -80,7 +79,7 @@
                 </div>
 
                 <div class="col-md-2">
-                    <label for="perPage">{{__('Per Page')}}: </label>
+                    <label for="perPage">{{__('common.items_per_page')}}: </label>
                     <select wire:model="perPage" id="perPage" class="form-select">
                         <option value="5">5</option>
                         <option value="10">10</option>
@@ -95,6 +94,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('role-bulkdelete') && auth()->user()->can('role-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
         <!-- Tab Buttons (Right) -->
         <div class="d-flex gap-2">
@@ -137,7 +137,7 @@
                 
                 @if(count($selectedRoles) > 0)
                 @if($activeTab === 'active')
-                @can('role-delete')
+                @can('role-bulkdelete')
                 <button type="button"
                     id="bulk-delete-roles-btn"
                     class="btn btn-sm btn-danger d-flex align-items-center"
@@ -151,7 +151,7 @@
                 </button>
                 @endcan
                 @else
-                @can('role-delete')
+                @can('role-bulkrestore')
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('common.restore_selected_roles') }}">
@@ -161,7 +161,9 @@
                     {{__('common.restore_selected')}}
                     <span class="badge bg-success text-white ms-1">{{ count($selectedRoles) }}</span>
                 </button>
+                @endcan
 
+                @can('role-delete')
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
                     title="{{ __('common.permanently_delete_selected_roles') }}"
@@ -188,110 +190,123 @@
             @endif
         </div>
     </div>
+    @endif
 
-    <div class='row row-cols-1 row-cols-md-2 @if(count($roles) >= 0) row-cols-xl-12 @else row-cols-xl-3 @endif  g-4'>
-        @forelse ($roles as $role)
-
-        <div class='col-md-3 h-50'>
-            <div class="card card-flush h-md-100 shadow pb-4 pt-3 px-4 {{ in_array($role->id, $selectedRoles) ? 'border-primary border-3' : '' }}" 
-                 draggable="false" 
-                 wire:click="toggleRoleSelection({{ $role->id }})"
-                 style="cursor: pointer; transition: all 0.3s ease;"
-                 onmouseover="this.style.transform='translateY(-2px)'"
-                 onmouseout="this.style.transform='translateY(0)'">
-                <!-- Selection indicator -->
-                @if(in_array($role->id, $selectedRoles))
-                <div class="position-absolute top-0 end-0 p-2">
-                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
-                        <svg class="icon icon-xs text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                </div>
-                @endif
-                <!-- <div class="small pt-0 d-flex align-items-end justify-content-end">
-                    {{$role->created_at}}
-                </div> -->
-                <div class="card-header border-0 p-0 mb-2 d-flex justify-content-start align-items-start">
-                    <div class="d-flex justify-content-start align-items-start">
-                        <div class="avatar-md d-flex align-items-center justify-content-center fw-bold fs-5 rounded bg-primary me-3"><span class="text-gray-50">{{ initials($role->name) }}</span></div>
-                        <div>
-                            <h3 class="h5 mb-0">{{ucfirst($role->name)}}</h3>
-                            <div class="fw-semi-bold text-gray-600 ">{{__('roles.number_of_users_with_this_role')}}: {{$role->users_count}}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body p-0 mx-3 my-1 d-flex flex-wrap justify-content-between align-items-center">
-                    <ul>
-                        @foreach($role->permissions->take(10) as $permission)
-                        <li>{{$permission->name}}</li>
-                        @endforeach
-                    </ul>
-                </div>
-                <div class='d-flex align-items-center justify-content-between'>
-                    <div>
-                        <!-- <a href="" class="btn btn-sm btn-outline-primary py-2 d-inline-flex align-items-center ">
-                            <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                            </svg>
-                            <div class="d-none d-md-block">{{__('common.view_employees')}}</div>
-                        </a> -->
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        @if($activeTab === 'active')
-                        @can('role-update')
-                        <a href="#" wire:click.prevent="editRole({{$role->id}})" data-bs-toggle="modal" data-bs-target="#EditRoleModal" draggable="false" onclick="event.stopPropagation();" title="{{ __('roles.edit_role') }}" id="edit-role-{{$role->id}}">
-                            <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                        </a>
-                        @endcan
-                        @can('role-delete')
-                        <a href="#" wire:click.prevent="initData({{$role->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" draggable="false" onclick="event.stopPropagation();" title="{{ __('common.move_to_trash') }}" id="delete-role-{{$role->id}}">
-                            <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </a>
-                        @endcan
-                        @else
-                        @can('role-delete')
-                        <a href="#" wire:click.prevent="$set('role_id', {{$role->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{ __('common.restore') }}" onclick="event.stopPropagation();" id="restore-role-{{$role->id}}">
-                            <svg class="icon icon-sm text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                        </a>
-                        <a href="#" wire:click.prevent="$set('selectedRoles', [{{$role->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" title="{{ __('common.permanently_delete') }}" onclick="event.stopPropagation();">
-                            <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </a>
-                        @endcan
-                        @endif
-                    </div>
-                </div>
+    <div class="card pb-3">
+        <div class="table-responsive text-gray-700">
+            <table class="table table-bordered table-hover align-items-center">
+                <thead class="">
+                    <tr>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">
+                            <input type="checkbox"
+                                id="select-all-roles"
+                                wire:model="selectAll"
+                                wire:change="toggleSelectAll"
+                                class="form-check-input">
+                        </th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('roles.role')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('roles.users_count')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('roles.permissions')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
+                        @canany(['role-update','role-delete'])
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
+                        @endcanany
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($roles as $role)
+                    <tr class="{{ in_array($role->id, $selectedRoles) ? 'table-primary' : '' }}">
+                        <td>
+                            <input type="checkbox"
+                                id="role-checkbox-{{ $role->id }}"
+                                wire:click="toggleRoleSelection({{ $role->id }})"
+                                {{ in_array($role->id, $selectedRoles) ? 'checked' : '' }}
+                                class="form-check-input">
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-md d-flex align-items-center justify-content-center fw-bold fs-5 rounded bg-primary me-3">
+                                    <span class="text-white">{{ initials($role->name) }}</span>
+                                </div>
+                                <div class="d-block">
+                                    <span class="fw-bold fs-6">{{ucfirst($role->name)}}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-normal">{{$role->users_count}}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach($role->permissions->take(8) as $permission)
+                                <span class="badge badge-lg bg-gray-500 text-white mb-1">{{$this->getTranslatedPermissionName($permission->name)}}</span>
+                                @endforeach
+                                @if($role->permissions->count() > 8)
+                                <span class="badge badge-lg bg-info text-white mb-1">+{{$role->permissions->count() - 8}} more</span>
+                                @endif
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-normal">{{$role->created_at->format('Y-m-d')}}</span>
+                        </td>
+                        @canany(['role-update','role-delete'])
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                @if($activeTab === 'active')
+                                @can('role-update')
+                                <a href="#" wire:click.prevent="openEditModal({{$role->id}})" title="{{ __('roles.edit_role') }}" id="edit-role-{{$role->id}}">
+                                    <svg class="icon icon-sm text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                                @can('role-delete')
+                                <a href="#" wire:click.prevent="initData({{$role->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" title="{{ __('common.move_to_trash') }}" id="delete-role-{{$role->id}}">
+                                    <svg class="icon icon-sm text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                                @else
+                                @can('role-delete')
+                                <a href="#" wire:click.prevent="$set('role_id', {{$role->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{ __('common.restore') }}" id="restore-role-{{$role->id}}" class="text-success">
+                                    <svg class="icon icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                </a>
+                                <a href="#" wire:click.prevent="$set('selectedRoles', [{{$role->id}}])" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" title="{{ __('common.permanently_delete') }}" class="text-danger">
+                                    <svg class="icon icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </a>
+                                @endcan
+                                @endif
+                            </div>
+                        </td>
+                        @endcanany
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="{{ auth()->user()->canany(['role-update','role-delete']) ? '6' : '5' }}" class="text-center">
+                            <div class="text-center text-gray-800 mt-4">
+                                <img src="{{ asset('/img/illustrations/404.svg') }}" class="w-25 ">
+                                <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
+                                @can('role-create')
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateRoleModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center">
+                                    <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg> {{__('common.add_role')}}
+                                </a>
+                                @endcan
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            <div class='pt-3 px-3 '>
+                {{ $roles->links() }}
             </div>
         </div>
-        @empty
-        <div class='col-md-12 '>
-            <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column mx-2'>
-
-                <div class="text-center text-gray-800 mt-4">
-                    <img src="{{ asset('/img/illustrations/404.svg') }}" class="w-25 ">
-                    <h4 class="fs-4 fw-bold my-1">{{__('common.empty_set')}}</h4>
-                </div>
-                @can('role-create')
-                <a href="#" data-bs-toggle="modal" data-bs-target="#CreateRoleModal" class="btn btn-sm btn-secondary py-2 mt-1 d-inline-flex align-items-center ">
-                    <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg> {{__('common.add_role')}}
-                </a>
-                @endcan
-            </div>
-        </div>
-        @endforelse
-
-    </div>
-    <div class='pt-3 px-3 '>
-        {{ $roles->links() }}
     </div>
 </div>
