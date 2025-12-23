@@ -511,6 +511,7 @@ return [
     // Import validation keys
     'first_name_required' => 'First name is required',
     'last_name_required' => 'Last name is required',
+    'at_least_one_name_required' => 'At least one of first name or last name must be provided',
     'email_required' => 'Email is required',
     'email_already_exists' => 'Email already exists',
     'professional_phone_required' => 'Professional phone number is required',

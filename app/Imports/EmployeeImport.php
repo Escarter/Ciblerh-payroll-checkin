@@ -128,9 +128,21 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             throw new \Exception('Service validation failed: ' . $serviceResult['error']);
         }
 
+        // Validate that at least one of first_name or last_name is present
+        $firstName = trim($row[0] ?? '');
+        $lastName = trim($row[1] ?? '');
+        
+        if (empty($firstName) && empty($lastName)) {
+            throw new \Exception(__('employees.at_least_one_name_required'));
+        }
+
+        // Use 'NA' if one is missing (but at least one exists)
+        $firstName = !empty($firstName) ? $firstName : 'NA';
+        $lastName = !empty($lastName) ? $lastName : 'NA';
+
                 $user = User::create([
-                    'first_name' => $row[0],
-                    'last_name' => $row[1],
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
                     'email' => $row[2],
                     'professional_phone_number' => $phoneValidation['formatted'],
                     'personal_phone_number' => $personalPhoneNumber,
@@ -372,8 +384,9 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     public function rules(): array
     {
         return [
-            '0' => 'required|string', // first_name
-            '1' => 'required|string', // last_name
+            '0' => 'nullable|string', // first_name (can be empty if last_name exists, will be replaced with 'NA')
+            '1' => 'nullable|string', // last_name (can be empty if first_name exists, will be replaced with 'NA')
+            // At least one of first_name or last_name must be present (validated in model method)
             '2' => ['required', 'email', 'unique:users,email'], // email - using built-in email validation
             '3' => ['required', new PhoneNumber()], // professional_phone_number
             '4' => 'required', // matricule (can be string or numeric)
@@ -421,14 +434,14 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '12' => __('common.status'),
             '13' => __('common.password'),
             '14' => __('employees.remaining_leave_days'),
-            '15' => __('employees.monthly_leave_allocation'),
+            '15' => __('common.monthly_leave_allocation'),
             '16' => __('employees.receive_sms_notifications'),
             '17' => __('common.personal_phone_number'),
-            '18' => __('employees.work_start_time'),
-            '19' => __('employees.work_end_time'),
+            '18' => __('common.work_start_time'),
+            '19' => __('common.work_end_time'),
             '20' => __('employees.receive_email_notifications'),
             '21' => __('employees.alternative_email'),
-            '22' => __('employees.date_of_birth'),
+            '22' => __('common.date_of_birth'),
         ];
     }
 }

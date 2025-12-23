@@ -511,6 +511,7 @@ return [
     // Import validation keys
     'first_name_required' => 'Le prénom est requis',
     'last_name_required' => 'Le nom de famille est requis',
+    'at_least_one_name_required' => 'Au moins un des deux (prénom ou nom de famille) doit être fourni',
     'email_required' => 'L\'email est requis',
     'email_already_exists' => 'L\'email existe déjà',
     'professional_phone_required' => 'Le numéro de téléphone professionnel est requis',
