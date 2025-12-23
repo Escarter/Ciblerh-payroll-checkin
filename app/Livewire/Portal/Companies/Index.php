@@ -220,9 +220,42 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedCompanies)) {
-            Company::whereIn('id', $this->selectedCompanies)->delete(); // Soft delete
+        $targetIds = $this->selectedCompanies ?? [];
+        $companies = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $companies = Company::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $companies->map(function ($company) {
+                return [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Company::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedCompanies = [];
+
+            if ($companies->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'company_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_companies', ['count' => $companies->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $companies->count(),
+                        'affected_ids' => $companies->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('companies.selected_companies_moved_to_trash'), 'BulkDeleteModal');
@@ -234,9 +267,42 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedCompanies)) {
-            Company::withTrashed()->whereIn('id', $this->selectedCompanies)->restore();
+        $targetIds = $this->selectedCompanies ?? [];
+        $companies = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $companies = Company::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $companies->map(function ($company) {
+                return [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Company::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedCompanies = [];
+
+            if ($companies->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'company_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_companies', ['count' => $companies->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $companies->count(),
+                        'affected_ids' => $companies->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('companies.selected_companies_restored'), 'BulkRestoreModal');
@@ -251,6 +317,7 @@ class Index extends BaseImportComponent
         if (!empty($this->selectedCompanies)) {
             $companies = Company::withTrashed()->whereIn('id', $this->selectedCompanies)->get();
             $companiesWithRelatedRecords = [];
+            $affectedRecords = [];
             
             foreach ($companies as $company) {
                 $hasRelatedRecords = $company->departments()->count() > 0 ||
@@ -261,6 +328,11 @@ class Index extends BaseImportComponent
                 
                 if ($hasRelatedRecords) {
                     $companiesWithRelatedRecords[] = $company->name;
+                } else {
+                    $affectedRecords[] = [
+                        'id' => $company->id,
+                        'name' => $company->name,
+                    ];
                 }
             }
             
@@ -274,6 +346,25 @@ class Index extends BaseImportComponent
                 $company->forceDelete();
             }
             
+            if (!empty($affectedRecords)) {
+                auditLog(
+                    auth()->user(),
+                    'company_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_companies', ['count' => count($affectedRecords)]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => count($affectedRecords),
+                        'affected_ids' => array_column($affectedRecords, 'id'),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedCompanies = [];
         }
 

@@ -329,10 +329,43 @@ class Index extends Component
             return abort(401);
         }
 
-        if (!empty($this->selectedRoles)) {
-            Role::whereIn('id', $this->selectedRoles)->delete(); // Soft delete
+        $targetIds = $this->selectedRoles ?? [];
+        $roles = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $roles = Role::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $roles->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Role::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedRoles = [];
             $this->selectAll = false;
+
+            if ($roles->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'role_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_roles', ['count' => $roles->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $roles->count(),
+                        'affected_ids' => $roles->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('roles.selected_roles_moved_to_trash'), 'BulkDeleteModal');
@@ -344,10 +377,43 @@ class Index extends Component
             return abort(401);
         }
 
-        if (!empty($this->selectedRoles)) {
-            Role::withTrashed()->whereIn('id', $this->selectedRoles)->restore();
+        $targetIds = $this->selectedRoles ?? [];
+        $roles = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $roles = Role::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $roles->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Role::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedRoles = [];
             $this->selectAll = false;
+
+            if ($roles->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'role_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_roles', ['count' => $roles->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $roles->count(),
+                        'affected_ids' => $roles->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('roles.selected_roles_restored'), 'BulkRestoreModal');
@@ -359,10 +425,43 @@ class Index extends Component
             return abort(401);
         }
 
-        if (!empty($this->selectedRoles)) {
-            Role::withTrashed()->whereIn('id', $this->selectedRoles)->forceDelete();
+        $targetIds = $this->selectedRoles ?? [];
+        $roles = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $roles = Role::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $roles->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Role::withTrashed()->whereIn('id', $targetIds)->forceDelete();
             $this->selectedRoles = [];
             $this->selectAll = false;
+
+            if ($roles->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'role_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_roles', ['count' => $roles->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $roles->count(),
+                        'affected_ids' => $roles->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('roles.selected_roles_permanently_deleted'), 'BulkForceDeleteModal');

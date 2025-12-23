@@ -123,6 +123,8 @@ class Index extends Component
         ]);
 
         $period = CarbonPeriod::create($this->start_day, $this->end_day);
+        $createdCheckins = [];
+        $createdOvertimes = [];
 
         foreach ($period as $date) {
 
@@ -130,7 +132,7 @@ class Index extends Component
 
             if (empty($existing_checkin)) {
 
-                auth()->user()->tickings()->create(
+                $checkin = auth()->user()->tickings()->create(
                     [
                         'start_time' => Carbon::parse($date->format('Y-m-d') . " " . $this->start_time),
                         'end_time' => Carbon::parse($date->format('Y-m-d') . " " . $this->end_time),
@@ -149,8 +151,23 @@ class Index extends Component
                     ]
                 );
 
+                $createdCheckins[] = [
+                    'id' => $checkin->id,
+                    'date' => $date->format('Y-m-d'),
+                    'start_time' => Carbon::parse($date->format('Y-m-d') . " " . $this->start_time)->format('Y-m-d H:i:s'),
+                    'end_time' => Carbon::parse($date->format('Y-m-d') . " " . $this->end_time)->format('Y-m-d H:i:s'),
+                ];
+
                 if (Carbon::parse($this->end_time)->format('H:i:s') > auth()->user()->work_end_time) {
-                   $this->recordOvertime(Carbon::parse($date->format('Y-m-d') . " " . $this->end_time));
+                   $overtime = $this->recordOvertime(Carbon::parse($date->format('Y-m-d') . " " . $this->end_time));
+                   if ($overtime) {
+                       $createdOvertimes[] = [
+                           'id' => $overtime->id,
+                           'date' => $overtime->start_time->format('Y-m-d'),
+                           'start_time' => $overtime->start_time->format('Y-m-d H:i:s'),
+                           'end_time' => $overtime->end_time->format('Y-m-d H:i:s'),
+                       ];
+                   }
                 }
 
             } else {
@@ -161,6 +178,54 @@ class Index extends Component
                 ]);
 
             }
+        }
+
+        // Create a single audit log entry for bulk checkin creation
+        if (count($createdCheckins) > 0) {
+            auditLog(
+                auth()->user(),
+                'checkin_bulk_created',
+                'web',
+                __('audit_logs.bulk_created_checklogs', ['count' => count($createdCheckins)]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_create',
+                    'affected_count' => count($createdCheckins),
+                    'affected_ids' => array_column($createdCheckins, 'id'),
+                    'affected_records' => $createdCheckins,
+                    'date_range' => [
+                        'start' => $this->start_day,
+                        'end' => $this->end_day,
+                    ],
+                ]
+            );
+        }
+
+        // Create a single audit log entry for bulk overtime creation (if any)
+        if (count($createdOvertimes) > 0) {
+            auditLog(
+                auth()->user(),
+                'overtime_bulk_created',
+                'web',
+                __('audit_logs.bulk_created_overtimes', ['count' => count($createdOvertimes)]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_create',
+                    'affected_count' => count($createdOvertimes),
+                    'affected_ids' => array_column($createdOvertimes, 'id'),
+                    'affected_records' => $createdOvertimes,
+                    'date_range' => [
+                        'start' => $this->start_day,
+                        'end' => $this->end_day,
+                    ],
+                ]
+            );
         }
 
         $this->clearFields();
@@ -221,9 +286,40 @@ class Index extends Component
         }
 
         if (!empty($this->selected)) {
+            $checklogs = Ticking::whereIn('id', $this->selected)
+                ->where('user_id', auth()->user()->id)
+                ->get();
+
+            $affectedRecords = $checklogs->map(function ($checklog) {
+                return [
+                    'id' => $checklog->id,
+                    'start_time' => $checklog->start_time,
+                    'end_time' => $checklog->end_time,
+                ];
+            })->toArray();
+
             Ticking::whereIn('id', $this->selected)
                 ->where('user_id', auth()->user()->id)
                 ->delete();
+
+            if ($checklogs->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'checkin_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_checklogs', ['count' => $checklogs->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $checklogs->count(),
+                        'affected_ids' => $checklogs->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selected = [];
             $this->selectAll = false;
@@ -299,10 +395,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedChecklogsForDelete)) {
+            $checklogs = Ticking::withTrashed()
+                ->whereIn('id', $this->selectedChecklogsForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $checklogs->map(function ($checklog) {
+                return [
+                    'id' => $checklog->id,
+                    'start_time' => $checklog->start_time,
+                    'end_time' => $checklog->end_time,
+                ];
+            })->toArray();
+
             Ticking::withTrashed()
                 ->whereIn('id', $this->selectedChecklogsForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own checklogs
+                ->where('user_id', auth()->id())
                 ->restore();
+
+            if ($checklogs->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'checkin_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_checklogs', ['count' => $checklogs->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $checklogs->count(),
+                        'affected_ids' => $checklogs->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedChecklogsForDelete = [];
 
@@ -320,10 +448,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedChecklogsForDelete)) {
+            $checklogs = Ticking::withTrashed()
+                ->whereIn('id', $this->selectedChecklogsForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $checklogs->map(function ($checklog) {
+                return [
+                    'id' => $checklog->id,
+                    'start_time' => $checklog->start_time,
+                    'end_time' => $checklog->end_time,
+                ];
+            })->toArray();
+
             Ticking::withTrashed()
                 ->whereIn('id', $this->selectedChecklogsForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own checklogs
+                ->where('user_id', auth()->id())
                 ->forceDelete();
+
+            if ($checklogs->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'checkin_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_checklogs', ['count' => $checklogs->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $checklogs->count(),
+                        'affected_ids' => $checklogs->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedChecklogsForDelete = [];
 
@@ -416,7 +576,7 @@ class Index extends Component
         $existing_overtime =  auth()->user()->overtimes()->whereDate('start_time', Carbon::parse($end_time)->format('Y-m-d'))->first();
 
         if (empty($existing_overtime)) {
-            auth()->user()->overtimes()->create([
+            return auth()->user()->overtimes()->create([
                 'start_time' => Carbon::parse(Carbon::parse($end_time)->format('Y-m-d') . " " . auth()->user()->work_end_time),
                 'end_time' => $end_time,
                 'minutes_worked' => Carbon::parse(Carbon::parse($end_time)->format('Y-m-d') . " " . auth()->user()->work_end_time)->diffInMinutes($end_time),
@@ -424,9 +584,9 @@ class Index extends Component
                 'company_id' => !empty($this->company) ? $this->company->id : null,
                 'department_id' => !empty($this->department) ? $this->department->id : null,
             ]);
-        }else{
-
         }
+        
+        return null;
     }
  
     public function clearFields()

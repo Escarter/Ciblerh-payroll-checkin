@@ -268,6 +268,33 @@ class Index extends Component
             return abort(401);
         }
 
+        // Determine which set to operate on and capture affected records
+        $targetIds = [];
+        $operation = 'soft_delete';
+        if (!empty($this->selectedAbsences)) {
+            $targetIds = $this->selectedAbsences;
+            $operation = 'soft_delete_active';
+        } elseif (!empty($this->selectedAbsencesForDelete)) {
+            $targetIds = $this->selectedAbsencesForDelete;
+            $operation = 'soft_delete_deleted_tab';
+        }
+
+        if (!empty($targetIds)) {
+            $absences = Absence::withTrashed()->whereIn('id', $targetIds)->with('user')->get();
+            $affectedRecords = $absences->map(function ($absence) {
+                return [
+                    'id' => $absence->id,
+                    'user_name' => $absence->user->name ?? 'User',
+                    'date' => $absence->absence_date,
+                    'approval_status' => $absence->approval_status,
+                    'approval_reason' => $absence->approval_reason,
+                ];
+            })->toArray();
+        } else {
+            $absences = collect();
+            $affectedRecords = [];
+        }
+
         // Handle both active tab (selectedAbsences) and deleted tab (selectedAbsencesForDelete)
         if (!empty($this->selectedAbsences)) {
             // Active tab - soft delete selected items
@@ -280,6 +307,26 @@ class Index extends Component
             $this->selectedAbsencesForDelete = [];
         }
 
+        // Single audit log entry for the bulk delete
+        if ($absences->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'absence_bulk_deleted',
+                'web',
+                __('audit_logs.bulk_deleted_absences', ['count' => $absences->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => $operation,
+                    'affected_count' => $absences->count(),
+                    'affected_ids' => $absences->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
         $this->closeModalAndFlashMessage(__('absences.selected_absence_records_moved_to_trash'), 'BulkDeleteModal');
     }
 
@@ -289,9 +336,43 @@ class Index extends Component
             return abort(401);
         }
 
+        $absences = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedAbsencesForDelete)) {
+            $absences = Absence::withTrashed()->whereIn('id', $this->selectedAbsencesForDelete)->with('user')->get();
+            $affectedRecords = $absences->map(function ($absence) {
+                return [
+                    'id' => $absence->id,
+                    'user_name' => $absence->user->name ?? 'User',
+                    'date' => $absence->absence_date,
+                    'approval_status' => $absence->approval_status,
+                    'approval_reason' => $absence->approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedAbsencesForDelete)) {
             Absence::withTrashed()->whereIn('id', $this->selectedAbsencesForDelete)->restore();
             $this->selectedAbsencesForDelete = [];
+        }
+
+        if ($absences->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'absence_bulk_restored',
+                'web',
+                __('audit_logs.bulk_restored_absences', ['count' => $absences->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $absences->count(),
+                    'affected_ids' => $absences->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('absences.selected_absence_records_restored'), 'BulkRestoreModal');
@@ -303,9 +384,43 @@ class Index extends Component
             return abort(401);
         }
 
+        $absences = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedAbsencesForDelete)) {
+            $absences = Absence::withTrashed()->whereIn('id', $this->selectedAbsencesForDelete)->with('user')->get();
+            $affectedRecords = $absences->map(function ($absence) {
+                return [
+                    'id' => $absence->id,
+                    'user_name' => $absence->user->name ?? 'User',
+                    'date' => $absence->absence_date,
+                    'approval_status' => $absence->approval_status,
+                    'approval_reason' => $absence->approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedAbsencesForDelete)) {
             Absence::withTrashed()->whereIn('id', $this->selectedAbsencesForDelete)->forceDelete();
             $this->selectedAbsencesForDelete = [];
+        }
+
+        if ($absences->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'absence_bulk_force_deleted',
+                'web',
+                __('audit_logs.bulk_force_deleted_absences', ['count' => $absences->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $absences->count(),
+                    'affected_ids' => $absences->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('absences.selected_absence_records_permanently_deleted'), 'BulkForceDeleteModal');

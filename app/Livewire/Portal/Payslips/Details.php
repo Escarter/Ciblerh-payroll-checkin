@@ -300,7 +300,37 @@ class Details extends Component
                 $query->whereIn('department_id', $validDepartmentIds);
             }
             
+            $payslips = $query->get();
+            $affectedRecords = $payslips->map(function ($payslip) {
+                return [
+                    'id' => $payslip->id,
+                    'employee_id' => $payslip->employee_id,
+                    'month' => $payslip->month,
+                    'year' => $payslip->year,
+                ];
+            })->toArray();
+
             $query->delete(); // Soft delete
+
+            if ($payslips->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_payslips', ['count' => $payslips->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $payslips->count(),
+                        'affected_ids' => $payslips->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedPayslips = [];
         }
 
@@ -323,7 +353,37 @@ class Details extends Component
                 $query->whereIn('department_id', $validDepartmentIds);
             }
             
+            $payslips = $query->get();
+            $affectedRecords = $payslips->map(function ($payslip) {
+                return [
+                    'id' => $payslip->id,
+                    'employee_id' => $payslip->employee_id,
+                    'month' => $payslip->month,
+                    'year' => $payslip->year,
+                ];
+            })->toArray();
+
             $query->restore();
+
+            if ($payslips->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_payslips', ['count' => $payslips->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $payslips->count(),
+                        'affected_ids' => $payslips->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedPayslips = [];
         }
 
@@ -346,7 +406,37 @@ class Details extends Component
                 $query->whereIn('department_id', $validDepartmentIds);
             }
             
+            $payslips = $query->get();
+            $affectedRecords = $payslips->map(function ($payslip) {
+                return [
+                    'id' => $payslip->id,
+                    'employee_id' => $payslip->employee_id,
+                    'month' => $payslip->month,
+                    'year' => $payslip->year,
+                ];
+            })->toArray();
+
             $query->forceDelete();
+
+            if ($payslips->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_payslips', ['count' => $payslips->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $payslips->count(),
+                        'affected_ids' => $payslips->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedPayslips = [];
         }
 

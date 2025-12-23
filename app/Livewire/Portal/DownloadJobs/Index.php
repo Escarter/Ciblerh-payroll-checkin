@@ -516,6 +516,14 @@ class Index extends Component
             ->whereIn('status', [DownloadJob::STATUS_COMPLETED, DownloadJob::STATUS_FAILED, DownloadJob::STATUS_CANCELLED])
             ->get();
 
+        $affectedRecords = $jobs->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'report_type' => $job->report_type,
+                'status' => $job->status,
+            ];
+        })->toArray();
+
         $deleted = 0;
         foreach ($jobs as $job) {
             try {
@@ -524,6 +532,25 @@ class Index extends Component
             } catch (\Exception $e) {
                 // Continue with other jobs
             }
+        }
+
+        if ($deleted > 0) {
+            auditLog(
+                auth()->user(),
+                'download_job_bulk_deleted',
+                'web',
+                __('audit_logs.bulk_deleted_download_jobs', ['count' => $deleted]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'soft_delete',
+                    'affected_count' => $deleted,
+                    'affected_ids' => $jobs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->selectedJobs = [];
@@ -549,6 +576,14 @@ class Index extends Component
             ->where('user_id', auth()->id())
             ->get();
 
+        $affectedRecords = $jobs->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'report_type' => $job->report_type,
+                'status' => $job->status,
+            ];
+        })->toArray();
+
         $restored = 0;
         foreach ($jobs as $job) {
             try {
@@ -557,6 +592,25 @@ class Index extends Component
             } catch (\Exception $e) {
                 // Continue with other jobs
             }
+        }
+
+        if ($restored > 0) {
+            auditLog(
+                auth()->user(),
+                'download_job_bulk_restored',
+                'web',
+                __('audit_logs.bulk_restored_download_jobs', ['count' => $restored]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $restored,
+                    'affected_ids' => $jobs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->dispatch("showToast", message: __('download_jobs.reports_restored_successfully', ['count' => $restored]), type: "success");
@@ -580,6 +634,14 @@ class Index extends Component
             ->where('user_id', auth()->id())
             ->get();
 
+        $affectedRecords = $jobs->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'report_type' => $job->report_type,
+                'status' => $job->status,
+            ];
+        })->toArray();
+
         $deleted = 0;
         foreach ($jobs as $job) {
             try {
@@ -592,6 +654,25 @@ class Index extends Component
             } catch (\Exception $e) {
                 // Continue with other jobs
             }
+        }
+
+        if ($deleted > 0) {
+            auditLog(
+                auth()->user(),
+                'download_job_bulk_force_deleted',
+                'web',
+                __('audit_logs.bulk_force_deleted_download_jobs', ['count' => $deleted]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $deleted,
+                    'affected_ids' => $jobs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->dispatch("showToast", message: __('download_jobs.reports_permanently_deleted', ['count' => $deleted]), type: "success");

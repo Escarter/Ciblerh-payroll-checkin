@@ -306,10 +306,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedAbsences)) {
+            $absences = auth()->user()->absences()
+                ->whereIn('id', $this->selectedAbsences)
+                ->where('approval_status', '!=', Absence::APPROVAL_STATUS_APPROVED)
+                ->get();
+
+            $affectedRecords = $absences->map(function ($absence) {
+                return [
+                    'id' => $absence->id,
+                    'date' => $absence->absence_date,
+                    'approval_status' => $absence->approval_status,
+                ];
+            })->toArray();
+
             auth()->user()->absences()
                 ->whereIn('id', $this->selectedAbsences)
                 ->where('approval_status', '!=', Absence::APPROVAL_STATUS_APPROVED)
                 ->delete();
+
+            if ($absences->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'absence_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_absences', ['count' => $absences->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $absences->count(),
+                        'affected_ids' => $absences->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedAbsences = [];
             $this->selectAll = false;
@@ -328,10 +360,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedAbsencesForDelete)) {
+            $absences = Absence::withTrashed()
+                ->whereIn('id', $this->selectedAbsencesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $absences->map(function ($absence) {
+                return [
+                    'id' => $absence->id,
+                    'date' => $absence->absence_date,
+                    'approval_status' => $absence->approval_status,
+                ];
+            })->toArray();
+
             Absence::withTrashed()
                 ->whereIn('id', $this->selectedAbsencesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own absences
+                ->where('user_id', auth()->id())
                 ->restore();
+
+            if ($absences->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'absence_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_absences', ['count' => $absences->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $absences->count(),
+                        'affected_ids' => $absences->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedAbsencesForDelete = [];
 
@@ -349,10 +413,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedAbsencesForDelete)) {
+            $absences = Absence::withTrashed()
+                ->whereIn('id', $this->selectedAbsencesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $absences->map(function ($absence) {
+                return [
+                    'id' => $absence->id,
+                    'date' => $absence->absence_date,
+                    'approval_status' => $absence->approval_status,
+                ];
+            })->toArray();
+
             Absence::withTrashed()
                 ->whereIn('id', $this->selectedAbsencesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own absences
+                ->where('user_id', auth()->id())
                 ->forceDelete();
+
+            if ($absences->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'absence_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_absences', ['count' => $absences->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $absences->count(),
+                        'affected_ids' => $absences->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedAbsencesForDelete = [];
 

@@ -276,9 +276,44 @@ class History extends Component
             return abort(401);
         }
 
-        if (!empty($this->selectedPayslips)) {
-            Payslip::whereIn('id', $this->selectedPayslips)->delete(); // Soft delete
+        $targetIds = $this->selectedPayslips ?? [];
+        $payslips = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $payslips = Payslip::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $payslips->map(function ($payslip) {
+                return [
+                    'id' => $payslip->id,
+                    'employee_id' => $payslip->employee_id,
+                    'month' => $payslip->month,
+                    'year' => $payslip->year,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Payslip::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedPayslips = [];
+
+            if ($payslips->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_payslips', ['count' => $payslips->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $payslips->count(),
+                        'affected_ids' => $payslips->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('payslips.selected_payslips_moved_to_trash'), 'BulkDeleteModal');
@@ -290,9 +325,44 @@ class History extends Component
             return abort(401);
         }
 
-        if (!empty($this->selectedPayslips)) {
-            Payslip::withTrashed()->whereIn('id', $this->selectedPayslips)->restore();
+        $targetIds = $this->selectedPayslips ?? [];
+        $payslips = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $payslips = Payslip::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $payslips->map(function ($payslip) {
+                return [
+                    'id' => $payslip->id,
+                    'employee_id' => $payslip->employee_id,
+                    'month' => $payslip->month,
+                    'year' => $payslip->year,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Payslip::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedPayslips = [];
+
+            if ($payslips->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_payslips', ['count' => $payslips->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $payslips->count(),
+                        'affected_ids' => $payslips->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('payslips.selected_payslips_restored'), 'BulkRestoreModal');
@@ -304,9 +374,44 @@ class History extends Component
             return abort(401);
         }
 
-        if (!empty($this->selectedPayslips)) {
-            Payslip::withTrashed()->whereIn('id', $this->selectedPayslips)->forceDelete();
+        $targetIds = $this->selectedPayslips ?? [];
+        $payslips = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $payslips = Payslip::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $payslips->map(function ($payslip) {
+                return [
+                    'id' => $payslip->id,
+                    'employee_id' => $payslip->employee_id,
+                    'month' => $payslip->month,
+                    'year' => $payslip->year,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Payslip::withTrashed()->whereIn('id', $targetIds)->forceDelete();
             $this->selectedPayslips = [];
+
+            if ($payslips->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_payslips', ['count' => $payslips->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $payslips->count(),
+                        'affected_ids' => $payslips->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('payslips.selected_payslips_permanently_deleted'), 'BulkForceDeleteModal');

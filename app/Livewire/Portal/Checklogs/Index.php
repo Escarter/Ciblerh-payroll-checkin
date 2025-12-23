@@ -292,6 +292,33 @@ class Index extends Component
             return abort(401);
         }
 
+        $targetIds = [];
+        $operation = 'soft_delete';
+        if (!empty($this->selectedChecklogs)) {
+            $targetIds = $this->selectedChecklogs;
+            $operation = 'soft_delete_active';
+        } elseif (!empty($this->selectedChecklogsForDelete)) {
+            $targetIds = $this->selectedChecklogsForDelete;
+            $operation = 'soft_delete_deleted_tab';
+        }
+
+        $checklogs = collect();
+        $affectedRecords = [];
+        if (!empty($targetIds)) {
+            $checklogs = Ticking::withTrashed()->whereIn('id', $targetIds)->with('user')->get();
+            $affectedRecords = $checklogs->map(function ($checklog) {
+                return [
+                    'id' => $checklog->id,
+                    'user_name' => $checklog->user->name ?? 'User',
+                    'date' => $checklog->start_time,
+                    'supervisor_approval_status' => $checklog->supervisor_approval_status,
+                    'supervisor_approval_reason' => $checklog->supervisor_approval_reason,
+                    'manager_approval_status' => $checklog->manager_approval_status,
+                    'manager_approval_reason' => $checklog->manager_approval_reason,
+                ];
+            })->toArray();
+        }
+
         // Handle both active tab (selectedChecklogs) and deleted tab (selectedChecklogsForDelete)
         if (!empty($this->selectedChecklogs)) {
             // Active tab - soft delete selected items
@@ -304,6 +331,25 @@ class Index extends Component
             $this->selectedChecklogsForDelete = [];
         }
 
+        if ($checklogs->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'checkin_bulk_deleted',
+                'web',
+                __('audit_logs.bulk_deleted_checklogs', ['count' => $checklogs->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => $operation,
+                    'affected_count' => $checklogs->count(),
+                    'affected_ids' => $checklogs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
         $this->closeModalAndFlashMessage(__('employees.selected_checkin_records_moved_to_trash'), 'BulkDeleteModal');
     }
 
@@ -313,9 +359,45 @@ class Index extends Component
             return abort(401);
         }
 
+        $checklogs = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedChecklogsForDelete)) {
+            $checklogs = Ticking::withTrashed()->whereIn('id', $this->selectedChecklogsForDelete)->with('user')->get();
+            $affectedRecords = $checklogs->map(function ($checklog) {
+                return [
+                    'id' => $checklog->id,
+                    'user_name' => $checklog->user->name ?? 'User',
+                    'date' => $checklog->start_time,
+                    'supervisor_approval_status' => $checklog->supervisor_approval_status,
+                    'supervisor_approval_reason' => $checklog->supervisor_approval_reason,
+                    'manager_approval_status' => $checklog->manager_approval_status,
+                    'manager_approval_reason' => $checklog->manager_approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedChecklogsForDelete)) {
             Ticking::withTrashed()->whereIn('id', $this->selectedChecklogsForDelete)->restore();
             $this->selectedChecklogsForDelete = [];
+        }
+
+        if ($checklogs->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'checkin_bulk_restored',
+                'web',
+                __('audit_logs.bulk_restored_checklogs', ['count' => $checklogs->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $checklogs->count(),
+                    'affected_ids' => $checklogs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('employees.selected_checkin_records_restored'), 'BulkRestoreModal');
@@ -327,9 +409,45 @@ class Index extends Component
             return abort(401);
         }
 
+        $checklogs = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedChecklogsForDelete)) {
+            $checklogs = Ticking::withTrashed()->whereIn('id', $this->selectedChecklogsForDelete)->with('user')->get();
+            $affectedRecords = $checklogs->map(function ($checklog) {
+                return [
+                    'id' => $checklog->id,
+                    'user_name' => $checklog->user->name ?? 'User',
+                    'date' => $checklog->start_time,
+                    'supervisor_approval_status' => $checklog->supervisor_approval_status,
+                    'supervisor_approval_reason' => $checklog->supervisor_approval_reason,
+                    'manager_approval_status' => $checklog->manager_approval_status,
+                    'manager_approval_reason' => $checklog->manager_approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedChecklogsForDelete)) {
             Ticking::withTrashed()->whereIn('id', $this->selectedChecklogsForDelete)->forceDelete();
             $this->selectedChecklogsForDelete = [];
+        }
+
+        if ($checklogs->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'checkin_bulk_force_deleted',
+                'web',
+                __('audit_logs.bulk_force_deleted_checklogs', ['count' => $checklogs->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $checklogs->count(),
+                    'affected_ids' => $checklogs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('employees.selected_checkin_records_permanently_deleted'), 'BulkForceDeleteModal');

@@ -248,6 +248,31 @@ class Index extends Component
             return abort(401);
         }
 
+        $targetIds = [];
+        $operation = 'soft_delete';
+        if (!empty($this->selectedOvertimes)) {
+            $targetIds = $this->selectedOvertimes;
+            $operation = 'soft_delete_active';
+        } elseif (!empty($this->selectedOvertimesForDelete)) {
+            $targetIds = $this->selectedOvertimesForDelete;
+            $operation = 'soft_delete_deleted_tab';
+        }
+
+        $overtimes = collect();
+        $affectedRecords = [];
+        if (!empty($targetIds)) {
+            $overtimes = Overtime::withTrashed()->whereIn('id', $targetIds)->with('user')->get();
+            $affectedRecords = $overtimes->map(function ($overtime) {
+                return [
+                    'id' => $overtime->id,
+                    'user_name' => $overtime->user->name ?? 'User',
+                    'date' => $overtime->overtime_date,
+                    'approval_status' => $overtime->approval_status,
+                    'approval_reason' => $overtime->approval_reason,
+                ];
+            })->toArray();
+        }
+
         // Handle both active tab (selectedOvertimes) and deleted tab (selectedOvertimesForDelete)
         if (!empty($this->selectedOvertimes)) {
             // Active tab - soft delete selected items
@@ -260,6 +285,25 @@ class Index extends Component
             $this->selectedOvertimesForDelete = [];
         }
 
+        if ($overtimes->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'overtime_bulk_deleted',
+                'web',
+                __('audit_logs.bulk_deleted_overtimes', ['count' => $overtimes->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => $operation,
+                    'affected_count' => $overtimes->count(),
+                    'affected_ids' => $overtimes->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
         $this->closeModalAndFlashMessage(__('overtime.selected_overtimes_moved_to_trash'), 'BulkDeleteModal');
     }
 
@@ -269,9 +313,43 @@ class Index extends Component
             return abort(401);
         }
 
+        $overtimes = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedOvertimesForDelete)) {
+            $overtimes = Overtime::withTrashed()->whereIn('id', $this->selectedOvertimesForDelete)->with('user')->get();
+            $affectedRecords = $overtimes->map(function ($overtime) {
+                return [
+                    'id' => $overtime->id,
+                    'user_name' => $overtime->user->name ?? 'User',
+                    'date' => $overtime->overtime_date,
+                    'approval_status' => $overtime->approval_status,
+                    'approval_reason' => $overtime->approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedOvertimesForDelete)) {
             Overtime::withTrashed()->whereIn('id', $this->selectedOvertimesForDelete)->restore();
             $this->selectedOvertimesForDelete = [];
+        }
+
+        if ($overtimes->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'overtime_bulk_restored',
+                'web',
+                __('audit_logs.bulk_restored_overtimes', ['count' => $overtimes->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $overtimes->count(),
+                    'affected_ids' => $overtimes->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('overtime.selected_overtimes_restored'), 'BulkRestoreModal');
@@ -283,9 +361,43 @@ class Index extends Component
             return abort(401);
         }
 
+        $overtimes = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedOvertimesForDelete)) {
+            $overtimes = Overtime::withTrashed()->whereIn('id', $this->selectedOvertimesForDelete)->with('user')->get();
+            $affectedRecords = $overtimes->map(function ($overtime) {
+                return [
+                    'id' => $overtime->id,
+                    'user_name' => $overtime->user->name ?? 'User',
+                    'date' => $overtime->overtime_date,
+                    'approval_status' => $overtime->approval_status,
+                    'approval_reason' => $overtime->approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedOvertimesForDelete)) {
             Overtime::withTrashed()->whereIn('id', $this->selectedOvertimesForDelete)->forceDelete();
             $this->selectedOvertimesForDelete = [];
+        }
+
+        if ($overtimes->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'overtime_bulk_force_deleted',
+                'web',
+                __('audit_logs.bulk_force_deleted_overtimes', ['count' => $overtimes->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $overtimes->count(),
+                    'affected_ids' => $overtimes->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('overtime.selected_overtimes_permanently_deleted'), 'BulkForceDeleteModal');

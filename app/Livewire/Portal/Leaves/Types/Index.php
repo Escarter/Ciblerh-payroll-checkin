@@ -171,9 +171,42 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedLeaveTypes)) {
-            LeaveType::whereIn('id', $this->selectedLeaveTypes)->delete(); // Soft delete
+        $targetIds = $this->selectedLeaveTypes ?? [];
+        $leaveTypes = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $leaveTypes = LeaveType::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $leaveTypes->map(function ($leaveType) {
+                return [
+                    'id' => $leaveType->id,
+                    'name' => $leaveType->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            LeaveType::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedLeaveTypes = [];
+
+            if ($leaveTypes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'leave_type_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_leave_types', ['count' => $leaveTypes->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $leaveTypes->count(),
+                        'affected_ids' => $leaveTypes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('leaves.selected_leave_types_moved_to_trash'), 'BulkDeleteModal');
@@ -185,9 +218,42 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedLeaveTypes)) {
-            LeaveType::withTrashed()->whereIn('id', $this->selectedLeaveTypes)->restore();
+        $targetIds = $this->selectedLeaveTypes ?? [];
+        $leaveTypes = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $leaveTypes = LeaveType::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $leaveTypes->map(function ($leaveType) {
+                return [
+                    'id' => $leaveType->id,
+                    'name' => $leaveType->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            LeaveType::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedLeaveTypes = [];
+
+            if ($leaveTypes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'leave_type_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_leave_types', ['count' => $leaveTypes->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $leaveTypes->count(),
+                        'affected_ids' => $leaveTypes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('leaves.selected_leave_types_restored'), 'BulkRestoreModal');
@@ -199,9 +265,42 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedLeaveTypes)) {
-            LeaveType::withTrashed()->whereIn('id', $this->selectedLeaveTypes)->forceDelete();
+        $targetIds = $this->selectedLeaveTypes ?? [];
+        $leaveTypes = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $leaveTypes = LeaveType::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $leaveTypes->map(function ($leaveType) {
+                return [
+                    'id' => $leaveType->id,
+                    'name' => $leaveType->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            LeaveType::withTrashed()->whereIn('id', $targetIds)->forceDelete();
             $this->selectedLeaveTypes = [];
+
+            if ($leaveTypes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'leave_type_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_leave_types', ['count' => $leaveTypes->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $leaveTypes->count(),
+                        'affected_ids' => $leaveTypes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('leaves.selected_leave_types_permanently_deleted'), 'BulkForceDeleteModal');

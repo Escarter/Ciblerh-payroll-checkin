@@ -263,6 +263,31 @@ class Index extends Component
             return abort(401);
         }
 
+        $targetIds = [];
+        $operation = 'soft_delete';
+        if (!empty($this->selectedAdvanceSalaries)) {
+            $targetIds = $this->selectedAdvanceSalaries;
+            $operation = 'soft_delete_active';
+        } elseif (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $targetIds = $this->selectedAdvanceSalariesForDelete;
+            $operation = 'soft_delete_deleted_tab';
+        }
+
+        $advanceSalaries = collect();
+        $affectedRecords = [];
+        if (!empty($targetIds)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()->whereIn('id', $targetIds)->with('user')->get();
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'user_name' => $as->user->name ?? 'User',
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                    'approval_reason' => $as->approval_reason,
+                ];
+            })->toArray();
+        }
+
         // Handle both active tab (selectedAdvanceSalaries) and deleted tab (selectedAdvanceSalariesForDelete)
         if (!empty($this->selectedAdvanceSalaries)) {
             // Active tab - soft delete selected items
@@ -275,6 +300,25 @@ class Index extends Component
             $this->selectedAdvanceSalariesForDelete = [];
         }
 
+        if ($advanceSalaries->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'advance_salary_bulk_deleted',
+                'web',
+                __('audit_logs.bulk_deleted_advance_salaries', ['count' => $advanceSalaries->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => $operation,
+                    'affected_count' => $advanceSalaries->count(),
+                    'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
         $this->closeModalAndFlashMessage(__('employees.selected_advance_salaries_moved_to_trash'), 'BulkDeleteModal');
     }
 
@@ -284,9 +328,43 @@ class Index extends Component
             return abort(401);
         }
 
+        $advanceSalaries = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()->whereIn('id', $this->selectedAdvanceSalariesForDelete)->with('user')->get();
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'user_name' => $as->user->name ?? 'User',
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                    'approval_reason' => $as->approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
             AdvanceSalary::withTrashed()->whereIn('id', $this->selectedAdvanceSalariesForDelete)->restore();
             $this->selectedAdvanceSalariesForDelete = [];
+        }
+
+        if ($advanceSalaries->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'advance_salary_bulk_restored',
+                'web',
+                __('audit_logs.bulk_restored_advance_salaries', ['count' => $advanceSalaries->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $advanceSalaries->count(),
+                    'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('employees.selected_advance_salaries_restored'), 'BulkRestoreModal');
@@ -298,9 +376,43 @@ class Index extends Component
             return abort(401);
         }
 
+        $advanceSalaries = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()->whereIn('id', $this->selectedAdvanceSalariesForDelete)->with('user')->get();
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'user_name' => $as->user->name ?? 'User',
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                    'approval_reason' => $as->approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
             AdvanceSalary::withTrashed()->whereIn('id', $this->selectedAdvanceSalariesForDelete)->forceDelete();
             $this->selectedAdvanceSalariesForDelete = [];
+        }
+
+        if ($advanceSalaries->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'advance_salary_bulk_force_deleted',
+                'web',
+                __('audit_logs.bulk_force_deleted_advance_salaries', ['count' => $advanceSalaries->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $advanceSalaries->count(),
+                    'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('employees.selected_advance_salaries_permanently_deleted'), 'BulkForceDeleteModal');

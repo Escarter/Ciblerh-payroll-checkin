@@ -170,9 +170,44 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedServices)) {
-            Service::whereIn('id', $this->selectedServices)->delete(); // Soft delete
+        $targetIds = $this->selectedServices ?? [];
+        $services = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $services = Service::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $services->map(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'name' => $service->name,
+                    'department_id' => $service->department_id,
+                    'company_id' => $service->company_id,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Service::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedServices = [];
+
+            if ($services->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'service_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_services', ['count' => $services->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $services->count(),
+                        'affected_ids' => $services->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('services.selected_services_moved_to_trash'), 'BulkDeleteModal');
@@ -184,9 +219,44 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedServices)) {
-            Service::withTrashed()->whereIn('id', $this->selectedServices)->restore();
+        $targetIds = $this->selectedServices ?? [];
+        $services = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $services = Service::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $services->map(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'name' => $service->name,
+                    'department_id' => $service->department_id,
+                    'company_id' => $service->company_id,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Service::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedServices = [];
+
+            if ($services->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'service_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_services', ['count' => $services->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $services->count(),
+                        'affected_ids' => $services->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('services.selected_services_restored'), 'BulkRestoreModal');
@@ -200,11 +270,19 @@ class Index extends BaseImportComponent
 
         if (!empty($this->selectedServices)) {
             $servicesWithTickings = [];
+            $affectedRecords = [];
             
             foreach ($this->selectedServices as $serviceId) {
                 $service = Service::withTrashed()->find($serviceId);
                 if ($service && $service->tickings()->count() > 0) {
                     $servicesWithTickings[] = $service->name;
+                } elseif ($service) {
+                    $affectedRecords[] = [
+                        'id' => $service->id,
+                        'name' => $service->name,
+                        'department_id' => $service->department_id,
+                        'company_id' => $service->company_id,
+                    ];
                 }
             }
             
@@ -216,6 +294,25 @@ class Index extends BaseImportComponent
             
             Service::withTrashed()->whereIn('id', $this->selectedServices)->forceDelete();
             $this->selectedServices = [];
+
+            if (!empty($affectedRecords)) {
+                auditLog(
+                    auth()->user(),
+                    'service_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_services', ['count' => count($affectedRecords)]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => count($affectedRecords),
+                        'affected_ids' => array_column($affectedRecords, 'id'),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('services.selected_services_permanently_deleted'), 'BulkForceDeleteModal');

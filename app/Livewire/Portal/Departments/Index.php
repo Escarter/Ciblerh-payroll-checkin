@@ -237,9 +237,42 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedDepartments)) {
-            Department::whereIn('id', $this->selectedDepartments)->delete(); // Soft delete
+        $targetIds = $this->selectedDepartments ?? [];
+        $departments = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $departments = Department::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $departments->map(function ($department) {
+                return [
+                    'id' => $department->id,
+                    'name' => $department->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Department::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedDepartments = [];
+
+            if ($departments->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'department_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_departments', ['count' => $departments->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $departments->count(),
+                        'affected_ids' => $departments->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('departments.selected_departments_moved_to_trash'), 'BulkDeleteModal');
@@ -251,9 +284,42 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedDepartments)) {
-            Department::withTrashed()->whereIn('id', $this->selectedDepartments)->restore();
+        $targetIds = $this->selectedDepartments ?? [];
+        $departments = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $departments = Department::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $departments->map(function ($department) {
+                return [
+                    'id' => $department->id,
+                    'name' => $department->name,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            Department::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedDepartments = [];
+
+            if ($departments->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'department_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_departments', ['count' => $departments->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $departments->count(),
+                        'affected_ids' => $departments->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('departments.selected_departments_restored'), 'BulkRestoreModal');
@@ -268,6 +334,7 @@ class Index extends BaseImportComponent
         if (!empty($this->selectedDepartments)) {
             $departments = Department::withTrashed()->whereIn('id', $this->selectedDepartments)->get();
             $departmentsWithRelatedRecords = [];
+            $affectedRecords = [];
             
             foreach ($departments as $department) {
                 $hasRelatedRecords = $department->services()->count() > 0 ||
@@ -275,6 +342,11 @@ class Index extends BaseImportComponent
                 
                 if ($hasRelatedRecords) {
                     $departmentsWithRelatedRecords[] = $department->name;
+                } else {
+                    $affectedRecords[] = [
+                        'id' => $department->id,
+                        'name' => $department->name,
+                    ];
                 }
             }
             
@@ -288,6 +360,25 @@ class Index extends BaseImportComponent
                 $department->forceDelete();
             }
             
+            if (!empty($affectedRecords)) {
+                auditLog(
+                    auth()->user(),
+                    'department_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_departments', ['count' => count($affectedRecords)]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => count($affectedRecords),
+                        'affected_ids' => array_column($affectedRecords, 'id'),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedDepartments = [];
         }
 

@@ -295,6 +295,33 @@ class Index extends Component
             return abort(401);
         }
 
+        $targetIds = [];
+        $operation = 'soft_delete';
+        if (!empty($this->selectedLeaves)) {
+            $targetIds = $this->selectedLeaves;
+            $operation = 'soft_delete_active';
+        } elseif (!empty($this->selectedLeavesForDelete)) {
+            $targetIds = $this->selectedLeavesForDelete;
+            $operation = 'soft_delete_deleted_tab';
+        }
+
+        $leaves = collect();
+        $affectedRecords = [];
+        if (!empty($targetIds)) {
+            $leaves = Leave::withTrashed()->whereIn('id', $targetIds)->with('user')->get();
+            $affectedRecords = $leaves->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date ? $leave->start_date->format('Y-m-d') : null,
+                    'supervisor_approval_status' => $leave->supervisor_approval_status,
+                    'supervisor_approval_reason' => $leave->supervisor_approval_reason,
+                    'manager_approval_status' => $leave->manager_approval_status,
+                    'manager_approval_reason' => $leave->manager_approval_reason,
+                ];
+            })->toArray();
+        }
+
         // Handle both active tab (selectedLeaves) and deleted tab (selectedLeavesForDelete)
         if (!empty($this->selectedLeaves)) {
             // Active tab - soft delete selected items
@@ -307,6 +334,25 @@ class Index extends Component
             $this->selectedLeavesForDelete = [];
         }
 
+        if ($leaves->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'leave_bulk_deleted',
+                'web',
+                __('audit_logs.bulk_deleted_leaves', ['count' => $leaves->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => $operation,
+                    'affected_count' => $leaves->count(),
+                    'affected_ids' => $leaves->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
         $this->closeModalAndFlashMessage(__('leaves.selected_leaves_moved_to_trash'), 'BulkDeleteModal');
     }
 
@@ -316,9 +362,45 @@ class Index extends Component
             return abort(401);
         }
 
+        $leaves = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedLeavesForDelete)) {
+            $leaves = Leave::withTrashed()->whereIn('id', $this->selectedLeavesForDelete)->with('user')->get();
+            $affectedRecords = $leaves->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date ? $leave->start_date->format('Y-m-d') : null,
+                    'supervisor_approval_status' => $leave->supervisor_approval_status,
+                    'supervisor_approval_reason' => $leave->supervisor_approval_reason,
+                    'manager_approval_status' => $leave->manager_approval_status,
+                    'manager_approval_reason' => $leave->manager_approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedLeavesForDelete)) {
             Leave::withTrashed()->whereIn('id', $this->selectedLeavesForDelete)->restore();
             $this->selectedLeavesForDelete = [];
+        }
+
+        if ($leaves->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'leave_bulk_restored',
+                'web',
+                __('audit_logs.bulk_restored_leaves', ['count' => $leaves->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $leaves->count(),
+                    'affected_ids' => $leaves->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('leaves.selected_leaves_restored'), 'BulkRestoreModal');
@@ -330,9 +412,45 @@ class Index extends Component
             return abort(401);
         }
 
+        $leaves = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedLeavesForDelete)) {
+            $leaves = Leave::withTrashed()->whereIn('id', $this->selectedLeavesForDelete)->with('user')->get();
+            $affectedRecords = $leaves->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date ? $leave->start_date->format('Y-m-d') : null,
+                    'supervisor_approval_status' => $leave->supervisor_approval_status,
+                    'supervisor_approval_reason' => $leave->supervisor_approval_reason,
+                    'manager_approval_status' => $leave->manager_approval_status,
+                    'manager_approval_reason' => $leave->manager_approval_reason,
+                ];
+            })->toArray();
+        }
+
         if (!empty($this->selectedLeavesForDelete)) {
             Leave::withTrashed()->whereIn('id', $this->selectedLeavesForDelete)->forceDelete();
             $this->selectedLeavesForDelete = [];
+        }
+
+        if ($leaves->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'leave_bulk_force_deleted',
+                'web',
+                __('audit_logs.bulk_force_deleted_leaves', ['count' => $leaves->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $leaves->count(),
+                    'affected_ids' => $leaves->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('leaves.selected_leaves_permanently_deleted'), 'BulkForceDeleteModal');

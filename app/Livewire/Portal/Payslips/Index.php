@@ -138,11 +138,41 @@ class Index extends Component
                 $query->whereIn('department_id', $validDepartmentIds);
             }
             
-            $processes = $query;
-            foreach ($processes->get() as $process) {
+            $processes = $query->get();
+            $affectedRecords = $processes->map(function ($process) {
+                return [
+                    'id' => $process->id,
+                    'month' => $process->month,
+                    'year' => $process->year,
+                    'department_id' => $process->department_id,
+                    'status' => $process->status,
+                ];
+            })->toArray();
+
+            foreach ($processes as $process) {
                 $process->payslips()->delete(); // Soft delete related payslips
             }
-            $processes->delete(); // Soft delete the processes
+            $query->delete(); // Soft delete the processes
+
+            if ($processes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_process_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_payslip_processes', ['count' => $processes->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $processes->count(),
+                        'affected_ids' => $processes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedSendPayslipProcesses = [];
         }
 
@@ -164,7 +194,38 @@ class Index extends Component
                 $query->whereIn('department_id', $validDepartmentIds);
             }
             
+            $processes = $query->get();
+            $affectedRecords = $processes->map(function ($process) {
+                return [
+                    'id' => $process->id,
+                    'month' => $process->month,
+                    'year' => $process->year,
+                    'department_id' => $process->department_id,
+                    'status' => $process->status,
+                ];
+            })->toArray();
+
             $query->restore();
+
+            if ($processes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_process_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_payslip_processes', ['count' => $processes->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $processes->count(),
+                        'affected_ids' => $processes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedSendPayslipProcesses = [];
         }
 
@@ -186,11 +247,41 @@ class Index extends Component
                 $query->whereIn('department_id', $validDepartmentIds);
             }
             
-            $processes = $query;
-            foreach ($processes->get() as $process) {
+            $processes = $query->get();
+            $affectedRecords = $processes->map(function ($process) {
+                return [
+                    'id' => $process->id,
+                    'month' => $process->month,
+                    'year' => $process->year,
+                    'department_id' => $process->department_id,
+                    'status' => $process->status,
+                ];
+            })->toArray();
+
+            foreach ($processes as $process) {
                 $process->payslips()->forceDelete(); // Force delete related payslips
             }
-            $processes->forceDelete(); // Force delete the processes
+            $query->forceDelete(); // Force delete the processes
+
+            if ($processes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_process_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_payslip_processes', ['count' => $processes->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $processes->count(),
+                        'affected_ids' => $processes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedSendPayslipProcesses = [];
         }
 

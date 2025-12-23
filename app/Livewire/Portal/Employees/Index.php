@@ -424,10 +424,45 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedEmployees)) {
-            User::whereIn('id', $this->selectedEmployees)->delete(); // Soft delete
+        $targetIds = $this->selectedEmployees ?? [];
+        $employees = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $employees = User::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $employees->map(function ($employee) {
+                return [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'email' => $employee->email,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            User::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedEmployees = [];
             $this->selectAll = false;
+
+            if ($employees->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'employee_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_employees', ['count' => $employees->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $employees->count(),
+                        'affected_ids' => $employees->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->closeModalAndFlashMessage(__('employees.selected_employees_moved_to_trash'), 'BulkDeleteModal');
         }
     }
@@ -438,10 +473,45 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedEmployees)) {
-            User::withTrashed()->whereIn('id', $this->selectedEmployees)->restore();
+        $targetIds = $this->selectedEmployees ?? [];
+        $employees = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $employees = User::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $employees->map(function ($employee) {
+                return [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'email' => $employee->email,
+                ];
+            })->toArray();
+        }
+
+        if (!empty($targetIds)) {
+            User::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedEmployees = [];
             $this->selectAll = false;
+
+            if ($employees->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'employee_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_employees', ['count' => $employees->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $employees->count(),
+                        'affected_ids' => $employees->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->closeModalAndFlashMessage(__('employees.selected_employees_restored'), 'BulkRestoreModal');
         }
     }
@@ -455,6 +525,7 @@ class Index extends BaseImportComponent
         if (!empty($this->selectedEmployees)) {
             $employees = User::withTrashed()->whereIn('id', $this->selectedEmployees)->get();
             $employeesWithRelatedRecords = [];
+            $affectedRecords = [];
             
             foreach ($employees as $employee) {
                 $hasRelatedRecords = $employee->leaves()->count() > 0 ||
@@ -467,6 +538,12 @@ class Index extends BaseImportComponent
                 
                 if ($hasRelatedRecords) {
                     $employeesWithRelatedRecords[] = $employee->name;
+                } else {
+                    $affectedRecords[] = [
+                        'id' => $employee->id,
+                        'name' => $employee->name,
+                        'email' => $employee->email,
+                    ];
                 }
             }
             
@@ -480,6 +557,25 @@ class Index extends BaseImportComponent
                 $employee->forceDelete();
             }
             
+            if (!empty($affectedRecords)) {
+                auditLog(
+                    auth()->user(),
+                    'employee_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_employees', ['count' => count($affectedRecords)]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => count($affectedRecords),
+                        'affected_ids' => array_column($affectedRecords, 'id'),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedEmployees = [];
             $this->selectAll = false;
         }

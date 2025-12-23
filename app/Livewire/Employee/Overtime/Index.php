@@ -144,9 +144,40 @@ class Index extends Component
         }
 
         if (!empty($this->selected)) {
+            $overtimes = Overtime::whereIn('id', $this->selected)
+                ->where('user_id', auth()->user()->id)
+                ->get();
+
+            $affectedRecords = $overtimes->map(function ($overtime) {
+                return [
+                    'id' => $overtime->id,
+                    'date' => $overtime->overtime_date,
+                    'approval_status' => $overtime->approval_status,
+                ];
+            })->toArray();
+
             Overtime::whereIn('id', $this->selected)
                 ->where('user_id', auth()->user()->id)
                 ->delete();
+
+            if ($overtimes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'overtime_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_overtimes', ['count' => $overtimes->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $overtimes->count(),
+                        'affected_ids' => $overtimes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selected = [];
             $this->selectAll = false;
@@ -222,10 +253,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedOvertimesForDelete)) {
+            $overtimes = Overtime::withTrashed()
+                ->whereIn('id', $this->selectedOvertimesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $overtimes->map(function ($overtime) {
+                return [
+                    'id' => $overtime->id,
+                    'date' => $overtime->overtime_date,
+                    'approval_status' => $overtime->approval_status,
+                ];
+            })->toArray();
+
             Overtime::withTrashed()
                 ->whereIn('id', $this->selectedOvertimesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own overtimes
+                ->where('user_id', auth()->id())
                 ->restore();
+
+            if ($overtimes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'overtime_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_overtimes', ['count' => $overtimes->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $overtimes->count(),
+                        'affected_ids' => $overtimes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedOvertimesForDelete = [];
 
@@ -243,10 +306,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedOvertimesForDelete)) {
+            $overtimes = Overtime::withTrashed()
+                ->whereIn('id', $this->selectedOvertimesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $overtimes->map(function ($overtime) {
+                return [
+                    'id' => $overtime->id,
+                    'date' => $overtime->overtime_date,
+                    'approval_status' => $overtime->approval_status,
+                ];
+            })->toArray();
+
             Overtime::withTrashed()
                 ->whereIn('id', $this->selectedOvertimesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own overtimes
+                ->where('user_id', auth()->id())
                 ->forceDelete();
+
+            if ($overtimes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'overtime_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_overtimes', ['count' => $overtimes->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $overtimes->count(),
+                        'affected_ids' => $overtimes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedOvertimesForDelete = [];
 

@@ -214,10 +214,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedAdvanceSalaries)) {
+            $advanceSalaries = auth()->user()->advanceSalaries()
+                ->whereIn('id', $this->selectedAdvanceSalaries)
+                ->where('approval_status', '!=', AdvanceSalary::APPROVAL_STATUS_APPROVED)
+                ->get();
+
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                ];
+            })->toArray();
+
             auth()->user()->advanceSalaries()
                 ->whereIn('id', $this->selectedAdvanceSalaries)
                 ->where('approval_status', '!=', AdvanceSalary::APPROVAL_STATUS_APPROVED)
                 ->delete();
+
+            if ($advanceSalaries->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'advance_salary_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_advance_salaries', ['count' => $advanceSalaries->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $advanceSalaries->count(),
+                        'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedAdvanceSalaries = [];
 
@@ -235,10 +267,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()
+                ->whereIn('id', $this->selectedAdvanceSalariesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                ];
+            })->toArray();
+
             AdvanceSalary::withTrashed()
                 ->whereIn('id', $this->selectedAdvanceSalariesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own advance salaries
+                ->where('user_id', auth()->id())
                 ->restore();
+
+            if ($advanceSalaries->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'advance_salary_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_advance_salaries', ['count' => $advanceSalaries->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $advanceSalaries->count(),
+                        'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedAdvanceSalariesForDelete = [];
 
@@ -251,15 +315,47 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('advance_salary--delete')) {
+        if (!Gate::allows('advance_salary-delete')) {
             return abort(401);
         }
 
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()
+                ->whereIn('id', $this->selectedAdvanceSalariesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                ];
+            })->toArray();
+
             AdvanceSalary::withTrashed()
                 ->whereIn('id', $this->selectedAdvanceSalariesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own advance salaries
+                ->where('user_id', auth()->id())
                 ->forceDelete();
+
+            if ($advanceSalaries->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'advance_salary_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_advance_salaries', ['count' => $advanceSalaries->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $advanceSalaries->count(),
+                        'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedAdvanceSalariesForDelete = [];
 

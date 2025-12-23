@@ -189,19 +189,37 @@ class All extends Component
         }
         
         $jobs = $query->get();
+        $affectedRecords = $jobs->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'month' => $job->month,
+                'year' => $job->year,
+                'department_id' => $job->department_id,
+                'status' => $job->status,
+            ];
+        })->toArray();
         
         foreach ($jobs as $job) {
+            $job->delete(); // Soft delete
+        }
+
+        if ($jobs->count() > 0) {
             auditLog(
                 auth()->user(),
-                'bulk_delete_payslip_process',
+                'payslip_process_bulk_deleted',
                 'web',
-                __('audit_logs.bulk_delete_payslip_process_for', [
-                    'month' => $job->month,
-                    'year' => $job->year,
-                    'time' => now()->format('Y-m-d H:i:s')
-                ])
+                __('audit_logs.bulk_deleted_payslip_processes', ['count' => $jobs->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'soft_delete',
+                    'affected_count' => $jobs->count(),
+                    'affected_ids' => $jobs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
             );
-            $job->delete(); // Soft delete
         }
 
         $this->selectedJobs = [];
@@ -225,9 +243,37 @@ class All extends Component
         }
         
         $jobs = $query->get();
+        $affectedRecords = $jobs->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'month' => $job->month,
+                'year' => $job->year,
+                'department_id' => $job->department_id,
+                'status' => $job->status,
+            ];
+        })->toArray();
         
         foreach ($jobs as $job) {
             $job->restore();
+        }
+
+        if ($jobs->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'payslip_process_bulk_restored',
+                'web',
+                __('audit_logs.bulk_restored_payslip_processes', ['count' => $jobs->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $jobs->count(),
+                    'affected_ids' => $jobs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->selectedJobs = [];
@@ -251,20 +297,38 @@ class All extends Component
         }
         
         $jobs = $query->get();
+        $affectedRecords = $jobs->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'month' => $job->month,
+                'year' => $job->year,
+                'department_id' => $job->department_id,
+                'status' => $job->status,
+            ];
+        })->toArray();
         
         foreach ($jobs as $job) {
-            auditLog(
-                auth()->user(),
-                'bulk_force_delete_payslip_process',
-                'web',
-                __('audit_logs.bulk_permanently_delete_payslip_process_for', [
-                    'month' => $job->month,
-                    'year' => $job->year,
-                    'time' => now()->format('Y-m-d H:i:s')
-                ])
-            );
             $job->payslips()->forceDelete(); // Permanently delete related payslips
             $job->forceDelete(); // Permanently delete the process
+        }
+
+        if ($jobs->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'payslip_process_bulk_force_deleted',
+                'web',
+                __('audit_logs.bulk_force_deleted_payslip_processes', ['count' => $jobs->count()]),
+                null,
+                [],
+                [],
+                [
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $jobs->count(),
+                    'affected_ids' => $jobs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->selectedJobs = [];

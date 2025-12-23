@@ -163,9 +163,40 @@ class Index extends Component
         }
 
         if (!empty($this->selectedLeaves)) {
+            $leaves = Leave::whereIn('id', $this->selectedLeaves)
+                ->where('user_id', auth()->user()->id)
+                ->get();
+
+            $affectedRecords = $leaves->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'start_date' => $leave->start_date ? $leave->start_date->format('Y-m-d') : null,
+                    'end_date' => $leave->end_date ? $leave->end_date->format('Y-m-d') : null,
+                ];
+            })->toArray();
+
             Leave::whereIn('id', $this->selectedLeaves)
                 ->where('user_id', auth()->user()->id)
                 ->delete();
+
+            if ($leaves->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'leave_bulk_deleted',
+                    'web',
+                    __('audit_logs.bulk_deleted_leaves', ['count' => $leaves->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $leaves->count(),
+                        'affected_ids' => $leaves->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedLeaves = [];
             $this->selectAll = false;
@@ -241,10 +272,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedLeavesForDelete)) {
+            $leaves = Leave::withTrashed()
+                ->whereIn('id', $this->selectedLeavesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $leaves->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'start_date' => $leave->start_date ? $leave->start_date->format('Y-m-d') : null,
+                    'end_date' => $leave->end_date ? $leave->end_date->format('Y-m-d') : null,
+                ];
+            })->toArray();
+
             Leave::withTrashed()
                 ->whereIn('id', $this->selectedLeavesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own leaves
+                ->where('user_id', auth()->id())
                 ->restore();
+
+            if ($leaves->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'leave_bulk_restored',
+                    'web',
+                    __('audit_logs.bulk_restored_leaves', ['count' => $leaves->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $leaves->count(),
+                        'affected_ids' => $leaves->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedLeavesForDelete = [];
 
@@ -262,10 +325,42 @@ class Index extends Component
         }
 
         if (!empty($this->selectedLeavesForDelete)) {
+            $leaves = Leave::withTrashed()
+                ->whereIn('id', $this->selectedLeavesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $leaves->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'start_date' => $leave->start_date ? $leave->start_date->format('Y-m-d') : null,
+                    'end_date' => $leave->end_date ? $leave->end_date->format('Y-m-d') : null,
+                ];
+            })->toArray();
+
             Leave::withTrashed()
                 ->whereIn('id', $this->selectedLeavesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own leaves
+                ->where('user_id', auth()->id())
                 ->forceDelete();
+
+            if ($leaves->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'leave_bulk_force_deleted',
+                    'web',
+                    __('audit_logs.bulk_force_deleted_leaves', ['count' => $leaves->count()]),
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $leaves->count(),
+                        'affected_ids' => $leaves->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedLeavesForDelete = [];
 
