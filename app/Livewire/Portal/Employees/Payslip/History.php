@@ -113,10 +113,17 @@ class History extends Component
                                 auth()->user(),
                                 'send_email',
                                 'web',
-                                __('audit_logs.send_email_to_employee', [
-                                    'user' => '<a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
-                                    'employee' => '<a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
-                                ])
+                                'send_email_to_employee',
+                                null,
+                                [],
+                                [],
+                                [
+                                    'translation_key' => 'send_email_to_employee',
+                                    'translation_params' => [
+                                        'user' => '<a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
+                                        'employee' => '<a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                                    ],
+                                ]
                             );
 
                             $this->closeModalAndFlashMessage(__('payslips.email_resent_successfully'), 'resendEmailModal');
@@ -197,10 +204,17 @@ class History extends Component
                     auth()->user(),
                     'send_sms',
                     'web',
-                    __('audit_logs.send_sms_to_employee', [
-                        'user' => '<a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
-                        'employee' => '<a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
-                    ])
+                    'send_sms_to_employee',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'send_sms_to_employee',
+                        'translation_params' => [
+                            'user' => '<a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
+                            'employee' => '<a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                        ],
+                    ]
                 );
                 $this->closeModalAndFlashMessage(__('payslips.sms_sent_successfully', ['user' => $employee->name]), 'resendSMSModal');
     
@@ -301,11 +315,13 @@ class History extends Component
                     auth()->user(),
                     'payslip_bulk_deleted',
                     'web',
-                    __('audit_logs.bulk_deleted_payslips', ['count' => $payslips->count()]),
+                    'bulk_deleted_payslips',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_deleted_payslips',
+                        'translation_params' => ['count' => $payslips->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'soft_delete',
                         'affected_count' => $payslips->count(),
@@ -350,11 +366,13 @@ class History extends Component
                     auth()->user(),
                     'payslip_bulk_restored',
                     'web',
-                    __('audit_logs.bulk_restored_payslips', ['count' => $payslips->count()]),
+                    'bulk_restored_payslips',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_restored_payslips',
+                        'translation_params' => ['count' => $payslips->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'bulk_restore',
                         'affected_count' => $payslips->count(),
@@ -399,11 +417,13 @@ class History extends Component
                     auth()->user(),
                     'payslip_bulk_force_deleted',
                     'web',
-                    __('audit_logs.bulk_force_deleted_payslips', ['count' => $payslips->count()]),
+                    'bulk_force_deleted_payslips',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_force_deleted_payslips',
+                        'translation_params' => ['count' => $payslips->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'bulk_force_delete',
                         'affected_count' => $payslips->count(),

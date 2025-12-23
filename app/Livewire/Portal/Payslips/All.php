@@ -208,12 +208,14 @@ class All extends Component
                 auth()->user(),
                 'payslip_process_bulk_deleted',
                 'web',
-                __('audit_logs.bulk_deleted_payslip_processes', ['count' => $jobs->count()]),
-                null,
-                [],
-                [],
-                [
-                    'bulk_operation' => true,
+                'bulk_deleted_payslip_processes',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_deleted_payslip_processes',
+                        'translation_params' => ['count' => $jobs->count()],
+                        'bulk_operation' => true,
                     'operation_type' => 'soft_delete',
                     'affected_count' => $jobs->count(),
                     'affected_ids' => $jobs->pluck('id')->toArray(),
@@ -262,12 +264,14 @@ class All extends Component
                 auth()->user(),
                 'payslip_process_bulk_restored',
                 'web',
-                __('audit_logs.bulk_restored_payslip_processes', ['count' => $jobs->count()]),
-                null,
-                [],
-                [],
-                [
-                    'bulk_operation' => true,
+                'bulk_restored_payslip_processes',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_payslip_processes',
+                        'translation_params' => ['count' => $jobs->count()],
+                        'bulk_operation' => true,
                     'operation_type' => 'bulk_restore',
                     'affected_count' => $jobs->count(),
                     'affected_ids' => $jobs->pluck('id')->toArray(),
@@ -317,12 +321,14 @@ class All extends Component
                 auth()->user(),
                 'payslip_process_bulk_force_deleted',
                 'web',
-                __('audit_logs.bulk_force_deleted_payslip_processes', ['count' => $jobs->count()]),
-                null,
-                [],
-                [],
-                [
-                    'bulk_operation' => true,
+                'bulk_force_deleted_payslip_processes',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_payslip_processes',
+                        'translation_params' => ['count' => $jobs->count()],
+                        'bulk_operation' => true,
                     'operation_type' => 'bulk_force_delete',
                     'affected_count' => $jobs->count(),
                     'affected_ids' => $jobs->pluck('id')->toArray(),
@@ -936,11 +942,22 @@ class All extends Component
                 auth()->user(),
                 'cancel_payslip_process',
                 'web',
-                __('audit_logs.cancel_payslip_process_for', [
+                'cancel_payslip_process_for',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'cancel_payslip_process_for',
+                    'translation_params' => [
+                        'month' => $process->month,
+                        'year' => $process->year,
+                        'time' => now()->format('Y-m-d H:i:s')
+                    ],
+                    'entity' => 'payslip_process',
+                    'process_id' => $process->id,
                     'month' => $process->month,
                     'year' => $process->year,
-                    'time' => now()->format('Y-m-d H:i:s')
-                ])
+                ]
             );
 
             session()->flash('message', __('payslips.task_cancelled_successfully'));

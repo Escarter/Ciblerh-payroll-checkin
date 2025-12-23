@@ -27,11 +27,11 @@ if (!function_exists('auditLog')) {
      * @param User $user The user performing the action
      * @param string $action_type The action type (e.g., 'company_created', 'user_updated')
      * @param string $channel The channel (e.g., 'web', 'api')
-     * @param string $action_performed Description of the action
+     * @param string $action_performed Description of the action (can be translation key like 'bulk_approved_absences' or translated string)
      * @param mixed $model Optional: The model instance being affected
      * @param array $oldValues Optional: Old values for updates
      * @param array $newValues Optional: New values for creates/updates
-     * @param array $metadata Optional: Additional metadata
+     * @param array $metadata Optional: Additional metadata (can include 'translation_key' and 'translation_params' for proper translation)
      */
     function auditLog(
         ?User $user, 
@@ -109,13 +109,36 @@ if (!function_exists('auditLog')) {
             }
         }
         
+        // Extract translation key and parameters from metadata if provided
+        // This allows storing translation keys separately for proper translation on display
+        $translationKey = $metadata['translation_key'] ?? null;
+        $translationParams = $metadata['translation_params'] ?? [];
+        
+        // If translation key is provided, store it; otherwise store the action_performed as-is
+        // Store the key in action_perform for backward compatibility and easy access
+        $actionPerformToStore = $translationKey ? $translationKey : $action_performed;
+        
+        // Remove translation_key and translation_params from metadata to avoid duplication
+        $metadataToStore = $metadata;
+        if (isset($metadataToStore['translation_key'])) {
+            unset($metadataToStore['translation_key']);
+        }
+        if (isset($metadataToStore['translation_params'])) {
+            unset($metadataToStore['translation_params']);
+        }
+        
+        // Store translation params in metadata if provided
+        if ($translationKey && !empty($translationParams)) {
+            $metadataToStore['translation_params'] = $translationParams;
+        }
+        
         try {
             AuditLog::create([
                 'user_id' => $user->id,
                 'user' => $user->name,
                 'action_type' => $action_type,
                 'channel' => $channel,
-                'action_perform' => $action_performed,
+                'action_perform' => $actionPerformToStore,
                 'company_id' => $user->company_id,
                 'department_id' => $user->department_id,
                 'author_id' => $user->author_id ?? null,
@@ -129,7 +152,7 @@ if (!function_exists('auditLog')) {
                 'user_agent' => $request ? $request->userAgent() : null,
                 'url' => $request ? $request->fullUrl() : null,
                 'method' => $request ? $request->method() : null,
-                'metadata' => !empty($metadata) ? $metadata : null,
+                'metadata' => !empty($metadataToStore) ? $metadataToStore : null,
             ]);
         } catch (\Exception $e) {
             // Log the error instead of failing silently

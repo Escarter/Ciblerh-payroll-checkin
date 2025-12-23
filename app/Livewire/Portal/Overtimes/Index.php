@@ -144,13 +144,13 @@ class Index extends Component
             $user,
             $actionType,
             'web',
-            $this->bulk_approval_status 
-                ? __('audit_logs.bulk_approved_overtimes', ['count' => count($overtimes)])
-                : __('audit_logs.bulk_rejected_overtimes', ['count' => count($overtimes)]),
+            $this->bulk_approval_status ? 'bulk_approved_overtimes' : 'bulk_rejected_overtimes',
             null, // No single model for bulk operations
             [], // Old values aggregated in metadata
             ['approval_status' => $this->approval_status, 'approval_reason' => $this->approval_reason],
             [
+                'translation_key' => $this->bulk_approval_status ? 'bulk_approved_overtimes' : 'bulk_rejected_overtimes',
+                'translation_params' => ['count' => count($overtimes)],
                 'bulk_operation' => true,
                 'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
                 'affected_count' => count($overtimes),
@@ -290,11 +290,13 @@ class Index extends Component
                 auth()->user(),
                 'overtime_bulk_deleted',
                 'web',
-                __('audit_logs.bulk_deleted_overtimes', ['count' => $overtimes->count()]),
+                'bulk_deleted_overtimes',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_deleted_overtimes',
+                    'translation_params' => ['count' => $overtimes->count()],
                     'bulk_operation' => true,
                     'operation_type' => $operation,
                     'affected_count' => $overtimes->count(),
@@ -338,11 +340,13 @@ class Index extends Component
                 auth()->user(),
                 'overtime_bulk_restored',
                 'web',
-                __('audit_logs.bulk_restored_overtimes', ['count' => $overtimes->count()]),
+                'bulk_restored_overtimes',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_restored_overtimes',
+                    'translation_params' => ['count' => $overtimes->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_restore',
                     'affected_count' => $overtimes->count(),
@@ -386,11 +390,13 @@ class Index extends Component
                 auth()->user(),
                 'overtime_bulk_force_deleted',
                 'web',
-                __('audit_logs.bulk_force_deleted_overtimes', ['count' => $overtimes->count()]),
+                'bulk_force_deleted_overtimes',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_force_deleted_overtimes',
+                    'translation_params' => ['count' => $overtimes->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_force_delete',
                     'affected_count' => $overtimes->count(),
@@ -500,7 +506,14 @@ class Index extends Component
             auth()->user(),
             'overtime_exported',
             'web',
-            __('audit_logs.exported_entities', ['entities' => 'overtime'])
+            'exported_entities',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'exported_entities',
+                'translation_params' => ['entities' => 'overtime'],
+            ]
         );
         return (new OvertimeExport($this->query))->download('Overtime-' . Str::random(5) . '.xlsx');
     }

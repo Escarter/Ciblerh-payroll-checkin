@@ -157,13 +157,13 @@ class Index extends Component
             $user,
             $actionType,
             'web',
-            $this->bulk_approval_status 
-                ? __('audit_logs.bulk_approved_advance_salaries', ['count' => count($advanceSalaries)])
-                : __('audit_logs.bulk_rejected_advance_salaries', ['count' => count($advanceSalaries)]),
+            $this->bulk_approval_status ? 'bulk_approved_advance_salaries' : 'bulk_rejected_advance_salaries',
             null, // No single model for bulk operations
             [], // Old values aggregated in metadata
             ['approval_status' => $this->approval_status, 'approval_reason' => $this->approval_reason],
             [
+                'translation_key' => $this->bulk_approval_status ? 'bulk_approved_advance_salaries' : 'bulk_rejected_advance_salaries',
+                'translation_params' => ['count' => count($advanceSalaries)],
                 'bulk_operation' => true,
                 'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
                 'affected_count' => count($advanceSalaries),
@@ -305,11 +305,13 @@ class Index extends Component
                 auth()->user(),
                 'advance_salary_bulk_deleted',
                 'web',
-                __('audit_logs.bulk_deleted_advance_salaries', ['count' => $advanceSalaries->count()]),
+                'bulk_deleted_advance_salaries',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_deleted_advance_salaries',
+                    'translation_params' => ['count' => $advanceSalaries->count()],
                     'bulk_operation' => true,
                     'operation_type' => $operation,
                     'affected_count' => $advanceSalaries->count(),
@@ -353,11 +355,13 @@ class Index extends Component
                 auth()->user(),
                 'advance_salary_bulk_restored',
                 'web',
-                __('audit_logs.bulk_restored_advance_salaries', ['count' => $advanceSalaries->count()]),
+                'bulk_restored_advance_salaries',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_restored_advance_salaries',
+                    'translation_params' => ['count' => $advanceSalaries->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_restore',
                     'affected_count' => $advanceSalaries->count(),
@@ -401,11 +405,13 @@ class Index extends Component
                 auth()->user(),
                 'advance_salary_bulk_force_deleted',
                 'web',
-                __('audit_logs.bulk_force_deleted_advance_salaries', ['count' => $advanceSalaries->count()]),
+                'bulk_force_deleted_advance_salaries',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_force_deleted_advance_salaries',
+                    'translation_params' => ['count' => $advanceSalaries->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_force_delete',
                     'affected_count' => $advanceSalaries->count(),

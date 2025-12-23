@@ -170,13 +170,13 @@ class Index extends Component
             $user,
             $actionType,
             'web',
-            $this->bulk_approval_status 
-                ? __('audit_logs.bulk_approved_absences', ['count' => count($absences)])
-                : __('audit_logs.bulk_rejected_absences', ['count' => count($absences)]),
+            $this->bulk_approval_status ? 'bulk_approved_absences' : 'bulk_rejected_absences',
             null, // No single model for bulk operations
             [], // Old values aggregated in metadata
             ['approval_status' => $this->approval_status, 'approval_reason' => $this->approval_reason],
             [
+                'translation_key' => $this->bulk_approval_status ? 'bulk_approved_absences' : 'bulk_rejected_absences',
+                'translation_params' => ['count' => count($absences)],
                 'bulk_operation' => true,
                 'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
                 'affected_count' => count($absences),
@@ -313,11 +313,13 @@ class Index extends Component
                 auth()->user(),
                 'absence_bulk_deleted',
                 'web',
-                __('audit_logs.bulk_deleted_absences', ['count' => $absences->count()]),
+                'bulk_deleted_absences',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_deleted_absences',
+                    'translation_params' => ['count' => $absences->count()],
                     'bulk_operation' => true,
                     'operation_type' => $operation,
                     'affected_count' => $absences->count(),
@@ -361,11 +363,13 @@ class Index extends Component
                 auth()->user(),
                 'absence_bulk_restored',
                 'web',
-                __('audit_logs.bulk_restored_absences', ['count' => $absences->count()]),
+                'bulk_restored_absences',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_restored_absences',
+                    'translation_params' => ['count' => $absences->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_restore',
                     'affected_count' => $absences->count(),
@@ -409,11 +413,13 @@ class Index extends Component
                 auth()->user(),
                 'absence_bulk_force_deleted',
                 'web',
-                __('audit_logs.bulk_force_deleted_absences', ['count' => $absences->count()]),
+                'bulk_force_deleted_absences',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_force_deleted_absences',
+                    'translation_params' => ['count' => $absences->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_force_delete',
                     'affected_count' => $absences->count(),

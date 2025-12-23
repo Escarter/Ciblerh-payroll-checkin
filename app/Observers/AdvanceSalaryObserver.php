@@ -18,7 +18,15 @@ class AdvanceSalaryObserver
             auth()->user(),
             'advanceSalary_created',
             'web',
-            __('audit_logs.created_advance_salary', ['amount' => $advanceSalary->amount]) . ' <a href="/portal/advance-salaries?advance_salary_id="' . $advanceSalary->id . '>' . $advanceSalary->amount . '</a>'
+            'created_advance_salary',
+            $advanceSalary,
+            [],
+            [],
+            [
+                'translation_key' => 'created_advance_salary',
+                'translation_params' => ['amount' => $advanceSalary->amount],
+                'link' => '<a href="/portal/advance-salaries?advance_salary_id="' . $advanceSalary->id . '>' . $advanceSalary->amount . '</a>',
+            ]
         );
     }
 
@@ -31,20 +39,29 @@ class AdvanceSalaryObserver
     public function updated(AdvanceSalary $advanceSalary)
     {
         if ($advanceSalary->approval_status !== $advanceSalary->getOriginal('approval_status')) {
-            $changes = ($advanceSalary->approval_status == 1
-                ? __('audit_logs.approved_advance_salary', ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) . 'XAF'])
-                : __('audit_logs.rejected_advance_salary', ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) . 'XAF']));
+            $translationKey = $advanceSalary->approval_status == 1 ? 'approved_advance_salary' : 'rejected_advance_salary';
+            $translationParams = ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) . 'XAF'];
+            $changes = $advanceSalary->approval_status == 1 ? 'approved_advance_salary' : 'rejected_advance_salary';
             $status = "advanceSalary_" . ($advanceSalary->approval_status == 1 ? "approved" : "rejected");
         } else {
             $status = "advanceSalary_updated";
-            $changes = __('audit_logs.updated_advance_salary', ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) .'XAF']);
+            $translationKey = 'updated_advance_salary';
+            $translationParams = ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) .'XAF'];
+            $changes = 'updated_advance_salary';
         }
 
         auditLog(
             auth()->user(),
             $status,
             'web',
-            $changes
+            $changes,
+            $advanceSalary,
+            [],
+            [],
+            [
+                'translation_key' => $translationKey,
+                'translation_params' => $translationParams,
+            ]
         );
     }
 
@@ -60,7 +77,14 @@ class AdvanceSalaryObserver
             auth()->user(),
             'advanceSalary_deleted',
             'web',
-            __('audit_logs.deleted_advance_salary', ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) . 'XAF'])
+            'deleted_advance_salary',
+            $advanceSalary,
+            [],
+            [],
+            [
+                'translation_key' => 'deleted_advance_salary',
+                'translation_params' => ['user' => $advanceSalary->user->name, 'amount' => number_format($advanceSalary->amount) . 'XAF'],
+            ]
         );
     }
 

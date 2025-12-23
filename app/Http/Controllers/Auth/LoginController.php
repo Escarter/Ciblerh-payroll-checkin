@@ -47,7 +47,14 @@ class LoginController extends Controller
                 auth()->user(),
                 'user_login',
                 'web',
-                __('audit_logs.login_successful', ['ip' => $request->ip()])
+                'login_successful',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'login_successful',
+                    'translation_params' => ['ip' => $request->ip()],
+                ]
             );
            
 
@@ -61,7 +68,14 @@ class LoginController extends Controller
                         auth()->user(),
                         'user_login',
                         'web',
-                        __('audit_logs.login_contract_expired', ['ip' => $request->ip()])
+                        'login_contract_expired',
+                        null,
+                        [],
+                        [],
+                        [
+                            'translation_key' => 'login_contract_expired',
+                            'translation_params' => ['ip' => $request->ip()],
+                        ]
                     );
                     auth()->logout();
                     flash(__('common.contract_expired_contact_supervisor'))->error()->important();
@@ -78,7 +92,14 @@ class LoginController extends Controller
                 auth()->user(),
                 'user_login',
                 'web',
-                __('audit_logs.login_account_banned', ['ip' => $request->ip()])
+                'login_account_banned',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'login_account_banned',
+                    'translation_params' => ['ip' => $request->ip()],
+                ]
             );
             auth()->logout();
             flash(__('common.account_not_active'))->error()->important();
@@ -92,7 +113,14 @@ class LoginController extends Controller
             auth()->user(),
             'user_logout',
             'web',
-            __('audit_logs.logout_successful', ['ip' => $request->ip()])
+            'logout_successful',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'logout_successful',
+                'translation_params' => ['ip' => $request->ip()],
+            ]
         );
 
         Auth::logout();

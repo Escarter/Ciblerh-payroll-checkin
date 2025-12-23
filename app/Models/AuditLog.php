@@ -128,9 +128,32 @@ class AuditLog extends Model
 
     public function getTranslatedActionPerformAttribute()
     {
-        // For new entries that use translation keys
+        // First, check if translation key and params are stored in metadata (new approach)
+        $metadata = $this->metadata ?? [];
+        if (isset($metadata['translation_params']) && !empty($this->action_perform)) {
+            // Use the action_perform as the translation key and metadata params
+            $translationKey = $this->action_perform;
+            $translationParams = $metadata['translation_params'];
+            
+            // Ensure the key is in the correct format (audit_logs.*)
+            if (!str_starts_with($translationKey, 'audit_logs.')) {
+                $translationKey = 'audit_logs.' . $translationKey;
+            }
+            
+            return __($translationKey, $translationParams);
+        }
+        
+        // For entries that use translation keys directly (backward compatibility)
         if (str_starts_with($this->action_perform, 'audit_logs.')) {
             return __('audit_logs.' . str_replace('audit_logs.', '', $this->action_perform));
+        }
+        
+        // Check if action_perform is a translation key without the 'audit_logs.' prefix
+        // Try to translate it as an audit_logs key first
+        $possibleKey = 'audit_logs.' . $this->action_perform;
+        $translated = __($possibleKey);
+        if ($translated !== $possibleKey) {
+            return $translated;
         }
 
         // Try to match and translate common patterns in existing entries

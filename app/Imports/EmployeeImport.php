@@ -383,6 +383,9 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
 
     public function rules(): array
     {
+        // Check if department context is available - use fresh check each time
+        $hasDepartmentContext = !empty($this->department) && is_object($this->department) && isset($this->department->id) && !empty($this->department->id);
+        
         return [
             '0' => 'nullable|string', // first_name (can be empty if last_name exists, will be replaced with 'NA')
             '1' => 'nullable|string', // last_name (can be empty if first_name exists, will be replaced with 'NA')
@@ -393,8 +396,8 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '5' => 'required|string', // position
             '6' => 'required|numeric', // net_salary
             '7' => 'required|string', // salary_grade
-            '9' => 'required', // department (can be ID or name)
-            '10' => $this->service ? 'required' : 'nullable', // service (can be ID or name) - optional when no context service
+            '9' => $hasDepartmentContext ? 'nullable' : 'required', // department - optional when context department is provided
+            '10' => 'nullable', // service - always optional (can use context if provided)
             '11' => function ($attribute, $value, $onFailure) {
                 $array = ['employee', 'supervisor', 'manager'];
                 if (!in_array(strtolower($value), $array)) {

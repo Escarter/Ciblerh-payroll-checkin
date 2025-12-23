@@ -18,17 +18,19 @@ class LeaveObserver
             auth()->user(),
             'leave_created',
             'web',
-            __('audit_logs.created_absence', ['date' => $leave->start_date->format('Y-m-d')]),
+            'created_absence',
             $leave, // Pass model for enhanced tracking
             [], // No old values for creates
             $leave->getAttributes(), // New values
             [
+                'translation_key' => 'created_absence',
+                'translation_params' => ['date' => $leave->start_date->format('Y-m-d')],
                 'entity' => 'leave',
                 'user_id' => $leave->user_id,
                 'leave_type_id' => $leave->leave_type_id,
                 'start_date' => $leave->start_date->format('Y-m-d'),
                 'end_date' => $leave->end_date ? $leave->end_date->format('Y-m-d') : null,
-            ] // Metadata
+            ]
         );
     }
 
@@ -55,26 +57,24 @@ class LeaveObserver
                 default => 'leave_updated',
             };
             
-            $message = match($status) {
-                Leave::SUPERVISOR_APPROVAL_APPROVED, Leave::MANAGER_APPROVAL_APPROVED => __('audit_logs.approved_absence', [
-                    'user' => $leave->user->name ?? 'User',
-                    'date' => $leave->start_date->format('Y-m-d')
-                ]),
-                Leave::SUPERVISOR_APPROVAL_REJECTED, Leave::MANAGER_APPROVAL_REJECTED => __('audit_logs.rejected_absence', [
-                    'user' => $leave->user->name ?? 'User',
-                    'date' => $leave->start_date->format('Y-m-d')
-                ]),
-                default => __('audit_logs.updated_absence', [
-                    'user' => $leave->user->name ?? 'User',
-                    'date' => $leave->start_date->format('Y-m-d')
-                ]),
+            $translationKey = match($status) {
+                Leave::SUPERVISOR_APPROVAL_APPROVED, Leave::MANAGER_APPROVAL_APPROVED => 'approved_absence',
+                Leave::SUPERVISOR_APPROVAL_REJECTED, Leave::MANAGER_APPROVAL_REJECTED => 'rejected_absence',
+                default => 'updated_absence',
             };
-        } else {
-            $actionType = 'leave_updated';
-            $message = __('audit_logs.updated_absence', [
+            $translationParams = [
                 'user' => $leave->user->name ?? 'User',
                 'date' => $leave->start_date->format('Y-m-d')
-            ]);
+            ];
+            $message = $translationKey;
+        } else {
+            $actionType = 'leave_updated';
+            $translationKey = 'updated_absence';
+            $translationParams = [
+                'user' => $leave->user->name ?? 'User',
+                'date' => $leave->start_date->format('Y-m-d')
+            ];
+            $message = 'updated_absence';
         }
         
         auditLog(
@@ -86,12 +86,14 @@ class LeaveObserver
             [], // Old values will be auto-detected from getOriginal()
             [], // New values will be auto-detected from getDirty()
             [
+                'translation_key' => $translationKey,
+                'translation_params' => $translationParams,
                 'entity' => 'leave',
                 'user_id' => $leave->user_id,
                 'leave_type_id' => $leave->leave_type_id,
                 'start_date' => $leave->start_date->format('Y-m-d'),
                 'end_date' => $leave->end_date ? $leave->end_date->format('Y-m-d') : null,
-            ] // Metadata
+            ]
         );
     }
 
@@ -107,15 +109,17 @@ class LeaveObserver
             auth()->user(),
             'leave_deleted',
             'web',
-            __('audit_logs.deleted_absence', ['user' => $leave->user->name ?? 'User', 'date' => $leave->start_date->format('Y-m-d')]),
+            'deleted_absence',
             $leave, // Pass model for enhanced tracking
             $leave->getAttributes(), // Capture values before deletion
             [], // No new values for deletes
             [
+                'translation_key' => 'deleted_absence',
+                'translation_params' => ['user' => $leave->user->name ?? 'User', 'date' => $leave->start_date->format('Y-m-d')],
                 'entity' => 'leave',
                 'user_id' => $leave->user_id,
                 'leave_type_id' => $leave->leave_type_id,
-            ] // Metadata
+            ]
         );
     }
 
@@ -142,15 +146,17 @@ class LeaveObserver
             auth()->user(),
             'leave_force_deleted',
             'web',
-            __('audit_logs.force_deleted_entity', ['entity' => 'leave', 'name' => $leave->user->name ?? 'User']),
+            'force_deleted_entity',
             $leave, // Pass model for enhanced tracking
             $leave->getAttributes(), // Capture values before deletion
             [], // No new values for force deletes
             [
+                'translation_key' => 'force_deleted_entity',
+                'translation_params' => ['entity' => 'leave', 'name' => $leave->user->name ?? 'User'],
                 'entity' => 'leave',
                 'user_id' => $leave->user_id,
                 'leave_type_id' => $leave->leave_type_id,
-            ] // Metadata
+            ]
         );
     }
 }

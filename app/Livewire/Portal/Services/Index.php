@@ -195,11 +195,13 @@ class Index extends BaseImportComponent
                     auth()->user(),
                     'service_bulk_deleted',
                     'web',
-                    __('audit_logs.bulk_deleted_services', ['count' => $services->count()]),
+                    'bulk_deleted_services',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_deleted_services',
+                        'translation_params' => ['count' => $services->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'soft_delete',
                         'affected_count' => $services->count(),
@@ -244,11 +246,13 @@ class Index extends BaseImportComponent
                     auth()->user(),
                     'service_bulk_restored',
                     'web',
-                    __('audit_logs.bulk_restored_services', ['count' => $services->count()]),
+                    'bulk_restored_services',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_restored_services',
+                        'translation_params' => ['count' => $services->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'bulk_restore',
                         'affected_count' => $services->count(),
@@ -300,11 +304,13 @@ class Index extends BaseImportComponent
                     auth()->user(),
                     'service_bulk_force_deleted',
                     'web',
-                    __('audit_logs.bulk_force_deleted_services', ['count' => count($affectedRecords)]),
+                    'bulk_force_deleted_services',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_force_deleted_services',
+                        'translation_params' => ['count' => count($affectedRecords)],
                         'bulk_operation' => true,
                         'operation_type' => 'bulk_force_delete',
                         'affected_count' => count($affectedRecords),
@@ -366,7 +372,14 @@ class Index extends BaseImportComponent
             auth()->user(),
             'service_exported',
             'web',
-            __('audit_logs.exported_services_for_department', ['department' => $this->department->name])
+            'exported_services_for_department',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'exported_services_for_department',
+                'translation_params' => ['department' => $this->department->name],
+            ]
         );
         return (new ServiceExport($this->department, $this->query))->download(ucfirst($this->department->name) . '-Services-' . Str::random(5) . '.xlsx');
     }

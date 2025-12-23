@@ -81,7 +81,14 @@ class Payslip extends Component
             auth()->user(),
             'payslip_report',
             'web',
-            __('audit_logs.report_generated_for_payslips', ['user' => auth()->user()->name])
+            'report_generated_for_payslips',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'report_generated_for_payslips',
+                'translation_params' => ['user' => auth()->user()->name],
+            ]
         );
 
         // Create job using the service

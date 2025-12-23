@@ -180,13 +180,33 @@ class ImportDataJob implements ShouldQueue
 
         try {
             // Ensure import job record exists and is loaded
-            if (!$this->importJob && $this->importJobId) {
+            // Only create a new one if we don't have an importJobId and don't have an importJob
+            if ($this->importJobId) {
+                // Try to load existing import job by ID
                 $this->importJob = ImportJob::find($this->importJobId);
+                if (!$this->importJob) {
+                    Log::warning("ImportJob with ID {$this->importJobId} not found, creating new one", [
+                        'import_job_id' => $this->importJobId,
+                        'import_type' => $this->importType
+                    ]);
+                    $this->createImportJobRecord();
+                } else {
+                    Log::info("Loaded existing ImportJob", [
+                        'import_job_id' => $this->importJob->id,
+                        'status' => $this->importJob->status
+                    ]);
+                }
+            } else {
+                // No importJobId provided - check if importJob already exists (shouldn't happen, but be safe)
+                if (!$this->importJob) {
+                    Log::info("No importJobId provided, creating new ImportJob record");
+                    $this->createImportJobRecord();
+                }
             }
-
-            // Create import job record if it doesn't exist (for jobs without importJobId)
-            if (!$this->importJob) {
-                $this->createImportJobRecord();
+            
+            // Ensure we have a valid importJob at this point
+            if (!$this->importJob || !$this->importJob->exists) {
+                throw new \Exception('Failed to initialize ImportJob record');
             }
 
             Log::info("Starting background import", [
@@ -276,12 +296,26 @@ class ImportDataJob implements ShouldQueue
                 'user_id' => $this->userId
             ]);
 
-            // Update record with failure
-            $this->importJob->update([
-                'status' => ImportJob::STATUS_FAILED,
-                'error_message' => $e->getMessage(),
-                'completed_at' => now(),
-            ]);
+            // Update record with failure (only if importJob exists)
+            if ($this->importJob && $this->importJob->exists) {
+                $this->importJob->update([
+                    'status' => ImportJob::STATUS_FAILED,
+                    'error_message' => $e->getMessage(),
+                    'completed_at' => now(),
+                ]);
+            } else {
+                // If importJob doesn't exist, create it for error tracking
+                if (!$this->importJob) {
+                    $this->createImportJobRecord();
+                }
+                if ($this->importJob) {
+                    $this->importJob->update([
+                        'status' => ImportJob::STATUS_FAILED,
+                        'error_message' => $e->getMessage(),
+                        'completed_at' => now(),
+                    ]);
+                }
+            }
 
             // Store failure results
             $this->importResults = [

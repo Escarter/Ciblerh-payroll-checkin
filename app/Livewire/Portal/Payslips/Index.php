@@ -65,11 +65,7 @@ class Index extends Component
                 auth()->user(),
                 'delete_payslip_process',
                 'web',
-                __('audit_logs.payslip_process_deleted', [
-                    'month' => $process->month,
-                    'year' => $process->year,
-                    'time' => now()->format('Y-m-d H:i:s')
-                ]),
+                'payslip_process_deleted',
                 $process, // Pass model for enhanced tracking
                 $process->getAttributes(), // Old values before deletion
                 [], // No new values for deletes
@@ -159,11 +155,13 @@ class Index extends Component
                     auth()->user(),
                     'payslip_process_bulk_deleted',
                     'web',
-                    __('audit_logs.bulk_deleted_payslip_processes', ['count' => $processes->count()]),
+                    'bulk_deleted_payslip_processes',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_deleted_payslip_processes',
+                        'translation_params' => ['count' => $processes->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'soft_delete',
                         'affected_count' => $processes->count(),
@@ -212,11 +210,13 @@ class Index extends Component
                     auth()->user(),
                     'payslip_process_bulk_restored',
                     'web',
-                    __('audit_logs.bulk_restored_payslip_processes', ['count' => $processes->count()]),
+                    'bulk_restored_payslip_processes',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_restored_payslip_processes',
+                        'translation_params' => ['count' => $processes->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'bulk_restore',
                         'affected_count' => $processes->count(),
@@ -268,11 +268,13 @@ class Index extends Component
                     auth()->user(),
                     'payslip_process_bulk_force_deleted',
                     'web',
-                    __('audit_logs.bulk_force_deleted_payslip_processes', ['count' => $processes->count()]),
+                    'bulk_force_deleted_payslip_processes',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_force_deleted_payslip_processes',
+                        'translation_params' => ['count' => $processes->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'bulk_force_delete',
                         'affected_count' => $processes->count(),
@@ -883,11 +885,18 @@ class Index extends Component
                 auth()->user(),
                 'cancel_payslip_process',
                 'web',
-                __('audit_logs.cancel_payslip_process_for', [
-                    'month' => $process->month,
-                    'year' => $process->year,
-                    'time' => now()->format('Y-m-d H:i:s')
-                ])
+                'cancel_payslip_process_for',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'cancel_payslip_process_for',
+                    'translation_params' => [
+                        'month' => $process->month,
+                        'year' => $process->year,
+                        'time' => now()->format('Y-m-d H:i:s')
+                    ],
+                ]
             );
 
             session()->flash('message', __('payslips.task_cancelled_successfully'));
@@ -1180,13 +1189,20 @@ class Index extends Component
             auth()->user(),
             'payslip_sending',
             'web',
-            __('audit_logs.payslip_sending_initiated', [
-                'user' => '<a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
-                'department' => '<strong>' . $choosen_department->name . '</strong>',
-                'month' => $this->month,
-                'year' => now()->year,
-                'history_link' => '<a href="/portal/payslips/history"> Go to Payslips details</a>'
-            ])
+            'payslip_sending_initiated',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'payslip_sending_initiated',
+                'translation_params' => [
+                    'user' => '<a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
+                    'department' => '<strong>' . $choosen_department->name . '</strong>',
+                    'month' => $this->month,
+                    'year' => now()->year,
+                    'history_link' => '<a href="/portal/payslips/history"> Go to Payslips details</a>'
+                ],
+            ]
         );
 
         session()->flash('message', __('payslips.job_processing_status'));

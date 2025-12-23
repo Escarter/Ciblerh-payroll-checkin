@@ -19,7 +19,14 @@ class AbsenceObserver
             auth()->user(),
             'absence_created',
             'web',
-            __('audit_logs.created_absence', ['date' => $absence->absence_date])
+            'created_absence',
+            $absence,
+            [],
+            [],
+            [
+                'translation_key' => 'created_absence',
+                'translation_params' => ['date' => $absence->absence_date],
+            ]
         );
     }
 
@@ -33,20 +40,29 @@ class AbsenceObserver
     {
         
         if ($absence->approval_status !== $absence->getOriginal('approval_status')) {
-            $changes = ($absence->approval_status == 1
-                ? __('audit_logs.approved_absence', ['user' => $absence->user->name, 'date' => $absence->absence_date])
-                : __('audit_logs.rejected_absence', ['user' => $absence->user->name, 'date' => $absence->absence_date])); 
+            $translationKey = $absence->approval_status == 1 ? 'approved_absence' : 'rejected_absence';
+            $translationParams = ['user' => $absence->user->name, 'date' => $absence->absence_date];
+            $changes = $absence->approval_status == 1 ? 'approved_absence' : 'rejected_absence';
             $status = "absence_". ($absence->approval_status == 1 ? "approved" : "rejected");
         }else{
             $status = "absence_updated";
-            $changes = __('audit_logs.updated_absence', ['user' => $absence->user->name, 'date' => $absence->absence_date]); 
+            $translationKey = 'updated_absence';
+            $translationParams = ['user' => $absence->user->name, 'date' => $absence->absence_date];
+            $changes = 'updated_absence'; 
         }
     
         auditLog(
             auth()->user(),
             $status,
             'web',
-            $changes
+            $changes,
+            $absence,
+            [],
+            [],
+            [
+                'translation_key' => $translationKey,
+                'translation_params' => $translationParams,
+            ]
         );
     }
 
@@ -62,7 +78,14 @@ class AbsenceObserver
             auth()->user(),
             'absence_deleted',
             'web',
-            __('audit_logs.deleted_absence', ['user' => $absence->user->name, 'date' => $absence->absence_date]) 
+            'deleted_absence',
+            $absence,
+            [],
+            [],
+            [
+                'translation_key' => 'deleted_absence',
+                'translation_params' => ['user' => $absence->user->name, 'date' => $absence->absence_date],
+            ] 
         );
     }
 

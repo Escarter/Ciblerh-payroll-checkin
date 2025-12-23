@@ -179,13 +179,13 @@ class Index extends Component
             $user,
             $actionType,
             'web',
-            $this->bulk_approval_status 
-                ? __('audit_logs.bulk_approved_leaves', ['count' => count($leaves)])
-                : __('audit_logs.bulk_rejected_leaves', ['count' => count($leaves)]),
+            $this->bulk_approval_status ? 'bulk_approved_leaves' : 'bulk_rejected_leaves',
             null, // No single model for bulk operations
             [], // Old values aggregated in metadata
             $newValues,
             [
+                'translation_key' => $this->bulk_approval_status ? 'bulk_approved_leaves' : 'bulk_rejected_leaves',
+                'translation_params' => ['count' => count($leaves)],
                 'bulk_operation' => true,
                 'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
                 'affected_count' => count($leaves),
@@ -339,11 +339,13 @@ class Index extends Component
                 auth()->user(),
                 'leave_bulk_deleted',
                 'web',
-                __('audit_logs.bulk_deleted_leaves', ['count' => $leaves->count()]),
+                'bulk_deleted_leaves',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_deleted_leaves',
+                    'translation_params' => ['count' => $leaves->count()],
                     'bulk_operation' => true,
                     'operation_type' => $operation,
                     'affected_count' => $leaves->count(),
@@ -389,11 +391,13 @@ class Index extends Component
                 auth()->user(),
                 'leave_bulk_restored',
                 'web',
-                __('audit_logs.bulk_restored_leaves', ['count' => $leaves->count()]),
+                'bulk_restored_leaves',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_restored_leaves',
+                    'translation_params' => ['count' => $leaves->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_restore',
                     'affected_count' => $leaves->count(),
@@ -439,11 +443,13 @@ class Index extends Component
                 auth()->user(),
                 'leave_bulk_force_deleted',
                 'web',
-                __('audit_logs.bulk_force_deleted_leaves', ['count' => $leaves->count()]),
+                'bulk_force_deleted_leaves',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_force_deleted_leaves',
+                    'translation_params' => ['count' => $leaves->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_force_delete',
                     'affected_count' => $leaves->count(),

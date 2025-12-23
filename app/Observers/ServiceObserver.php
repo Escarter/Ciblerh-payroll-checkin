@@ -18,7 +18,14 @@ class ServiceObserver
             auth()->user(),
             'service_created',
             'web',
-            __('audit_logs.created_entity', ['entity' => 'service', 'name' => $service->name])
+            'created_entity',
+            $service,
+            [],
+            [],
+            [
+                'translation_key' => 'created_entity',
+                'translation_params' => ['entity' => 'service', 'name' => $service->name],
+            ]
         );
     }
 
@@ -34,7 +41,14 @@ class ServiceObserver
             auth()->user(),
             'service_updated',
             'web',
-           __('audit_logs.updated_service', ['name' => $service->name])
+           'updated_service',
+           $service,
+           [],
+           [],
+           [
+               'translation_key' => 'updated_service',
+               'translation_params' => ['name' => $service->name],
+           ]
         );
     }
 
@@ -50,7 +64,14 @@ class ServiceObserver
             auth()->user(),
             'service_deleted',
             'web',
-           __('audit_logs.deleted_service', ['name' => $service->name])
+           'deleted_service',
+           $service,
+           [],
+           [],
+           [
+               'translation_key' => 'deleted_service',
+               'translation_params' => ['name' => $service->name],
+           ]
         );
     }
 
@@ -77,7 +98,14 @@ class ServiceObserver
             auth()->user(),
             'service_force_deleted',
             'web',
-           __('audit_logs.permanently_deleted_service', ['name' => $service->name])
+           'permanently_deleted_service',
+           $service,
+           [],
+           [],
+           [
+               'translation_key' => 'permanently_deleted_service',
+               'translation_params' => ['name' => $service->name],
+           ]
         );
     }
 }

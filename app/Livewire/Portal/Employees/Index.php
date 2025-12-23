@@ -449,11 +449,13 @@ class Index extends BaseImportComponent
                     auth()->user(),
                     'employee_bulk_deleted',
                     'web',
-                    __('audit_logs.bulk_deleted_employees', ['count' => $employees->count()]),
+                    'bulk_deleted_employees',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_deleted_employees',
+                        'translation_params' => ['count' => $employees->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'soft_delete',
                         'affected_count' => $employees->count(),
@@ -498,11 +500,13 @@ class Index extends BaseImportComponent
                     auth()->user(),
                     'employee_bulk_restored',
                     'web',
-                    __('audit_logs.bulk_restored_employees', ['count' => $employees->count()]),
+                    'bulk_restored_employees',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_restored_employees',
+                        'translation_params' => ['count' => $employees->count()],
                         'bulk_operation' => true,
                         'operation_type' => 'bulk_restore',
                         'affected_count' => $employees->count(),
@@ -562,11 +566,13 @@ class Index extends BaseImportComponent
                     auth()->user(),
                     'employee_bulk_force_deleted',
                     'web',
-                    __('audit_logs.bulk_force_deleted_employees', ['count' => count($affectedRecords)]),
+                    'bulk_force_deleted_employees',
                     null,
                     [],
                     [],
                     [
+                        'translation_key' => 'bulk_force_deleted_employees',
+                        'translation_params' => ['count' => count($affectedRecords)],
                         'bulk_operation' => true,
                         'operation_type' => 'bulk_force_delete',
                         'affected_count' => count($affectedRecords),
@@ -857,7 +863,11 @@ class Index extends BaseImportComponent
      */
     protected function performImport()
     {
-        Excel::import(new EmployeeImport($this->company, $this->autoCreateEntities), $this->employee_file);
+        // Get department and service from context if provided
+        $department = $this->selectedDepartmentId ? Department::find($this->selectedDepartmentId) : null;
+        $service = $this->service_id ? Service::find($this->service_id) : null;
+        
+        Excel::import(new EmployeeImport($this->company, $department, $service, $this->autoCreateEntities, auth()->id(), $this->sendWelcomeEmails), $this->employee_file);
 
         return [
             'imported_count' => 'unknown', // Could be enhanced to return actual count
@@ -890,7 +900,14 @@ class Index extends BaseImportComponent
             auth()->user(),
             'employee_exported',
             'web',
-            __('audit_logs.exported_employees_for_company', ['company' => $this->company->name])
+            'exported_employees_for_company',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'exported_employees_for_company',
+                'translation_params' => ['company' => $this->company->name],
+            ]
         );
         return (new EmployeeExport($this->company, $this->query))->download(ucfirst($this->company->name).'-Employees-' . Str::random(5) . '.xlsx');
     }
@@ -1177,7 +1194,15 @@ class Index extends BaseImportComponent
      */
     protected function getDepartmentId(): ?int
     {
-        return null;
+        return $this->selectedDepartmentId;
+    }
+
+    /**
+     * Get service ID for import context
+     */
+    protected function getServiceId(): ?int
+    {
+        return $this->service_id;
     }
 
     /**

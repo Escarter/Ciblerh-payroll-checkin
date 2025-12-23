@@ -18,11 +18,15 @@ class LeaveTypeObserver
             auth()->user(),
             'leave_type_created',
             'web',
-            __('audit_logs.created_entity', ['entity' => 'leave_type', 'name' => $leaveType->name]),
+            'created_entity',
             $leaveType, // Pass model for enhanced tracking
             [], // No old values for creates
             $leaveType->getAttributes(), // New values
-            ['entity' => 'leave_type'] // Metadata
+            [
+                'translation_key' => 'created_entity',
+                'translation_params' => ['entity' => 'leave_type', 'name' => $leaveType->name],
+                'entity' => 'leave_type'
+            ]
         );
     }
 
@@ -38,11 +42,15 @@ class LeaveTypeObserver
             auth()->user(),
             'leave_type_updated',
             'web',
-            __('audit_logs.updated_entity', ['entity' => 'leave_type', 'name' => $leaveType->name]),
+            'updated_entity',
             $leaveType, // Pass model - changes will be auto-detected
             [], // Old values will be auto-detected from getOriginal()
             [], // New values will be auto-detected from getDirty()
-            ['entity' => 'leave_type'] // Metadata
+            [
+                'translation_key' => 'updated_entity',
+                'translation_params' => ['entity' => 'leave_type', 'name' => $leaveType->name],
+                'entity' => 'leave_type'
+            ]
         );
     }
 
@@ -58,11 +66,15 @@ class LeaveTypeObserver
             auth()->user(),
             'leave_type_deleted',
             'web',
-            __('audit_logs.deleted_entity', ['entity' => 'leave_type', 'name' => $leaveType->name]),
+            'deleted_entity',
             $leaveType, // Pass model for enhanced tracking
             $leaveType->getAttributes(), // Capture values before deletion
             [], // No new values for deletes
-            ['entity' => 'leave_type'] // Metadata
+            [
+                'translation_key' => 'deleted_entity',
+                'translation_params' => ['entity' => 'leave_type', 'name' => $leaveType->name],
+                'entity' => 'leave_type'
+            ]
         );
     }
 
@@ -89,11 +101,15 @@ class LeaveTypeObserver
             auth()->user(),
             'leave_type_force_deleted',
             'web',
-            __('audit_logs.force_deleted_entity', ['entity' => 'leave_type', 'name' => $leaveType->name]),
+            'force_deleted_entity',
             $leaveType, // Pass model for enhanced tracking
             $leaveType->getAttributes(), // Capture values before deletion
             [], // No new values for force deletes
-            ['entity' => 'leave_type'] // Metadata
+            [
+                'translation_key' => 'force_deleted_entity',
+                'translation_params' => ['entity' => 'leave_type', 'name' => $leaveType->name],
+                'entity' => 'leave_type'
+            ]
         );
     }
 }

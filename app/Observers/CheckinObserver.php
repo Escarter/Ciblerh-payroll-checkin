@@ -32,23 +32,27 @@ class CheckinObserver
     {
         if(auth()->user()->getRoleNames()->first() ===  "supervisor"){
             if ($ticking->supervisor_approval_status !== $ticking->getOriginal('supervisor_approval_status')) {
-                $changes = ($ticking->supervisor_approval_status == 1
-                    ? __('audit_logs.approved_checkin_supervisor', ['user' => $ticking->user->name, 'date' => $ticking->start_time])
-                    : __('audit_logs.rejected_checkin_supervisor', ['user' => $ticking->user->name, 'date' => $ticking->start_time]));
+                $translationKey = $ticking->supervisor_approval_status == 1 ? 'approved_checkin_supervisor' : 'rejected_checkin_supervisor';
+                $translationParams = ['user' => $ticking->user->name, 'date' => $ticking->start_time];
+                $changes = $ticking->supervisor_approval_status == 1 ? 'approved_checkin_supervisor' : 'rejected_checkin_supervisor';
                 $status = "checkin_" . ($ticking->supervisor_approval_status == 1 ? "approved" : "rejected");
             } else {
                 $status = "checkin_updated";
-                $changes = __('audit_logs.updated_checkin', ['user' => $ticking->user->name, 'date' => $ticking->start_time]);
+                $translationKey = 'updated_checkin';
+                $translationParams = ['user' => $ticking->user->name, 'date' => $ticking->start_time];
+                $changes = 'updated_checkin';
             }
         }else{
             if ($ticking->manager_approval_status !== $ticking->getOriginal('manager_approval_status')) {
-                $changes = ($ticking->manager_approval_status == 1
-                    ? __('audit_logs.approved_checkin_manager', ['user' => $ticking->user->name, 'date' => $ticking->start_time])
-                    : __('audit_logs.rejected_checkin_manager', ['user' => $ticking->user->name, 'date' => $ticking->start_time]));
+                $translationKey = $ticking->manager_approval_status == 1 ? 'approved_checkin_manager' : 'rejected_checkin_manager';
+                $translationParams = ['user' => $ticking->user->name, 'date' => $ticking->start_time];
+                $changes = $ticking->manager_approval_status == 1 ? 'approved_checkin_manager' : 'rejected_checkin_manager';
                 $status = "checkin_" . ($ticking->manager_approval_status == 1 ? "approved" : "rejected");
             } else {
                 $status = "checkin_updated";
-                $changes = __('audit_logs.updated_checkin', ['user' => $ticking->user->name, 'date' => $ticking->start_time]);
+                $translationKey = 'updated_checkin';
+                $translationParams = ['user' => $ticking->user->name, 'date' => $ticking->start_time];
+                $changes = 'updated_checkin';
             }
         }
         
@@ -57,7 +61,14 @@ class CheckinObserver
             auth()->user(),
             $status,
             'web',
-            $changes
+            $changes,
+            $ticking,
+            [],
+            [],
+            [
+                'translation_key' => $translationKey,
+                'translation_params' => $translationParams,
+            ]
         );
     }
 
@@ -73,7 +84,14 @@ class CheckinObserver
             auth()->user(),
             'checkin_deleted',
             'web',
-            __('audit_logs.deleted_checkin', ['user' => $ticking->user->name, 'date' => $ticking->start_time])
+            'deleted_checkin',
+            $ticking,
+            [],
+            [],
+            [
+                'translation_key' => 'deleted_checkin',
+                'translation_params' => ['user' => $ticking->user->name, 'date' => $ticking->start_time],
+            ]
         );
     }
 

@@ -23,7 +23,14 @@ class UserObserver
             auth()->user(),
             'user_created',
             'web',
-            __('audit_logs.created_entity', ['entity' => 'user', 'name' => $user->name])
+            'created_entity',
+            $user,
+            [],
+            [],
+            [
+                'translation_key' => 'created_entity',
+                'translation_params' => ['entity' => 'user', 'name' => $user->name],
+            ]
         );
     }
 
@@ -39,7 +46,14 @@ class UserObserver
             auth()->user(),
             'user_updated',
             'web',
-            __('audit_logs.updated_entity', ['entity' => 'user', 'name' => $user->name])
+            'updated_entity',
+            $user,
+            [],
+            [],
+            [
+                'translation_key' => 'updated_entity',
+                'translation_params' => ['entity' => 'user', 'name' => $user->name],
+            ]
         );
     }
 
@@ -55,7 +69,14 @@ class UserObserver
             auth()->user(),
             'user_deleted',
             'web',
-            __('audit_logs.deleted_entity', ['entity' => 'user', 'name' => $user->name])
+            'deleted_entity',
+            $user,
+            [],
+            [],
+            [
+                'translation_key' => 'deleted_entity',
+                'translation_params' => ['entity' => 'user', 'name' => $user->name],
+            ]
         );
     }
 

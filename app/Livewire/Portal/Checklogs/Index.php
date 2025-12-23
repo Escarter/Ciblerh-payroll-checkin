@@ -182,13 +182,13 @@ class Index extends Component
             $user,
             $actionType,
             'web',
-            $this->bulk_approval_status 
-                ? __('audit_logs.bulk_approved_checklogs', ['count' => count($checklogs)])
-                : __('audit_logs.bulk_rejected_checklogs', ['count' => count($checklogs)]),
+            $this->bulk_approval_status ? 'bulk_approved_checklogs' : 'bulk_rejected_checklogs',
             null, // No single model for bulk operations
             [], // Old values aggregated in metadata
             $newValues,
             [
+                'translation_key' => $this->bulk_approval_status ? 'bulk_approved_checklogs' : 'bulk_rejected_checklogs',
+                'translation_params' => ['count' => count($checklogs)],
                 'bulk_operation' => true,
                 'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
                 'affected_count' => count($checklogs),
@@ -336,11 +336,13 @@ class Index extends Component
                 auth()->user(),
                 'checkin_bulk_deleted',
                 'web',
-                __('audit_logs.bulk_deleted_checklogs', ['count' => $checklogs->count()]),
+                'bulk_deleted_checklogs',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_deleted_checklogs',
+                    'translation_params' => ['count' => $checklogs->count()],
                     'bulk_operation' => true,
                     'operation_type' => $operation,
                     'affected_count' => $checklogs->count(),
@@ -386,11 +388,13 @@ class Index extends Component
                 auth()->user(),
                 'checkin_bulk_restored',
                 'web',
-                __('audit_logs.bulk_restored_checklogs', ['count' => $checklogs->count()]),
+                'bulk_restored_checklogs',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_restored_checklogs',
+                    'translation_params' => ['count' => $checklogs->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_restore',
                     'affected_count' => $checklogs->count(),
@@ -436,11 +440,13 @@ class Index extends Component
                 auth()->user(),
                 'checkin_bulk_force_deleted',
                 'web',
-                __('audit_logs.bulk_force_deleted_checklogs', ['count' => $checklogs->count()]),
+                'bulk_force_deleted_checklogs',
                 null,
                 [],
                 [],
                 [
+                    'translation_key' => 'bulk_force_deleted_checklogs',
+                    'translation_params' => ['count' => $checklogs->count()],
                     'bulk_operation' => true,
                     'operation_type' => 'bulk_force_delete',
                     'affected_count' => $checklogs->count(),
