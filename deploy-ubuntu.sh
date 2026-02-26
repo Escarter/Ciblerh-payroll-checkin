@@ -318,7 +318,8 @@ install_mysql() {
         systemctl start mysql
         
         # Secure MySQL installation (automated)
-        mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_PASSWORD';"
+        # Use default authentication method (caching_sha2_password in MySQL 8.0+)
+        mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$DB_PASSWORD';"
         
         log_success "MySQL installed"
         
@@ -478,6 +479,12 @@ install_composer_dependencies() {
     log_info "Installing Composer dependencies..."
     
     cd "$APP_PATH"
+    
+    # Update lock file for PHP 8.4 compatibility
+    log_info "Updating Composer lock file for PHP 8.4..."
+    sudo -u "$APP_USER" composer update --no-dev --optimize-autoloader --no-interaction
+    
+    # Install dependencies
     sudo -u "$APP_USER" composer install --no-dev --optimize-autoloader --no-interaction
     
     log_success "Composer dependencies installed"
