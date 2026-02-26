@@ -1,0 +1,503 @@
+#!/bin/bash
+################################################################################
+#
+# CIBLERH PAYROLL & CHECK-IN SYSTEM
+# Ubuntu Server Deployment Package - Complete Index
+#
+# This file serves as the master index for all deployment files
+# Last Updated: 2026-02-26
+#
+################################################################################
+
+# ==============================================================================
+# 📦 DEPLOYMENT PACKAGE CONTENTS
+# ==============================================================================
+
+This directory now contains a complete, production-ready deployment solution
+for the Ciblerh application on Ubuntu servers (20.04 LTS, 22.04 LTS, 24.04 LTS).
+
+## 🚀 EXECUTABLE SCRIPTS (Make them executable: chmod +x *.sh)
+
+### Primary Deployment Script
+  
+  📄 deploy-ubuntu.sh
+     ├─ Main deployment automation script
+     ├─ Installs all system services (PHP, Nginx, MySQL, Redis)
+     ├─ Sets up Laravel application with all dependencies
+     ├─ Configures SSL/TLS with Let's Encrypt
+     ├─ Sets up queue workers with Supervisor
+     ├─ Hardens security (firewall, Fail2Ban)
+     └─ ~2500+ lines of production-grade code
+     
+     🎯 Usage:
+        source deployment-config.sh
+        sudo bash deploy-ubuntu.sh
+
+### Verification & Testing
+
+  📄 post-deployment-check.sh
+     ├─ Verifies all services installed and running
+     ├─ Tests database and cache connections  
+     ├─ Checks queue workers operational
+     ├─ Reports system resources
+     └─ Provides quick reference guide
+     
+     🎯 Usage:
+        sudo bash post-deployment-check.sh
+
+### Backup & Restore Utility
+
+  📄 backup-ciblerh.sh
+     ├─ Creates complete database backups
+     ├─ Backs up application files (excluding large directories)
+     ├─ Protects .env configuration
+     ├─ Supports full restore from backups
+     └─ Lists available backups
+     
+     🎯 Usage:
+        sudo bash backup-ciblerh.sh backup
+        sudo bash backup-ciblerh.sh restore /path/to/backup.tar.gz
+        sudo bash backup-ciblerh.sh list
+
+### Configuration Template
+
+  📄 deployment-config.example.sh
+     ├─ Pre-built template with all required variables
+     ├─ Examples for Gmail, SendGrid, AWS SES, Mailgun
+     ├─ AWS S3 configuration examples
+     ├─ Well-commented for easy customization
+     └─ Validation checks built-in
+     
+     🎯 Usage:
+        cp deployment-config.example.sh deployment-config.sh
+        nano deployment-config.sh  # Edit your values
+        source deployment-config.sh
+
+# ==============================================================================
+# 📚 DOCUMENTATION (Read in this order)
+# ==============================================================================
+
+### 1️⃣ START HERE - Quick Overview (5 min read)
+
+  📋 UBUNTU_DEPLOYMENT_README.md
+     ├─ What's included in this package
+     ├─ 5-step quick start guide
+     ├─ System requirements
+     ├─ What gets installed
+     ├─ Common tasks reference
+     ├─ Troubleshooting links
+     └─ Next steps after deployment
+
+### 2️⃣ COMPREHENSIVE GUIDE (30-45 min read)
+
+  📖 UBUNTU_DEPLOYMENT_GUIDE.md
+     ├─ Overview & architecture
+     ├─ Prerequisites & preparation
+     ├─ Step-by-step deployment instructions
+     ├─ Post-deployment verification
+     ├─ Common admin tasks with commands
+     ├─ Scaling & performance tuning
+     ├─ Security best practices
+     ├─ Monitoring & alerting
+     ├─ Troubleshooting with solutions
+     ├─ Uninstallation procedures
+     └─ Resource links
+
+### 3️⃣ DEPLOYMENT SUMMARY (2-4 hour read/execution)
+
+  📋 DEPLOYMENT_PACKAGE_SUMMARY.md
+     ├─ Package contents overview
+     ├─ System architecture diagram
+     ├─ What gets installed (complete list)
+     ├─ Configuration options
+     ├─ Security features included
+     ├─ Performance specifications
+     ├─ Deployment timeline
+     ├─ Scaling guidelines
+     ├─ Maintenance schedule
+     └─ Version information
+
+### 4️⃣ PRE-LAUNCH CHECKLIST (Use before going live)
+
+  ✅ PRODUCTION_DEPLOYMENT_CHECKLIST.md
+     ├─ Pre-deployment checklist
+     ├─ During deployment monitoring
+     ├─ Post-deployment verification
+     ├─ Security configuration checks
+     ├─ Functionality testing matrix
+     ├─ Data & content validation
+     ├─ Launch authorization sign-off
+     ├─ Post-launch monitoring (24-48h)
+     ├─ Ongoing maintenance schedule
+     ├─ Emergency contacts
+     └─ Sign-off section
+
+### 5️⃣ QUICK REFERENCE CARD (Print & keep handy)
+
+  🎯 QUICK_REFERENCE.md
+     ├─ Pre-deployment (5 minutes)
+     ├─ Deployment (15-25 minutes)
+     ├─ Post-deployment verification (5 minutes)
+     ├─ Important paths
+     ├─ Essential commands (copy-paste ready)
+     ├─ Common tasks (one-liners)
+     ├─ Security quick checks
+     ├─ Troubleshooting matrix
+     ├─ Documentation links
+     ├─ Maintenance calendar
+     └─ Notes section
+
+# ==============================================================================
+# 🔗 RELATED FILES IN PROJECT
+# ==============================================================================
+
+### Application Configuration
+
+  composer.json
+     └─ PHP dependencies (Laravel 12.41.0, 40+ packages)
+
+  package.json
+     └─ Node.js dependencies (Node 20.x, npm 10.x)
+
+  .env.example
+     └─ Environment template (already used by script)
+
+### Application Documentation
+
+  README.md
+     └─ Original project documentation
+
+  QUEUE_DEPLOYMENT_README.md
+     └─ Queue architecture documentation
+
+### Supervisor Configuration
+
+  supervisor-queue-workers.conf
+     └─ Queue worker configuration template
+        (Updated automatically by deployment script)
+
+# ==============================================================================
+# ⚡ QUICK START (Copy & paste these commands)
+# ==============================================================================
+
+Step 1: Configure
+  $ cp deployment-config.example.sh deployment-config.sh
+  $ nano deployment-config.sh  # Edit your domain and passwords
+
+Step 2: Deploy
+  $ source deployment-config.sh
+  $ sudo bash deploy-ubuntu.sh
+
+Step 3: Verify
+  $ sudo bash post-deployment-check.sh
+
+Step 4: Access
+  Open browser to: https://yourdomain.com
+
+# ==============================================================================
+# 📋 FILE LOCATIONS & STRUCTURE
+# ==============================================================================
+
+After Deployment, Files Will Be Located At:
+
+  Production Application
+    /var/www/ciblerh/                    # Main application directory
+    /var/www/ciblerh/.env               # Configuration (DO NOT EDIT DIRECTLY)
+    /var/www/ciblerh/storage/logs/      # Application logs
+    /var/www/ciblerh/public/            # Web root
+
+  Web Server Configuration
+    /etc/nginx/sites-available/yourdomain.com
+    /etc/nginx/sites-enabled/yourdomain.com
+
+  PHP Configuration
+    /etc/php/8.2/fpm/pool.d/ciblerh.conf
+    /etc/php/8.2/fpm/php.ini
+
+  Database
+    /var/lib/mysql/                     # MySQL data directory
+    /backups/                           # Database backups
+
+  Queue Workers
+    /etc/supervisor/conf.d/laravel-queues.conf
+    /var/log/supervisor/                # Queue worker logs
+
+  SSL Certificates
+    /etc/letsencrypt/live/yourdomain.com/
+    /var/www/letsencrypt/              # Let's Encrypt challenge directory
+
+  System Services
+    /var/log/nginx/                     # Web server logs
+    /var/log/mysql/                     # Database logs
+    /var/run/php/                       # PHP-FPM socket
+
+# ==============================================================================
+# 🎯 DEPLOYMENT FLOW DIAGRAM
+# ==============================================================================
+
+┌─────────────────────────────────────────────────────────────┐
+│  1. PREPARATION (5 min)                                     │
+│    └─ SSH to server                                         │
+│    └─ Update system                                         │
+│    └─ Create config file from template                      │
+│    └─ Edit domain, passwords, email settings               │
+└─────────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  2. DEPLOYMENT (15-25 min) - deploy-ubuntu.sh              │
+│    └─ Install system dependencies                           │
+│    └─ Install PHP 8.2                                       │
+│    └─ Install Nginx                                         │
+│    └─ Install MySQL                                         │
+│    └─ Install Redis                                         │
+│    └─ Install Node.js                                       │
+│    └─ Clone application                                     │
+│    └─ Install dependencies (Composer, npm)                  │
+│    └─ Build assets                                          │
+│    └─ Setup database                                        │
+│    └─ Configure SSL                                         │
+│    └─ Setup queue workers                                   │
+│    └─ Security hardening                                    │
+└─────────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  3. VERIFICATION (5 min) - post-deployment-check.sh        │
+│    └─ Verify all services running                           │
+│    └─ Test database connection                              │
+│    └─ Check queue workers                                   │
+│    └─ Report system resources                               │
+│    └─ Generate quick reference                              │
+└─────────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  4. TESTING (15-30 min)                                     │
+│    └─ Access https://yourdomain.com                         │
+│    └─ Login to application                                  │
+│    └─ Test core features                                    │
+│    └─ Check logs                                            │
+│    └─ Test email sending                                    │
+└─────────────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────────────┐
+│  5. GO LIVE! 🎉                                             │
+│    └─ Application is production-ready                       │
+│    └─ SSL secured                                           │
+│    └─ Backups configured                                    │
+│    └─ Monitoring active                                     │
+└─────────────────────────────────────────────────────────────┘
+
+# ==============================================================================
+# 🔑 KEY VARIABLES - SET BEFORE DEPLOYMENT
+# ==============================================================================
+
+REQUIRED (No deployment without these):
+  
+  APP_DOMAIN              Your domain name (e.g., payroll.yourcompany.com)
+  DB_PASSWORD             Strong password for database (generate: openssl rand -b64 32)
+  MAIL_HOST              SMTP server (e.g., smtp.gmail.com)
+  MAIL_USERNAME          SMTP username (e.g., your-email@gmail.com)
+  MAIL_PASSWORD          SMTP password or app-specific password
+  LE_EMAIL               Email for SSL certificate notifications
+
+OPTIONAL (Have sensible defaults):
+  
+  APP_NAME               Application name (default: Ciblerh)
+  DB_HOST                Database host (default: 127.0.0.1)
+  DB_PORT                Database port (default: 3306)
+  DB_NAME                Database name (default: ciblerh)
+  SETUP_LOCAL_DB         Install MySQL locally? (default: true)
+  REDIS_HOST             Redis host (default: 127.0.0.1)
+  REDIS_PORT             Redis port (default: 6379)
+  SETUP_REDIS            Install Redis locally? (default: true)
+  ENABLE_SSL             Enable Let's Encrypt SSL? (default: true)
+  AWS_*                  AWS S3 credentials (optional)
+
+# ==============================================================================
+# ✅ DEPLOYMENT SUCCESS CHECKLIST
+# ==============================================================================
+
+After deployment completes, you should see:
+
+✓ Deployment script completed without critical errors
+✓ All services showing as running: php8.2-fpm, nginx, mysql, redis-server
+✓ Queue workers operational: supervisorctl status laravel-queues:*
+✓ Application accessible at https://yourdomain.com
+✓ SSL certificate valid (no browser warnings)
+✓ Can login to application
+✓ Logs show no critical errors
+✓ Database tables present and populated
+✓ Static assets loading (CSS, JS, images)
+✓ Email configuration tested
+
+# ==============================================================================
+# 📊 WHAT'S INSTALLED
+# ==============================================================================
+
+System Services
+  ✓ Ubuntu 20.04/22.04/24.04 LTS
+  ✓ Nginx (web server)
+  ✓ PHP 8.2 FPM (application runtime)
+  ✓ MySQL 8.0 (database)
+  ✓ Redis 6.x (cache & queue)
+  ✓ Supervisor (process manager)
+  ✓ Node.js 20.x (frontend builds)
+
+Application
+  ✓ Laravel 12.41.0
+  ✓ Livewire 3.5 (reactive components)
+  ✓ 40+ PHP packages
+  ✓ 20+ PHP extensions
+  ✓ Vite asset bundler
+  ✓ Built frontend assets
+
+Production Features
+  ✓ HTTPS/SSL (Let's Encrypt)
+  ✓ Queue workers (16 processes)
+  ✓ Scheduled tasks (cron)
+  ✓ Log rotation
+  ✓ Backups
+  ✓ Monitoring scripts
+
+Security
+  ✓ Firewall (UFW)
+  ✓ Fail2Ban (intrusion protection)
+  ✓ Security headers
+  ✓ HTTPS enforcement
+  ✓ File permissions hardening
+
+# ==============================================================================
+# 🔧 COMMON OPERATIONS
+# ==============================================================================
+
+View Application Logs
+  tail -f /var/www/ciblerh/storage/logs/laravel.log
+
+Check System Status
+  sudo monitor-ciblerh
+
+Restart Web Server
+  sudo systemctl restart nginx
+
+Restart Application
+  sudo systemctl restart php8.2-fpm
+
+Restart Queue Workers
+  supervisorctl restart laravel-queues:*
+
+Deploy Updates
+  cd /var/www/ciblerh
+  git pull origin main
+  composer install --no-dev
+  npm install && npm run build
+  php artisan migrate --force
+  supervisorctl restart laravel-queues:*
+
+Create Backup
+  sudo bash backup-ciblerh.sh backup
+
+Restore from Backup
+  sudo bash backup-ciblerh.sh restore /backups/ciblerh-backup-*.tar.gz
+
+Clear Caches
+  php artisan optimize:clear
+
+# ==============================================================================
+# 🆘 GETTING HELP
+# ==============================================================================
+
+1. Check Documentation
+   └─ Start with UBUNTU_DEPLOYMENT_README.md
+   └─ Reference UBUNTU_DEPLOYMENT_GUIDE.md for solutions
+
+2. View Logs
+   └─ Application: tail -f /var/www/ciblerh/storage/logs/laravel.log
+   └─ Web server: tail -f /var/log/nginx/error.log
+   └─ System: journalctl -xe
+
+3. Check Service Status
+   └─ sudo monitor-ciblerh
+   └─ systemctl status [service-name]
+   └─ supervisorctl status laravel-queues:*
+
+4. Common Issues
+   └─ Database: Check /var/www/ciblerh/.env credentials
+   └─ Queues: Check supervisor status and logs
+   └─ Email: Verify SMTP settings in .env
+   └─ Performance: Check disk space, memory, CPU usage
+
+# ==============================================================================
+# 📈 SCALING & OPTIMIZATION
+# ==============================================================================
+
+For More Users/Load:
+  └─ Increase queue workers in supervisor config
+  └─ Increase PHP-FPM max_children value
+  └─ Add database indexes if needed
+  └─ Enable Redis clustering for high cache usage
+  └─ Consider separate database/Redis servers
+
+Monitor Performance:
+  └─ htop                           # Real-time system monitor
+  └─ ps aux | grep php              # PHP process list
+  └─ redis-cli INFO                 # Redis statistics
+  └─ mysql -e "SHOW PROCESSLIST;"   # Active database queries
+
+# ==============================================================================
+# 📅 MAINTENANCE TASKS
+# ==============================================================================
+
+Daily
+  └─ Check error logs
+  └─ Monitor queue status
+  └─ Verify disk space
+
+Weekly
+  └─ Review performance metrics
+  └─ Test backup restoration
+  └─ Check for security updates
+
+Monthly
+  └─ Optimize database
+  └─ Update dependencies
+  └─ Security audit
+
+Quarterly
+  └─ Disaster recovery test
+  └─ Capacity planning
+  └─ Performance analysis
+
+# ==============================================================================
+# ⚖️ LICENSE & SUPPORT
+# ==============================================================================
+
+This deployment package is part of the Ciblerh project.
+Licensed under MIT License.
+
+For Issues:
+  └─ GitHub: https://github.com/Escarter/Ciblerh-payroll-checkin
+  └─ Docs: Review UBUNTU_DEPLOYMENT_GUIDE.md
+  └─ Logs: Check /var/www/ciblerh/storage/logs/laravel.log
+
+# ==============================================================================
+# 📝 NOTES
+# ==============================================================================
+
+Version: 1.0.0
+Created: 2026-02-26
+Target: Ubuntu 20.04 LTS, 22.04 LTS, 24.04 LTS
+Laravel: 12.41.0
+PHP: 8.2
+MySQL: 8.0
+Redis: 6.x
+
+================================================================================
+                    READY TO DEPLOY? START HERE!
+                    
+                1. Read: UBUNTU_DEPLOYMENT_README.md
+                2. Configure: deployment-config.example.sh
+                3. Deploy: sudo bash deploy-ubuntu.sh
+                4. Verify: sudo bash post-deployment-check.sh
+                
+                Total Time: ~1 hour from zero to production ⚡
+                
+================================================================================
