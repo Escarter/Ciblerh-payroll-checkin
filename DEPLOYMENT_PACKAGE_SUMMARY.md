@@ -185,7 +185,7 @@ source deployment-config.sh
 │         ▲         ▲          ▲                     │
 │         │         │          │                     │
 │    ┌────────┐ ┌────────┐ ┌──────────┐            │
-│    │ PHP 8.2│ │MySQL 8 │ │Redis 6.x │            │
+│    │ PHP 8.4│ │MySQL 8 │ │Redis 6.x │            │
 │    │  FPM   │ │        │ │          │            │
 │    └────┬───┘ └────────┘ └──────────┘            │
 │         │                      ▲                   │
@@ -212,7 +212,7 @@ source deployment-config.sh
 ## 📦 What Gets Installed
 
 ### System Services
-- ✅ PHP 8.2 with 20+ required extensions
+- ✅ PHP 8.4 with 20+ required extensions
 - ✅ Nginx web server with HTTP/2 support
 - ✅ MySQL 8.0 database server
 - ✅ Redis in-memory data store
@@ -426,7 +426,7 @@ ENABLE_SSL="true"                   # Enable HTTPS
 - **Package Version**: 1.0.0
 - **Created**: 2026-02-26
 - **Laravel Version**: 12.41.0
-- **PHP Version**: 8.2
+- **PHP Version**: 8.4
 - **Ubuntu Versions**: 20.04 LTS, 22.04 LTS, 24.04 LTS
 
 ---

@@ -249,7 +249,7 @@ restore_backup() {
     # Stop application services (optional)
     log_info "Stopping application services..."
     supervisorctl stop laravel-queues:\* 2>/dev/null || true
-    systemctl stop php8.2-fpm 2>/dev/null || true
+    systemctl stop php8.4-fpm 2>/dev/null || true
     
     # Restore application files
     log_info "Restoring application files..."
@@ -295,7 +295,7 @@ restore_backup() {
     
     # Restart services
     log_info "Restarting application services..."
-    systemctl start php8.2-fpm
+    systemctl start php8.4-fpm
     supervisorctl start laravel-queues:\* 2>/dev/null || true
     
     # Clean up

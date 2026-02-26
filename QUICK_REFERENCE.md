@@ -30,7 +30,7 @@ sudo bash deploy-ubuntu.sh
 
 # Watch the automated installation happen...
 # Script will:
-# ✓ Install PHP 8.2, Nginx, MySQL, Redis
+# ✓ Install PHP 8.4, Nginx, MySQL, Redis
 # ✓ Clone application
 # ✓ Install dependencies
 # ✓ Setup database
@@ -73,7 +73,7 @@ Backups:        /backups/
 ### System Status
 ```bash
 sudo monitor-ciblerh                          # Overall status
-systemctl status php8.2-fpm                   # PHP-FPM
+systemctl status php8.4-fpm                   # PHP-FPM
 systemctl status nginx                        # Web server
 systemctl status redis-server                 # Cache/queue
 systemctl status mysql                        # Database
@@ -95,7 +95,7 @@ supervisorctl restart queue-emails:*          # Restart specific
 
 ### Manage Services
 ```bash
-systemctl restart php8.2-fpm                  # Restart PHP
+systemctl restart php8.4-fpm                  # Restart PHP
 systemctl restart nginx                       # Restart web server
 systemctl restart redis-server                # Restart Redis
 systemctl restart mysql                       # Restart database
@@ -192,7 +192,7 @@ curl -I https://yourdomain.com                # Check SSL response
 
 | Problem | Check | Command |
 |---------|-------|---------|
-| App not loading | PHP-FPM | `systemctl status php8.2-fpm` |
+| App not loading | PHP-FPM | `systemctl status php8.4-fpm` |
 | 502 Bad Gateway | Nginx/PHP | `tail -f /var/log/nginx/error.log` |
 | Database error | MySQL | `systemctl status mysql` |
 | Queue not working | Supervisor | `supervisorctl status laravel-queues:*` |
@@ -282,7 +282,7 @@ sudo bash backup-ciblerh.sh help
 Before:  Blank Ubuntu server
   ↓
 After:  Production-ready Ciblerh application with:
-  ✓ PHP 8.2 + Laravel 12
+  ✓ PHP 8.4 + Laravel 12
   ✓ MySQL 8 database
   ✓ Redis caching & queues
   ✓ Nginx web server

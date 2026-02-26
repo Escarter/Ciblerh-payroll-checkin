@@ -211,8 +211,8 @@ After Deployment, Files Will Be Located At:
     /etc/nginx/sites-enabled/yourdomain.com
 
   PHP Configuration
-    /etc/php/8.2/fpm/pool.d/ciblerh.conf
-    /etc/php/8.2/fpm/php.ini
+    /etc/php/8.4/fpm/pool.d/ciblerh.conf
+    /etc/php/8.4/fpm/php.ini
 
   Database
     /var/lib/mysql/                     # MySQL data directory
@@ -246,7 +246,7 @@ After Deployment, Files Will Be Located At:
 ┌─────────────────────────────────────────────────────────────┐
 │  2. DEPLOYMENT (15-25 min) - deploy-ubuntu.sh              │
 │    └─ Install system dependencies                           │
-│    └─ Install PHP 8.2                                       │
+│    └─ Install PHP 8.4                                       │
 │    └─ Install Nginx                                         │
 │    └─ Install MySQL                                         │
 │    └─ Install Redis                                         │
@@ -319,7 +319,7 @@ OPTIONAL (Have sensible defaults):
 After deployment completes, you should see:
 
 ✓ Deployment script completed without critical errors
-✓ All services showing as running: php8.2-fpm, nginx, mysql, redis-server
+✓ All services showing as running: php8.4-fpm, nginx, mysql, redis-server
 ✓ Queue workers operational: supervisorctl status laravel-queues:*
 ✓ Application accessible at https://yourdomain.com
 ✓ SSL certificate valid (no browser warnings)
@@ -336,7 +336,7 @@ After deployment completes, you should see:
 System Services
   ✓ Ubuntu 20.04/22.04/24.04 LTS
   ✓ Nginx (web server)
-  ✓ PHP 8.2 FPM (application runtime)
+  ✓ PHP 8.4 FPM (application runtime)
   ✓ MySQL 8.0 (database)
   ✓ Redis 6.x (cache & queue)
   ✓ Supervisor (process manager)
@@ -379,7 +379,7 @@ Restart Web Server
   sudo systemctl restart nginx
 
 Restart Application
-  sudo systemctl restart php8.2-fpm
+  sudo systemctl restart php8.4-fpm
 
 Restart Queue Workers
   supervisorctl restart laravel-queues:*
@@ -486,7 +486,7 @@ Version: 1.0.0
 Created: 2026-02-26
 Target: Ubuntu 20.04 LTS, 22.04 LTS, 24.04 LTS
 Laravel: 12.41.0
-PHP: 8.2
+PHP: 8.4
 MySQL: 8.0
 Redis: 6.x
 

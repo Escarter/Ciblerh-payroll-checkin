@@ -47,7 +47,7 @@ This checklist ensures your Ciblerh application is properly configured and secur
 
 - [ ] **Deployment Progress**
   - [ ] System updates completed
-  - [ ] PHP 8.2 installed successfully
+  - [ ] PHP 8.4 installed successfully
   - [ ] Composer dependencies installed
   - [ ] npm dependencies installed
   - [ ] Assets built successfully
@@ -65,7 +65,7 @@ This checklist ensures your Ciblerh application is properly configured and secur
   - [ ] Review any warnings
 
 - [ ] **Service Status**
-  - [ ] PHP-FPM running: `systemctl status php8.2-fpm`
+  - [ ] PHP-FPM running: `systemctl status php8.4-fpm`
   - [ ] Nginx running: `systemctl status nginx`
   - [ ] MySQL running: `systemctl status mysql`
   - [ ] Redis running: `systemctl status redis-server`

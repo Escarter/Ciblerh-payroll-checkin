@@ -85,7 +85,7 @@ fi
 print_header "Web Services"
 
 # Check PHP-FPM
-if systemctl is-active --quiet php8.2-fpm; then
+if systemctl is-active --quiet php8.4-fpm; then
     FPM_WORKERS=$(ps aux | grep -c "[p]hp-fpm:" || true)
     log_pass "PHP-FPM is running ($FPM_WORKERS workers)"
 else
@@ -242,7 +242,7 @@ System Status:
   sudo monitor-ciblerh                    # Overall system status
 
 Services:
-  systemctl status php8.2-fpm             # Check PHP-FPM
+  systemctl status php8.4-fpm             # Check PHP-FPM
   systemctl status nginx                  # Check Nginx
   systemctl status redis-server           # Check Redis
   systemctl status mysql                  # Check MySQL
@@ -287,7 +287,7 @@ Monitoring:
   Web Root:        /var/www/ciblerh/public
   Nginx config:    /etc/nginx/sites-available/yourdomain.com
   Supervisor:      /etc/supervisor/conf.d/laravel-queues.conf
-  PHP-FPM config:  /etc/php/8.2/fpm/pool.d/ciblerh.conf
+  PHP-FPM config:  /etc/php/8.4/fpm/pool.d/ciblerh.conf
 
 🔐 SECURITY REMINDERS:
 

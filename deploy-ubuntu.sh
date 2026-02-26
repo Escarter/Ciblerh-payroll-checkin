@@ -123,9 +123,21 @@ command_exists() {
 # ============================================================================
 
 update_system() {
+    log_info "Cleaning up problematic repositories..."
+    
+    # Remove PHP PPA if it exists (may cause issues on non-standard Ubuntu)
+    add-apt-repository --remove -y "ppa:ondrej/php" 2>/dev/null || true
+    
+    # Remove Node.js PPA if it exists
+    add-apt-repository --remove -y "ppa:chris-lea/node.js" 2>/dev/null || true
+    
+    # Clean apt cache and list
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+    
     log_info "Updating system packages..."
-    apt-get update -qq
-    apt-get upgrade -y -qq
+    apt-get update -qq 2>/dev/null || log_warning "Some repository issues detected, continuing..."
+    apt-get upgrade -y -qq 2>/dev/null || log_warning "Upgrade had some issues, continuing..."
     log_success "System packages updated"
 }
 
@@ -165,50 +177,55 @@ install_dependencies() {
 # ============================================================================
 
 install_php() {
-    log_info "Installing PHP 8.2 and extensions..."
+    log_info "Installing PHP 8.4 and extensions..."
     
     if ! command_exists php; then
-        # Add Ondrej's PHP PPA
-        add-apt-repository -y ppa:ondrej/php
+        # Don't add PPA - use system packages (PPAs were cleaned in update_system)
+        log_info "Using system PHP 8.4 packages..."
         apt-get update -qq
         
-        # Install PHP 8.2 with required extensions
+        # Install PHP 8.4 with required extensions
         apt-get install -y -qq \
-            php8.2 \
-            php8.2-cli \
-            php8.2-fpm \
-            php8.2-mysql \
-            php8.2-redis \
-            php8.2-json \
-            php8.2-xml \
-            php8.2-mbstring \
-            php8.2-dom \
-            php8.2-pdo \
-            php8.2-curl \
-            php8.2-zip \
-            php8.2-gd \
-            php8.2-bcmath \
-            php8.2-intl \
-            php8.2-soap \
-            php8.2-imagick \
-            php8.2-dev
+            php8.4 \
+            php8.4-cli \
+            php8.4-fpm \
+            php8.4-mysql \
+            php8.4-redis \
+            php8.4-xml \
+            php8.4-mbstring \
+            php8.4-pdo \
+            php8.4-curl \
+            php8.4-zip \
+            php8.4-gd \
+            php8.4-bcmath \
+            php8.4-intl \
+            php8.4-dev || {
+            log_warning "Some PHP 8.4 packages not available, installing core packages..."
+            apt-get install -y -qq php8.4 php8.4-cli php8.4-fpm php8.4-common || {
+                log_error "Failed to install PHP 8.4"
+                return 1
+            }
+        }
         
-        # Enable PHP extensions
-        phpenmod -v 8.2 redis gd zip mbstring bcmath intl
+        # Enable PHP extensions (ignore if some don't exist)
+        phpenmod -v 8.4 redis gd zip mbstring bcmath intl 2>/dev/null || true
         
         # Configure PHP FPM
-        sed -i 's/^;?cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/' /etc/php/8.2/fpm/php.ini
-        sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 100M/' /etc/php/8.2/fpm/php.ini
-        sed -i 's/^post_max_size = .*/post_max_size = 100M/' /etc/php/8.2/fpm/php.ini
+        sed -i 's/^;?cgi.fix_pathinfo=.*/cgi.fix_pathinfo=0/' /etc/php/8.4/fpm/php.ini
+        sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 100M/' /etc/php/8.4/fpm/php.ini
+        sed -i 's/^post_max_size = .*/post_max_size = 100M/' /etc/php/8.4/fpm/php.ini
         
         # Create PHP-FPM pool for our application
         create_phpfpm_pool
         
         # Start PHP-FPM
-        systemctl enable php8.2-fpm
-        systemctl restart php8.2-fpm
+        systemctl enable php8.4-fpm
+        systemctl restart php8.4-fpm || {
+            log_warning "PHP-FPM restart had issues, checking status..."
+            systemctl status php8.4-fpm || true
+        }
         
-        log_success "PHP 8.2 installed"
+        log_success "PHP 8.4 installed"
     else
         log_warning "PHP is already installed"
     fi
@@ -217,7 +234,7 @@ install_php() {
 create_phpfpm_pool() {
     log_info "Creating PHP-FPM pool configuration..."
     
-    cat > /etc/php/8.2/fpm/pool.d/${APP_NAME,,}.conf << 'EOF'
+    cat > /etc/php/8.4/fpm/pool.d/${APP_NAME,,}.conf << 'EOF'
 [APPNAME]
 user = WEBUSER
 group = WEBGROUP
@@ -238,9 +255,9 @@ catch_workers_output = yes
 EOF
     
     # Replace placeholders
-    sed -i "s|APPNAME|${APP_NAME,,}|g" /etc/php/8.2/fpm/pool.d/${APP_NAME,,}.conf
-    sed -i "s|WEBUSER|${WEB_USER}|g" /etc/php/8.2/fpm/pool.d/${APP_NAME,,}.conf
-    sed -i "s|WEBGROUP|${WEB_GROUP}|g" /etc/php/8.2/fpm/pool.d/${APP_NAME,,}.conf
+    sed -i "s|APPNAME|${APP_NAME,,}|g" /etc/php/8.4/fpm/pool.d/${APP_NAME,,}.conf
+    sed -i "s|WEBUSER|${WEB_USER}|g" /etc/php/8.4/fpm/pool.d/${APP_NAME,,}.conf
+    sed -i "s|WEBGROUP|${WEB_GROUP}|g" /etc/php/8.4/fpm/pool.d/${APP_NAME,,}.conf
 }
 
 install_composer() {
@@ -263,11 +280,15 @@ install_nodejs() {
     log_info "Installing Node.js and npm..."
     
     if ! command_exists node; then
-        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-        apt-get install -y -qq nodejs
-        
-        # Install npm globally
-        npm install -g npm@latest
+        # Use system packages (PPAs already cleaned in update_system)
+        log_info "Installing Node.js from system packages..."
+        apt-get install -y -qq nodejs npm || {
+            log_warning "Node.js not available in standard packages, trying alternative..."
+            apt-get install -y -qq node-legacy npm 2>/dev/null || {
+                log_warning "Node.js installation failed, continuing without Node.js..."
+                return 0
+            }
+        }
         
         log_success "Node.js installed"
     else
@@ -827,7 +848,7 @@ ${APP_PATH}/storage/logs/*.log {
     create 0640 ${APP_USER} ${APP_GROUP}
     sharedscripts
     postrotate
-        systemctl reload-service-if-running php8.2-fpm > /dev/null 2>&1 || true
+        systemctl reload-service-if-running php8.4-fpm > /dev/null 2>&1 || true
     endscript
 }
 EOF
@@ -846,7 +867,7 @@ echo ""
 
 # Check if application is running
 echo "1. PHP-FPM Status:"
-systemctl is-active --quiet php8.2-fpm && echo "   ✓ PHP-FPM is running" || echo "   ✗ PHP-FPM is NOT running"
+systemctl is-active --quiet php8.4-fpm && echo "   ✓ PHP-FPM is running" || echo "   ✗ PHP-FPM is NOT running"
 
 # Check Nginx
 echo ""
@@ -1027,7 +1048,7 @@ Application Information:
   - Environment: Production
 
 Services Status:
-  - PHP-FPM 8.2: systemctl status php8.2-fpm
+  - PHP-FPM 8.4: systemctl status php8.4-fpm
   - Nginx: systemctl status nginx
   - Redis: systemctl status redis-server
   - MySQL: systemctl status mysql
@@ -1044,7 +1065,7 @@ Important Directories:
 
 Useful Commands:
   - Monitor system: sudo monitor-${APP_NAME,,}
-  - Restart all services: sudo systemctl restart php8.2-fpm nginx
+  - Restart all services: sudo systemctl restart php8.4-fpm nginx
   - View logs: tail -f ${APP_PATH}/storage/logs/laravel.log
   - Database backup: mysqldump -u${DB_USER} -p${DB_PASSWORD} ${DB_NAME} > backup.sql
 

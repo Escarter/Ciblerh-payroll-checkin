@@ -125,7 +125,7 @@ sudo bash /tmp/deploy-ubuntu.sh
 
 The script will:
 - ✓ Update system packages
-- ✓ Install PHP 8.2 and extensions
+- ✓ Install PHP 8.4 and extensions
 - ✓ Install Node.js and npm
 - ✓ Install and configure MySQL
 - ✓ Install and configure Redis
