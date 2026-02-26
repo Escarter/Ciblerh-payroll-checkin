@@ -10,13 +10,15 @@ use App\Services\AwsSnsSMS;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 
-function initials($string)
-{
-    $string_array = explode(" ",$string);
-    if(count($string_array) >= 2){
-        return strtoupper(Str::substr($string_array[0], 0, 1)) . "" . strtoupper(Str::substr($string_array[1], 0, 1));
-    }else{
-        return strtoupper(Str::substr($string_array[0], 0, 1)) ;
+if (!function_exists('initials')) {
+    function initials($string)
+    {
+        $string_array = explode(" ",$string);
+        if(count($string_array) >= 2){
+            return strtoupper(Str::substr($string_array[0], 0, 1)) . "" . strtoupper(Str::substr($string_array[1], 0, 1));
+        }else{
+            return strtoupper(Str::substr($string_array[0], 0, 1)) ;
+        }
     }
 }
 
@@ -191,6 +193,8 @@ function createPayslipRecord($employee, $month, $process_id, $user_id, $file = n
                 'month' => $month,
                 'year' => now()->year,
                 'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                'email_sent_status' => Payslip::STATUS_PENDING,
+                'sms_sent_status' => Payslip::STATUS_PENDING,
             ]);
     }
 }
@@ -523,6 +527,19 @@ if (!function_exists('validatePhoneNumber')) {
                 ];
             }
             
+            // Check for duplicate country codes (e.g., +237237656379100)
+            // Only remove duplicates, not the first occurrence
+            $detectedCode = detectCountryCodeFromPhone($digits);
+            if ($detectedCode !== null && str_starts_with($digits, $detectedCode)) {
+                // Check if the remaining digits after removing the country code also start with it (duplicate case)
+                $digitsAfterFirstCode = substr($digits, strlen($detectedCode));
+                if (str_starts_with($digitsAfterFirstCode, $detectedCode)) {
+                    // This is a duplicate - remove the duplicate country code
+                    $digits = $detectedCode . substr($digitsAfterFirstCode, strlen($detectedCode));
+                }
+                // If no duplicate, keep digits as-is (already properly formatted)
+            }
+            
             // Remove leading zeros (trunk prefixes)
             $originalDigits = $digits;
             $digits = ltrim($digits, '0');
@@ -565,12 +582,42 @@ if (!function_exists('validatePhoneNumber')) {
 
         // Use provided country code or try to detect
         if ($countryCode !== null && is_numeric($countryCode) && strlen($countryCode) <= 3) {
-            $formatted = '+' . $countryCode . $phoneNumber;
+            // If phone number already starts with this country code, don't add it again
+            if (str_starts_with($phoneNumber, $countryCode)) {
+                $formatted = '+' . $phoneNumber;
+            } else {
+                $formatted = '+' . $countryCode . $phoneNumber;
+            }
         } else {
             // Try to detect country code
             $detectedCode = detectCountryCodeFromPhone($phoneNumber);
             if ($detectedCode !== null) {
-                $formatted = '+' . $detectedCode . $phoneNumber;
+                // If phone number already starts with detected country code, remove it before adding
+                if (str_starts_with($phoneNumber, $detectedCode)) {
+                    // Remove the detected country code from the beginning
+                    $phoneNumberWithoutCode = substr($phoneNumber, strlen($detectedCode));
+                    
+                    // Check if the remaining number also starts with the country code (duplicate case)
+                    // This handles cases like "237237699949194" where country code appears twice
+                    if (str_starts_with($phoneNumberWithoutCode, $detectedCode)) {
+                        // Remove the duplicate country code as well
+                        $phoneNumberWithoutCode = substr($phoneNumberWithoutCode, strlen($detectedCode));
+                    }
+                    
+                    // Remove any leading zeros that might remain
+                    $phoneNumberWithoutCode = ltrim($phoneNumberWithoutCode, '0');
+                    if (empty($phoneNumberWithoutCode)) {
+                        return [
+                            'valid' => false,
+                            'formatted' => null,
+                            'error' => __('common.phone_number_cannot_be_all_zeros')
+                        ];
+                    }
+                    $formatted = '+' . $detectedCode . $phoneNumberWithoutCode;
+                } else {
+                    // Country code detected but number doesn't start with it - prepend it
+                    $formatted = '+' . $detectedCode . $phoneNumber;
+                }
             } else {
                 // Just add + prefix (may fail if country code is required)
                 $formatted = '+' . $phoneNumber;
@@ -1111,5 +1158,221 @@ if (!function_exists('validateEmail')) {
             'valid' => true,
             'error' => null
         ];
+    }
+}
+
+if (!function_exists('resendPayslipUnified')) {
+    /**
+     * Unified function to resend payslip email and/or SMS
+     * 
+     * This function harmonizes payslip resending across all entry points.
+     * It intelligently determines what needs to be resent based on current status,
+     * but always allows resending even if already successful (forced resend).
+     * 
+     * @param \App\Models\User $employee The employee to send payslip to
+     * @param \App\Models\Payslip $payslip The payslip record
+     * @param string $destination_file The encrypted PDF file path
+     * @param array $options Optional configuration:
+     *   - 'force_resend_email' (bool): Force resend email even if successful (default: false)
+     *   - 'force_resend_sms' (bool): Force resend SMS even if successful (default: false)
+     *   - 'sms_balance' (array|null): Pre-checked SMS balance for optimization
+     *   - 'job_context' (array): Additional context for logging
+     * 
+     * @return array Result with 'email_sent', 'sms_sent', 'errors' keys
+     */
+    function resendPayslipUnified($employee, $payslip, $destination_file, $options = [])
+    {
+        $forceResendEmail = $options['force_resend_email'] ?? false;
+        $forceResendSms = $options['force_resend_sms'] ?? false;
+        $smsBalance = $options['sms_balance'] ?? null;
+        $jobContext = $options['job_context'] ?? [];
+        
+        $result = [
+            'email_sent' => false,
+            'sms_sent' => false,
+            'errors' => []
+        ];
+        
+        // Refresh payslip to get latest status
+        $payslip->refresh();
+        $employee->refresh();
+        
+        // Determine what needs to be resent
+        $shouldResendEmail = $forceResendEmail || 
+                            $payslip->email_sent_status !== Payslip::STATUS_SUCCESSFUL;
+        $shouldResendSms = $forceResendSms || 
+                          $payslip->sms_sent_status !== Payslip::STATUS_SUCCESSFUL;
+        
+        // Check if email notifications are disabled
+        if ($employee->receive_email_notifications === false) {
+            $smsStatusNote = __('payslips.sms_not_attempted_email_disabled');
+            $payslip->update([
+                'email_sent_status' => Payslip::STATUS_DISABLED,
+                'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee'),
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote
+            ]);
+            return $result;
+        }
+        
+        // Check if email has bounced
+        if ($employee->email_bounced) {
+            $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+            $payslip->update([
+                'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
+                'email_bounced' => true,
+                'email_bounced_at' => now(),
+                'email_bounce_reason' => __('payslips.email_previously_bounced') . ': ' . ($employee->email_bounce_reason ?? 'Unknown'),
+                'failure_reason' => __('payslips.email_address_has_bounced_previously')
+            ]);
+            return $result;
+        }
+        
+        // Use alternative email if primary email is empty
+        $emailToUse = !empty($employee->email) ? $employee->email : $employee->alternative_email;
+        
+        if (empty($emailToUse)) {
+            $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+            $payslip->update([
+                'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
+                'failure_reason' => __('payslips.no_valid_email_address')
+            ]);
+            return $result;
+        }
+        
+        // Send email if needed
+        if ($shouldResendEmail) {
+            try {
+                setSavedSmtpCredentials();
+                
+                Mail::to(cleanString($emailToUse))->send(new \App\Mail\SendPayslip($employee, $destination_file, $payslip->month));
+                
+                // Email accepted by mail server
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                    'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                    'email_sent_at' => now(),
+                    'email_retry_count' => 0,
+                    'last_email_retry_at' => null,
+                    'failure_reason' => null // Clear failure reason on success
+                ]);
+                
+                $result['email_sent'] = true;
+                
+                \Illuminate\Support\Facades\Log::info('Payslip email resent successfully', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id,
+                    'matricule' => $employee->matricule,
+                    'forced' => $forceResendEmail
+                ]);
+            } catch (\Swift_TransportException $e) {
+                $result['errors']['email'] = $e->getMessage();
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_FAILED,
+                    'failure_reason' => __('payslips.email_error') . ': ' . $e->getMessage()
+                ]);
+                
+                \Illuminate\Support\Facades\Log::error('Payslip email resend failed (Swift_TransportException)', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id,
+                    'error' => $e->getMessage()
+                ]);
+            } catch (\Swift_RfcComplianceException $e) {
+                $result['errors']['email'] = $e->getMessage();
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_FAILED,
+                    'failure_reason' => __('payslips.email_rfc_error') . ': ' . $e->getMessage()
+                ]);
+                
+                \Illuminate\Support\Facades\Log::error('Payslip email resend failed (Swift_RfcComplianceException)', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id,
+                    'error' => $e->getMessage()
+                ]);
+            } catch (\Exception $e) {
+                $result['errors']['email'] = $e->getMessage();
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_FAILED,
+                    'failure_reason' => __('payslips.email_error') . ': ' . $e->getMessage()
+                ]);
+                
+                \Illuminate\Support\Facades\Log::error('Payslip email resend failed (Exception)', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+        
+        // Send SMS if needed (only if email was sent successfully or if email sending was skipped)
+        // If email failed, skip SMS (unless forced)
+        if ($shouldResendSms) {
+            // Only send SMS if email was successful or if we're forcing SMS resend
+            if ($result['email_sent'] || !$shouldResendEmail || $forceResendSms) {
+                // Check SMS balance if not provided
+                if ($smsBalance === null) {
+                    $setting = \App\Models\Setting::first();
+                    if (!empty($setting->sms_provider)) {
+                        try {
+                            $sms_client = match ($setting->sms_provider) {
+                                'twilio' => new \App\Services\TwilioSMS($setting),
+                                'nexah' => new \App\Services\Nexah($setting),
+                                'aws_sns' => new \App\Services\AwsSnsSMS($setting),
+                                default => new \App\Services\Nexah($setting)
+                            };
+                            $smsBalance = $sms_client->getBalance();
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::warning('Failed to check SMS balance in unified resend', [
+                                'error' => $e->getMessage(),
+                                'employee_id' => $employee->id
+                            ]);
+                        }
+                    }
+                }
+                
+                // Add job context for SMS sending
+                $jobContext['job_type'] = 'resendPayslipUnified';
+                sendSmsAndUpdateRecord($employee, $payslip->month, $payslip, $smsBalance, $jobContext);
+                
+                $payslip->refresh();
+                if ($payslip->sms_sent_status === Payslip::STATUS_SUCCESSFUL) {
+                    $result['sms_sent'] = true;
+                }
+            } else {
+                // Email failed, skip SMS (unless forced)
+                if (!$forceResendSms) {
+                    $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                    $payslip->update([
+                        'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                        'sms_status_note' => $smsStatusNote
+                    ]);
+                }
+            }
+        }
+        
+        return $result;
+    }
+}
+if (!function_exists('formatBytes')) {
+    /**
+     * Format bytes to human-readable format
+     *
+     * @param int $bytes
+     * @param int $precision
+     * @return string
+     */
+    function formatBytes($bytes, $precision = 2)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+        
+        return round($bytes, $precision) . ' ' . $units[$i];
     }
 }

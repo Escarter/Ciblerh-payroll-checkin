@@ -73,6 +73,25 @@ class Index extends Component
     public $birthday_sms_message_en;
     public $birthday_sms_message_fr;
 
+    // Feature Configuration Properties
+    public $inactivity_deactivation_enabled = false;
+    public $inactivity_months_threshold = 6;
+    public $deactivation_check_time = '02:00';
+
+    public $sftp_sync_enabled = false;
+    public $sftp_host;
+    public $sftp_port = 22;
+    public $sftp_username;
+    public $sftp_password;
+    public $sftp_private_key_path;
+    public $sftp_passphrase;
+    public $sftp_root = '/payslips';
+    public $sftp_auth_type = 'password';
+    public $sftp_sync_frequency = 'daily';
+    public $sftp_matching_strategies = [];
+    public $sftp_connection_status = false;
+    public $test_sftp_message;
+
     public function mount() {
 
         $this->setting = Setting::first();
@@ -121,6 +140,25 @@ class Index extends Component
 
         $this->birthday_sms_message_en = !empty($this->setting) ? (!empty($this->setting->birthday_sms_message_en) ? $this->setting->birthday_sms_message_en : "Happy Birthday! :name:, Wishing you a fantastic day filled with joy and a year ahead full of success. Enjoy your special day!") :'';
         $this->birthday_sms_message_fr = !empty($this->setting) ? (!empty($this->setting->birthday_sms_message_fr) ? $this->setting->birthday_sms_message_fr : "Joyeux anniversaire! :name:, Je te souhaite une journée fantastique pleine de joie et une année à venir remplie de succès. Profite bien de ta journée spéciale!") :'';
+
+        // Feature Configuration initialization
+        $this->inactivity_deactivation_enabled = !empty($this->setting) ? $this->setting->inactivity_deactivation_enabled : false;
+        $this->inactivity_months_threshold = !empty($this->setting) ? $this->setting->inactivity_months_threshold : 6;
+        $this->deactivation_check_time = !empty($this->setting) ? $this->setting->deactivation_check_time : '02:00';
+
+        $this->sftp_sync_enabled = !empty($this->setting) ? $this->setting->sftp_sync_enabled : false;
+        $this->sftp_host = !empty($this->setting) ? $this->setting->sftp_host : '';
+        $this->sftp_port = !empty($this->setting) ? $this->setting->sftp_port : 22;
+        $this->sftp_username = !empty($this->setting) ? $this->setting->sftp_username : '';
+        $this->sftp_password = !empty($this->setting) ? $this->setting->sftp_password : '';
+        $this->sftp_private_key_path = !empty($this->setting) ? $this->setting->sftp_private_key_path : '';
+        $this->sftp_passphrase = !empty($this->setting) ? $this->setting->sftp_passphrase : '';
+        $this->sftp_root = !empty($this->setting) ? $this->setting->sftp_root : '/payslips';
+        $this->sftp_auth_type = !empty($this->setting) ? $this->setting->sftp_auth_type : 'password';
+        $this->sftp_sync_frequency = !empty($this->setting) ? $this->setting->sftp_sync_frequency : 'daily';
+        $this->sftp_matching_strategies = !empty($this->setting) && !empty($this->setting->sftp_matching_strategies) 
+            ? $this->setting->sftp_matching_strategies 
+            : [];
 
         // Initialize provider-specific properties based on current provider (after all properties are loaded)
         $this->initializeProviderSpecificProperties();
@@ -250,7 +288,7 @@ class Index extends Component
             }
         }
 
-        $this->showToast(__('settings.setting_for_sms_successfully_added'));
+        $this->showToast(__('settings.setting_for_sms_successfully_added'), 'success');
 
     }
     public function saveSmtpConfig()
@@ -294,7 +332,7 @@ class Index extends Component
 
         setSavedSmtpCredentials();
 
-        $this->showToast(__('settings.setting_for_smtp_successfully_added'));
+        $this->showToast(__('settings.setting_for_smtp_successfully_added'), 'success');
     }
 
     public function sendTestEmail()
@@ -312,7 +350,7 @@ class Index extends Component
 
         Mail::to($this->test_email_address)->send(new TestEmail($this->test_email_message));
 
-        $this->showToast(__('settings.test_email_sent_successfully'));
+        $this->showToast(__('settings.test_email_sent_successfully'), 'success');
     }
 
     public function sendTestSms()
@@ -339,10 +377,85 @@ class Index extends Component
             ]);
 
             if ($response['responsecode'] === 1) {
-                $this->showToast(__('settings.test_sms_sent_successfully'));
+                $this->showToast(__('settings.test_sms_sent_successfully'), 'success');
             } else {
                 $this->showToast(__('settings.test_sms_failed'), 'danger');
             }
+        }
+    }
+
+    public function saveFeatureConfiguration()
+    {
+        $setting = Setting::updateOrCreate(
+            ['company_id' => 1],
+            [
+                'company_id' => 1,
+                'inactivity_deactivation_enabled' => $this->inactivity_deactivation_enabled,
+                'inactivity_months_threshold' => $this->inactivity_months_threshold,
+                'deactivation_check_time' => $this->deactivation_check_time,
+            ]
+        );
+
+        if ($setting) {
+            $this->showToast(__('common.saved_successfully'), 'success');
+        }
+    }
+
+    public function saveSftpConfiguration()
+    {
+        $setting = Setting::updateOrCreate(
+            ['company_id' => 1],
+            [
+                'company_id' => 1,
+                'sftp_sync_enabled' => $this->sftp_sync_enabled,
+                'sftp_host' => $this->sftp_host,
+                'sftp_port' => $this->sftp_port,
+                'sftp_username' => $this->sftp_username,
+                'sftp_password' => $this->sftp_password,
+                'sftp_private_key_path' => $this->sftp_private_key_path,
+                'sftp_passphrase' => $this->sftp_passphrase,
+                'sftp_root' => $this->sftp_root,
+                'sftp_auth_type' => $this->sftp_auth_type,
+                'sftp_sync_frequency' => $this->sftp_sync_frequency,
+                'sftp_matching_strategies' => $this->sftp_matching_strategies,
+            ]
+        );
+
+        if ($setting) {
+            $this->showToast(__('common.saved_successfully'), 'success');
+        }
+    }
+
+    public function testSftpConnection()
+    {
+        try {
+            $this->validate([
+                'sftp_host' => 'required',
+                'sftp_username' => 'required',
+                'sftp_port' => 'required|integer',
+            ]);
+
+            $config = [
+                'host' => $this->sftp_host,
+                'username' => $this->sftp_username,
+                'password' => $this->sftp_auth_type === 'password' ? $this->sftp_password : null,
+                'privateKey' => $this->sftp_auth_type === 'ssh_key' ? $this->sftp_private_key_path : null,
+                'passphrase' => $this->sftp_auth_type === 'ssh_key' ? $this->sftp_passphrase : null,
+                'port' => $this->sftp_port,
+                'root' => $this->sftp_root,
+                'timeout' => 10,
+            ];
+
+            $disk = \Illuminate\Support\Facades\Storage::build($config);
+            $files = $disk->listContents('/', false);
+            
+            $this->sftp_connection_status = true;
+            $this->test_sftp_message = __('settings.test_connection_success');
+            $this->showToast(__('settings.test_connection_success'), 'success');
+        } catch (\Exception $e) {
+            $this->sftp_connection_status = false;
+            $this->test_sftp_message = __('settings.test_connection_failed') . ': ' . $e->getMessage();
+            $this->showToast($this->test_sftp_message, 'danger');
         }
     }
 

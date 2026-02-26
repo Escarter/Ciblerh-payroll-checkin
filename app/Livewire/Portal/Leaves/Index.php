@@ -17,6 +17,8 @@ class Index extends Component
     //Create, Edit, Delete, View Post props
     public ?string $start_time = null;
     public ?string $end_time = null;
+    public ?string $start_date = null;
+    public ?string $end_date = null;
     public ?string $leave_reason = null;
     public ?string $leave_type = null;
     public ?int $manager_approval_status = 1;
@@ -556,6 +558,8 @@ class Index extends Component
             'user',
             'start_time',
             'end_time',
+            'start_date',
+            'end_date',
             'manager_approval_status', 'manager_approval_reason',
             'supervisor_approval_status', 'supervisor_approval_reason',
             'leave_reason',

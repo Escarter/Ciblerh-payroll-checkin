@@ -213,6 +213,7 @@ class RolesAndPermissionsSeeder extends Seeder
             ['name' => 'payslip-restore'],
             ['name' => 'payslip-bulkdelete'],
             ['name' => 'payslip-bulkrestore'],
+            ['name' => 'manage-payslips'],
 
             // Import Job permissions
             ['name' => 'importjob-restore'],
@@ -290,7 +291,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'service-read', 'service-create', 'service-update', 'service-delete', 'service-restore', 'service-bulkdelete', 'service-bulkrestore',
             'overtime-read', 'overtime-create', 'overtime-update', 'overtime-delete', 'overtime-restore', 'overtime-bulkdelete', 'overtime-bulkrestore',
             'ticking-read', 'ticking-create', 'ticking-update', 'ticking-delete', 'ticking-restore', 'ticking-bulkdelete', 'ticking-bulkrestore',
-            'payslip-read', 'payslip-create', 'payslip-update', 'payslip-delete', 'payslip-restore', 'payslip-bulkdelete', 'payslip-bulkrestore', 'payslip-sending', 'payslip-bulkresend-email', 'payslip-bulkresend-sms',
+            'payslip-read', 'payslip-create', 'payslip-update', 'payslip-delete', 'payslip-restore', 'payslip-bulkdelete', 'payslip-bulkrestore', 'payslip-sending', 'payslip-bulkresend-email', 'payslip-bulkresend-sms', 'manage-payslips',
             'leave_type-read', 'leave_type-create', 'leave_type-update', 'leave_type-delete', 'leave_type-restore', 'leave_type-bulkdelete', 'leave_type-bulkrestore',
             'leave-read', 'leave-create', 'leave-update', 'leave-delete', 'leave-restore', 'leave-bulkdelete', 'leave-bulkrestore',
             'role-read', 'role-create', 'role-update', 'role-delete', 'role-restore', 'role-bulkdelete', 'role-bulkrestore',

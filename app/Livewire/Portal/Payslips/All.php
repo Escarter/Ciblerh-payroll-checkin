@@ -960,7 +960,7 @@ class All extends Component
                 ]
             );
 
-            session()->flash('message', __('payslips.task_cancelled_successfully'));
+            $this->showToast(__('payslips.task_cancelled_successfully'), 'success');
             $this->closeTaskDetailsModal();
             return $this->redirect(route('portal.payslips.index'), navigate: true);
         }

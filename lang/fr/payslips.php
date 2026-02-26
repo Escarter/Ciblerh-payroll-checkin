@@ -138,7 +138,11 @@ return [
 
     // Historique des fiches de paie employé spécifiques
     'payslip_file_not_found' => 'Fichier de fiche de paie introuvable. Veuillez contacter votre administrateur.',
+    'payslip_encryption_not_complete' => 'Le cryptage de la fiche de paie n\'est pas terminé. Impossible de renvoyer.',
+    'payslip_resent_successfully' => 'Fiche de paie renvoyée avec succès',
+    'payslip_resent_with_errors' => 'Fiche de paie renvoyée avec des erreurs. Veuillez vérifier les journaux.',
     'unable_to_download_payslip' => 'Impossible de télécharger la fiche de paie. Veuillez contacter votre administrateur.',
+    'unable_to_view_payslip' => 'Impossible de voir la fiche de paie. Veuillez contacter votre administrateur.',
     'payslip_successfully_moved_to_trash' => 'Fiche de paie déplacée vers la corbeille avec succès!',
     'payslip_successfully_restored' => 'Fiche de paie restaurée avec succès!',
     'payslip_permanently_deleted' => 'Fiche de paie supprimée définitivement!',
@@ -162,6 +166,7 @@ return [
     'pending_status' => 'En attente...',
 
     // Action titles
+    'view_pdf' => 'Voir le PDF',
     'download_payslip_title' => 'Télécharger le bulletin de salaire',
     'resend_email_title' => 'Renvoyer l\'email',
     'resend_sms_title' => 'Renvoyer le SMS',
@@ -224,6 +229,11 @@ return [
     'target' => 'Cible',
     'this_will_attempt_to_resend_count_failed_payslips' => 'Cela tentera de renvoyer :count fiches de paie échouées',
     'you_are_about_to_resend_email_and_sms_with_employee_payslip' => 'Vous êtes sur le point de renvoyer l\'email et le SMS avec la fiche de paie de l\'employé',
+    'resend_options' => 'Options de renvoi',
+    'select_what_to_resend' => 'Sélectionnez ce que vous souhaitez renvoyer (par défaut, seuls les éléments échoués/en attente seront renvoyés):',
+    'resend_email' => 'Renvoyer l\'email',
+    'resend_sms' => 'Renvoyer le SMS',
+    'resend_note' => 'Note: Décocher un élément réussi l\'ignorera lors du renvoi. Cocher un élément réussi le forcera à être renvoyé.',
     'you_are_about_to_resend_email_with_employee_payslip' => 'Vous êtes sur le point de renvoyer l\'email avec la fiche de paie de l\'employé',
     'you_are_about_to_resend_sms_with_pdf_password_to_employee' => 'Vous êtes sur le point de renvoyer le SMS avec le mot de passe PDF à l\'employé',
 
@@ -354,4 +364,40 @@ return [
     'sms_not_attempted_email_disabled' => 'SMS non tenté - les notifications par email sont désactivées',
     'skipped' => 'Ignoré',
     'sms_skipped' => 'SMS ignoré',
+
+    // SFTP Validator
+    'sftp_validator' => 'Validateur SFTP Fiche de paie',
+    'pending' => 'En attente',
+    'validated' => 'Validé',
+    'processed' => 'Traité',
+    'rejected' => 'Rejeté',
+    'failed' => 'Échoué',
+    'file_name' => 'Nom du fichier',
+    'best_match' => 'Meilleure correspondance',
+    'match_confidence' => 'Confiance de correspondance',
+    'no_match' => 'Pas de correspondance',
+    'validate_proposal' => 'Valider la proposition',
+    'validate_and_process' => 'Valider et traiter',
+    'reject_proposal' => 'Rejeter la proposition',
+    'select_company_first' => 'Veuillez d\'abord sélectionner une entreprise',
+    'month' => 'Mois',
+    'year' => 'Année',
+    'reason' => 'Raison',
+    'reject' => 'Rejeter',
+    'file_path' => 'Chemin du fichier',
+    'file_size' => 'Taille du fichier',
+    'match_candidates' => 'Candidats à correspondance',
+    'no_matches_found' => 'Aucune correspondance trouvée',
+    'proposal_validated_and_queued' => 'Proposition validée et mise en file d\'attente pour traitement',
+    'proposal_rejected' => 'Proposition rejetée avec succès',
+    'proposals_queued_for_processing' => 'Propositions mises en file d\'attente pour traitement (nombre: :count)',
+    'process_selected' => 'Traiter la sélection',
+    
+    // SFTP Validator
+    'sftp_validator' => 'Validateur SFTP de Fiche de Paie',
+    'sftp_validator_description' => 'Examen et validation des fichiers de fiche de paie téléchargés depuis SFTP. Correspondez les fichiers aux départements, puis traitez-les pour envoi aux employés.',
+    'total_pending' => 'Total en attente',
+    'total_validated' => 'Total validé',
+    'total_processed' => 'Total traité',
+    'total_rejected' => 'Total rejeté',
 ];

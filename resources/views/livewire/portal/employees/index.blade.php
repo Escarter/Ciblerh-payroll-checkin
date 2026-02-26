@@ -1,12 +1,18 @@
 <div>
+    @php
+        $selectedForForceDelete = $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees;
+        $forceDeleteItemType = (is_array($selectedForForceDelete) && count($selectedForForceDelete) === 1) ? __('employees.employee') : __('employees.employees');
+        $selectedForRestore = $selectedEmployeesForDelete ?? [];
+        $restoreItemType = (is_array($selectedForRestore) && count($selectedForRestore) === 1) ? __('employees.employee') : __('employees.employees');
+    @endphp
     @include('livewire.portal.employees.others.employee-form')
     @include('livewire.portal.employees.manager.edit-manager')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
-    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
+    @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedForForceDelete, 'itemType' => $forceDeleteItemType])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employees.employee')])
     @include('livewire.partials.restore-modal')
-    @include('livewire.partials.bulk-restore-modal')
+    @include('livewire.partials.bulk-restore-modal', ['selectedItems' => $selectedForRestore, 'itemType' => $restoreItemType])
     @livewire('portal.employees.partial.user-roles')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">

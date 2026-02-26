@@ -58,7 +58,9 @@ class User extends Authenticatable implements HasLocalePreference
         'receive_email_notifications' => 'boolean',
         'email_bounced' => 'boolean',
         'email_bounced_at' => 'datetime',
-        'email_bounce_type' => 'string'
+        'email_bounce_type' => 'string',
+        'last_payslip_received_at' => 'datetime',
+        'deactivated_at' => 'datetime',
     ];
 
     /**

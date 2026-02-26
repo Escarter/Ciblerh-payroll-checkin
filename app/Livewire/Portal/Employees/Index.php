@@ -475,7 +475,11 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        $targetIds = $this->selectedEmployees ?? [];
+        // Use selectedEmployeesForDelete when on deleted tab, otherwise selectedEmployees
+        $targetIds = $this->activeTab === 'deleted' 
+            ? ($this->selectedEmployeesForDelete ?? [])
+            : ($this->selectedEmployees ?? []);
+        
         $employees = collect();
         $affectedRecords = [];
 
@@ -492,8 +496,14 @@ class Index extends BaseImportComponent
 
         if (!empty($targetIds)) {
             User::withTrashed()->whereIn('id', $targetIds)->restore();
-            $this->selectedEmployees = [];
-            $this->selectAll = false;
+            
+            // Clear the correct array based on active tab
+            if ($this->activeTab === 'deleted') {
+                $this->selectedEmployeesForDelete = [];
+            } else {
+                $this->selectedEmployees = [];
+                $this->selectAll = false;
+            }
 
             if ($employees->count() > 0) {
                 auditLog(
@@ -526,8 +536,13 @@ class Index extends BaseImportComponent
             return abort(401);
         }
 
-        if (!empty($this->selectedEmployees)) {
-            $employees = User::withTrashed()->whereIn('id', $this->selectedEmployees)->get();
+        // Use the correct array based on active tab
+        $targetIds = $this->activeTab === 'deleted' 
+            ? ($this->selectedEmployeesForDelete ?? [])
+            : ($this->selectedEmployees ?? []);
+
+        if (!empty($targetIds)) {
+            $employees = User::withTrashed()->whereIn('id', $targetIds)->get();
             $employeesWithRelatedRecords = [];
             $affectedRecords = [];
             
@@ -582,8 +597,13 @@ class Index extends BaseImportComponent
                 );
             }
 
-            $this->selectedEmployees = [];
-            $this->selectAll = false;
+            // Clear the correct array based on active tab
+            if ($this->activeTab === 'deleted') {
+                $this->selectedEmployeesForDelete = [];
+            } else {
+                $this->selectedEmployees = [];
+                $this->selectAll = false;
+            }
         }
 
         $this->closeModalAndFlashMessage(__('employees.selected_employees_permanently_deleted'), 'BulkForceDeleteModal');
@@ -867,7 +887,7 @@ class Index extends BaseImportComponent
         $department = $this->selectedDepartmentId ? Department::find($this->selectedDepartmentId) : null;
         $service = $this->service_id ? Service::find($this->service_id) : null;
         
-        Excel::import(new EmployeeImport($this->company, $department, $service, $this->autoCreateEntities, auth()->id(), $this->sendWelcomeEmails), $this->employee_file);
+        Excel::import(new EmployeeImport($this->company, $department, $service, $this->autoCreateEntities, auth()->user(), $this->sendWelcomeEmails), $this->employee_file);
 
         return [
             'imported_count' => 'unknown', // Could be enhanced to return actual count

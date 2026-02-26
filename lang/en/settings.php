@@ -326,6 +326,8 @@ return [
     'welcome_placeholders_note' => 'as these are used as placeholders',
 
     // Provider field labels
+    'username' => 'Username',
+    'password' => 'Password',
     'account_sid' => 'Account SID',
     'auth_token' => 'Auth Token',
     'phone_number' => 'Phone Number',
@@ -344,4 +346,70 @@ return [
     'mailgun_configuration' => 'Mailgun Configuration',
     'amazon_ses_configuration' => 'Amazon SES Configuration',
     'postmark_configuration' => 'Postmark Configuration',
+
+    // Feature Configuration
+    'feature_configuration' => 'Feature Configuration',
+    'inactivity_deactivation' => 'Inactivity Deactivation',
+    'sftp_payslip_integration' => 'SFTP Payslip Integration',
+
+    // Inactivity Deactivation
+    'enable_inactivity_deactivation' => 'Enable Automatic Inactivity Deactivation',
+    'inactivity_deactivation_description' => 'Automatically deactivate user accounts that have not received payslips for a configured number of months.',
+    'deactivation_settings' => 'Deactivation Settings',
+    'inactivity_months_threshold' => 'Months Without Payslip',
+    'inactivity_months_threshold_help' => 'Number of months without receiving a payslip after which accounts will be deactivated',
+    'deactivation_check_time' => 'Deactivation Check Time',
+    'deactivation_check_time_help' => 'Time of day (24-hour format) when the deactivation job runs',
+
+    // SFTP Configuration
+    'enable_sftp_sync' => 'Enable SFTP Synchronization',
+    'sftp_sync_enabled_help' => 'Automatically fetch payslips from SFTP server on configured schedule',
+    'sftp_configuration' => 'SFTP Configuration',
+    'sftp_connection_settings' => 'SFTP Connection Settings',
+    'sftp_host' => 'SFTP Host',
+    'sftp_port' => 'SFTP Port',
+    'sftp_username' => 'SFTP Username',
+    'sftp_password' => 'SFTP Password',
+    'sftp_passphrase' => 'Key Passphrase (optional)',
+    'sftp_private_key_path' => 'Private Key Path',
+    'sftp_private_key_path_help' => 'Path to SSH private key file (used for SSH key authentication)',
+    'sftp_root' => 'Root Directory',
+    'sftp_root_help' => 'Remote directory where payslips are stored',
+    'sftp_auth_type' => 'Authentication Type',
+    'sftp_auth_password' => 'Password',
+    'sftp_auth_ssh_key' => 'SSH Key',
+
+    // SFTP Sync Settings
+    'sftp_sync_frequency' => 'Synchronization Frequency',
+    'sftp_sync_frequency_help' => 'How often the system checks SFTP for new payslips',
+    'sftp_hourly' => 'Hourly',
+    'sftp_daily' => 'Daily',
+    'sftp_weekly' => 'Weekly',
+    'sftp_matching_strategies' => 'Matching Strategies',
+    'sftp_matching_strategies_help' => 'Select how payslips should be matched to departments/companies',
+    'sftp_strategy_employee_id' => 'Employee ID in Filename',
+    'sftp_strategy_department_code' => 'Department Code in Filename',
+    'sftp_strategy_company_code' => 'Company Code in Filename',
+    'sftp_strategy_folder_structure' => 'Folder Structure Based Matching',
+    'sftp_strategy_timestamps' => 'File Timestamps',
+
+    // Actions
+    'test_sftp_connection' => 'Test SFTP Connection',
+    'verify_sftp_setup' => 'Verify your SFTP connection settings',
+    'test_connection_success' => 'SFTP connection established successfully!',
+    'test_connection_failed' => 'Failed to establish SFTP connection. Please check your credentials.',
+    'connection_status' => 'Connection Status',
+    'sftp_connection_successful' => 'Successfully connected to SFTP server.',
+    'sftp_connection_failed' => 'Could not connect to SFTP server. Please verify your settings.',
+    'click_test_to_verify' => 'Click "Test SFTP Connection" to verify your settings.',
+    'connected' => 'Connected',
+    'disconnected' => 'Disconnected',
+    'sftp_host_required' => 'SFTP host must be configured',
+    'sftp_credentials_required' => 'Valid credentials (password or SSH key) must be set',
+    'sftp_root_required' => 'Remote root directory must be specified',
+
+    // Feature Configuration General
+    'users_inactive_deactivated' => 'Users inactive for specified months are automatically deactivated',
+    'deactivation_silent' => 'Deactivation is silent - no notifications sent to users',
+    'deactivation_logged' => 'All deactivations are logged in the audit log for compliance',
 ];

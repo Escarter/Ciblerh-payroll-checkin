@@ -1,6 +1,5 @@
 <div>
-    @include('livewire.portal.employees.payslip.resend-email-modal')
-    @include('livewire.portal.employees.payslip.resend-sms-modal')
+    @include('livewire.portal.payslips.partials.resend-payslip')
     @include('livewire.portal.payslips.partials.payslip-details-modal')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.restore-modal')
@@ -152,6 +151,63 @@
                     </select>
                 </div>
             </div>
+
+            <!-- Status Filters Row -->
+            <div class="row pb-3">
+                <div class="col-md-3">
+                    <label for="overallStatus">{{__('payslips.overall_status')}}: </label>
+                    <select wire:model.live="overallStatus" id="overallStatus" class="form-select">
+                        <option value="all">{{__('common.all')}}</option>
+                        <option value="success">{{__('common.successful')}}</option>
+                        <option value="failed">{{__('common.failed')}}</option>
+                        <option value="processing">{{__('common.processing')}}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="encryptionStatus">{{__('payslips.encryption_status')}}: </label>
+                    <select wire:model.live="encryptionStatus" id="encryptionStatus" class="form-select">
+                        <option value="all">{{__('common.all')}}</option>
+                        <option value="0">{{__('common.pending')}}</option>
+                        <option value="1">{{__('common.successful')}}</option>
+                        <option value="2">{{__('common.failed')}}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="emailStatus">{{__('payslips.email_status')}}: </label>
+                    <select wire:model.live="emailStatus" id="emailStatus" class="form-select">
+                        <option value="all">{{__('common.all')}}</option>
+                        <option value="0">{{__('common.pending')}}</option>
+                        <option value="1">{{__('common.successful')}}</option>
+                        <option value="2">{{__('common.failed')}}</option>
+                        <option value="3">{{__('payslips.disabled')}}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="smsStatus">{{__('payslips.sms_status')}}: </label>
+                    <select wire:model.live="smsStatus" id="smsStatus" class="form-select">
+                        <option value="all">{{__('common.all')}}</option>
+                        <option value="0">{{__('common.pending')}}</option>
+                        <option value="1">{{__('common.successful')}}</option>
+                        <option value="2">{{__('common.failed')}}</option>
+                        <option value="3">{{__('payslips.disabled')}}</option>
+                        <option value="4">{{__('payslips.skipped')}}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Reset Filters Button -->
+            @if(($encryptionStatus !== '' && $encryptionStatus !== 'all') || ($emailStatus !== '' && $emailStatus !== 'all') || ($smsStatus !== '' && $smsStatus !== 'all') || ($overallStatus !== '' && $overallStatus !== 'all'))
+            <div class="row pb-2">
+                <div class="col-12">
+                    <button wire:click="resetFilters" class="btn btn-sm btn-outline-secondary">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        {{__('common.reset_filters')}}
+                    </button>
+                </div>
+            </div>
+            @endif
 
             <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
             @if(auth()->user()->can('payslip-bulkdelete') && auth()->user()->can('payslip-bulkrestore'))
@@ -330,7 +386,7 @@
                                 <td>
 
                                     <a href="#" wire:click.prevent="showPayslipDetails({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#payslipDetailsModal" class="d-flex align-items-center text-decoration-none">
-                                        <div class="avatar avatar-sm d-flex align-items-center justify-content-center fw-bold rounded text-white bg-primary me-3">
+                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded text-white bg-primary me-3">
                                             <span class="mb-0">{{$payslip->initials}}</span>
                                         </div>
                                         <div class="d-block"><span class="fw-bold">{{$payslip->name}}</span>
@@ -426,19 +482,11 @@
                                             </svg>
                                         </a>
                                         @endif
-                                        <!-- Resend Email Link -->
+                                        <!-- Resend Payslip Link -->
                                         @if($payslip->encryption_status == 1)
-                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendEmailModal" class="text-info me-2" title="{{__('payslips.resend_email_title')}}">
+                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendPayslipModal" class="text-warning me-2" title="{{__('payslips.resend_payslip_title')}}">
                                             <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                            </svg>
-                                        </a>
-                                        @endif
-                                        <!-- Resend SMS Link -->
-                                        @if($payslip->encryption_status == 1)
-                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendSMSModal" class="text-tertiary me-2" title="{{__('payslips.resend_sms_title')}}">
-                                            <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                                             </svg>
                                         </a>
                                         @endif

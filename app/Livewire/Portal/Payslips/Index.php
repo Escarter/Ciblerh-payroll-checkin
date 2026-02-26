@@ -25,6 +25,7 @@ class Index extends Component
     public $departments = [];
     public $company_id, $department_id, $month, $payslip_file;
     public $job_id = null;
+    public $role;
 
     public ?SendPayslipProcess $send_payslip_process;
 
@@ -424,20 +425,44 @@ class Index extends Component
             }
         }
 
-        // Reset statuses to allow reprocessing
-        $payslip->update([
-            'encryption_status' => 0,
-            'email_sent_status' => 0,
-            'sms_sent_status' => 0,
-            'encryption_status_note' => null,
-            'email_status_note' => null,
-            'sms_status_note' => null,
+        // Check if file exists and encryption is successful
+        if ($payslip->encryption_status !== \App\Models\Payslip::STATUS_SUCCESSFUL) {
+            $this->showToast(__('payslips.payslip_encryption_not_complete'), 'danger');
+            return;
+        }
+
+        if (!\Illuminate\Support\Facades\Storage::disk('modified')->exists($payslip->file)) {
+            $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
+            return;
+        }
+
+        // Use unified resend function - force resend both to allow reprocessing
+        $employee = \App\Models\User::findOrFail($payslip->employee_id);
+        $result = resendPayslipUnified($employee, $payslip, $payslip->file, [
+            'force_resend_email' => true, // Force resend even if successful
+            'force_resend_sms' => true,   // Force resend even if successful
+            'job_context' => [
+                'source' => 'Index::resendPayslip',
+                'user_id' => auth()->id()
+            ]
         ]);
 
-        // Trigger reprocessing
-        \App\Jobs\Single\ResendFailedPayslipJob::dispatch($payslip);
-
-        session()->flash('message', __('payslips.payslip_queued_for_resend'));
+        if ($result['email_sent'] || $result['sms_sent']) {
+            $this->showToast(__('payslips.payslip_resent_successfully'), 'success');
+        } else {
+            $errorMessage = '';
+            if ($result['email_error']) {
+                $errorMessage .= 'Email: ' . $result['email_error'] . '. ';
+            }
+            if ($result['sms_error']) {
+                $errorMessage .= 'SMS: ' . $result['sms_error'] . '. ';
+            }
+            if (empty($errorMessage)) {
+                $errorMessage = __('payslips.no_action_taken_on_resend');
+            }
+            $this->showToast($errorMessage, 'warning');
+        }
+        
         $this->closePayslipDetailsModal();
     }
 
@@ -899,7 +924,7 @@ class Index extends Component
                 ]
             );
 
-            session()->flash('message', __('payslips.task_cancelled_successfully'));
+            $this->showToast(__('payslips.task_cancelled_successfully'), 'success');
             $this->closeTaskDetailsModal();
             return $this->redirect(route('portal.payslips.index'), navigate: true);
         }
@@ -929,7 +954,7 @@ class Index extends Component
             ->get();
 
         if ($failedEmailPayslips->isEmpty()) {
-            session()->flash('error', __('payslips.no_failed_emails_to_resend'));
+            $this->showToast(__('payslips.no_failed_emails_to_resend'), 'warning');
             return;
         }
 
@@ -984,7 +1009,8 @@ class Index extends Component
             'errors' => $errorCount
         ]);
 
-        session()->flash('message', $message);
+        $toastType = $errorCount > 0 ? 'warning' : 'success';
+        $this->showToast($message, $toastType);
         $this->refreshTaskData();
     }
 
@@ -1004,7 +1030,7 @@ class Index extends Component
             ->get();
 
         if ($failedSmsPayslips->isEmpty()) {
-            session()->flash('error', __('payslips.no_failed_sms_to_resend'));
+            $this->showToast(__('payslips.no_failed_sms_to_resend'), 'warning');
             return;
         }
 
@@ -1060,7 +1086,8 @@ class Index extends Component
             'errors' => $errorCount
         ]);
 
-        session()->flash('message', $message);
+        $toastType = $errorCount > 0 ? 'warning' : 'success';
+        $this->showToast($message, $toastType);
         $this->refreshTaskData();
     }
 
@@ -1119,12 +1146,12 @@ class Index extends Component
           
 
             if (empty($setting->smtp_host) && empty($setting->smtp_port)) {
-                session()->flash('error', __('payslips.smtp_setting_required'));
+                $this->showToast(__('payslips.smtp_setting_required'), 'danger');
                 return;
             }
 
         }else{
-            session()->flash('error', __('payslips.sms_smtp_settings_required'));
+            $this->showToast(__('payslips.sms_smtp_settings_required'), 'danger');
             return;
         }
 
@@ -1138,7 +1165,7 @@ class Index extends Component
         if ($this->role === 'supervisor') {
             $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
             if (!in_array($this->department_id, $validDepartmentIds)) {
-                session()->flash('error', __('common.unauthorized_department_access'));
+                $this->showToast(__('common.unauthorized_department_access'), 'danger');
                 return $this->redirect(route('portal.payslips.index'), navigate: true);
             }
         }
@@ -1152,7 +1179,7 @@ class Index extends Component
 
 
         if (countPages(Storage::disk('raw')->path($raw_file_path)) > config('ciblerh.max_payslip_pages')) {
-            session()->flash('error', __('payslips.file_upload_max_pages', ['max' => config('ciblerh.max_payslip_pages')]));
+            $this->showToast(__('payslips.file_upload_max_pages', ['max' => config('ciblerh.max_payslip_pages')]), 'danger');
             return $this->redirect(route('portal.payslips.index'), navigate: true);
         }
 
@@ -1178,7 +1205,7 @@ class Index extends Component
                 $payslip_process = $existing;
             } else {
                 // Process is already successful or processing - don't restart
-                session()->flash('error', __('payslips.process_already_running_or_completed'));
+                $this->showToast(__('payslips.process_already_running_or_completed'), 'warning');
                 return $this->redirect(route('portal.payslips.index'), navigate: true);
             }
         }
@@ -1205,7 +1232,7 @@ class Index extends Component
             ]
         );
 
-        session()->flash('message', __('payslips.job_processing_status'));
+        $this->showToast(__('payslips.job_processing_status'), 'success');
         return $this->redirect(route('portal.payslips.index'), navigate: true);
     }
 

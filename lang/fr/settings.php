@@ -326,6 +326,8 @@ return [
     'welcome_placeholders_note' => 'car ceux-ci sont utilisés comme espaces réservés',
 
     // Labels de champs de fournisseur
+    'username' => 'Nom d\'utilisateur',
+    'password' => 'Mot de passe',
     'account_sid' => 'Account SID',
     'auth_token' => 'Jeton d\'authentification',
     'phone_number' => 'Numéro de téléphone',
@@ -344,4 +346,70 @@ return [
     'mailgun_configuration' => 'Configuration Mailgun',
     'amazon_ses_configuration' => 'Configuration Amazon SES',
     'postmark_configuration' => 'Configuration Postmark',
+
+    // Feature Configuration
+    'feature_configuration' => 'Configuration des fonctionnalités',
+    'inactivity_deactivation' => 'Désactivation de l\'inactivité',
+    'sftp_payslip_integration' => 'Intégration SFTP des fiches de paie',
+
+    // Inactivity Deactivation
+    'enable_inactivity_deactivation' => 'Activer la désactivation automatique de l\'inactivité',
+    'inactivity_deactivation_description' => 'Désactiver automatiquement les comptes d\'utilisateurs qui n\'ont pas reçu de fiche de paie pendant un nombre de mois configuré.',
+    'deactivation_settings' => 'Paramètres de désactivation',
+    'inactivity_months_threshold' => 'Mois sans fiche de paie',
+    'inactivity_months_threshold_help' => 'Nombre de mois sans recevoir de fiche de paie après lequel les comptes seront désactivés',
+    'deactivation_check_time' => 'Heure de vérification de la désactivation',
+    'deactivation_check_time_help' => 'Heure du jour (format 24h) à laquelle s\'exécute le processus de désactivation',
+
+    // SFTP Configuration
+    'enable_sftp_sync' => 'Activer la synchronisation SFTP',
+    'sftp_sync_enabled_help' => 'Récupérer automatiquement les fiches de paie du serveur SFTP selon le calendrier configuré',
+    'sftp_configuration' => 'Configuration SFTP',
+    'sftp_connection_settings' => 'Paramètres de connexion SFTP',
+    'sftp_host' => 'Hôte SFTP',
+    'sftp_port' => 'Port SFTP',
+    'sftp_username' => 'Nom d\'utilisateur SFTP',
+    'sftp_password' => 'Mot de passe SFTP',
+    'sftp_passphrase' => 'Phrase de passe (facultatif)',
+    'sftp_private_key_path' => 'Chemin de la clé privée',
+    'sftp_private_key_path_help' => 'Chemin du fichier de clé privée SSH (utilisé pour l\'authentification par clé SSH)',
+    'sftp_root' => 'Répertoire racine',
+    'sftp_root_help' => 'Répertoire distant où sont stockées les fiches de paie',
+    'sftp_auth_type' => 'Type d\'authentification',
+    'sftp_auth_password' => 'Mot de passe',
+    'sftp_auth_ssh_key' => 'Clé SSH',
+
+    // SFTP Sync Settings
+    'sftp_sync_frequency' => 'Fréquence de synchronisation',
+    'sftp_sync_frequency_help' => 'Fréquence à laquelle le système vérifie les nouvelles fiches de paie sur SFTP',
+    'sftp_hourly' => 'Horaire',
+    'sftp_daily' => 'Quotidien',
+    'sftp_weekly' => 'Hebdomadaire',
+    'sftp_matching_strategies' => 'Stratégies de correspondance',
+    'sftp_matching_strategies_help' => 'Sélectionnez comment les fiches de paie doivent être associées aux départements/entreprises',
+    'sftp_strategy_employee_id' => 'ID d\'employé dans le nom du fichier',
+    'sftp_strategy_department_code' => 'Code de département dans le nom du fichier',
+    'sftp_strategy_company_code' => 'Code d\'entreprise dans le nom du fichier',
+    'sftp_strategy_folder_structure' => 'Correspondance basée sur la structure des dossiers',
+    'sftp_strategy_timestamps' => 'Horodatages de fichiers',
+
+    // Actions
+    'test_sftp_connection' => 'Tester la connexion SFTP',
+    'verify_sftp_setup' => 'Vérifiez les paramètres de connexion SFTP',
+    'test_connection_success' => 'Connexion SFTP établie avec succès!',
+    'test_connection_failed' => 'Impossible d\'établir la connexion SFTP. Veuillez vérifier vos identifiants.',
+    'connection_status' => 'État de la connexion',
+    'sftp_connection_successful' => 'Connecté avec succès au serveur SFTP.',
+    'sftp_connection_failed' => 'Impossible de se connecter au serveur SFTP. Veuillez vérifier vos paramètres.',
+    'click_test_to_verify' => 'Cliquez sur « Tester la connexion SFTP » pour vérifier vos paramètres.',
+    'connected' => 'Connecté',
+    'disconnected' => 'Déconnecté',
+    'sftp_host_required' => 'L\'hôte SFTP doit être configuré',
+    'sftp_credentials_required' => 'Des identifiants valides (mot de passe ou clé SSH) doivent être définis',
+    'sftp_root_required' => 'Le répertoire racine remot doit être spécifié',
+
+    // Feature Configuration General
+    'users_inactive_deactivated' => 'Les utilisateurs inactifs pendant le nombre de mois spécifié sont automatiquement désactivés',
+    'deactivation_silent' => 'La désactivation est silencieuse - aucune notification n\'est envoyée aux utilisateurs',
+    'deactivation_logged' => 'Toutes les désactivations sont enregistrées dans le journal d\'audit à des fins de conformité',
 ];

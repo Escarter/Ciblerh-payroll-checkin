@@ -192,9 +192,70 @@
                     <option value="15">15</option>
                     <option value="20">20</option>
                     <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                    <option value="500">500</option>
                 </select>
             </div>
         </div>
+
+        <!-- Status Filters Row -->
+        <div class="row pb-3">
+            <div class="col-md-3">
+                <label for="overallStatus">{{__('payslips.overall_status')}}: </label>
+                <select wire:model.live="overallStatus" id="overallStatus" class="form-select">
+                    <option value="all">{{__('common.all')}}</option>
+                    <option value="success">{{__('common.successful')}}</option>
+                    <option value="failed">{{__('common.failed')}}</option>
+                    <option value="processing">{{__('common.processing')}}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="encryptionStatus">{{__('payslips.encryption_status')}}: </label>
+                <select wire:model.live="encryptionStatus" id="encryptionStatus" class="form-select">
+                    <option value="all">{{__('common.all')}}</option>
+                    <option value="0">{{__('common.pending')}}</option>
+                    <option value="1">{{__('common.successful')}}</option>
+                    <option value="2">{{__('common.failed')}}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="emailStatus">{{__('payslips.email_status')}}: </label>
+                <select wire:model.live="emailStatus" id="emailStatus" class="form-select">
+                    <option value="all">{{__('common.all')}}</option>
+                    <option value="0">{{__('common.pending')}}</option>
+                    <option value="1">{{__('common.successful')}}</option>
+                    <option value="2">{{__('common.failed')}}</option>
+                    <option value="3">{{__('payslips.disabled')}}</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="smsStatus">{{__('payslips.sms_status')}}: </label>
+                <select wire:model.live="smsStatus" id="smsStatus" class="form-select">
+                    <option value="all">{{__('common.all')}}</option>
+                    <option value="0">{{__('common.pending')}}</option>
+                    <option value="1">{{__('common.successful')}}</option>
+                    <option value="2">{{__('common.failed')}}</option>
+                    <option value="3">{{__('payslips.disabled')}}</option>
+                    <option value="4">{{__('payslips.skipped')}}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Reset Filters Button -->
+        @if(($encryptionStatus !== '' && $encryptionStatus !== 'all') || ($emailStatus !== '' && $emailStatus !== 'all') || ($smsStatus !== '' && $smsStatus !== 'all') || ($overallStatus !== '' && $overallStatus !== 'all'))
+        <div class="row pb-2">
+            <div class="col-12">
+                <button wire:click="resetFilters" class="btn btn-sm btn-outline-secondary">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {{__('common.reset_filters')}}
+                </button>
+            </div>
+        </div>
+        @endif
 
         <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
         @if(auth()->user()->can('payslip-bulkdelete') && auth()->user()->can('payslip-bulkrestore'))

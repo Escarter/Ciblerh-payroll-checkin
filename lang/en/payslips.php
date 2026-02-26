@@ -138,7 +138,11 @@ return [
 
     // Employee payslip history specific
     'payslip_file_not_found' => 'Payslip file not found. Please contact your administrator.',
+    'payslip_encryption_not_complete' => 'Payslip encryption is not complete. Cannot resend.',
+    'payslip_resent_successfully' => 'Payslip resent successfully',
+    'payslip_resent_with_errors' => 'Payslip resent with some errors. Please check the logs.',
     'unable_to_download_payslip' => 'Unable to download payslip. Please contact your administrator.',
+    'unable_to_view_payslip' => 'Unable to view payslip. Please contact your administrator.',
     'payslip_successfully_moved_to_trash' => 'Payslip successfully moved to trash!',
     'payslip_successfully_restored' => 'Payslip successfully restored!',
     'payslip_permanently_deleted' => 'Payslip permanently deleted!',
@@ -162,6 +166,7 @@ return [
     'pending_status' => 'Pending...',
 
     // Action titles
+    'view_pdf' => 'View PDF',
     'download_payslip_title' => 'Download Payslip',
     'resend_email_title' => 'Resend Email',
     'resend_sms_title' => 'Resend SMS',
@@ -224,6 +229,11 @@ return [
     'target' => 'Target',
     'this_will_attempt_to_resend_count_failed_payslips' => 'This will attempt to resend :count failed payslips',
     'you_are_about_to_resend_email_and_sms_with_employee_payslip' => 'You are about to resend email and SMS with employee payslip',
+    'resend_options' => 'Resend Options',
+    'select_what_to_resend' => 'Select what you want to resend (by default, only failed/pending items will be resent):',
+    'resend_email' => 'Resend Email',
+    'resend_sms' => 'Resend SMS',
+    'resend_note' => 'Note: Unchecking a successful item will skip resending it. Checking a successful item will force resend it.',
     'you_are_about_to_resend_email_with_employee_payslip' => 'You are about to resend email with employee payslip',
     'you_are_about_to_resend_sms_with_pdf_password_to_employee' => 'You are about to resend SMS with PDF password to employee',
 
@@ -344,7 +354,7 @@ return [
     'sms_unexpected_error' => 'SMS sending failed with unexpected error',
     'birthday_message_sent_successfully_to' => 'Birthday message sent successfully to ',
     'birthday_message_failed_to_send_to' => 'Birthday message failed to send to ',
-    
+
     // Additional status messages for modal
     'pending_since' => 'Pending since',
     'pending_for' => 'Pending for',
@@ -356,4 +366,40 @@ return [
     'sms_not_attempted_email_disabled' => 'SMS not attempted - email notifications disabled',
     'skipped' => 'Skipped',
     'sms_skipped' => 'SMS Skipped',
+
+    // SFTP Validator
+    'sftp_validator' => 'SFTP Payslip Validator',
+    'pending' => 'Pending',
+    'validated' => 'Validated',
+    'processed' => 'Processed',
+    'rejected' => 'Rejected',
+    'failed' => 'Failed',
+    'file_name' => 'File Name',
+    'best_match' => 'Best Match',
+    'match_confidence' => 'Match Confidence',
+    'no_match' => 'No Match',
+    'validate_proposal' => 'Validate Proposal',
+    'validate_and_process' => 'Validate & Process',
+    'reject_proposal' => 'Reject Proposal',
+    'select_company_first' => 'Please select a company first',
+    'month' => 'Month',
+    'year' => 'Year',
+    'reason' => 'Reason',
+    'reject' => 'Reject',
+    'file_path' => 'File Path',
+    'file_size' => 'File Size',
+    'match_candidates' => 'Match Candidates',
+    'no_matches_found' => 'No matches found',
+    'proposal_validated_and_queued' => 'Proposal validated and queued for processing',
+    'proposal_rejected' => 'Proposal rejected successfully',
+    'proposals_queued_for_processing' => 'Proposals queued for processing (count: :count)',
+    'process_selected' => 'Process Selected',
+    
+    // SFTP Validator
+    'sftp_validator' => 'SFTP Payslip Validator',
+    'sftp_validator_description' => 'Review and validate payslip files downloaded from SFTP. Match files to departments, then process for sending to employees.',
+    'total_pending' => 'Total Pending',
+    'total_validated' => 'Total Validated',
+    'total_processed' => 'Total Processed',
+    'total_rejected' => 'Total Rejected',
 ];

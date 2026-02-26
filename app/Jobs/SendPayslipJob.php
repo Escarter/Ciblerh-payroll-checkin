@@ -165,7 +165,11 @@ class SendPayslipJob implements ShouldQueue
             $sms_balance = self::$sms_balance;
         }
 
+        $processed_count = 0;
+        $error_count = 0;
+
         foreach ($this->employee_chunk as $employee) {
+            $processed_count++;
             // Early check: if there is already a successful payslip record for this employee/month/year, skip
             $existingSuccessful = Payslip::where('employee_id', $employee->id)
                 ->where('month', $this->month)
@@ -209,8 +213,9 @@ class SendPayslipJob implements ShouldQueue
                 $encrypted_files = [$this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf'];
             }
 
+            try {
             collect($encrypted_files)->each(function ($file) use ($employee, $pay_month, $dest, $sms_balance, $sms_provider_healthy, $sms_provider_error) {
-
+                try {
                 if (strpos($file, $employee->matricule .'_'.$pay_month.'.pdf') !== FALSE) {
 
                     $filePath = Storage::disk('modified')->path($file);
@@ -321,11 +326,19 @@ class SendPayslipJob implements ShouldQueue
                             // global utility function
                             $record = createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $destination_file);
                         } else {
+                            // Skip if already successfully sent (both email and SMS)
                             if ($record_exists->email_sent_status === Payslip::STATUS_SUCCESSFUL && $record_exists->sms_sent_status === Payslip::STATUS_SUCCESSFUL) {
                                 return;
                             }
+                            // If pending or failed, update file path if needed and continue processing
+                            if (empty($record_exists->file) || $record_exists->file !== $destination_file) {
+                                $record_exists->update(['file' => $destination_file]);
+                            }
                             $record = $record_exists;
                         }
+                        
+                        // Check if email was already sent successfully - if so, skip email sending and only retry SMS
+                        $emailAlreadySent = $record->email_sent_status === Payslip::STATUS_SUCCESSFUL;
 
                     // Check if email has bounced previously
                     if ($employee->email_bounced) {
@@ -366,22 +379,46 @@ class SendPayslipJob implements ShouldQueue
                         return;
                     }
 
-                            try {
-                                setSavedSmtpCredentials();
+                            // Only send email if it hasn't been sent successfully yet
+                            if (!$emailAlreadySent) {
+                                try {
+                                    setSavedSmtpCredentials();
 
-                        Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination_file, $pay_month));
+                                    Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination_file, $pay_month));
 
-                        // Email accepted by mail server - delivery will be confirmed via webhooks
-                        $record->update([
-                            'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                            'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
-                            'email_sent_at' => now(),
-                            'email_retry_count' => 0,
-                            'last_email_retry_at' => null,
-                            'failure_reason' => null // Clear failure reason on success
-                        ]);
+                                    // Email accepted by mail server - delivery will be confirmed via webhooks
+                                    $record->update([
+                                        'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                                        'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                                        'email_sent_at' => now(),
+                                        'email_retry_count' => 0,
+                                        'last_email_retry_at' => null,
+                                        'failure_reason' => null // Clear failure reason on success
+                                    ]);
 
-                        // Send SMS and track results
+                                    Log::info('Email sent successfully', [
+                                        'job_id' => $this->process_id,
+                                        'employee_id' => $employee->id,
+                                        'matricule' => $employee->matricule
+                                    ]);
+                                } catch (\Swift_TransportException $e) {
+                                    // Handle email sending errors - will be caught by outer catch blocks below
+                                    throw $e;
+                                } catch (\Swift_RfcComplianceException $e) {
+                                    throw $e;
+                                } catch (Exception $e) {
+                                    throw $e;
+                                }
+                            } else {
+                                Log::info('Email already sent successfully, skipping email send and only retrying SMS', [
+                                    'job_id' => $this->process_id,
+                                    'employee_id' => $employee->id,
+                                    'matricule' => $employee->matricule,
+                                    'email_sent_at' => $record->email_sent_at
+                                ]);
+                            }
+
+                        // Send SMS and track results (always attempt SMS if it failed previously)
                         try {
                             $job_context = [
                                 'job_id' => $this->process_id,
@@ -436,13 +473,14 @@ class SendPayslipJob implements ShouldQueue
                                 'failure_reason' => $existingReason . __('payslips.sms_unexpected_error') . ': ' . $smsException->getMessage()
                             ]);
                         }
-
-                        Log::info('Email sent successfully', [
-                            'job_id' => $this->process_id,
-                            'employee_id' => $employee->id,
-                            'matricule' => $employee->matricule
-                        ]);
+                        
+                        // Handle email sending exceptions only if email wasn't already sent
+                        if (!$emailAlreadySent) {
+                            // Email sending exceptions are caught by the inner try-catch blocks above
+                            // and re-thrown to be handled here
                         } catch (\Swift_TransportException $e) {
+                            // Only handle email exceptions if email wasn't already sent
+                            if (!$emailAlreadySent) {
 
                             Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
                                 Log::info('' . PHP_EOL . '');
@@ -488,7 +526,9 @@ class SendPayslipJob implements ShouldQueue
                                 ]);
                             }
                             }
-                            catch (\Swift_RfcComplianceException $e) {
+                        } catch (\Swift_RfcComplianceException $e) {
+                            // Only handle if email wasn't already sent
+                            if (!$emailAlreadySent) {
                                 Log::info('------> err Swift_Rfc:' . $e->getMessage());
                                 Log::info('' . PHP_EOL . '');
 
@@ -533,7 +573,9 @@ class SendPayslipJob implements ShouldQueue
                                 ]);
                             }
                             }
-                            catch (Exception $e) {
+                        } catch (Exception $e) {
+                            // Only handle if email wasn't already sent
+                            if (!$emailAlreadySent) {
                                 Log::info('------> err' . $e->getMessage());
                                 Log::info('' . PHP_EOL . '');
 
@@ -578,9 +620,42 @@ class SendPayslipJob implements ShouldQueue
                                 ]);
                             }
                             }
+                        } // End try-catch for email sending
                 } // End if (strpos check)
+                } catch (\Throwable $fileException) {
+                    Log::error('SendPayslipJob: Exception processing file in loop', [
+                        'employee_id' => $employee->id,
+                        'matricule' => $employee->matricule,
+                        'file' => $file,
+                        'error' => $fileException->getMessage(),
+                        'trace' => $fileException->getTraceAsString()
+                    ]);
+                    // Continue to next file instead of stopping
+                }
             }); // End each
+            } catch (\Throwable $employeeException) {
+                $error_count++;
+                Log::error('SendPayslipJob: Exception processing employee', [
+                    'job_id' => $this->process_id,
+                    'employee_id' => $employee->id,
+                    'matricule' => $employee->matricule,
+                    'error' => $employeeException->getMessage(),
+                    'error_class' => get_class($employeeException),
+                    'trace' => $employeeException->getTraceAsString()
+                ]);
+                // Continue to next employee instead of stopping the entire job
+            }
         } // End foreach
+        
+        Log::info('SendPayslipJob: Completed processing chunk', [
+            'job_id' => $this->process_id,
+            'total_employees' => count($this->employee_chunk),
+            'processed_count' => $processed_count,
+            'error_count' => $error_count,
+            'sms_success_count' => $this->sms_success_count,
+            'sms_failure_count' => $this->sms_failure_count,
+            'sms_disabled_count' => $this->sms_disabled_count
+        ]);
 
         // Log SMS sending summary for this job chunk
         Log::info('SMS sending summary for job chunk', [

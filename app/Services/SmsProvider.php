@@ -17,9 +17,11 @@ abstract class SmsProvider {
 
     public function __construct(Setting $setting)
     {
-        $this->username = (string) ($setting->sms_provider_username ?? '');
-        $this->password = (string) ($setting->sms_provider_password ?? '');
-        $this->senderid = (string) ($setting->sms_provider_senderid ?? '');
+        // Ensure we never assign null to nullable string properties
+        // Convert null/empty to empty string to avoid type errors
+        $this->username = !empty($setting->sms_provider_username) ? (string) $setting->sms_provider_username : '';
+        $this->password = !empty($setting->sms_provider_password) ? (string) $setting->sms_provider_password : '';
+        $this->senderid = !empty($setting->sms_provider_senderid) ? (string) $setting->sms_provider_senderid : '';
     }
     
     abstract protected function sendSMS(array $data): array;

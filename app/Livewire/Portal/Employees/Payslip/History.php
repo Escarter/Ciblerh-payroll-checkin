@@ -25,10 +25,20 @@ class History extends Component
     public ?Payslip $payslip;
     public ?Payslip $selectedPayslip = null;
     
+    // Resend options
+    public $forceResendEmail = false;
+    public $forceResendSms = false;
+    
     // Soft delete properties
     public $activeTab = 'active';
     public $selectedPayslips = [];
     public $selectAll = false;
+
+    // Status filter properties
+    public $encryptionStatus = '';
+    public $emailStatus = '';
+    public $smsStatus = '';
+    public $overallStatus = '';
 
     public function mount($employee_uuid)  
     {
@@ -41,6 +51,19 @@ class History extends Component
         if(!empty($payslip_id))
         {
             $this->payslip = Payslip::withTrashed()->findOrFail($payslip_id);
+            $this->payslip->refresh();
+            
+            // Auto-select force resend if status is successful, failed, or pending
+            $this->forceResendEmail = in_array($this->payslip->email_sent_status, [
+                Payslip::STATUS_SUCCESSFUL,
+                Payslip::STATUS_FAILED,
+                Payslip::STATUS_PENDING
+            ]);
+            $this->forceResendSms = in_array($this->payslip->sms_sent_status, [
+                Payslip::STATUS_SUCCESSFUL,
+                Payslip::STATUS_FAILED,
+                Payslip::STATUS_PENDING
+            ]);
         }
     }
 
@@ -68,6 +91,33 @@ class History extends Component
             );
         } catch (\Exception $e) {
             $this->showToast(__('payslips.unable_to_download_payslip'), 'danger');
+        }
+    }
+
+    public function viewPdf($payslip_id)
+    {
+        $payslip = Payslip::findOrFail($payslip_id);
+
+        // Check if encryption was successful
+        if ($payslip->encryption_status != 1) {
+            $this->showToast(__('payslips.encryption_not_successful'), 'danger');
+            return;
+        }
+
+        // Check if the file exists
+        if (!Storage::disk('modified')->exists($payslip->file)) {
+            $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
+            return;
+        }
+        
+        try {
+            $filePath = Storage::disk('modified')->path($payslip->file);
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+            ]);
+        } catch (\Exception $e) {
+            $this->showToast(__('payslips.unable_to_view_payslip'), 'danger');
         }
     }
     public function resendEmail()
@@ -444,6 +494,36 @@ class History extends Component
         $this->selectAll = false;
     }
 
+    public function resetFilters()
+    {
+        $this->encryptionStatus = '';
+        $this->emailStatus = '';
+        $this->smsStatus = '';
+        $this->overallStatus = '';
+        $this->query = '';
+        $this->resetPage();
+    }
+
+    public function updatedEncryptionStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedEmailStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSmsStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedOverallStatus()
+    {
+        $this->resetPage();
+    }
+
     public function showPayslipDetails($payslip_id)
     {
         $this->selectedPayslip = Payslip::with('sendProcess.department')->findOrFail($payslip_id);
@@ -696,6 +776,66 @@ class History extends Component
             $query->whereNull('deleted_at');
         }
 
+        // Apply status filters
+        if ($this->encryptionStatus !== '' && $this->encryptionStatus !== 'all' && $this->encryptionStatus !== null) {
+            $query->where('encryption_status', (int)$this->encryptionStatus);
+        }
+
+        if ($this->emailStatus !== '' && $this->emailStatus !== 'all' && $this->emailStatus !== null) {
+            $query->where('email_sent_status', (int)$this->emailStatus);
+        }
+
+        if ($this->smsStatus !== '' && $this->smsStatus !== 'all' && $this->smsStatus !== null) {
+            $query->where('sms_sent_status', (int)$this->smsStatus);
+        }
+
+        // Apply overall status filter
+        if ($this->overallStatus !== '' && $this->overallStatus !== 'all' && $this->overallStatus !== null) {
+            $query->where(function ($q) {
+                switch ($this->overallStatus) {
+                    case 'success':
+                        $q->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+                          ->where(function ($subQ) {
+                              $subQ->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
+                                   ->orWhere('sms_sent_status', Payslip::STATUS_SUCCESSFUL);
+                          });
+                        break;
+                    case 'failed':
+                        $q->where(function ($subQ) {
+                            $subQ->where('encryption_status', Payslip::STATUS_FAILED)
+                                 ->orWhere(function ($subQ2) {
+                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+                                           ->where('email_sent_status', Payslip::STATUS_FAILED)
+                                           ->where(function ($subQ3) {
+                                               $subQ3->where('sms_sent_status', Payslip::STATUS_FAILED)
+                                                     ->orWhere('sms_sent_status', Payslip::STATUS_DISABLED);
+                                           });
+                                 });
+                        });
+                        break;
+                    case 'processing':
+                        $q->where(function ($subQ) {
+                            $subQ->where('encryption_status', Payslip::STATUS_PENDING)
+                                 ->orWhere(function ($subQ2) {
+                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+                                           ->where(function ($subQ3) {
+                                               $subQ3->where('email_sent_status', Payslip::STATUS_PENDING)
+                                                     ->orWhereNull('email_sent_status')
+                                                     ->orWhere(function ($subQ4) {
+                                                         $subQ4->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
+                                                               ->where(function ($subQ5) {
+                                                                   $subQ5->where('sms_sent_status', Payslip::STATUS_PENDING)
+                                                                         ->orWhereNull('sms_sent_status');
+                                                               });
+                                                     });
+                                           });
+                                 });
+                        });
+                        break;
+                }
+            });
+        }
+
         return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
@@ -729,22 +869,53 @@ class History extends Component
         $this->dispatch('close-payslip-details-modal');
     }
 
-    public function resendPayslip($payslipId)
+    public function resendPayslip()
     {
-        $payslip = Payslip::findOrFail($payslipId);
+        if (!empty($this->payslip)) {
+            // Refresh payslip to get latest status
+            $this->payslip->refresh();
 
-        // Check if payslip can be resent (failed or pending status)
-        if ($payslip->encryption_status == Payslip::STATUS_SUCCESSFUL &&
-            ($payslip->email_sent_status == Payslip::STATUS_FAILED ||
-             $payslip->sms_sent_status == Payslip::STATUS_FAILED ||
-             $payslip->email_sent_status == Payslip::STATUS_PENDING ||
-             $payslip->sms_sent_status == Payslip::STATUS_PENDING)) {
+            // Check if encryption is successful
+            if ($this->payslip->encryption_status !== Payslip::STATUS_SUCCESSFUL) {
+                $this->showToast(__('payslips.payslip_encryption_not_complete'), 'danger');
+                $this->dispatch('close-modal', id: 'resendPayslipModal');
+                return;
+            }
 
-            // Use the existing retry job
-            \App\Jobs\Single\ResendFailedPayslipJob::dispatch($payslip);
+            // Check if file exists
+            if (!\Illuminate\Support\Facades\Storage::disk('modified')->exists($this->payslip->file)) {
+                $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
+                $this->dispatch('close-modal', id: 'resendPayslipModal');
+                return;
+            }
 
-            session()->flash('message', __('payslips.payslip_queued_for_resend'));
-            $this->closePayslipDetailsModal();
+            // Use unified resend function with user-selected options
+            $employee = \App\Models\User::findOrFail($this->payslip->employee_id);
+            $result = resendPayslipUnified($employee, $this->payslip, $this->payslip->file, [
+                'force_resend_email' => $this->forceResendEmail,
+                'force_resend_sms' => $this->forceResendSms,
+                'job_context' => [
+                    'source' => 'History::resendPayslip',
+                    'user_id' => auth()->id()
+                ]
+            ]);
+            
+            // Reset options after use
+            $this->forceResendEmail = false;
+            $this->forceResendSms = false;
+
+            if (!empty($result['errors'])) {
+                \Illuminate\Support\Facades\Log::warning('Payslip resend (History) completed with errors', [
+                    'payslip_id' => $this->payslip->id,
+                    'employee_id' => $employee->id,
+                    'errors' => $result['errors']
+                ]);
+                $this->showToast(__('payslips.payslip_resent_with_errors'), 'warning');
+            } else {
+                $this->showToast(__('payslips.employee_payslip_resent_successfully'), 'success');
+            }
+            
+            $this->dispatch('close-modal', id: 'resendPayslipModal');
         }
     }
 }

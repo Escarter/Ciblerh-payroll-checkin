@@ -17,10 +17,10 @@ trait WithDataTable {
 
     protected $paginationTheme = "bootstrap";
 
-    public function closeModalAndFlashMessage($message, $modal)
+    public function closeModalAndFlashMessage($message, $modal, $type = 'success')
     {
         // Dispatch toast notification
-        $this->dispatch("showToast", message: $message, type: "success");
+        $this->dispatch("showToast", message: $message, type: $type);
         // Close the modal
         $this->dispatch("close-modal", id: $modal);
     }

@@ -9,9 +9,7 @@ return [
 
     // Basic actions
     'create' => 'Créer',
-    'Create' => 'Créer',
     'update' => 'Mettre à jour',
-    'Update' => 'Mettre à jour',
     'new' => 'Nouveau',
     'add' => 'Ajouter',
     'optional' => 'Optionnel',
@@ -31,6 +29,7 @@ return [
     'close' => 'Fermer',
     'clear' => 'Effacer',
     'reset' => 'Réinitialiser',
+    'reset_filters' => 'Réinitialiser les filtres',
     'refresh' => 'Actualiser',
     'search' => 'Rechercher',
     'filter' => 'Filtrer',

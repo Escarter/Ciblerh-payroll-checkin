@@ -544,6 +544,15 @@
         </div>
     </div>
 
+    <!-- Feature Configuration Section -->
+    <div class='pb-0 mt-4'>
+        <div class="row">
+            <div class="col-lg-12">
+                @include('livewire.portal.settings.partials.feature-configuration')
+            </div>
+        </div>
+    </div>
+
     @include('livewire.portal.settings.partials.sms-provider-guide-modal')
 
     @include('livewire.portal.settings.partials.email-provider-guide-modal')
@@ -576,7 +585,5 @@
         // Make function available globally for onclick handler
         window.getWebhookUrl = getWebhookUrl;
     </script>
-
-</div>
 @endpush
 </div>

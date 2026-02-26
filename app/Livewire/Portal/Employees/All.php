@@ -1189,7 +1189,7 @@ class All extends BaseImportComponent
         $department = $this->selectedDepartmentId ? Department::find($this->selectedDepartmentId) : null;
         $service = $this->service_id ? Service::find($this->service_id) : null;
 
-        Excel::import(new EmployeeImport($company, $department, $service, $this->autoCreateEntities, auth()->id(), $this->sendWelcomeEmails), $this->employee_file);
+        Excel::import(new EmployeeImport($company, $department, $service, $this->autoCreateEntities, auth()->user(), $this->sendWelcomeEmails), $this->employee_file);
 
         return [
             'imported_count' => 'unknown', // Could be improved to return actual count

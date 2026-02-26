@@ -67,6 +67,7 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']]
     //Payslip
     Route::prefix('payslips')->group(function () {
         Route::get('/', App\Livewire\Employee\Payslip\Index::class)->name('employee.payslips');
+        Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('employee.payslip.view-pdf');
     });
     //Leaves
     Route::prefix('leaves')->group(function () {
@@ -147,6 +148,8 @@ Route::group(
             Route::get('/', App\Livewire\Portal\Payslips\Index::class)->name('portal.payslips.index');
             Route::get('/{id}/details', App\Livewire\Portal\Payslips\Details::class)->name('portal.payslips.details');
             Route::get('/history', App\Livewire\Portal\Payslips\All::class)->name('portal.payslips.history');
+            Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('portal.payslips.view-pdf');
+            Route::get('/sftp/validator', App\Livewire\Portal\Payslips\SftpPayslipValidator::class)->name('portal.payslips.sftp-validator')->middleware('can:manage-payslips');
         });
 
         //Leave Management

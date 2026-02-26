@@ -1,0 +1,138 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\PayslipMatchingProposal;
+use App\Models\SendPayslipProcess;
+use App\Jobs\Plan\PayslipSendingPlan;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Throwable;
+
+class ProcessValidatedPayslipsJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public $tries = 2;
+    public $maxExceptions = 1;
+    public $timeout = 600;
+    public $failOnTimeout = true;
+
+    private PayslipMatchingProposal $proposal;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(PayslipMatchingProposal $proposal)
+    {
+        $this->proposal = $proposal;
+        $this->onQueue('processing');
+    }
+
+    /**
+     * Execute the job.
+     * Uses pre-downloaded SFTP file and creates SendPayslipProcess
+     * to plug into existing PayslipSendingPlan workflow
+     */
+    public function handle(): void
+    {
+        try {
+            // Verify proposal is in validated state
+            if ($this->proposal->status !== PayslipMatchingProposal::STATUS_VALIDATED) {
+                \Log::warning("Proposal {$this->proposal->id} is not validated. Current status: {$this->proposal->status}");
+                return;
+            }
+
+            // Verify file was successfully downloaded during fetch phase
+            if ($this->proposal->download_status !== 'downloaded' || !$this->proposal->local_file_path) {
+                $this->proposal->update([
+                    'status' => PayslipMatchingProposal::STATUS_FAILED,
+                    'rejection_reason' => 'File was not successfully downloaded from SFTP: ' . ($this->proposal->download_error ?? 'Unknown error'),
+                ]);
+                \Log::error("Cannot process proposal {$this->proposal->id}: File download failed");
+                return;
+            }
+
+            // File is already downloaded locally - use it directly (no SFTP connection needed)
+            $rawFilePath = $this->proposal->local_file_path;
+
+            // Verify file still exists in storage
+            if (!file_exists($rawFilePath)) {
+                $this->proposal->update([
+                    'status' => PayslipMatchingProposal::STATUS_FAILED,
+                    'rejection_reason' => 'Local file no longer exists: ' . $rawFilePath,
+                ]);
+                \Log::error("File not found for proposal {$this->proposal->id}: {$rawFilePath}");
+                return;
+            }
+
+            // Create SendPayslipProcess record
+            // This triggers the standard splitting/encryption/sending pipeline
+            $sendPayslipProcess = SendPayslipProcess::create([
+                'user_id' => auth()->id() ?? 1,  // System user or authenticated user
+                'department_id' => $this->proposal->matched_to_department_id,
+                'company_id' => $this->proposal->matched_to_company_id,
+                'month' => $this->proposal->matched_month,
+                'year' => $this->proposal->matched_year,
+                'raw_file' => $rawFilePath,  // Full filesystem path to local file
+                'destination_directory' => "dept_{$this->proposal->matched_to_department_id}_" . date('YmdHis'),
+                'status' => 'processing',
+                'percentage_completion' => 0,
+            ]);
+
+            // Log the processing action
+            $user = auth()->user();
+            auditLog(
+                $user,
+                'sftp_payslip_processing_started',
+                'web',
+                "SFTP payslip {$this->proposal->file_name} queued for processing",
+                $sendPayslipProcess,
+                [],
+                $sendPayslipProcess->getAttributes(),
+                [
+                    'sftp_proposal_id' => $this->proposal->id,
+                    'source' => 'sftp',
+                ]
+            );
+
+            // Queue the splitting job to start the pipeline
+            dispatch(new \App\Jobs\SplitPdfJob($sendPayslipProcess))->onQueue('processing');
+
+            \Log::info("SFTP payslip {$this->proposal->file_name} queued for processing. Process ID: {$sendPayslipProcess->id}");
+
+            // Update proposal to mark as processed
+            $this->proposal->update([
+                'status' => PayslipMatchingProposal::STATUS_PROCESSED,
+                'processed_at' => now(),
+            ]);
+
+        } catch (Throwable $e) {
+            \Log::error("Error processing validated SFTP proposal {$this->proposal->id}: " . $e->getMessage(), [
+                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            $this->proposal->update([
+                'status' => PayslipMatchingProposal::STATUS_FAILED,
+                'rejection_reason' => 'Processing error: ' . $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Handle job failure
+     */
+    public function failed(Throwable $exception): void
+    {
+        \Log::error("ProcessValidatedPayslipsJob permanently failed for proposal {$this->proposal->id}: " . $exception->getMessage(), [
+            'exception' => $exception,
+        ]);
+    }
+}

@@ -38,6 +38,38 @@ class Index extends Component
         }
     }
 
+    public function viewPdf($payslip_id)
+    {
+        $payslip = Payslip::findOrFail($payslip_id);
+        
+        // Ensure the payslip belongs to the authenticated employee
+        if ($payslip->employee_id !== auth()->user()->id) {
+            abort(403, __('common.unauthorized_access'));
+        }
+        
+        // Check if the file exists
+        if (!Storage::disk('modified')->exists($payslip->file)) {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('payslips.payslip_file_not_found')
+            ]);
+            return;
+        }
+        
+        try {
+            $filePath = Storage::disk('modified')->path($payslip->file);
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+            ]);
+        } catch (\Exception $e) {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('payslips.unable_to_view_payslip')
+            ]);
+        }
+    }
+
     public function render()
     {
         $payslips = Payslip::search($this->query)->where('employee_id', auth()->user()->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);

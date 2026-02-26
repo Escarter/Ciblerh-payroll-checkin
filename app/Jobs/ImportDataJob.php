@@ -74,7 +74,24 @@ class ImportDataJob implements ShouldQueue
      */
     protected function createImportJobRecord(): void
     {
-        Log::info("Creating ImportJob record", [
+        // Check if a job with the same file_path and user_id already exists and is still processing
+        $existingJob = ImportJob::where('file_path', $this->filePath)
+            ->where('user_id', $this->userId)
+            ->whereIn('status', [ImportJob::STATUS_PENDING, ImportJob::STATUS_PROCESSING])
+            ->orderBy('created_at', 'desc')
+            ->first();
+            
+        if ($existingJob) {
+            Log::info("Found existing ImportJob record, reusing it", [
+                'existing_job_id' => $existingJob->id,
+                'status' => $existingJob->status,
+                'file_path' => $this->filePath
+            ]);
+            $this->importJob = $existingJob;
+            return;
+        }
+        
+        Log::info("Creating new ImportJob record", [
             'import_id' => $this->importId,
             'import_type' => $this->importType,
             'user_id' => $this->userId
@@ -477,6 +494,14 @@ class ImportDataJob implements ShouldQueue
                         if (!$department) {
                             throw new \Exception('Department not found for employee import');
                         }
+                        \Log::info('ImportDataJob: Department context found', [
+                            'department_id' => $department->id,
+                            'department_name' => $department->name
+                        ]);
+                    } else {
+                        \Log::warning('ImportDataJob: No departmentId provided', [
+                            'department_id' => $this->departmentId
+                        ]);
                     }
 
                     $service = null;
@@ -485,9 +510,38 @@ class ImportDataJob implements ShouldQueue
                         if (!$service) {
                             throw new \Exception('Service not found for employee import');
                         }
+                        \Log::info('ImportDataJob: Service context found', [
+                            'service_id' => $service->id,
+                            'service_name' => $service->name
+                        ]);
                     }
 
-                    return new EmployeeImport($company, $department, $service, $this->autoCreateEntities, $this->userId, $this->sendWelcomeEmails);
+                    // Find user model instance, just like we do for company, department, service
+                    $user = null;
+                    if ($this->userId) {
+                        $user = \App\Models\User::find($this->userId);
+                        if (!$user) {
+                            throw new \Exception('User not found for employee import');
+                        }
+                        \Log::info('ImportDataJob: User context found', [
+                            'user_id' => $user->id,
+                            'user_email' => $user->email
+                        ]);
+                    } else {
+                        \Log::warning('ImportDataJob: No userId provided');
+                    }
+
+                    \Log::info('ImportDataJob: Creating EmployeeImport instance', [
+                        'company_id' => $company->id,
+                        'department_id' => $department ? $department->id : null,
+                        'service_id' => $service ? $service->id : null,
+                        'has_department' => !is_null($department),
+                        'has_service' => !is_null($service),
+                        'user_id' => $user ? $user->id : null,
+                        'has_user' => !is_null($user)
+                    ]);
+
+                    return new EmployeeImport($company, $department, $service, $this->autoCreateEntities, $user, $this->sendWelcomeEmails);
                 } else {
                     throw new \Exception('Company ID required for employee import');
                 }

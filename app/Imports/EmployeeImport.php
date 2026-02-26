@@ -33,9 +33,10 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     public $company;
     public $department; // Optional department context
     public $service; // Optional service context
+    public $user; // User model instance for role checking and author_id
     public $autoCreateEntities = false; // Whether to auto-create missing departments/services
     public $sendWelcomeEmails = false; // Whether to send welcome emails to imported employees
-    public $userId; // User ID for author_id field in background jobs
+    public $userId; // User ID for author_id field (kept for backward compatibility)
 
     /**
      * @return int
@@ -54,14 +55,29 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     }
 
 
-    public function __construct(Company $company, Department $department = null, Service $service = null, bool $autoCreateEntities = false, $userId = null, bool $sendWelcomeEmails = false)
+    public function __construct(Company $company, Department $department = null, Service $service = null, bool $autoCreateEntities = false, $user = null, bool $sendWelcomeEmails = false)
     {
         $this->company = $company;
         $this->department = $department;
         $this->service = $service;
+        $this->user = $user; // User model instance, just like company/department/service
         $this->autoCreateEntities = $autoCreateEntities;
         $this->sendWelcomeEmails = $sendWelcomeEmails;
-        $this->userId = $userId;
+        // Keep userId for backward compatibility (extract from user model if available)
+        $this->userId = $user ? $user->id : ($user instanceof \App\Models\User ? $user->id : null);
+        
+        // Log constructor to verify all context is being passed
+        \Log::info('EmployeeImport constructor called', [
+            'company_id' => $company->id ?? null,
+            'department_id' => $department ? ($department->id ?? 'no-id') : null,
+            'department_name' => $department ? ($department->name ?? 'no-name') : null,
+            'service_id' => $service ? ($service->id ?? 'no-id') : null,
+            'has_department' => !is_null($department),
+            'has_service' => !is_null($service),
+            'user_id' => $user ? $user->id : null,
+            'user_email' => $user ? $user->email : null,
+            'has_user' => !is_null($user)
+        ]);
     }
 
     /**
@@ -86,10 +102,23 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             throw new \Exception('Professional phone number is required');
         }
         
+        // Log original phone number for debugging
+        \Log::debug('Phone number validation', [
+            'original' => $row[3] ?? null,
+            'cleaned' => $phoneNumber,
+            'starts_with_plus' => str_starts_with($phoneNumber, '+')
+        ]);
+        
         $phoneValidation = validatePhoneNumber($phoneNumber);
         if (!$phoneValidation['valid']) {
             throw new \Exception('Professional phone number validation failed: ' . $phoneValidation['error']);
         }
+        
+        // Log formatted result
+        \Log::debug('Phone number formatted', [
+            'original' => $phoneNumber,
+            'formatted' => $phoneValidation['formatted']
+        ]);
 
         // Validate personal phone number if provided
         $personalPhoneNumber = null;
@@ -164,13 +193,33 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     'date_of_birth' => $this->transformDate($row[22] ?? null),
                     'work_start_time' => $workStartTime,
                     'work_end_time' => $workEndTime,
-                    'author_id' => $this->userId ?? auth()->user()->id,
+                    'author_id' => $this->user ? $this->user->id : ($this->userId ?? (auth()->check() ? auth()->user()->id : null)),
                     'pdf_password' => Str::random(10),
                 ]);
 
                 // Assign roles based on user permissions and CSV data
                 $csvRole = strtolower($row[11]);
-                $currentUserRole = auth()->user()->getRoleNames()->first();
+                // Use user model instance passed as context (just like company/department/service)
+                $currentUser = $this->user;
+                
+                // Fallback to auth if user not provided (for backward compatibility)
+                if (!$currentUser && auth()->check()) {
+                    $currentUser = auth()->user();
+                }
+                
+                // Get user role - use the user model instance passed as context
+                if ($currentUser && method_exists($currentUser, 'getRoleNames')) {
+                    $currentUserRole = $currentUser->getRoleNames()->first() ?? 'employee';
+                } else {
+                    // Default to 'employee' role if no user found
+                    $currentUserRole = 'employee';
+                    if (!$currentUser) {
+                        \Log::debug('No user available for role assignment, defaulting to employee', [
+                            'has_user_context' => !is_null($this->user),
+                            'auth_check' => auth()->check()
+                        ]);
+                    }
+                }
                 $allowedRoles = match ($currentUserRole) {
                     'admin' => ['admin', 'manager', 'supervisor', 'employee'],
                     'manager' => ['employee', 'supervisor'],
@@ -384,7 +433,23 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     public function rules(): array
     {
         // Check if department context is available - use fresh check each time
-        $hasDepartmentContext = !empty($this->department) && is_object($this->department) && isset($this->department->id) && !empty($this->department->id);
+        $hasDepartmentContext = false;
+        if ($this->department) {
+            if (is_object($this->department)) {
+                $hasDepartmentContext = isset($this->department->id) && !empty($this->department->id);
+            } elseif (is_numeric($this->department)) {
+                $hasDepartmentContext = true;
+            }
+        }
+        
+        // Log for debugging
+        \Log::debug('EmployeeImport rules() called', [
+            'has_department' => !empty($this->department),
+            'department_type' => gettype($this->department),
+            'department_id' => is_object($this->department) ? ($this->department->id ?? 'no-id') : 'not-object',
+            'has_department_context' => $hasDepartmentContext,
+            'department_rule' => $hasDepartmentContext ? 'nullable' : 'required'
+        ]);
         
         return [
             '0' => 'nullable|string', // first_name (can be empty if last_name exists, will be replaced with 'NA')
@@ -396,7 +461,23 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '5' => 'required|string', // position
             '6' => 'required|numeric', // net_salary
             '7' => 'required|string', // salary_grade
-            '9' => $hasDepartmentContext ? 'nullable' : 'required', // department - optional when context department is provided
+            '9' => function ($attribute, $value, $onFailure) use ($hasDepartmentContext) {
+                // Only require department if no context is provided
+                // Use the $hasDepartmentContext variable from the outer scope
+                if (!$hasDepartmentContext && (empty($value) || $value === null || trim($value) === '')) {
+                    \Log::debug('Department validation failing', [
+                        'has_department_context' => $hasDepartmentContext,
+                        'value' => $value,
+                        'attribute' => $attribute
+                    ]);
+                    $onFailure(__('employees.department_required'));
+                } else {
+                    \Log::debug('Department validation passing', [
+                        'has_department_context' => $hasDepartmentContext,
+                        'value' => $value
+                    ]);
+                }
+            },
             '10' => 'nullable', // service - always optional (can use context if provided)
             '11' => function ($attribute, $value, $onFailure) {
                 $array = ['employee', 'supervisor', 'manager'];

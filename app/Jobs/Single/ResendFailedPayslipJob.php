@@ -110,28 +110,27 @@ class ResendFailedPayslipJob implements ShouldQueue
 
     public function sendSlip($employee, $record, $month, $destination)
     {
+        // Use unified resend function
+        $result = resendPayslipUnified($employee, $record, $destination, [
+            'force_resend_email' => false, // Only resend if failed/pending
+            'force_resend_sms' => false,   // Only resend if failed/pending
+            'sms_balance' => $this->sms_balance,
+            'job_context' => [
+                'source' => 'ResendFailedPayslipJob::sendSlip',
+                'job_id' => $this->user_id
+            ]
+        ]);
 
-        // if ($record->successful()) {
-        //     return;
-        // }
+        // Update file path if needed
+        if (Storage::disk('modified')->exists($destination)) {
+            $record->update(['file' => $destination]);
+        }
 
-        if (!empty($employee->email)) {
-
-            Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination, $month));
-
-            // Email accepted by mail server - delivery will be confirmed via webhooks
-            $record->update([
-                'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
-                'email_sent_at' => now(),
-                'file' => Storage::disk('modified')->exists($destination)
-            ]);
-            sendSmsAndUpdateRecord($employee, $month, $record, $this->sms_balance);
-        } else {
-            $record->update([
-                'email_sent_status' => 'failed',
-                'sms_sent_status' => 'failed',
-                'failure_reason' => __('payslips.no_valid_email_address')
+        if (!empty($result['errors'])) {
+            \Illuminate\Support\Facades\Log::warning('ResendFailedPayslipJob: Resend completed with errors', [
+                'payslip_id' => $record->id,
+                'employee_id' => $employee->id,
+                'errors' => $result['errors']
             ]);
         }
     }

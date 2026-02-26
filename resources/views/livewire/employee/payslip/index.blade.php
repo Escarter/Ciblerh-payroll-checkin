@@ -87,8 +87,16 @@
                             </td>
                             <td>
                                 @can('payslip-read')
-                                <div class='d-flex justify-content-center'>
-                                    <a href='#' class="text-info " wire:click="generatePDF({{ $payslip->id }})" wire:loading.remove>
+                                <div class='d-flex justify-content-center gap-2'>
+                                    @if($payslip->encryption_status == 1)
+                                    <a href="{{ route('employee.payslip.view-pdf', $payslip->id) }}" class="text-info" target="_blank" title="{{__('payslips.view_pdf')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </a>
+                                    @endif
+                                    <a href='#' class="text-primary" wire:click="generatePDF({{ $payslip->id }})" wire:loading.remove wire:target="generatePDF({{ $payslip->id }})" title="{{__('payslips.download_payslip_title')}}">
                                         <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m-6 3.75l3 3m0 0l3-3m-3 3V1.5m6 9h.75a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25h-7.5a2.25 2.25 0 01-2.25-2.25v-.75" />
                                         </svg>
