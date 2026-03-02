@@ -205,6 +205,29 @@
         </div>
     </div>
 
+    <!-- View Mode Toggle -->
+    <div class="d-flex justify-content-end align-items-center gap-2 mb-3">
+        <small class="text-muted fw-bold">{{__('common.view')}}</small>
+        <div class="btn-group" role="group">
+            <button type="button" 
+                class="btn btn-sm {{ $viewMode === 'card' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="$set('viewMode', 'card')"
+                title="Card View">
+                <svg class="icon icon-xs" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 4a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"/><path d="M7 14a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H8a1 1 0 01-1-1v-2z"/><path d="M13 4a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/><path d="M17 14a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z"/><path d="M3 14a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z"/><path d="M13 14a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z"/>
+                </svg>
+            </button>
+            <button type="button" 
+                class="btn btn-sm {{ $viewMode === 'table' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="$set('viewMode', 'table')"
+                title="Table View">
+                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
     @if(auth()->user()->can('ticking-bulkdelete') && auth()->user()->can('ticking-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -373,6 +396,18 @@
     </div>
     @endif
 
+    {{-- Card View --}}
+    @if($viewMode === 'card')
+    <div class="mb-4">
+        @include('livewire.portal.checklogs.card-view')
+    </div>
+    <div class='py-3 px-3'>
+        {{ $checklogs->links() }}
+    </div>
+    @endif
+
+    {{-- Table View --}}
+    @if($viewMode === 'table')
     <div class="card">
         <div class="table-responsive pb-4 text-gray-700">
             <table class="table table-hover table-bordered align-items-center dataTable">
@@ -515,4 +550,5 @@
             </div>
         </div>
     </div>
+    @endif
 </div>

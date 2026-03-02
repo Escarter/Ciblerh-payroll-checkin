@@ -39,6 +39,9 @@ class Index extends Component
     public $activeTab = 'active';
     public $selectedChecklogsForDelete = [];
     public $selectAllForDelete = false;
+    
+    // View mode toggle
+    public $viewMode = 'card'; // 'card' or 'table'
 
 
     //Update & Store Rules
