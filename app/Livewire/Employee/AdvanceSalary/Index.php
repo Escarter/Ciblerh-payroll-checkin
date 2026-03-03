@@ -541,6 +541,8 @@ class Index extends Component
         $approved_advance_salary = $allAdvanceSalaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)->whereNull('deleted_at')->count();
         $rejected_advance_salary = $allAdvanceSalaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_REJECTED)->whereNull('deleted_at')->count();
 
-        return view('livewire.employee.advance-salary.index', compact('advance_salaries', 'pending_advance_salary', 'approved_advance_salary', 'rejected_advance_salary'))->layout('components.layouts.employee.master');
+        $APPROVAL_STATUS_APPROVED = AdvanceSalary::APPROVAL_STATUS_APPROVED;
+
+        return view('livewire.employee.advance-salary.index', compact('advance_salaries', 'pending_advance_salary', 'approved_advance_salary', 'rejected_advance_salary', 'APPROVAL_STATUS_APPROVED'))->layout('components.layouts.employee.master');
     }
 }
