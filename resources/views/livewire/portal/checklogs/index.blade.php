@@ -165,13 +165,35 @@
     <div class='pt-1'>
     </div>
     @endcan
-    <div class="row py-3">
-        <div class="col-md-3">
+    <div class="row py-3 gap-3">
+        <div class="col-md-2">
             <label for="search">{{__('common.search')}}: </label>
             <input wire:model.live="query" id="checklogs-search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
-            <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
+            <p class="badge badge-info mt-1" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <label for="filterEmployeeName">{{__('employees.employee')}}: </label>
+            <input wire:model.live="filterEmployeeName" id="filterEmployeeName" type="text" placeholder="Name..." class="form-control">
+        </div>
+        <div class="col-md-2">
+            <label for="filterEmployeeId">{{__('employees.employee')}} {{__('common.select')}}: </label>
+            <select wire:model.live="filterEmployeeId" id="filterEmployeeId" class="form-select">
+                <option value="">{{__('common.all')}}</option>
+                @foreach($filterEmployees as $emp)
+                <option value="{{ $emp->user_id }}">{{ $emp->user_full_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="filterDepartmentId">{{__('departments.department')}}: </label>
+            <select wire:model.live="filterDepartmentId" id="filterDepartmentId" class="form-select">
+                <option value="">{{__('common.all')}}</option>
+                @foreach($filterDepartments as $dept)
+                <option value="{{ $dept->department_id }}">{{ $dept->department_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-2">
             <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="checklogs-order-by" class="form-select">
                 <option value="company_name">{{__('companies.company')}}</option>
@@ -184,26 +206,31 @@
                 <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
-
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label for="direction">{{__('common.order_direction')}}: </label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>
             </select>
         </div>
-
-        <div class="col-md-3">
-            <label for="perPage">{{__('common.items_per_page')}}: </label>
-            <select wire:model.live="perPage" id="checklogs-per-page" class="form-select">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
-                <option value="25">25</option>
-            </select>
-        </div>
     </div>
+    
+    <!-- Filter Summary Section -->
+    @if($filterEmployeeName || $filterEmployeeId || $filterDepartmentId)
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong>{{__('common.active_filters')}}:</strong>
+        @if($filterEmployeeName)
+        <span class="badge bg-primary me-2">Name: {{ $filterEmployeeName }}</span>
+        @endif
+        @if($filterEmployeeId)
+        <span class="badge bg-primary me-2">Employee: {{ $filterEmployees->where('user_id', $filterEmployeeId)->first()?->user_full_name }}</span>
+        @endif
+        @if($filterDepartmentId)
+        <span class="badge bg-primary me-2">Department: {{ $filterDepartments->where('department_id', $filterDepartmentId)->first()?->department_name }}</span>
+        @endif
+        <button type="button" class="btn-close" wire:click="$set('filterEmployeeName', ''); $set('filterEmployeeId', ''); $set('filterDepartmentId', '');"></button>
+    </div>
+    @endif
 
     <!-- View Mode Toggle -->
     <div class="d-flex justify-content-end align-items-center gap-2 mb-3">

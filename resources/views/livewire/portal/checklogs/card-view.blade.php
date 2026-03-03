@@ -1,22 +1,21 @@
-{{-- Card View for Checkin Approval - Employee Grouped Display --}}
-<div class="row g-3">
+{{-- Compact Card View for Checkin Approval - 4-5 Columns Layout --}}
+<div class="row g-2">
     @forelse($checklogs as $checklog)
     @if(!empty($checklog->user))
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-sm-6 col-md-4 col-lg-2-4">
         <div class="card h-100 shadow-sm border-0 hover-shadow transition-all">
-            <!-- Header: Employee Info -->
-            <div class="card-header bg-gradient-light border-bottom-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <!-- Header: Employee Info (Compact) -->
+            <div class="card-header bg-white border-bottom p-2">
                 <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="avatar-md d-flex align-items-center justify-content-center fw-bold fs-5 rounded bg-white text-primary">
+                    <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                        <div class="avatar-sm d-flex align-items-center justify-content-center fw-bold fs-6 rounded bg-primary text-white flex-shrink-0">
                             {{$checklog->user->initials}}
                         </div>
-                        <div class="text-white">
-                            <h6 class="mb-0 fw-bold">{{ucwords($checklog->user_full_name)}}</h6>
-                            <small class="opacity-75">{{$checklog->company_name}}</small>
+                        <div class="text-truncate">
+                            <h6 class="mb-0 fw-bold text-truncate" title="{{ucwords($checklog->user_full_name)}}">{{ucwords($checklog->user_full_name)}}</h6>
                         </div>
                     </div>
-                    <div class="form-check" style="margin-right: 0;">
+                    <div class="form-check ms-2 flex-shrink-0" style="margin-right: 0;">
                         @if($activeTab === 'active')
                         <input class="form-check-input" wire:model.live="selectedChecklogs" value="{{$checklog->id}}" type="checkbox">
                         @else
@@ -29,99 +28,40 @@
                 </div>
             </div>
 
-            <!-- Body: CheckIn Details -->
-            <div class="card-body">
-                <!-- Check Period -->
-                <div class="mb-3">
-                    <label class="form-label text-muted fw-bold small">{{__('employees.check_period')}}</label>
-                    <div class="d-flex gap-2 flex-column">
-                        <div class="d-flex align-items-center gap-2">
-                            <svg class="icon icon-xs text-success" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                            </svg>
-                            <span class="fw-500">{{$checklog->start_time}}</span>
-                        </div>
-                        @if($checklog->end_time)
-                        <div class="d-flex align-items-center gap-2">
-                            <svg class="icon icon-xs text-danger" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                            </svg>
-                            <span class="fw-500">{{$checklog->end_time}}</span>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-
+            <!-- Body: Compact Details -->
+            <div class="card-body p-2">
                 <!-- Hours Worked -->
-                <div class="mb-3 p-2 bg-light rounded">
+                <div class="mb-2 p-2 bg-light rounded small">
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted fw-bold small">{{__('overtime.hours_worked')}}</span>
-                        <span class="badge bg-primary fs-6">{{$checklog->time_worked}}</span>
+                        <span class="text-muted fw-bold">Hrs:</span>
+                        <span class="badge bg-primary">{{$checklog->time_worked}}</span>
                     </div>
-                </div>
-
-                <!-- Department & Service -->
-                <div class="mb-3">
-                    <small class="text-muted">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m0 0h-.581m0 0H3m2 0h2.9m4.1 0H15m6 0v-2c0-.82-.185-1.602-.534-2.293M15 7h6m0 0v2m0-2v-2m0 2h-1.172M15 7c0-.82.185-1.602.534-2.293M15 7h1.172"></path>
-                        </svg>
-                        {{$checklog->department_name}}
-                    </small>
-                    @if($checklog->service_name)
-                    <small class="d-block text-muted">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                        </svg>
-                        {{$checklog->service_name}}
-                    </small>
-                    @endif
                 </div>
             </div>
 
-            <!-- Status Row: Supervisory & Manager Approvals -->
-            <div class="card-footer bg-light border-top">
-                <div class="d-flex gap-2 justify-content-between align-items-center mb-3">
-                    <!-- Supervisor Approval -->
-                    <div class="text-center flex-grow-1">
-                        <small class="text-muted fw-bold d-block mb-1">{{__('common.sup_approval')}}</small>
-                        @php
-                            $supStatus = $checklog->supervisor_approval_status;
-                            $supColor = $supStatus === 1 ? 'success' : ($supStatus === 2 ? 'danger' : 'warning');
-                            $supText = $supStatus === 1 ? __('common.approve') : ($supStatus === 2 ? __('common.reject') : __('common.pending'));
-                        @endphp
-                        <span class="badge bg-{{ $supColor }} w-100 py-2">{{ $supText }}</span>
-                    </div>
-
-                    <!-- Manager Approval -->
-                    <div class="text-center flex-grow-1">
-                        <small class="text-muted fw-bold d-block mb-1">{{__('common.mgr_approval')}}</small>
-                        @php
-                            $mgrStatus = $checklog->manager_approval_status;
-                            $mgrColor = $mgrStatus === 1 ? 'success' : ($mgrStatus === 2 ? 'danger' : 'warning');
-                            $mgrText = $mgrStatus === 1 ? __('common.approve') : ($mgrStatus === 2 ? __('common.reject') : __('common.pending'));
-                        @endphp
-                        <span class="badge bg-{{ $mgrColor }} w-100 py-2">{{ $mgrText }}</span>
-                    </div>
-                </div>
-
-                <!-- Created Date -->
-                <div class="text-center mb-2">
-                    <small class="text-muted">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        {{$checklog->created_at->format('M d, Y')}}
-                    </small>
+            <!-- Status Badges: Supervisory & Manager Approvals -->
+            <div class="card-body p-2 bg-light border-top">
+                @php
+                    $supStatus = $checklog->supervisor_approval_status;
+                    $supColor = $supStatus === 1 ? 'success' : ($supStatus === 2 ? 'danger' : 'warning');
+                    $supText = $supStatus === 1 ? 'Aprv' : ($supStatus === 2 ? 'Rej' : 'Pend');
+                    
+                    $mgrStatus = $checklog->manager_approval_status;
+                    $mgrColor = $mgrStatus === 1 ? 'success' : ($mgrStatus === 2 ? 'danger' : 'warning');
+                    $mgrText = $mgrStatus === 1 ? 'Aprv' : ($mgrStatus === 2 ? 'Rej' : 'Pend');
+                @endphp
+                <div class="d-flex gap-1 justify-content-center align-items-center mb-2">
+                    <span class="badge bg-{{ $supColor }} small">S: {{ $supText }}</span>
+                    <span class="badge bg-{{ $mgrColor }} small">M: {{ $mgrText }}</span>
                 </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="card-footer bg-white border-top d-flex gap-2 justify-content-between">
+            <div class="card-footer bg-white border-top p-2 d-grid gap-1">
                 @canany(['ticking-update'])
                 <button 
                     wire:click="initData({{ $checklog->id }})"
-                    class="btn btn-sm btn-primary flex-grow-1 d-flex align-items-center justify-content-center gap-1"
+                    class="btn btn-sm btn-primary d-flex align-items-center justify-content-center gap-1"
                     data-bs-toggle="modal"
                     data-bs-target="#EditChecklogModal"
                     title="{{ __('common.edit') }}">
@@ -131,11 +71,10 @@
                     {{__('common.edit')}}
                 </button>
                 @endcanany
-
                 @canany(['ticking-delete'])
                 <button 
                     wire:click="initData({{ $checklog->id }})"
-                    class="btn btn-sm btn-danger flex-grow-1 d-flex align-items-center justify-content-center gap-1"
+                    class="btn btn-sm btn-danger d-flex align-items-center justify-content-center gap-1"
                     data-bs-toggle="modal"
                     data-bs-target="#DeleteModal"
                     title="{{ __('common.delete') }}">
@@ -161,17 +100,24 @@
 </div>
 
 <style>
+.col-lg-2-4 {
+    flex: 0 0 calc(20% - 0.5rem);
+}
+@media (max-width: 1399.98px) {
+    .col-lg-2-4 {
+        flex: 0 0 calc(25% - 0.5rem);
+    }
+}
 .hover-shadow {
     transition: all 0.3s ease;
 }
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
-.bg-gradient-light {
-    color: white;
-}
-.border-bottom-2 {
-    border-bottom: 3px solid rgba(255, 255, 255, 0.2) !important;
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
 }
 </style>

@@ -42,6 +42,11 @@ class Index extends Component
     
     // View mode toggle
     public $viewMode = 'card'; // 'card' or 'table'
+    
+    // Filter properties
+    public $filterEmployeeName = '';
+    public $filterEmployeeId = '';
+    public $filterDepartmentId = '';
 
 
     //Update & Store Rules
@@ -539,6 +544,22 @@ class Index extends Component
             default => [],
         };
 
+        // Apply employee filters
+        if (!empty($this->filterEmployeeName)) {
+            $query->where(function ($q) {
+                $q->whereRaw("LOWER(user_full_name) LIKE ?", ['%' . strtolower($this->filterEmployeeName) . '%'])
+                  ->orWhereRaw("LOWER(email) LIKE ?", ['%' . strtolower($this->filterEmployeeName) . '%']);
+            });
+        }
+
+        if (!empty($this->filterEmployeeId)) {
+            $query->where('user_id', $this->filterEmployeeId);
+        }
+
+        if (!empty($this->filterDepartmentId)) {
+            $query->where('department_id', $this->filterDepartmentId);
+        }
+
         return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
 
@@ -609,14 +630,40 @@ class Index extends Component
            default => 0,
         };
 
+        // Get distinct employees and departments for filters
+        $baseQuery = match($this->role){
+            "supervisor" => Ticking::supervisor(),
+            "manager" => Ticking::manager(),
+            "admin" => Ticking::query(),
+            default => Ticking::query(),
+        };
+
+        $filterEmployees = $baseQuery
+            ->whereNull('deleted_at')
+            ->select('user_id', 'user_full_name', 'email')
+            ->distinct()
+            ->orderBy('user_full_name')
+            ->get()
+            ->unique('user_id');
+
+        $filterDepartments = $baseQuery
+            ->whereNull('deleted_at')
+            ->select('department_id', 'department_name')
+            ->distinct()
+            ->orderBy('department_name')
+            ->get()
+            ->unique('department_id');
+
         return view('livewire.portal.checklogs.index', [
             'checklogs' => $checklogs,
-            'checklogs_count' => $active_checklogs, // Legacy for backward compatibility
+            'checklogs_count' => $active_checklogs,
             'active_checklogs' => $active_checklogs,
             'deleted_checklogs' => $deleted_checklogs,
             'pending_checklogs_count' => $pending_checklogs_count,
             'approved_checklogs_count' => $approved_checklogs_count,
             'rejected_checklogs_count' => $rejected_checklogs_count,
+            'filterEmployees' => $filterEmployees,
+            'filterDepartments' => $filterDepartments,
         ])->layout('components.layouts.dashboard');
     }
 }
