@@ -1,0 +1,120 @@
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Import Wizard Language Lines (English)
+    |--------------------------------------------------------------------------
+    */
+
+    // Wizard
+    'wizard_title' => 'Import Wizard',
+    'wizard_subtitle' => 'Upload, map, preview and import your data in a few steps.',
+    'start_over' => 'Start Over',
+    'view_import_history' => 'Import History',
+
+    // Steps
+    'step_upload' => 'Upload',
+    'step_map' => 'Map Fields',
+    'step_preview' => 'Preview',
+    'step_import' => 'Import',
+
+    // Step 1: Upload
+    'upload_configure' => 'Upload & Configure',
+    'entity_type' => 'Data Type',
+    'select_entity' => 'Select what you want to import...',
+    'import_mode' => 'Import Mode',
+    'mode_create' => 'Create Only',
+    'mode_create_only' => 'Create Only',
+    'mode_create_desc' => 'Only create new records. Existing records will be skipped.',
+    'mode_update' => 'Update Only',
+    'mode_update_only' => 'Update Only',
+    'mode_update_desc' => 'Only update existing records. New records will be skipped.',
+    'mode_upsert' => 'Create or Update',
+    'mode_upsert_desc' => 'Create new records and update existing ones.',
+    'context_company' => 'Company Context',
+    'context_company_desc' => 'If set, all imported records will be associated with this company.',
+    'all_companies' => 'All Companies (from file)',
+    'context_department' => 'Department Context',
+    'all_departments' => 'All Departments (from file)',
+    'context_service' => 'Service Context',
+    'all_services' => 'All Services (from file)',
+    'options' => 'Options',
+    'auto_create_entities' => 'Auto-create missing entities',
+    'auto_create_desc' => 'Automatically create missing companies, departments, and services referenced in the file.',
+    'send_welcome_emails' => 'Send welcome emails',
+    'welcome_emails_desc' => 'Send welcome emails to newly created employees with their login credentials.',
+    'need_template' => 'Need a template?',
+    'download_template' => 'Download Template',
+    'select_file' => 'Select File',
+    'drag_drop_file' => 'Drag & drop your file here, or click to browse',
+    'accepted_formats' => 'Accepted formats',
+    'next_map_fields' => 'Next: Map Fields',
+    'parsing_file' => 'Parsing file...',
+    'select_entity_type' => 'Please select a data type to import.',
+    'file_empty' => 'The file appears to be empty or could not be parsed.',
+    'file_parse_error' => 'Error parsing file: :error',
+
+    // Step 2: Field Mapping
+    'map_fields_title' => 'Map Fields',
+    'map_fields_desc' => 'Match your file columns to the database fields. We auto-detected some mappings for you.',
+    'csv_column' => 'Your File Column',
+    'confidence' => 'Match',
+    'maps_to' => 'Maps To',
+    'sample' => 'Sample',
+    'skip_column' => 'Skip this column',
+    'example' => 'e.g.',
+    'required_fields' => 'Required Fields',
+    'optional_fields' => 'Optional Fields',
+    'unmapped_required' => 'Unmapped required fields',
+    'columns_detected' => 'columns detected',
+    'next_preview' => 'Next: Preview',
+    'validating' => 'Validating...',
+    'required_field_unmapped' => 'The required field ":field" is not mapped to any column.',
+
+    // Step 3: Preview
+    'preview_title' => 'Data Preview',
+    'total_rows' => 'Total Rows',
+    'rows_previewed' => 'Previewed',
+    'all_rows_valid' => 'All previewed rows passed validation. You can proceed with the import.',
+    'preview_has_errors' => ':valid rows are valid, :errors rows have errors. Rows with errors will be skipped during import.',
+    'import_summary' => 'Import Summary',
+    'warning' => 'Warning',
+    'errors_will_be_skipped' => 'Rows with validation errors will be skipped during import. Only valid rows will be processed.',
+    'start_import' => 'Start Import',
+    'importing' => 'Importing...',
+    'preview_error' => 'Error generating preview: :error',
+
+    // Step 4: Results
+    'processing' => 'Processing Import...',
+    'processing_desc' => 'Your data is being imported. This may take a few moments for large files.',
+    'rows_processed' => 'rows processed',
+    'import_complete' => 'Import Completed Successfully!',
+    'import_partial' => 'Import Completed with Errors',
+    'import_failed' => 'Import Failed',
+    'total_processed' => 'Total Processed',
+    'created' => 'Created',
+    'updated' => 'Updated',
+    'error_details' => 'Error Details',
+    'row' => 'Row',
+    'field' => 'Field',
+    'error_message' => 'Message',
+    'showing_first_errors' => 'Showing :shown of :total errors.',
+    'view_all_jobs' => 'View All Import Jobs',
+    'new_import' => 'New Import',
+    'execution_error' => 'Error executing import: :error',
+    'job_queued' => 'Import job has been queued for processing.',
+
+    // Validation Messages
+    'duplicate_in_file' => 'Duplicate entry in file at row :row.',
+    'relationship_chain_mismatch' => ':child does not belong to :parent.',
+    'batch_failed' => 'Batch :batch failed: :error',
+    'field_required' => 'The :field field is required.',
+    'field_invalid_email' => 'The :field field must be a valid email address.',
+    'field_invalid_phone' => 'The :field field must be a valid phone number.',
+    'field_invalid_date' => 'The :field field must be a valid date.',
+    'field_invalid_number' => 'The :field field must be a number.',
+    'field_too_long' => 'The :field field must not exceed :max characters.',
+    'field_not_found' => 'The :field ":value" was not found.',
+    'field_already_exists' => 'A record with this :field already exists.',
+];

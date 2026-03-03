@@ -15,12 +15,12 @@
                 {{__('common.refresh')}}
             </button>
             @can('importjob-create')
-            <button wire:click="openCreateModal" class="btn btn-primary">
+            <a href="{{ route('portal.import-wizard') }}" class="btn btn-primary">
                 <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
                 {{__('import_jobs.create_new_import')}}
-            </button>
+            </a>
             @endcan
         </div>
     </div>
@@ -404,12 +404,12 @@
                                 <h5 class="text-muted">{{__('import_jobs.no_jobs_found')}}</h5>
                                 <p class="text-muted">{{__('import_jobs.no_jobs_message')}}</p>
                                 @can('importjob-create')
-                                <button wire:click="openCreateModal" class="btn btn-primary">
+                                <a href="{{ route('portal.import-wizard') }}" class="btn btn-primary">
                                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                     </svg>
                                     {{__('import_jobs.create_new_import')}}
-                                </button>
+                                </a>
                                 @endcan
                             </td>
                         </tr>

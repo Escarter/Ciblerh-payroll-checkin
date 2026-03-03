@@ -185,6 +185,8 @@ Route::group(
 
         //Import Jobs
         Route::get('/import-jobs', App\Livewire\Portal\ImportJobs\Index::class)->name('portal.import-jobs.index');
+        Route::get('/import-wizard', App\Livewire\ImportWizard::class)->name('portal.import-wizard');
+        Route::get('/export-wizard', App\Livewire\ExportWizard::class)->name('portal.export-wizard');
         Route::get('/download-template/{filename}', function($filename) {
             $path = public_path('templates/' . $filename);
             if (!file_exists($path)) {

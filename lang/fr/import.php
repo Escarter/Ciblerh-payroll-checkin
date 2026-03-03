@@ -1,0 +1,120 @@
+<?php
+
+return [
+    /*
+    |--------------------------------------------------------------------------
+    | Import Wizard Language Lines (French)
+    |--------------------------------------------------------------------------
+    */
+
+    // Wizard
+    'wizard_title' => 'Assistant d\'importation',
+    'wizard_subtitle' => 'Téléchargez, mappez, prévisualisez et importez vos données en quelques étapes.',
+    'start_over' => 'Recommencer',
+    'view_import_history' => 'Historique des importations',
+
+    // Steps
+    'step_upload' => 'Télécharger',
+    'step_map' => 'Mapper les champs',
+    'step_preview' => 'Aperçu',
+    'step_import' => 'Importer',
+
+    // Step 1: Upload
+    'upload_configure' => 'Télécharger & Configurer',
+    'entity_type' => 'Type de données',
+    'select_entity' => 'Sélectionnez ce que vous souhaitez importer...',
+    'import_mode' => 'Mode d\'importation',
+    'mode_create' => 'Création uniquement',
+    'mode_create_only' => 'Création uniquement',
+    'mode_create_desc' => 'Créer uniquement de nouveaux enregistrements. Les enregistrements existants seront ignorés.',
+    'mode_update' => 'Mise à jour uniquement',
+    'mode_update_only' => 'Mise à jour uniquement',
+    'mode_update_desc' => 'Mettre à jour uniquement les enregistrements existants. Les nouveaux enregistrements seront ignorés.',
+    'mode_upsert' => 'Créer ou Mettre à jour',
+    'mode_upsert_desc' => 'Créer de nouveaux enregistrements et mettre à jour les existants.',
+    'context_company' => 'Contexte Entreprise',
+    'context_company_desc' => 'Si défini, tous les enregistrements importés seront associés à cette entreprise.',
+    'all_companies' => 'Toutes les entreprises (depuis le fichier)',
+    'context_department' => 'Contexte Département',
+    'all_departments' => 'Tous les départements (depuis le fichier)',
+    'context_service' => 'Contexte Service',
+    'all_services' => 'Tous les services (depuis le fichier)',
+    'options' => 'Options',
+    'auto_create_entities' => 'Créer automatiquement les entités manquantes',
+    'auto_create_desc' => 'Créer automatiquement les entreprises, départements et services manquants référencés dans le fichier.',
+    'send_welcome_emails' => 'Envoyer les emails de bienvenue',
+    'welcome_emails_desc' => 'Envoyer des emails de bienvenue aux employés nouvellement créés avec leurs identifiants.',
+    'need_template' => 'Besoin d\'un modèle ?',
+    'download_template' => 'Télécharger le modèle',
+    'select_file' => 'Sélectionner un fichier',
+    'drag_drop_file' => 'Glissez-déposez votre fichier ici, ou cliquez pour parcourir',
+    'accepted_formats' => 'Formats acceptés',
+    'next_map_fields' => 'Suivant : Mapper les champs',
+    'parsing_file' => 'Analyse du fichier...',
+    'select_entity_type' => 'Veuillez sélectionner un type de données à importer.',
+    'file_empty' => 'Le fichier semble être vide ou n\'a pas pu être analysé.',
+    'file_parse_error' => 'Erreur lors de l\'analyse du fichier : :error',
+
+    // Step 2: Field Mapping
+    'map_fields_title' => 'Mapper les champs',
+    'map_fields_desc' => 'Faites correspondre les colonnes de votre fichier aux champs de la base de données. Nous avons détecté automatiquement certaines correspondances.',
+    'csv_column' => 'Colonne de votre fichier',
+    'confidence' => 'Correspondance',
+    'maps_to' => 'Correspond à',
+    'sample' => 'Exemple',
+    'skip_column' => 'Ignorer cette colonne',
+    'example' => 'ex.',
+    'required_fields' => 'Champs obligatoires',
+    'optional_fields' => 'Champs optionnels',
+    'unmapped_required' => 'Champs obligatoires non mappés',
+    'columns_detected' => 'colonnes détectées',
+    'next_preview' => 'Suivant : Aperçu',
+    'validating' => 'Validation en cours...',
+    'required_field_unmapped' => 'Le champ obligatoire ":field" n\'est mappé à aucune colonne.',
+
+    // Step 3: Preview
+    'preview_title' => 'Aperçu des données',
+    'total_rows' => 'Total des lignes',
+    'rows_previewed' => 'Prévisualisées',
+    'all_rows_valid' => 'Toutes les lignes prévisualisées ont passé la validation. Vous pouvez procéder à l\'importation.',
+    'preview_has_errors' => ':valid lignes sont valides, :errors lignes ont des erreurs. Les lignes avec erreurs seront ignorées lors de l\'importation.',
+    'import_summary' => 'Résumé de l\'importation',
+    'warning' => 'Avertissement',
+    'errors_will_be_skipped' => 'Les lignes avec des erreurs de validation seront ignorées lors de l\'importation. Seules les lignes valides seront traitées.',
+    'start_import' => 'Démarrer l\'importation',
+    'importing' => 'Importation en cours...',
+    'preview_error' => 'Erreur lors de la génération de l\'aperçu : :error',
+
+    // Step 4: Results
+    'processing' => 'Traitement de l\'importation...',
+    'processing_desc' => 'Vos données sont en cours d\'importation. Cela peut prendre quelques instants pour les fichiers volumineux.',
+    'rows_processed' => 'lignes traitées',
+    'import_complete' => 'Importation terminée avec succès !',
+    'import_partial' => 'Importation terminée avec des erreurs',
+    'import_failed' => 'Échec de l\'importation',
+    'total_processed' => 'Total traité',
+    'created' => 'Créés',
+    'updated' => 'Mis à jour',
+    'error_details' => 'Détails des erreurs',
+    'row' => 'Ligne',
+    'field' => 'Champ',
+    'error_message' => 'Message',
+    'showing_first_errors' => 'Affichage de :shown sur :total erreurs.',
+    'view_all_jobs' => 'Voir tous les jobs d\'importation',
+    'new_import' => 'Nouvelle importation',
+    'execution_error' => 'Erreur lors de l\'exécution de l\'importation : :error',
+    'job_queued' => 'Le job d\'importation a été mis en file d\'attente pour traitement.',
+
+    // Validation Messages
+    'duplicate_in_file' => 'Doublon dans le fichier à la ligne :row.',
+    'relationship_chain_mismatch' => ':child n\'appartient pas à :parent.',
+    'batch_failed' => 'Le lot :batch a échoué : :error',
+    'field_required' => 'Le champ :field est obligatoire.',
+    'field_invalid_email' => 'Le champ :field doit être une adresse email valide.',
+    'field_invalid_phone' => 'Le champ :field doit être un numéro de téléphone valide.',
+    'field_invalid_date' => 'Le champ :field doit être une date valide.',
+    'field_invalid_number' => 'Le champ :field doit être un nombre.',
+    'field_too_long' => 'Le champ :field ne doit pas dépasser :max caractères.',
+    'field_not_found' => 'Le :field ":value" n\'a pas été trouvé.',
+    'field_already_exists' => 'Un enregistrement avec ce :field existe déjà.',
+];
