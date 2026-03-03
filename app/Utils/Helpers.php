@@ -161,7 +161,7 @@ if (!function_exists('auditLog')) {
                 'model_type' => $modelType,
                 'model_id' => $modelId ? (string) $modelId : null,
                 'model_name' => $modelName,
-                'model_data' => $modelData,
+                'model_data' => $modelData ? json_encode($modelData) : null,
                 'old_values' => !empty($oldValues) ? $oldValues : null,
                 'new_values' => !empty($newValues) ? $newValues : null,
                 'changes' => !empty($changes) ? $changes : null,
