@@ -65,20 +65,34 @@ if (!function_exists('auditLog')) {
         $modelType = null;
         $modelId = null;
         $modelName = null;
+        $modelData = null;
         
         if ($model) {
             $modelType = get_class($model);
             $modelId = $model->id ?? $model->uuid ?? null;
             
-            // Try to get a human-readable name
+            // Try to get a simple name first
             if (method_exists($model, 'getNameAttribute') || isset($model->name)) {
                 $modelName = $model->name ?? null;
-            } elseif (method_exists($model, '__toString')) {
-                $modelName = (string) $model;
             } elseif (isset($model->title)) {
                 $modelName = $model->title;
             } elseif (isset($model->first_name) && isset($model->last_name)) {
                 $modelName = $model->first_name . ' ' . $model->last_name;
+            }
+            
+            // If no simple name was found, store full model as JSON
+            if (!$modelName && $model) {
+                $modelData = $model->toArray();
+                // Still try __toString as fallback
+                if (method_exists($model, '__toString')) {
+                    $modelName = (string) $model;
+                }
+            }
+            
+            // Ensure model_name doesn't exceed 255 chars
+            if ($modelName && strlen($modelName) > 255) {
+                $modelData = $model->toArray();
+                $modelName = null; // Clear the name since it's too long
             }
         }
         
@@ -147,6 +161,7 @@ if (!function_exists('auditLog')) {
                 'model_type' => $modelType,
                 'model_id' => $modelId ? (string) $modelId : null,
                 'model_name' => $modelName,
+                'model_data' => $modelData,
                 'old_values' => !empty($oldValues) ? $oldValues : null,
                 'new_values' => !empty($newValues) ? $newValues : null,
                 'changes' => !empty($changes) ? $changes : null,
