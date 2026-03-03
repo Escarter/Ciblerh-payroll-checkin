@@ -89,6 +89,7 @@ class All extends BaseImportComponent
         $this->initializePreview();
 
         $this->roles = auth()->user()->hasRole('admin') ? Role::orderBy('name', 'desc')->get() : Role::whereNotIn('name', ['admin'])->orderBy('name', 'desc')->get();
+        $this->password = Str::random(15);
         $this->work_start_time = Carbon::parse('08:00')->format('H:i');
         $this->work_end_time = Carbon::parse('17:30')->format('H:i');
 
@@ -186,7 +187,6 @@ class All extends BaseImportComponent
             'matricule' => 'required',
             'professional_phone_number' => ['required', new PhoneNumber()],
             'personal_phone_number' => ['required', new PhoneNumber()],
-            'password' => 'required',
             'date_of_birth' => 'required|date',
             'email' => ['required', new ValidEmail(), 'unique:users'],
             'selected_roles' => 'required|array|max:2',

@@ -362,6 +362,10 @@ return [
     'create_and_submit_advance_salary_request' => 'Créer et soumettre une demande d\'avance sur salaire',
     'repayment_from_month' => 'Remboursement à partir du mois',
     'repayment_to_month' => 'Remboursement jusqu\'au mois',
+    'advance_salary_request_only_1_to_12' => 'Les demandes d\'avance sur salaire ne peuvent être faites qu\'entre le 1er et le 12 de chaque mois.',
+    'advance_salary_repayment_info' => 'L\'avance sur salaire sera remboursée sur la paie de ce même mois.',
+    'repayment_end_before_start' => 'Le mois de fin de remboursement ne peut pas être avant le mois de début.',
+    'repayment_cannot_be_in_past' => 'Le mois de début de remboursement ne peut pas être dans le passé.',
     'submit_request' => 'Soumettre la demande',
 
     'checkin' => 'Pointage',
@@ -470,6 +474,7 @@ return [
     'contract_end_date' => 'Date de fin de contrat',
     'create_employee_password' => 'Créer le mot de passe de l\'employé',
     'reset_employee_password' => 'Réinitialiser le mot de passe de l\'employé',
+    'password_auto_generated_info' => 'Un mot de passe sera généré automatiquement et envoyé à l\'utilisateur par email. Il pourra le modifier après connexion.',
     'add_employee' => 'Ajouter un employé',
     'add_to' => 'Ajouter à',
     'banned' => 'Banni',

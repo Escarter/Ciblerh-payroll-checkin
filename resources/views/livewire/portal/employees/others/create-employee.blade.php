@@ -198,11 +198,9 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="password">{{__('employees.create_employee_password')}}</label>
-                            <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password">
-                            @error('password')
-                            <div class="invalid-feedback">{{$message}}</div>
-                            @enderror
+                            <div class="alert alert-info py-2 px-3 mb-0">
+                                <small><i class="fas fa-info-circle me-1"></i> {{__('employees.password_auto_generated_info')}}</small>
+                            </div>
                         </div>
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>

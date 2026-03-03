@@ -34,9 +34,14 @@
                         <div class="form-group mb-4">
                             <label for="repayment_to_month">{{__('employees.repayment_to_month')}}</label>
                             <input wire:model.defer="repayment_to_month" type="month" class="form-control  @error('repayment_to_month') is-invalid @enderror" min="{{now()->startOfMonth()->format('Y-m')}}" value="" required="">
-                            @error('end_repayment_month')
+                            @error('repayment_to_month')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
+                        </div>
+                        <div class="form-group mb-2">
+                            <div class="alert alert-info py-2 px-3 mb-0">
+                                <small><i class="fas fa-info-circle me-1"></i> {{__('employees.advance_salary_request_only_1_to_12')}}</small>
+                            </div>
                         </div>
 
                         <h5 class="pb-0 mb-n2">{{__('common.beneficiary_details')}}</h5>

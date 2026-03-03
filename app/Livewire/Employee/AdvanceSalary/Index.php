@@ -6,7 +6,11 @@ use App\Livewire\Traits\WithDataTable;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\AdvanceSalary;
+use App\Models\SupervisorDepartment;
+use App\Mail\AdvanceSalaryRequestNotification;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class Index extends Component
 {
@@ -52,8 +56,8 @@ class Index extends Component
     protected $rules = [
         "amount" => "required|integer",
         "reason" => "required",
-        "repayment_from_month" => "required|date|before:repayment_to_month",
-        "repayment_to_month" => "required|date|after:repayment_from_month",
+        "repayment_from_month" => "required",
+        "repayment_to_month" => "required",
         "beneficiary_name" => "required",
         "beneficiary_mobile_money_number" => "required",
         "beneficiary_id_card_number" => "required",
@@ -78,20 +82,47 @@ class Index extends Component
             return;
         }
 
-        auth()->user()->advanceSalaries()->create(
+        // Validate that advance salary request is made between 1st-12th of the month
+        $currentDay = now()->day;
+        if ($currentDay > 12) {
+            $this->addError('amount', __('employees.advance_salary_request_only_1_to_12'));
+            return;
+        }
+
+        // Parse repayment months
+        $repaymentFromMonth = \Carbon\Carbon::createFromFormat('Y-m', $this->repayment_from_month)->startOfMonth();
+        $repaymentToMonth = \Carbon\Carbon::createFromFormat('Y-m', $this->repayment_to_month)->startOfMonth();
+
+        // Validate repayment_to_month is not before repayment_from_month
+        if ($repaymentToMonth->isBefore($repaymentFromMonth)) {
+            $this->addError('repayment_to_month', __('employees.repayment_end_before_start'));
+            return;
+        }
+
+        // Ensure repayment_from_month is not in the past
+        if ($repaymentFromMonth->isBefore(now()->startOfMonth())) {
+            $this->addError('repayment_from_month', __('employees.repayment_cannot_be_in_past'));
+            return;
+        }
+
+        $advanceSalary = auth()->user()->advanceSalaries()->create(
             [
                 'company_id' => $this->company->id,
                 'department_id' => $this->department->id,
                 'author_id' => auth()->user()->author_id,
                 'amount' => $this->amount,
                 'reason' => $this->reason,
-                'repayment_from_month' => $this->repayment_from_month,
-                'repayment_to_month' => $this->repayment_to_month,
+                'repayment_from_month' => $repaymentFromMonth,
+                'repayment_to_month' => $repaymentToMonth,
                 'beneficiary_name' => $this->beneficiary_name,
                 'beneficiary_mobile_money_number' => $this->beneficiary_mobile_money_number,
                 'beneficiary_id_card_number' => $this->beneficiary_id_card_number,
             ]
         );
+
+        // Notify supervisors of this department by email
+        $this->notifySupervisors($advanceSalary);
+
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.advance_salary_recorded'), 'CreateAdvanceSalaryModal');
     }
@@ -433,6 +464,35 @@ class Index extends Component
     {
         $this->activeAdvanceSalariesCount = AdvanceSalary::where('user_id', auth()->user()->id)->whereNull('deleted_at')->count();
         $this->deletedAdvanceSalariesCount = AdvanceSalary::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
+    }
+
+    /**
+     * Notify all supervisors of the employee's department about the advance salary request.
+     */
+    private function notifySupervisors(AdvanceSalary $advanceSalary): void
+    {
+        try {
+            $departmentId = auth()->user()->department_id;
+
+            // Get all supervisors assigned to this department
+            $supervisorDepartments = SupervisorDepartment::where('department_id', $departmentId)
+                ->with('supervisor')
+                ->get();
+
+            foreach ($supervisorDepartments as $supDept) {
+                $supervisor = $supDept->supervisor;
+                if ($supervisor && $supervisor->email) {
+                    Mail::to($supervisor->email)->send(
+                        new AdvanceSalaryRequestNotification($advanceSalary, auth()->user(), $supervisor)
+                    );
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send advance salary notification to supervisors', [
+                'advance_salary_id' => $advanceSalary->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function getAdvanceSalaries()

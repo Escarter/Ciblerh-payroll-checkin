@@ -362,6 +362,10 @@ return [
     'create_and_submit_advance_salary_request' => 'Create and submit an advance salary request',
     'repayment_from_month' => 'Repayment From Month',
     'repayment_to_month' => 'Repayment To Month',
+    'advance_salary_request_only_1_to_12' => 'Advance salary requests can only be made between the 1st and 12th of each month.',
+    'advance_salary_repayment_info' => 'The advance salary will be repaid on this same month\'s payroll.',
+    'repayment_end_before_start' => 'The repayment end month cannot be before the start month.',
+    'repayment_cannot_be_in_past' => 'The repayment start month cannot be in the past.',
     'submit_request' => 'Submit Request',
 
     'checkin' => 'CheckIn',
@@ -470,6 +474,7 @@ return [
     'contract_end_date' => 'Contract End Date',
     'create_employee_password' => 'Create Employee\'s Password',
     'reset_employee_password' => 'Reset Employee\'s Password',
+    'password_auto_generated_info' => 'A password will be automatically generated and sent to the user by email. They can change it after logging in.',
     'add_employee' => 'Add Employee',
     'add_to' => 'Add to',
     'banned' => 'Banned',
