@@ -41,7 +41,7 @@ class Index extends Component
     public $selectAllForDelete = false;
     
     // View mode toggle
-    public $viewMode = 'card'; // 'card' or 'table'
+    public $viewMode = 'table'; // 'card' or 'table'
     
     // Filter properties
     public $filterEmployeeName = '';
@@ -631,26 +631,23 @@ class Index extends Component
         };
 
         // Get distinct employees and departments for filters
-        $baseQuery = match($this->role){
-            "supervisor" => Ticking::supervisor(),
-            "manager" => Ticking::manager(),
-            "admin" => Ticking::query(),
-            default => Ticking::query(),
-        };
-
-        $filterEmployees = $baseQuery
+        $filterEmployees = Ticking::when($this->role === 'supervisor', fn($q) => $q->supervisor())
+            ->when($this->role === 'manager', fn($q) => $q->manager())
             ->whereNull('deleted_at')
             ->select('user_id', 'user_full_name', 'email')
-            ->distinct()
+            ->reorder()
             ->orderBy('user_full_name')
+            ->distinct()
             ->get()
             ->unique('user_id');
 
-        $filterDepartments = $baseQuery
+        $filterDepartments = Ticking::when($this->role === 'supervisor', fn($q) => $q->supervisor())
+            ->when($this->role === 'manager', fn($q) => $q->manager())
             ->whereNull('deleted_at')
             ->select('department_id', 'department_name')
-            ->distinct()
+            ->reorder()
             ->orderBy('department_name')
+            ->distinct()
             ->get()
             ->unique('department_id');
 
