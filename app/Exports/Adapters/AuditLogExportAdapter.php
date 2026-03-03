@@ -56,7 +56,7 @@ class AuditLogExportAdapter extends BaseExportAdapter
 
         foreach ($cols as $col) {
             $row[] = match ($col) {
-                'user_name'   => $model->user ? trim($model->user->first_name . ' ' . $model->user->last_name) : __('common.system'),
+                'user_name'   => $model->user ?: __('common.system'),
                 'action_type' => $model->translated_action_type ?? $model->action_type ?? '',
                 'old_values'  => is_array($model->old_values) ? json_encode($model->old_values, JSON_UNESCAPED_UNICODE) : ($model->old_values ?? ''),
                 'new_values'  => is_array($model->new_values) ? json_encode($model->new_values, JSON_UNESCAPED_UNICODE) : ($model->new_values ?? ''),

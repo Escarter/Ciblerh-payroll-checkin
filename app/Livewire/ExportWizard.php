@@ -35,6 +35,14 @@ class ExportWizard extends Component
 
     public function updatedEntitySlug()
     {
+        // Reset filters when entity changes
+        $this->selectedCompanyId = null;
+        $this->selectedDepartmentId = null;
+        $this->selectedServiceId = null;
+        $this->departments = [];
+        $this->services = [];
+        $this->searchQuery = '';
+
         if ($this->entitySlug) {
             $service = app(ExportService::class);
             $this->columnDefinitions = $service->getColumns($this->entitySlug);
