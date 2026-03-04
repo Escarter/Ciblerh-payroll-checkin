@@ -70,6 +70,13 @@
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="mobile_money_number">{{__('employees.mobile_money_number')}}</label>
+                                <input wire:model="mobile_money_number" type="text" class="form-control  @error('mobile_money_number') is-invalid @enderror" placeholder="{{__('employees.mobile_money_placeholder')}}" name="mobile_money_number">
+                                @error('mobile_money_number')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-12 col-xs-12'>

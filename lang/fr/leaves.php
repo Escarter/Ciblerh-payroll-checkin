@@ -73,6 +73,7 @@ return [
 
     // Validation
     'start_date_must_be_before_end_date' => 'La date de début doit être antérieure à la date de fin',
+    'insufficient_leave_balance' => 'Solde de congés insuffisant. Vous avez :balance jours restants mais avez demandé :requested jours.',
     'leave_request_submitted' => 'Demande de congé soumise avec succès - sympa 😍!',
     'selected_leave_days' => 'Les jours de congé sélectionnés sont',
 

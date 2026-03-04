@@ -103,6 +103,15 @@ class AppServiceProvider extends ServiceProvider
         //to be refactored
         Builder::macro('approvalStatusText', function ($status_owner = '', $type = '') {
             $model = $this->getModel();
+            if ($model instanceof AdvanceSalary) {
+                $status = $model->getEffectiveApprovalStatus();
+                return match ($status) {
+                    AdvanceSalary::APPROVAL_STATUS_PENDING => __('common.pending'),
+                    AdvanceSalary::APPROVAL_STATUS_APPROVED => __('common.approved'),
+                    AdvanceSalary::APPROVAL_STATUS_REJECTED => __('common.rejected'),
+                    default => __('common.pending'),
+                };
+            }
             if ($model instanceof Ticking || $model instanceof  Leave) {
                 $match = match ($status_owner) {
                     'supervisor' => match ($model->supervisor_approval_status) {
@@ -139,6 +148,15 @@ class AppServiceProvider extends ServiceProvider
         });
         Builder::macro('approvalStatusStyle', function ($status_owner = '', $type = '') {
             $model = $this->getModel();
+            if ($model instanceof AdvanceSalary) {
+                $status = $model->getEffectiveApprovalStatus();
+                return match ($status) {
+                    AdvanceSalary::APPROVAL_STATUS_PENDING => 'warning',
+                    AdvanceSalary::APPROVAL_STATUS_APPROVED => 'success',
+                    AdvanceSalary::APPROVAL_STATUS_REJECTED => 'danger',
+                    default => 'warning',
+                };
+            }
             if ($model instanceof Ticking || $model instanceof  Leave) {
                 $match = match ($status_owner) {
                     'supervisor' => match ($model->supervisor_approval_status) {

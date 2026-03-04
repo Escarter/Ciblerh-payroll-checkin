@@ -3,8 +3,11 @@
 namespace App\Livewire\Employee\Absences;
 
 use App\Models\Absence;
+use App\Models\SupervisorDepartment;
+use App\Mail\AbsenceRequestSubmittedNotification;
 use Livewire\Component;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
@@ -149,12 +152,43 @@ class Index extends Component
             $startDate->addDay();
         }
 
+        $firstAbsence = auth()->user()->absences()->where('absence_date', Carbon::parse($this->start_date)->format('Y-m-d'))->first();
+        if ($firstAbsence) {
+            $this->notifySupervisors($firstAbsence);
+        }
+
         $this->clearFields();
         $message = $absencesCreated === 1
             ? __('employees.absence_request_submitted')
             : __('employees.absences_requests_submitted', ['count' => $absencesCreated]);
         $this->closeModalAndFlashMessage($message, 'CreateAbsenceModal');
     }
+
+    private function notifySupervisors(Absence $absence): void
+    {
+        try {
+            $departmentId = auth()->user()->department_id;
+            $supervisorDepartments = SupervisorDepartment::where('department_id', $departmentId)->with('supervisor')->get();
+            foreach ($supervisorDepartments as $supDept) {
+                $supervisor = $supDept->supervisor;
+                if ($supervisor && $supervisor->email) {
+                    Mail::to($supervisor->email)->send(new AbsenceRequestSubmittedNotification(
+                        $absence,
+                        auth()->user(),
+                        $supervisor,
+                        $this->start_date,
+                        $this->end_date
+                    ));
+                }
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send absence notification to supervisors', [
+                'absence_id' => $absence->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     //Get & assign selected absence props
     public function initData($absence_id)
     {

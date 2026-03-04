@@ -4,13 +4,13 @@ namespace App\Livewire\Employee\AdvanceSalary;
 
 use App\Livewire\Traits\WithDataTable;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\AdvanceSalary;
 use App\Models\SupervisorDepartment;
 use App\Mail\AdvanceSalaryRequestNotification;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class Index extends Component
 {
@@ -29,13 +29,16 @@ class Index extends Component
     public $deletedAdvanceSalariesCount = 0;
 
     //Create, Edit, Delete, View Post props
-    public  $repayment_from_month;
-    public  $repayment_to_month;
-    public  $amount;
-    public  $reason;
-    public  $beneficiary_name;
-    public  $beneficiary_id_card_number;
-    public  $beneficiary_mobile_money_number;
+    public $type = AdvanceSalary::TYPE_ADVANCE;
+    public $attachment;
+    public $repayment_from_month;
+    public $repayment_to_month;
+    public $advance_for_month;
+    public $amount;
+    public $reason;
+    public $beneficiary_name;
+    public $beneficiary_id_card_number;
+    public $beneficiary_mobile_money_number;
     public  $advance_salary_id;
     public  $company_id;
     public ?AdvanceSalary $advance_salary = null;
@@ -48,19 +51,37 @@ class Index extends Component
         $this->company = auth()->user()->company;
         $this->department = auth()->user()->department;
         $this->service = auth()->user()->service;
-
-        // Initialize counts
+        $this->fillBeneficiaryFromUser();
         $this->updateCounts();
     }
 
+    public function updatedType($value)
+    {
+        $this->fillBeneficiaryFromUser();
+    }
+
+    protected function fillBeneficiaryFromUser(): void
+    {
+        $user = auth()->user();
+        if (empty($this->beneficiary_name) && $user) {
+            $this->beneficiary_name = $user->name;
+        }
+        if (empty($this->beneficiary_mobile_money_number) && $user?->mobile_money_number) {
+            $this->beneficiary_mobile_money_number = $user->mobile_money_number;
+        }
+    }
+
     protected $rules = [
+        "type" => "required|in:advance,loan",
         "amount" => "required|integer",
         "reason" => "required",
         "repayment_from_month" => "required",
         "repayment_to_month" => "required",
+        "advance_for_month" => "required_if:type,advance|nullable|date",
         "beneficiary_name" => "required",
         "beneficiary_mobile_money_number" => "required",
         "beneficiary_id_card_number" => "required",
+        "attachment" => "required_if:type,loan|nullable|file|mimes:png,jpg,jpeg,pdf,doc,docx|max:5120",
     ];
 
     public function store()
@@ -105,20 +126,60 @@ class Index extends Component
             return;
         }
 
-        $advanceSalary = auth()->user()->advanceSalaries()->create(
-            [
-                'company_id' => $this->company->id,
-                'department_id' => $this->department->id,
-                'author_id' => auth()->user()->author_id,
-                'amount' => $this->amount,
-                'reason' => $this->reason,
-                'repayment_from_month' => $repaymentFromMonth,
-                'repayment_to_month' => $repaymentToMonth,
-                'beneficiary_name' => $this->beneficiary_name,
-                'beneficiary_mobile_money_number' => $this->beneficiary_mobile_money_number,
-                'beneficiary_id_card_number' => $this->beneficiary_id_card_number,
-            ]
-        );
+        // Loan: block new loan until previous is fully repaid
+        if ($this->type === AdvanceSalary::TYPE_LOAN) {
+            $hasUnrepaidLoan = auth()->user()->advanceSalaries()
+                ->where('type', AdvanceSalary::TYPE_LOAN)
+                ->where('is_fully_repaid', false)
+                ->whereNull('deleted_at')
+                ->exists();
+            if ($hasUnrepaidLoan) {
+                $this->addError('amount', __('employees.loan_previous_not_repaid'));
+                return;
+            }
+        }
+
+        // Advance: block duplicate for same month
+        if ($this->type === AdvanceSalary::TYPE_ADVANCE && $this->advance_for_month) {
+            $advanceMonth = \Carbon\Carbon::parse($this->advance_for_month);
+            $hasAdvanceForMonth = auth()->user()->advanceSalaries()
+                ->where('type', AdvanceSalary::TYPE_ADVANCE)
+                ->whereMonth('advance_for_month', $advanceMonth->month)
+                ->whereYear('advance_for_month', $advanceMonth->year)
+                ->where(function ($q) {
+                    $q->whereNull('manager_approval_status')
+                        ->orWhereIn('manager_approval_status', [AdvanceSalary::APPROVAL_STATUS_PENDING, AdvanceSalary::APPROVAL_STATUS_APPROVED]);
+                })
+                ->whereNull('deleted_at')
+                ->exists();
+            if ($hasAdvanceForMonth) {
+                $this->addError('advance_for_month', __('employees.advance_already_requested_for_month'));
+                return;
+            }
+        }
+
+        $attachmentPath = null;
+        if ($this->attachment) {
+            $attachmentPath = $this->attachment->storePublicly('advance-salaries', 'attachments');
+        }
+
+        $advanceSalary = auth()->user()->advanceSalaries()->create([
+            'company_id' => $this->company->id,
+            'department_id' => $this->department->id,
+            'author_id' => auth()->user()->author_id ?? null,
+            'type' => $this->type,
+            'amount' => $this->amount,
+            'reason' => $this->reason,
+            'repayment_from_month' => $repaymentFromMonth,
+            'repayment_to_month' => $repaymentToMonth,
+            'advance_for_month' => $this->type === AdvanceSalary::TYPE_ADVANCE && $this->advance_for_month
+                ? \Carbon\Carbon::parse($this->advance_for_month)->startOfMonth()
+                : null,
+            'attachment_path' => $attachmentPath,
+            'beneficiary_name' => $this->beneficiary_name,
+            'beneficiary_mobile_money_number' => $this->beneficiary_mobile_money_number,
+            'beneficiary_id_card_number' => $this->beneficiary_id_card_number,
+        ]);
 
         // Notify supervisors of this department by email
         $this->notifySupervisors($advanceSalary);
@@ -514,6 +575,9 @@ class Index extends Component
         $this->reset([
             'advance_salary',
             'advance_salary_id',
+            'type',
+            'attachment',
+            'advance_for_month',
             'amount',
             'reason',
             'repayment_from_month',

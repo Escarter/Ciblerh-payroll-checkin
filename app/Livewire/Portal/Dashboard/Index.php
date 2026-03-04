@@ -695,17 +695,12 @@ class Index extends Component
 
     private function getWorkingDaysInPeriod($startDate, $endDate)
     {
-        $workingDays = 0;
-        $current = $startDate->copy();
+        $companyId = $this->selectedCompanyId && $this->selectedCompanyId !== 'all'
+            ? (int) $this->selectedCompanyId
+            : null;
 
-        while ($current->lte($endDate)) {
-            if ($current->isWeekday()) {
-                $workingDays++;
-            }
-            $current->addDay();
-        }
-
-        return $workingDays;
+        return app(\App\Services\WorkingDayService::class)
+            ->getWorkingDaysInPeriod($startDate, $endDate, $companyId);
     }
 
     // Additional chart methods for richer visualizations

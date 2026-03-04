@@ -29,8 +29,9 @@ class Index extends Component
     public  $end_date;
     public  $leave_type_id;
     public  $types;
-    public  $leave_reason;
-    public  $interval;
+    public $leave_reason;
+    public $attachment;
+    public $interval;
     public ?Leave $leave = null;
     public $company;
     public $department;
@@ -39,16 +40,22 @@ class Index extends Component
 
     public function updatedEndDate($value)
     {
-        if(!empty($value))
-        {
-            $this->interval = Carbon::parse($this->start_date)->lt(Carbon::parse($this->end_date)) ? __('employees.selected_leave_days'). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->start_date)) . '</strong>'.__('employees.days'): __('employees.start_date_before_end');
+        if (!empty($value) && !empty($this->start_date)) {
+            $start = Carbon::parse($this->start_date);
+            $end = Carbon::parse($this->end_date);
+            $this->interval = $start->lte($end)
+                ? __('employees.selected_leave_days') . '<strong>' . ($start->diffInDays($end) + 1) . '</strong>' . __('employees.days')
+                : __('employees.start_date_before_end');
         }
     }
     public function updatedStartDate($value)
     {
-        if(!empty($value))
-        {
-            $this->interval = Carbon::parse($value)->lt(Carbon::parse($this->end_date)) ? __('employees.selected_leave_days'). '<strong>' . Carbon::parse($value)->diffInDays(Carbon::parse($this->end_date)) .'</strong>'.__('employees.days'): __('employees.start_date_before_end');
+        if (!empty($value) && !empty($this->end_date)) {
+            $start = Carbon::parse($this->start_date);
+            $end = Carbon::parse($this->end_date);
+            $this->interval = $start->lte($end)
+                ? __('employees.selected_leave_days') . '<strong>' . ($start->diffInDays($end) + 1) . '</strong>' . __('employees.days')
+                : __('employees.start_date_before_end');
         }
     }
 
@@ -71,33 +78,48 @@ class Index extends Component
 
         $this->validate([
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'leave_type_id' => 'required',
             'leave_reason' => 'required',
+            'attachment' => 'nullable|file|mimes:png,jpg,jpeg,pdf,doc,docx|max:5120',
         ]);
 
-        // Validate that user has required relationships
         if (empty($this->company)) {
             $this->addError('company', __('employees.not_associated_with_company'));
             return;
         }
-
         if (empty($this->department)) {
             $this->addError('department', __('employees.not_associated_with_department'));
             return;
         }
 
-        $leave =  auth()->user()->leaves()->create(
-            [
-                'company_id' => $this->company->id,
-                'department_id' => $this->department->id,
-                'author_id' => auth()->user()->author_id,
-                'start_date' => $this->start_date,
-                'end_date' => $this->end_date,
-                'leave_type_id' => $this->leave_type_id,
-                'leave_reason' => $this->leave_reason,
-            ]
-        );
+        $start = Carbon::parse($this->start_date);
+        $end = Carbon::parse($this->end_date);
+        $requestedDays = $start->diffInDays($end) + 1;
+        $user = auth()->user();
+        if (($user->remaining_leave_days ?? 0) < $requestedDays) {
+            $this->addError('end_date', __('leaves.insufficient_leave_balance', [
+                'balance' => $user->remaining_leave_days ?? 0,
+                'requested' => $requestedDays,
+            ]));
+            return;
+        }
+
+        $attachmentPath = null;
+        if ($this->attachment) {
+            $attachmentPath = $this->attachment->storePublicly('leaves', 'attachments');
+        }
+
+        $leave = $user->leaves()->create([
+            'company_id' => $this->company->id,
+            'department_id' => $this->department->id,
+            'author_id' => $user->author_id ?? null,
+            'start_date' => $this->start_date,
+            'end_date' => $this->end_date,
+            'leave_type_id' => $this->leave_type_id,
+            'leave_reason' => $this->leave_reason,
+            'attachment_path' => $attachmentPath,
+        ]);
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.leave_request_submitted'), 'CreateLeaveModal');

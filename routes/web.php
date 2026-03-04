@@ -172,6 +172,9 @@ Route::group(
             Route::get('/', App\Livewire\Portal\Settings\Index::class)->name('portal.settings.index');
         });
 
+        // Holidays
+        Route::get('/holidays', App\Livewire\Portal\Holidays\Index::class)->name('portal.holidays.index');
+
         //Checklog management
         Route::prefix('reports')->group(function () {
             Route::get('/checklogs', App\Livewire\Portal\Reports\Checklog::class)->name('portal.reports.checklogs');

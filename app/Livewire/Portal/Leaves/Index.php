@@ -3,10 +3,12 @@
 namespace App\Livewire\Portal\Leaves;
 
 use App\Models\Leave;
+use App\Mail\LeaveStatusNotification;
 use Livewire\Component;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use App\Livewire\Traits\WithDataTable;
 
 class Index extends Component
@@ -163,10 +165,23 @@ class Index extends Component
                 'supervisor_approval_reason' => $this->supervisor_approval_reason,
             ]);
         } else {
-            Leave::whereIn('id', $this->selectedLeaves)->update([
-                'manager_approval_status' => $this->manager_approval_status,
-                'manager_approval_reason' => $this->manager_approval_reason,
-            ]);
+            foreach ($leaves as $leave) {
+                $leave->update([
+                    'manager_approval_status' => $this->manager_approval_status,
+                    'manager_approval_reason' => $this->manager_approval_reason,
+                ]);
+                if ($this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED) {
+                    $days = Carbon::parse($leave->start_date)->diffInDays(Carbon::parse($leave->end_date)) + 1;
+                    $leave->user->decrement('remaining_leave_days', $days);
+                }
+                if ($leave->user->receive_email_notifications && $leave->user->email) {
+                    Mail::to($leave->user->email)->send(new LeaveStatusNotification(
+                        $leave->fresh(),
+                        $leave->user,
+                        $this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED
+                    ));
+                }
+            }
         }
 
         // Create a single audit log entry for the bulk operation
@@ -224,12 +239,21 @@ class Index extends Component
                         'manager_approval_reason' => $this->manager_approval_reason,
                     ]);
 
-                    if($this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED){
-
-                        $this->leave->user->decrement('remaining_leave_days', Carbon::parse($this->leave->start_date)->diffInDays(Carbon::parse( $this->leave->end_date)));
+                    if ($this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED) {
+                        $days = Carbon::parse($this->leave->start_date)->diffInDays(Carbon::parse($this->leave->end_date)) + 1;
+                        $this->leave->user->decrement('remaining_leave_days', $days);
                     }
                 }
             );
+
+            $user = $this->leave->user;
+            if ($user->receive_email_notifications && $user->email) {
+                Mail::to($user->email)->send(new LeaveStatusNotification(
+                    $this->leave->fresh(),
+                    $user,
+                    $this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED
+                ));
+            }
         }
 
         $this->clearFields();

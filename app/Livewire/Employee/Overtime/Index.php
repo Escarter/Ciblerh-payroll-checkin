@@ -33,6 +33,9 @@ class Index extends Component
     //Create, Edit, Delete, View Post props
     public ?string $start_time = null;
     public ?string $end_time = null;
+    public ?float $quick_hours = null;
+    public ?string $quick_date = null;
+    public $use_quick_add = false;
     public $reason ;
     public ?int $overtime_id = null;
     public ?Overtime $overtime = null;
@@ -67,31 +70,49 @@ class Index extends Component
         if (!Gate::allows('overtime-create')) {
             return abort(401);
         }
-        $this->validate([
-            'start_time' => ['required', 'date'],
-            'end_time' => ['required', 'date', 'after:start_time'],
-            'reason' => 'required'
-        ]);
+        $useQuick = $this->use_quick_add && $this->quick_hours && $this->quick_date;
+        if ($useQuick) {
+            $this->validate([
+                'quick_hours' => 'required|numeric|min:0.5|max:24',
+                'quick_date' => 'required|date',
+                'reason' => 'required',
+            ]);
+        } else {
+            $this->validate([
+                'start_time' => ['required', 'date'],
+                'end_time' => ['required', 'date', 'after:start_time'],
+                'reason' => 'required',
+            ]);
+        }
 
-        // Validate that user has required relationships
         if (empty($this->company)) {
             $this->addError('company', __('employees.not_associated_with_company'));
             return;
         }
-
         if (empty($this->department)) {
             $this->addError('department', __('employees.not_associated_with_department'));
             return;
         }
 
+        if ($useQuick) {
+            $workEnd = Carbon::parse($this->quick_date . ' ' . auth()->user()->work_end_time);
+            $startTime = $workEnd->copy();
+            $endTime = $workEnd->copy()->addMinutes((int) round($this->quick_hours * 60));
+            $minutesWorked = (int) round($this->quick_hours * 60);
+        } else {
+            $startTime = Carbon::parse($this->start_time);
+            $endTime = Carbon::parse($this->end_time);
+            $minutesWorked = $startTime->diffInMinutes($endTime);
+        }
+
         auth()->user()->overtimes()->create([
-            'start_time' => $this->start_time,
-            'end_time' => $this->end_time,
-            'minutes_worked' => Carbon::parse($this->start_time)->diffInMinutes(Carbon::parse($this->end_time)),
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'minutes_worked' => $minutesWorked,
             'reason' => $this->reason,
             'company_id' => $this->company->id,
             'department_id' => $this->department->id,
-            'author_id' => auth()->user()->author_id,
+            'author_id' => auth()->user()->author_id ?? null,
         ]);
 
         $this->clearFields();
@@ -442,6 +463,9 @@ class Index extends Component
             'overtime_id',
             'start_time',
             'end_time',
+            'quick_hours',
+            'quick_date',
+            'use_quick_add',
             'reason',
             'selected',
             'selectAll',

@@ -435,24 +435,26 @@ if (!function_exists('countPages')) {
 if (!function_exists('setSavedSmtpCredentials')) {
     function setSavedSmtpCredentials(): void
     {
-        // Debug: Log when this function is called
-        \Log::info('setSavedSmtpCredentials called', [
-            'backtrace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 5)
-        ]);
-
         $setting = Setting::first();
 
-        if(!empty($setting)){
+        if (!empty($setting) && !empty($setting->smtp_host)) {
             Config::set('mail.mailers.smtp.host', $setting->smtp_host);
             Config::set('mail.mailers.smtp.port', (int) $setting->smtp_port);
             Config::set('mail.mailers.smtp.username', $setting->smtp_username);
             Config::set('mail.mailers.smtp.password', $setting->smtp_password);
-            Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption);
+            Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption ?? 'tls');
             Config::set('mail.from.address', $setting->from_email);
             Config::set('mail.from.name', $setting->from_name);
             Config::set('mail.mailers.smtp.transport', !empty($setting->smtp_provider) ? $setting->smtp_provider : 'smtp');
-        }
 
+            // Clear MAIL_URL so .env does not override database settings.
+            // When set, Laravel merges it into config and it takes precedence.
+            Config::set('mail.mailers.smtp.url', null);
+
+            // Purge cached mailer so it is recreated with the updated config.
+            // Otherwise Laravel uses the previously resolved mailer (from .env).
+            app('mail.manager')->purge(Config::get('mail.default', 'smtp'));
+        }
     }
 }
 

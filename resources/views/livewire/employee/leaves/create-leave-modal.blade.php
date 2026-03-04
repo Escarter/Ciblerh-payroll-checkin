@@ -7,7 +7,7 @@
                         <h1 class="mb-0 h4">{{__('employees.request_for_leave')}}</h1>
                         <p>{{__('employees.submit_a_leave_request')}} &#128522;</p>
                     </div>
-                    <x-form-items.form wire:submit.prevent="store" class="form-modal">
+                    <x-form-items.form wire:submit.prevent="store" enctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-4">
                             <label for="leave_type_id">{{__('leaves.leave_type')}}</label>
                             <select wire:model.defer="leave_type_id" class="form-control  @error('leave_type_id') is-invalid @enderror" required="">
@@ -42,6 +42,14 @@
                             @error('leave_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="attachment">{{__('employees.supporting_documentation')}}</label>
+                            <input wire:model="attachment" type="file" class="form-control @error('attachment') is-invalid @enderror" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx">
+                            @error('attachment')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                            <small class="text-muted">{{__('employees.optional_attachment')}}</small>
                         </div>
                         <div class="d-flex justify-content-end">
                             <div>

@@ -3,12 +3,14 @@
 namespace App\Livewire\Portal\Absences;
 
 use App\Models\Absence;
+use App\Mail\AbsenceStatusNotification;
 use Livewire\Component;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use App\Exports\AbsencesExport;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 
 class Index extends Component
 {
@@ -107,7 +109,7 @@ class Index extends Component
         $absence = Absence::findOrFail($absence_id);
 
         $this->absence = $absence;
-        $this->absence_date = $absence-> absence_date->format('Y-m-d');
+        $this->absence_date = $absence->absence_date->format('Y-m-d');
         $this->absence_reason = $absence->absence_reason;
         $this->approval_status = $absence->approval_status;
         $this->approval_reason = $absence->approval_reason;
@@ -155,11 +157,22 @@ class Index extends Component
             ];
         }
 
-        // Perform bulk update
         Absence::whereIn('id', $this->selectedAbsences)->update([
             'approval_status' => $this->approval_status,
             'approval_reason' => $this->approval_reason,
         ]);
+
+        $approved = $this->approval_status === Absence::APPROVAL_STATUS_APPROVED;
+        foreach ($absences->groupBy('user_id') as $userId => $userAbsences) {
+            $user = $userAbsences->first()->user;
+            if ($user->receive_email_notifications && $user->email) {
+                Mail::to($user->email)->send(new AbsenceStatusNotification(
+                    $userAbsences->first()->fresh(),
+                    $user,
+                    $approved
+                ));
+            }
+        }
 
         // Create a single audit log entry for the bulk operation
         $actionType = $this->bulk_approval_status ? 'absence_approved' : 'absence_rejected';
@@ -202,6 +215,15 @@ class Index extends Component
             'approval_status' => $this->approval_status,
             'approval_reason' => $this->approval_reason,
         ]);
+
+        $user = $this->absence->user;
+        if ($user->receive_email_notifications && $user->email) {
+            Mail::to($user->email)->send(new AbsenceStatusNotification(
+                $this->absence->fresh(),
+                $user,
+                $this->approval_status === Absence::APPROVAL_STATUS_APPROVED
+            ));
+        }
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('absences.absence_successfully_updated'), 'EditAbsenceModal');

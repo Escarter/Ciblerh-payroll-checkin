@@ -44,6 +44,7 @@ class All extends BaseImportComponent
     public $email = null;
     public $professional_phone_number = null;
     public $personal_phone_number = null;
+    public $mobile_money_number = null;
     public $net_salary = null;
     public $contract_end = null;
     public $matricule = null;
@@ -235,6 +236,7 @@ class All extends BaseImportComponent
             'email' => $this->email,
             'professional_phone_number' => $professionalPhone['formatted'],
             'personal_phone_number' => $personalPhone['formatted'],
+            'mobile_money_number' => $this->mobile_money_number,
             'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ? true : false,
             'password' => bcrypt($this->password),
@@ -309,6 +311,7 @@ class All extends BaseImportComponent
             'email' => $this->email,
             'professional_phone_number' => $professionalPhone['formatted'],
             'personal_phone_number' => $personalPhone['formatted'],
+            'mobile_money_number' => $this->mobile_money_number,
             'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ? true : false,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
@@ -348,6 +351,7 @@ class All extends BaseImportComponent
             'email' => $this->email,
             'professional_phone_number' => $professionalPhone['formatted'],
             'personal_phone_number' => $personalPhone['formatted'],
+            'mobile_money_number' => $this->mobile_money_number,
             'matricule' => $this->matricule,
             'position' => $this->position,
             'net_salary' => $this->net_salary,
@@ -793,6 +797,7 @@ class All extends BaseImportComponent
         $this->email = $employee->email;
         $this->professional_phone_number = $employee->professional_phone_number;
         $this->personal_phone_number = $employee->personal_phone_number;
+        $this->mobile_money_number = $employee->mobile_money_number;
         $this->date_of_birth = $employee->date_of_birth;
         $this->status = $employee->status ? "true" : "false";
         $this->role_name = $employee->getRoleNames()->first();
@@ -830,6 +835,7 @@ class All extends BaseImportComponent
         $this->email = $employee->email;
         $this->professional_phone_number = $employee->professional_phone_number;
         $this->personal_phone_number = $employee->personal_phone_number;
+        $this->mobile_money_number = $employee->mobile_money_number;
         $this->net_salary = $employee->net_salary;
         $this->salary_grade = $employee->salary_grade;
         $this->position = $employee->position;
@@ -941,6 +947,7 @@ class All extends BaseImportComponent
             'email',
             'professional_phone_number',
             'personal_phone_number',
+            'mobile_money_number',
             'matricule',
             'position',
             'net_salary',

@@ -71,6 +71,11 @@ class Company extends Model
        return $this->hasMany(Payslip::class);
     }
 
+    public function holidays()
+    {
+        return $this->hasMany(Holiday::class);
+    }
+
     public static function search($query)
     {
         return empty($query) ? static::query() :

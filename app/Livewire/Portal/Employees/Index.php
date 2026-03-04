@@ -47,6 +47,7 @@ class Index extends BaseImportComponent
     public $email = null;
     public $professional_phone_number = null;
     public $personal_phone_number = null;
+    public $mobile_money_number = null;
     public $remaining_leave_days = null;
     public $monthly_leave_allocation = null;
     public $net_salary = null;
@@ -233,6 +234,7 @@ class Index extends BaseImportComponent
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
+            'mobile_money_number' => $this->mobile_money_number,
             'remaining_leave_days' => $this->remaining_leave_days,
             'monthly_leave_allocation' => $this->monthly_leave_allocation,
             'matricule' => $this->matricule,
@@ -294,6 +296,7 @@ class Index extends BaseImportComponent
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
+            'mobile_money_number' => $this->mobile_money_number,
             'remaining_leave_days' => $this->remaining_leave_days,
             'monthly_leave_allocation' => $this->monthly_leave_allocation,
             'matricule' => $this->matricule,
@@ -755,6 +758,7 @@ class Index extends BaseImportComponent
         $this->email = $employee->email;
         $this->professional_phone_number = $employee->professional_phone_number;
         $this->personal_phone_number = $employee->personal_phone_number;
+        $this->mobile_money_number = $employee->mobile_money_number;
         $this->remaining_leave_days = $employee->remaining_leave_days;
         $this->monthly_leave_allocation = $employee->monthly_leave_allocation;
         $this->net_salary = $employee->net_salary;
@@ -810,6 +814,9 @@ class Index extends BaseImportComponent
         $this->last_name = $employee->last_name;
         $this->email = $employee->email;
         $this->phone_number = $employee->professional_phone_number;
+        $this->professional_phone_number = $employee->professional_phone_number;
+        $this->personal_phone_number = $employee->personal_phone_number;
+        $this->mobile_money_number = $employee->mobile_money_number;
         $this->status = $employee->status ? "true" : "false";
         $this->role_name = $employee->getRoleNames()->first();
 
@@ -855,6 +862,7 @@ class Index extends BaseImportComponent
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
+            'mobile_money_number' => $this->mobile_money_number,
             'status' => $this->status === "true" ? true : false,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
         ]);
@@ -1268,6 +1276,7 @@ class Index extends BaseImportComponent
             'email',
             'professional_phone_number',
             'personal_phone_number',
+            'mobile_money_number',
             'remaining_leave_days',
             'monthly_leave_allocation',
             'matricule',

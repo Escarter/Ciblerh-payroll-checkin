@@ -11,6 +11,36 @@
                         <h5 class="pb-0 mb-n2">{{__('common.request_details')}}</h5>
                         <hr class="mb-3">
                         <div class="form-group mb-4">
+                            <label for="type">{{__('employees.advance_type')}}</label>
+                            <select wire:model.live="type" id="type" class="form-select @error('type') is-invalid @enderror">
+                                <option value="advance">{{__('employees.advance_payment')}}</option>
+                                <option value="loan">{{__('employees.loan')}}</option>
+                            </select>
+                            @error('type')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        @if($type === 'advance')
+                        <div class="form-group mb-4">
+                            <label for="advance_for_month">{{__('employees.advance_for_month')}}</label>
+                            <input wire:model.defer="advance_for_month" type="month" class="form-control @error('advance_for_month') is-invalid @enderror" min="{{now()->startOfMonth()->format('Y-m')}}" value="">
+                            @error('advance_for_month')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                            <small class="text-muted">{{__('employees.one_advance_per_month')}}</small>
+                        </div>
+                        @endif
+                        @if($type === 'loan')
+                        <div class="form-group mb-4">
+                            <label for="attachment">{{__('employees.supporting_documentation')}}</label>
+                            <input wire:model="attachment" type="file" class="form-control @error('attachment') is-invalid @enderror" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx">
+                            @error('attachment')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                            <small class="text-muted">{{__('employees.loan_attachment_required')}}</small>
+                        </div>
+                        @endif
+                        <div class="form-group mb-4">
                             <label for="amount">{{__('common.amount')}}</label>
                             <input wire:model.defer="amount" type="money" class="form-control  @error('amount') is-invalid @enderror" placeholder="{{__('employees.amount_placeholder')}}" value="" required="">
                             @error('amount')

@@ -74,6 +74,7 @@ return [
 
     // Validation
     'start_date_must_be_before_end_date' => 'Start date must be less than End date',
+    'insufficient_leave_balance' => 'Insufficient leave balance. You have :balance days remaining but requested :requested days.',
     'leave_request_submitted' => 'Leave request successfully submitted - nice 😍!',
     'selected_leave_days' => 'Selected Leave days are',
 

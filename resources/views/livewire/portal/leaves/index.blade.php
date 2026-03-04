@@ -388,6 +388,7 @@
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('leaves.leave_type')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('leaves.period')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.leave_reason')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.attachment_link')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sup_approval')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.mgr_approval')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
@@ -442,6 +443,13 @@
                             <span class="fw-bold">{{$leave->leave_reason}}</span>
                         </td>
                         <td>
+                            @if(!empty($leave->attachment_path))
+                            <a href="{{ asset('storage/attachments/'.$leave->attachment_path) }}" target="_blank" class="text-primary">{{__('employees.view_attachment')}}</a>
+                            @else
+                            <span class="text-muted">—</span>
+                            @endif
+                        </td>
+                        <td>
                             <span class="fw-normal badge super-badge badge-lg bg-{{$leave->approvalStatusStyle('supervisor')}} rounded">{{$leave->approvalStatusText('supervisor')}}</span>
                         </td>
                         <td>
@@ -487,7 +495,7 @@
                     @endif
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center">
+                        <td colspan="10" class="text-center">
                             <div class="text-center text-gray-800 mt-2">
                                 <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
                                 <p>{{__('common.no_employee_found')}}</p>

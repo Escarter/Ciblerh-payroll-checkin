@@ -14,6 +14,9 @@ class AdvanceSalary extends Model
 {
     use HasFactory, HasUUID, SoftDeletes;
 
+    const TYPE_ADVANCE = 'advance';
+    const TYPE_LOAN = 'loan';
+
     const APPROVAL_STATUS_PENDING = 0;
     const APPROVAL_STATUS_APPROVED = 1;
     const APPROVAL_STATUS_REJECTED = 2;
@@ -23,6 +26,8 @@ class AdvanceSalary extends Model
     protected $casts = [
         'repayment_from_month' => 'datetime',
         'repayment_to_month' => 'datetime',
+        'advance_for_month' => 'date',
+        'is_fully_repaid' => 'boolean',
     ];
 
     public function scopeManager($query)
@@ -68,15 +73,39 @@ class AdvanceSalary extends Model
         }
     }
 
-    // to refactor and use macro to make thi easy to maintain
     public function isApproved()
     {
-        return match ($this->approval_status) {
-            self::APPROVAL_STATUS_PENDING => false,
-            self::APPROVAL_STATUS_APPROVED => true,
-            self::APPROVAL_STATUS_REJECTED => false,
-            default => false
-        };
+        $status = $this->getEffectiveApprovalStatus();
+        return $status === self::APPROVAL_STATUS_APPROVED;
+    }
+
+    /** Get effective approval status: manager overrides supervisor, falls back to legacy approval_status */
+    public function getEffectiveApprovalStatus(): int
+    {
+        if ($this->manager_approval_status !== null) {
+            return (int) $this->manager_approval_status;
+        }
+        if ($this->supervisor_approval_status !== null) {
+            return (int) $this->supervisor_approval_status;
+        }
+        return (int) ($this->approval_status ?? self::APPROVAL_STATUS_PENDING);
+    }
+
+    public function isPendingSupervisorApproval(): bool
+    {
+        return ($this->supervisor_approval_status ?? self::APPROVAL_STATUS_PENDING) === self::APPROVAL_STATUS_PENDING;
+    }
+
+    public function isPendingManagerApproval(): bool
+    {
+        $supervisorApproved = ($this->supervisor_approval_status ?? self::APPROVAL_STATUS_PENDING) === self::APPROVAL_STATUS_APPROVED;
+        $managerPending = ($this->manager_approval_status ?? self::APPROVAL_STATUS_PENDING) === self::APPROVAL_STATUS_PENDING;
+        return $supervisorApproved && $managerPending;
+    }
+
+    public function canSupervisorEditAmount(): bool
+    {
+        return $this->isPendingSupervisorApproval();
     }
 
     public static function search($query)
