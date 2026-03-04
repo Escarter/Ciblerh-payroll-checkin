@@ -341,29 +341,36 @@ class Index extends Component
 
         $this->validate(['test_email_address'=>'required|email']);
 
-        if(empty($setting->smtp_host) && empty($setting->smtp_port))
-        {
-        $this->showToast(__('settings.setting_for_smtp_required'), 'danger');
+        if (empty($setting) || (empty($setting->smtp_host) && empty($setting->smtp_port))) {
+            $this->showToast(__('settings.setting_for_smtp_required'), 'danger');
+            return;
         }
 
-        setSavedSmtpCredentials();
+        try {
+            setSavedSmtpCredentials();
 
-        Mail::to($this->test_email_address)->send(new TestEmail($this->test_email_message));
+            Mail::to($this->test_email_address)->send(new TestEmail($this->test_email_message));
 
-        $this->showToast(__('settings.test_email_sent_successfully'), 'success');
+            $this->showToast(__('settings.test_email_sent_successfully'), 'success');
+        } catch (\Symfony\Component\Mailer\Exception\TransportException $e) {
+            $this->showToast(__('settings.test_email_failed') . ': ' . $e->getMessage(), 'danger');
+        } catch (\Throwable $e) {
+            $this->showToast(__('settings.test_email_failed') . ': ' . $e->getMessage(), 'danger');
+        }
     }
 
     public function sendTestSms()
     {
         $setting = Setting::first();
 
-        $this->validate(['test_phone_number'=>'required|integer']);
+        $this->validate(['test_phone_number'=>'required|string']);
 
-        if (!empty($this->setting)) {
-            if (empty($setting->sms_provider_username) && empty($setting->sms_provider_password)) {
-                $this->showToast(__('settings.setting_for_sms_required'), 'danger');
-            }
+        if (empty($setting) || (empty($setting->sms_provider_username) && empty($setting->sms_provider_password))) {
+            $this->showToast(__('settings.setting_for_sms_required'), 'danger');
+            return;
+        }
 
+        try {
             $sms_client = match ($setting->sms_provider) {
                 'twilio' => new TwilioSMS($setting),
                 'nexah' =>  new Nexah($setting),
@@ -379,8 +386,11 @@ class Index extends Component
             if ($response['responsecode'] === 1) {
                 $this->showToast(__('settings.test_sms_sent_successfully'), 'success');
             } else {
-                $this->showToast(__('settings.test_sms_failed'), 'danger');
+                $errorMessage = $response['error'] ?? __('settings.test_sms_failed');
+                $this->showToast($errorMessage, 'danger');
             }
+        } catch (\Throwable $e) {
+            $this->showToast(__('settings.test_sms_failed') . ': ' . $e->getMessage(), 'danger');
         }
     }
 

@@ -290,6 +290,7 @@ return [
     'setting_for_smtp_successfully_added' => 'Setting for SMTP successfully added!',
     'setting_for_smtp_required' => 'Setting for SMTP required!',
     'test_email_sent_successfully' => 'Test Email sent successfully!',
+    'test_email_failed' => 'Test email failed',
     'setting_for_sms_required' => 'Setting for SMS required!',
     'test_sms_sent_successfully' => 'Test sms was sent successfully!',
     'test_sms_failed' => 'Test Sms Failed!',

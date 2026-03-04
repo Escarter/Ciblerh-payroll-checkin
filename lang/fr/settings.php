@@ -57,6 +57,7 @@ return [
     'send_test_email' => 'Envoyer un email de test',
     'setting_for_smtp_successfully_added' => 'Paramètres email enregistrés avec succès!',
     'test_email_sent_successfully' => 'Email de test envoyé avec succès!',
+    'test_email_failed' => 'Échec de l\'email de test',
     'setting_for_smtp_required' => 'Les paramètres email sont requis pour envoyer des emails de test',
 
     // Provider-specific information
@@ -290,6 +291,7 @@ return [
     'setting_for_smtp_successfully_added' => 'Paramètre SMTP ajouté avec succès!',
     'setting_for_smtp_required' => 'Paramètre SMTP requis!',
     'test_email_sent_successfully' => 'Email de test envoyé avec succès!',
+    'test_email_failed' => 'Échec de l\'email de test',
     'setting_for_sms_required' => 'Paramètre SMS requis!',
     'test_sms_sent_successfully' => 'SMS de test envoyé avec succès!',
     'test_sms_failed' => 'Échec de l\'envoi du SMS de test!',

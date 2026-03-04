@@ -393,7 +393,8 @@
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.amount')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('Beneficiary')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.repayment_period')}}</th>
-                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sup_approval')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.mgr_approval')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
                         @canany(['advance_salary-update','advance_salary-delete'])
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
@@ -452,7 +453,10 @@
                         </td>
 
                         <td>
-                            <span class="fw-normal badge super-badge badge-lg bg-{{$advance_salary->approvalStatusStyle()}} rounded">{{$advance_salary->approvalStatusText()}}</span>
+                            <span class="fw-normal badge super-badge badge-lg bg-{{$advance_salary->approvalStatusStyle('supervisor')}} rounded">{{$advance_salary->approvalStatusText('supervisor')}}</span>
+                        </td>
+                        <td>
+                            <span class="fw-normal badge super-badge badge-lg bg-{{$advance_salary->approvalStatusStyle('manager')}} rounded">{{$advance_salary->approvalStatusText('manager')}}</span>
                         </td>
                         <td>
                             <span class="fw-normal">{{$advance_salary->created_at->format('Y-m-d')}}</span>
@@ -507,7 +511,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center">
+                        <td colspan="9" class="text-center">
                             <div class="text-center text-gray-800 mt-2">
                                 <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
                                 <p>{{__('common.no_records_found')}}</p>
