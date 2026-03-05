@@ -49,7 +49,7 @@ class SendCredentialsNotification extends Notification  implements ShouldQueue
 
         // Handle case where settings don't exist yet (during import)
         if (!$setting) {
-            $welcome_email_subject = $notifiable->preferred_language === 'en' ? "EmploiServ - Login Credentials" : "EmploiServ - Identifiants de connexion";
+            $welcome_email_subject = $notifiable->preferred_language === 'en' ? "CibleRH - Login Credentials" : "CibleRH - Identifiants de connexion";
 
             $welcome_mail_content = $notifiable->preferred_language === 'en' ?
                 str_replace([':name:', ':site_url:',':username:',':password:'], [$notifiable->name, url("/login"), $notifiable->email, $this->password],
@@ -59,7 +59,7 @@ class SendCredentialsNotification extends Notification  implements ShouldQueue
 
             // Use default from email and name if settings don't exist
             return (new MailMessage)
-                ->from('noreply@example.com', 'EmploiServ')
+                ->from('noreply@example.com', 'CibleRH')
                 ->subject($welcome_email_subject)
                 ->markdown('email.credentials',['message' => $welcome_mail_content]);
         }
