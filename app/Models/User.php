@@ -157,6 +157,17 @@ class User extends Authenticatable implements HasLocalePreference
     {
         return $this->hasMany(Leave::class,'user_id');
     }
+
+    /**
+     * Get total approved leave days used by this user (manager-approved leaves only).
+     */
+    public function getUsedLeaveDaysAttribute(): float
+    {
+        return (float) $this->leaves()
+            ->where('manager_approval_status', Leave::MANAGER_APPROVAL_APPROVED)
+            ->get()
+            ->sum(fn (Leave $leave) => $leave->start_date->diffInDays($leave->end_date) + 1);
+    }
     public function auditlogs()
     {
         return $this->hasMany(AuditLog::class,'user_id');

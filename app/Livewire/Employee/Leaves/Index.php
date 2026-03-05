@@ -3,9 +3,12 @@
 namespace App\Livewire\Employee\Leaves;
 
 use App\Models\Leave;
+use App\Models\SupervisorDepartment;
+use App\Mail\LeaveRequestSubmittedNotification;
 use Livewire\Component;
 use App\Models\LeaveType;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use App\Livewire\Traits\WithDataTable;
 use Carbon\Carbon;
 
@@ -124,6 +127,29 @@ class Index extends Component
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.leave_request_submitted'), 'CreateLeaveModal');
     }
+    private function notifySupervisors(Leave $leave): void
+    {
+        try {
+            $departmentId = auth()->user()->department_id;
+            $supervisorDepartments = SupervisorDepartment::where('department_id', $departmentId)->with('supervisor')->get();
+            foreach ($supervisorDepartments as $supDept) {
+                $supervisor = $supDept->supervisor;
+                if ($supervisor && $supervisor->email) {
+                    Mail::to($supervisor->email)->send(new LeaveRequestSubmittedNotification(
+                        $leave,
+                        auth()->user(),
+                        $supervisor
+                    ));
+                }
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send leave notification to supervisors', [
+                'leave_id' => $leave->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     //Get & assign selected absence props
     public function initData($leave_id)
     {
@@ -508,8 +534,9 @@ class Index extends Component
         $allLeaves = Leave::where('user_id', auth()->user()->id);
         $pending_leave = $allLeaves->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_PENDING)->where('manager_approval_status', Leave::MANAGER_APPROVAL_PENDING)->whereNull('deleted_at')->count();
         $approved_leave = $allLeaves->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_APPROVED)->where('manager_approval_status', Leave::MANAGER_APPROVAL_APPROVED)->whereNull('deleted_at')->count();
+        $used_leave_days = auth()->user()->used_leave_days;
         $rejected_leave = $allLeaves->where('supervisor_approval_status', Leave::SUPERVISOR_APPROVAL_REJECTED)->where('manager_approval_status', Leave::MANAGER_APPROVAL_REJECTED)->whereNull('deleted_at')->count();
 
-        return view('livewire.employee.leaves.index', compact('leaves', 'pending_leave', 'approved_leave', 'rejected_leave'))->layout('components.layouts.employee.master');
+        return view('livewire.employee.leaves.index', compact('leaves', 'pending_leave', 'approved_leave', 'rejected_leave', 'used_leave_days'))->layout('components.layouts.employee.master');
     }
 }

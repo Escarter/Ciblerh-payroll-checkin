@@ -53,7 +53,7 @@
                                 </svg>
 
                                 <div class="mb-3 mb-md-0">
-                                    <h6 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('employees.remaining_days')}} | {{__('employees.monthly_allocation')}} <strong>{{number_format(auth()->user()->monthly_leave_allocation)}} </strong>{{__('employees.days')}} </h6>
+                                    <h6 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('employees.remaining_days')}} | {{__('employees.monthly_allocation')}} <strong>{{number_format(auth()->user()->monthly_leave_allocation)}} </strong>{{__('employees.days')}}</h6>
                                     <div class="text-gray-500 ">{{__('employees.remaining_leave_days_allocation')}}</div>
                                 </div>
                             </div>
@@ -68,7 +68,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($approved_leave) }} </span> {{__('employees.leave_days_taken')}} </h5>
+                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($used_leave_days)}}</span> {{__('employees.leave_days_taken')}}</h5>
                                     <div class="text-gray-500 ">{{__('employees.all_leave_days_taken')}}</div>
                                 </div>
                             </div>

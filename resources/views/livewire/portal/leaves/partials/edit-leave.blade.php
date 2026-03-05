@@ -8,6 +8,13 @@
                         <p>{{__('leaves.update_or_approve_employee_leave_record')}} &#128522;</p>
                     </div>
                     <x-form-items.form wire:submit="update">
+                        @if($leave && $leave->user)
+                        <div class="alert alert-info py-2 px-3 mb-3 small">
+                            <strong>{{__('leaves.leave_balance')}}:</strong>
+                            {{__('leaves.used')}}: {{ number_format($leave->user->used_leave_days ?? 0) }} {{__('leaves.days')}} |
+                            {{__('leaves.remaining')}}: {{ number_format($leave->user->remaining_leave_days ?? 0) }} {{__('leaves.days')}}
+                        </div>
+                        @endif
                         <div class='row form-group mb-4'>
                             <div class="col">
                                 <label for="user">{{__('employees.employee')}}</label>
