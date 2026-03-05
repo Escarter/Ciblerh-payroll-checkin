@@ -2,27 +2,21 @@
 
 namespace App\Jobs;
 
-use App\Models\Group;
 use App\Models\Payslip;
 use App\Models\Employee;
 use App\Mail\SendPayslip;
 use App\Jobs\RetryPayslipEmailJob;
-use Illuminate\Support\Str;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use App\Models\SendPayslipProcess;
 use Illuminate\Support\Collection;
-use Facade\FlareClient\Http\Client;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Queue;
 use Exception;
 
 class SendPayslipJob implements ShouldQueue
@@ -102,8 +96,6 @@ class SendPayslipJob implements ShouldQueue
         $dest = $this->destination;
 
         $encrypted_files = Storage::disk('modified')->allFiles($this->destination);
-
-        Log::info($encrypted_files);
 
         // Check SMS balance once per job to avoid repeated API calls
         $sms_balance = null;
@@ -216,10 +208,9 @@ class SendPayslipJob implements ShouldQueue
             try {
             collect($encrypted_files)->each(function ($file) use ($employee, $pay_month, $dest, $sms_balance, $sms_provider_healthy, $sms_provider_error) {
                 try {
-                if (strpos($file, $employee->matricule .'_'.$pay_month.'.pdf') !== FALSE) {
+                if (strpos($file, $employee->matricule . '_' . $pay_month . '.pdf') !== false) {
 
                     $filePath = Storage::disk('modified')->path($file);
-                    Log::info($filePath);
 
                     // Get existing record if any
                         $record_exists = Payslip::where('employee_id',$employee->id)
@@ -379,6 +370,7 @@ class SendPayslipJob implements ShouldQueue
                         return;
                     }
 
+                            try {
                             // Only send email if it hasn't been sent successfully yet
                             if (!$emailAlreadySent) {
                                 try {
@@ -473,11 +465,7 @@ class SendPayslipJob implements ShouldQueue
                                 'failure_reason' => $existingReason . __('payslips.sms_unexpected_error') . ': ' . $smsException->getMessage()
                             ]);
                         }
-                        
-                        // Handle email sending exceptions only if email wasn't already sent
-                        if (!$emailAlreadySent) {
-                            // Email sending exceptions are caught by the inner try-catch blocks above
-                            // and re-thrown to be handled here
+
                         } catch (\Swift_TransportException $e) {
                             // Only handle email exceptions if email wasn't already sent
                             if (!$emailAlreadySent) {

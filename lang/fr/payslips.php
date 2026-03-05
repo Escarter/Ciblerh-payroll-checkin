@@ -241,6 +241,7 @@ return [
     'matricule_not_found_in_pdf' => 'Matricule :matricule introuvable dans tout fichier PDF pour le mois :month',
     'process_completed_with_failures' => 'Processus terminé avec :failed fiches de paie sur :total qui n\'ont pas pu être envoyées',
     'unmatched_employees_summary' => ':unmatched employés sur :total n\'ont pas pu être associés aux fichiers PDF',
+    'no_splitted_files_to_process' => 'Aucun fichier PDF découpé trouvé à traiter.',
     'process_failed_generic' => 'Quelque chose s\'est mal passé dans le processus!',
 
     // Modal de détails des tâches

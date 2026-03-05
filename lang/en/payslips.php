@@ -241,6 +241,7 @@ return [
     'matricule_not_found_in_pdf' => 'Matricule :matricule not found in any PDF file for month :month',
     'process_completed_with_failures' => 'Process completed with :failed out of :total payslips failed to send',
     'unmatched_employees_summary' => ':unmatched out of :total employees could not be matched to PDF files',
+    'no_splitted_files_to_process' => 'No splitted PDF files found to process.',
     'process_failed_generic' => 'Something went wrong in the process!',
 
     // Task Details Modal
