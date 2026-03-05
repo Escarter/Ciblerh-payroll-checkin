@@ -24,6 +24,45 @@
                     @if ($sftp_sync_enabled)
                         <hr>
 
+                        <!-- SFTP user credentials: generate from UI -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">{{ __('settings.sftp_user_credentials') }}</h6>
+                            <p class="text-muted small mb-2">{{ __('settings.sftp_user_credentials_help') }}</p>
+                            <button type="button" wire:click="generateSftpCredentials" class="btn btn-outline-primary btn-sm mb-2" wire:loading.attr="disabled">
+                                <i class="fas fa-key me-2" wire:loading.class="spinner-border spinner-border-sm"></i>
+                                {{ __('settings.generate_sftp_credentials') }}
+                            </button>
+                            @if ($sftp_generated_password_display)
+                                <div class="alert alert-warning mb-0 py-3" role="alert">
+                                    <strong>{{ __('settings.sftp_credentials_generated_title') }}</strong>
+                                    <p class="mb-2 small">{{ __('settings.sftp_credentials_generated_message') }}</p>
+                                    <div class="mb-2">
+                                        <label class="form-label small mb-0">{{ __('settings.sftp_username') }}</label>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <code class="flex-grow-1 py-2 px-2 bg-white border rounded" id="sftp-generated-username">{{ $sftp_username }}</code>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-generated-username" data-copy-label="{{ __('settings.sftp_copy') }}" data-copied-label="{{ __('settings.sftp_copied') }}">
+                                                {{ __('settings.sftp_copy') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small mb-0">{{ __('settings.sftp_password') }}</label>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <code class="flex-grow-1 py-2 px-2 bg-white border rounded font-monospace" id="sftp-generated-password">{{ $sftp_generated_password_display }}</code>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-generated-password" data-copy-label="{{ __('settings.sftp_copy') }}" data-copied-label="{{ __('settings.sftp_copied') }}">
+                                                {{ __('settings.sftp_copy') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" wire:click="clearSftpGeneratedPasswordDisplay" class="btn btn-sm btn-warning">
+                                        {{ __('settings.sftp_ive_copied') }}
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
+
+                        <hr>
+
                         <!-- Connection Settings -->
                         <div class="mb-4">
                             <h6 class="text-primary mb-3">{{ __('settings.sftp_connection_settings') }}</h6>
@@ -209,6 +248,22 @@
                 </x-form-items.form>
             </div>
         </div>
+        <script>
+            if (typeof window.sftpCopyHandlerBound === 'undefined') {
+                window.sftpCopyHandlerBound = true;
+                document.addEventListener('click', function(e) {
+                    var btn = e.target.closest('.sftp-copy-btn');
+                    if (!btn) return;
+                    var id = btn.getAttribute('data-copy-target');
+                    var el = document.getElementById(id);
+                    if (el) {
+                        navigator.clipboard.writeText(el.textContent);
+                        btn.textContent = btn.getAttribute('data-copied-label');
+                        setTimeout(function() { btn.textContent = btn.getAttribute('data-copy-label'); }, 2000);
+                    }
+                });
+            }
+        </script>
     </div>
 
     <!-- Right Column: Inactivity Deactivation -->

@@ -380,6 +380,17 @@ return [
     'sftp_auth_password' => 'Password',
     'sftp_auth_ssh_key' => 'SSH Key',
 
+    // SFTP user credentials (generate from UI)
+    'sftp_user_credentials' => 'SFTP User Credentials',
+    'sftp_user_credentials_help' => 'Generate credentials here and create this user on your SFTP server. The app will use these to connect.',
+    'generate_sftp_credentials' => 'Generate SFTP User Credentials',
+    'sftp_credentials_generated' => 'SFTP credentials generated. Create this user on your SFTP server and copy the password now—it will not be shown again.',
+    'sftp_credentials_generated_title' => 'Credentials generated',
+    'sftp_credentials_generated_message' => 'Create this user on your SFTP server with the credentials below. The password is shown only once.',
+    'sftp_copy' => 'Copy',
+    'sftp_copied' => 'Copied',
+    'sftp_ive_copied' => "I've copied the credentials",
+
     // SFTP Sync Settings
     'sftp_sync_frequency' => 'Synchronization Frequency',
     'sftp_sync_frequency_help' => 'How often the system checks SFTP for new payslips',

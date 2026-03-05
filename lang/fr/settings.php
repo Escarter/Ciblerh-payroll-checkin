@@ -381,6 +381,17 @@ return [
     'sftp_auth_password' => 'Mot de passe',
     'sftp_auth_ssh_key' => 'Clé SSH',
 
+    // SFTP user credentials (generate from UI)
+    'sftp_user_credentials' => 'Identifiants utilisateur SFTP',
+    'sftp_user_credentials_help' => 'Générez les identifiants ici et créez cet utilisateur sur votre serveur SFTP. L\'application les utilisera pour se connecter.',
+    'generate_sftp_credentials' => 'Générer les identifiants SFTP',
+    'sftp_credentials_generated' => 'Identifiants SFTP générés. Créez cet utilisateur sur votre serveur SFTP et copiez le mot de passe maintenant—il ne sera plus affiché.',
+    'sftp_credentials_generated_title' => 'Identifiants générés',
+    'sftp_credentials_generated_message' => 'Créez cet utilisateur sur votre serveur SFTP avec les identifiants ci-dessous. Le mot de passe n\'est affiché qu\'une seule fois.',
+    'sftp_copy' => 'Copier',
+    'sftp_copied' => 'Copié',
+    'sftp_ive_copied' => 'J\'ai copié les identifiants',
+
     // SFTP Sync Settings
     'sftp_sync_frequency' => 'Fréquence de synchronisation',
     'sftp_sync_frequency_help' => 'Fréquence à laquelle le système vérifie les nouvelles fiches de paie sur SFTP',

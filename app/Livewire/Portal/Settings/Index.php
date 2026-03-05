@@ -11,6 +11,7 @@ use App\Services\AwsSnsSMS;
 use Illuminate\Support\Facades\Mail;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Str;
 
 class Index extends Component
 {
@@ -91,6 +92,9 @@ class Index extends Component
     public $sftp_matching_strategies = [];
     public $sftp_connection_status = false;
     public $test_sftp_message;
+
+    /** One-time display of generated SFTP password (cleared after user acknowledges) */
+    public $sftp_generated_password_display = null;
 
     public function mount() {
 
@@ -446,13 +450,14 @@ class Index extends Component
             ]);
 
             $config = [
+                'driver' => 'sftp',
                 'host' => $this->sftp_host,
                 'username' => $this->sftp_username,
                 'password' => $this->sftp_auth_type === 'password' ? $this->sftp_password : null,
                 'privateKey' => $this->sftp_auth_type === 'ssh_key' ? $this->sftp_private_key_path : null,
                 'passphrase' => $this->sftp_auth_type === 'ssh_key' ? $this->sftp_passphrase : null,
                 'port' => $this->sftp_port,
-                'root' => $this->sftp_root,
+                'root' => $this->sftp_root ?? '/',
                 'timeout' => 10,
             ];
 
@@ -467,6 +472,41 @@ class Index extends Component
             $this->test_sftp_message = __('settings.test_connection_failed') . ': ' . $e->getMessage();
             $this->showToast($this->test_sftp_message, 'danger');
         }
+    }
+
+    /**
+     * Generate SFTP user credentials (username + password) and save to settings.
+     * The password is shown once in the UI; the admin must create this user on the SFTP server.
+     */
+    public function generateSftpCredentials()
+    {
+        $username = 'ciblerh_payslip_' . Str::lower(Str::random(8));
+        $password = Str::random(24);
+
+        Setting::updateOrCreate(
+            ['company_id' => 1],
+            [
+                'company_id' => 1,
+                'sftp_username' => $username,
+                'sftp_password' => $password,
+                'sftp_auth_type' => 'password',
+            ]
+        );
+
+        $this->sftp_username = $username;
+        $this->sftp_password = $password;
+        $this->sftp_auth_type = 'password';
+        $this->sftp_generated_password_display = $password;
+
+        $this->showToast(__('settings.sftp_credentials_generated'), 'success');
+    }
+
+    /**
+     * Clear the one-time password display after the user has copied the credentials.
+     */
+    public function clearSftpGeneratedPasswordDisplay()
+    {
+        $this->sftp_generated_password_display = null;
     }
 
     public function render()
