@@ -58,8 +58,9 @@ class PayslipSendingPlan
             ->then(function ($batch) use ($payslip_process) {
                 static::reconcileUnmatchedEmployees($payslip_process);
                 $payslip_process->update(['status' => 'successful', 'percentage_completion' => $batch->progress()]);
-                // Run step3 only after encryption batch completes (avoids race with SendPayslipJob)
-                static::step3($payslip_process);
+                // After combination batch completes, finalize encryption (for multi-page payslips)
+                // Then run step3 (SendPayslipJob) only after encryption is finalized
+                static::step2_finalize($payslip_process);
             })
             ->catch(function ($batch, $exception) use ($payslip_process) {
                 static::failed($payslip_process, $exception instanceof \Throwable ? $exception->getMessage() : null);
@@ -67,6 +68,35 @@ class PayslipSendingPlan
             ->allowFailures()
             ->name('Rename, Encrypt and record payslip')
             ->dispatch();
+    }
+
+    /**
+     * Finalize multi-page payslips: encrypt all pending items after combination
+     * Then proceed to step3 (SendPayslipJob)
+     * 
+     * Uses Bus::chain() to ensure finalization completes BEFORE sending emails.
+     * This prevents race condition where PENDING payslips would be skipped by SendPayslipJob.
+     */
+    private static function step2_finalize($payslip_process)
+    {
+        // Chain jobs sequentially:
+        // 1. FinalizeMultiPagePayslipsJob encrypts all combined/pending payslips (becomes SUCCESSFUL)
+        // 2. SendPayslipJob sends them (only runs after step 1 completes)
+        Bus::chain([
+            new \App\Jobs\FinalizeMultiPagePayslipsJob($payslip_process->id),
+            function () use ($payslip_process) {
+                static::step3($payslip_process);
+            }
+        ])
+        ->onQueue('pdf-processing')
+        ->catch(function (\Throwable $e) use ($payslip_process) {
+            Log::error('PayslipSendingPlan: Error in finalization chain', [
+                'process_id' => $payslip_process->id,
+                'error' => $e->getMessage()
+            ]);
+            static::failed($payslip_process, $e->getMessage());
+        })
+        ->dispatch();
     }
 
     private static function step3($payslip_process)

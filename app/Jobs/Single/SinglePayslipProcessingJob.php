@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Exception;
 
 class SinglePayslipProcessingJob implements ShouldQueue
@@ -94,33 +93,63 @@ class SinglePayslipProcessingJob implements ShouldQueue
                     ]);
                 } else {
                     if (strpos($pdf_text, 'Matricule ' . $this->employee->matricule) !== FALSE) {
-                        $destination_file = $this->destination . '/' . $this->employee->matricule . '_' . $pay_month . '.pdf';
                         if (Storage::disk('splitted')->exists($file)) {
-                            // Check if employee already has a payslip record (might have multiple pages)
+                            // CHANGED: Store unencrypted temp file, defer encryption until after all pages combined
+                            $unique_suffix = md5($this->employee->id . '_' . time());
+                            $temp_unenc_file = $this->destination . '/temp_unenc_' . $this->employee->matricule . '_' . $pay_month . '_' . $unique_suffix . '.pdf';
+                            
+                            // Use database locking to prevent race conditions
                             $record_exists = Payslip::where('employee_id', $this->employee->id)
                                 ->where('month', $pay_month)
                                 ->where('year', now()->year)
+                                ->lockForUpdate()
                                 ->first();
 
                             if (empty($record_exists) || empty($record_exists->file)) {
-                                // First file for this employee - encrypt directly
-                            $pdf = new Pdf(Storage::disk('splitted')->path($file), ['command' => config('ciblerh.pdftk_path')]);
-                            $result = $pdf->setUserPassword($this->employee->pdf_password)
-                                ->passwordEncryption(128)
-                                ->saveAs(Storage::disk('modified')->path($destination_file));
+                                // First file - copy unencrypted temp file
+                                try {
+                                    $source_path = Storage::disk('splitted')->path($file);
+                                    $dest_path = Storage::disk('modified')->path($temp_unenc_file);
+                                    
+                                    if (!copy($source_path, $dest_path)) {
+                                        throw new Exception('Failed to copy PDF file');
+                                    }
 
-                            if (Storage::disk('modified')->exists($destination_file)) {
-                                $this->sendSlip($this->employee, $pay_month, $destination_file);
+                                    if (file_exists($dest_path)) {
+                                        if (empty($record_exists)) {
+                                            $record = $this->createPayslipRecord($this->employee, $pay_month);
+                                            $record->update([
+                                                'file' => $temp_unenc_file,
+                                                'encryption_status' => Payslip::STATUS_PENDING,
+                                                'encryption_status_note' => 'Awaiting page combination and encryption'
+                                            ]);
+                                        } else {
+                                            $record_exists->update([
+                                                'file' => $temp_unenc_file,
+                                                'encryption_status' => Payslip::STATUS_PENDING,
+                                                'encryption_status_note' => 'Awaiting page combination and encryption'
+                                            ]);
+                                        }
+                                    }
+                                } catch (Exception $e) {
+                                    Log::error('SinglePayslipProcessingJob: Failed to copy PDF', [
+                                        'employee_id' => $this->employee->id,
+                                        'error' => $e->getMessage()
+                                    ]);
                                 }
                             } else {
-                                // Employee already has a file - combine with existing one
-                                $this->combinePdfFiles($this->employee, $file, $record_exists->file, $destination_file, $pay_month);
+                                // Combine unencrypted pages
+                                $temp_combined_file = $this->destination . '/temp_unenc_' . $this->employee->matricule . '_' . $pay_month . '_' . $unique_suffix . '.pdf';
+                                $this->combinePdfFiles($this->employee, $file, $record_exists->file, $temp_combined_file, $pay_month);
                             }
                         }
                     }
                 }
           
         }
+        
+        // After all pages processed, encrypt and send
+        $this->finalizeAndSend($this->employee, $pay_month);
     }
 
     public function sendSlip($employee, $month, $destination)
@@ -261,71 +290,255 @@ class SinglePayslipProcessingJob implements ShouldQueue
     }
 
     /**
-     * Combine multiple PDF files for an employee (multi-page payslip)
+     * Combine multiple UNENCRYPTED PDF files for an employee (multi-page payslip)
+     * Note: Files are combined unencrypted, encryption happens in finalizeAndSend()
+     * This fixes the bug where encrypted page 1 cannot be combined with unencrypted page 2
      */
-    private function combinePdfFiles($employee, $newFile, $existingFile, $destinationFile, $pay_month)
+    private function combinePdfFiles($employee, $newFile, $existingFile, $tempCombinedPath, $pay_month)
     {
         try {
             $existingFilePath = Storage::disk('modified')->path($existingFile);
             $newFilePath = Storage::disk('splitted')->path($newFile);
+            $tempCombinedFile = Storage::disk('modified')->path($tempCombinedPath);
             
             // Check if existing file exists
             if (!Storage::disk('modified')->exists($existingFile)) {
-                // Existing file doesn't exist, just encrypt the new one
-                $pdf = new Pdf($newFilePath, ['command' => config('ciblerh.pdftk_path')]);
-                $result = $pdf->setUserPassword($employee->pdf_password)
-                    ->passwordEncryption(128)
-                    ->saveAs(Storage::disk('modified')->path($destinationFile));
-                
-                if (Storage::disk('modified')->exists($destinationFile)) {
-                    $this->sendSlip($employee, $pay_month, $destinationFile);
+                // Existing file doesn't exist, just copy the new one as temp
+                try {
+                    if (!copy($newFilePath, $tempCombinedFile)) {
+                        throw new \Exception('Failed to copy new page file');
+                    }
+                    
+                    // Use locking for safe concurrent updates
+                    $payslip = Payslip::where('employee_id', $employee->id)
+                        ->where('month', $pay_month)
+                        ->where('year', now()->year)
+                        ->lockForUpdate()
+                        ->first();
+                    
+                    if ($payslip) {
+                        $payslip->update([
+                            'file' => $tempCombinedPath,
+                            'encryption_status' => Payslip::STATUS_PENDING,
+                            'encryption_status_note' => 'Awaiting encryption after page combination'
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('SinglePayslipProcessingJob: Failed to copy page file for combination', [
+                        'employee_id' => $employee->id,
+                        'matricule' => $employee->matricule,
+                        'error' => $e->getMessage()
+                    ]);
+                    
+                    $payslip = Payslip::where('employee_id', $employee->id)
+                        ->where('month', $pay_month)
+                        ->where('year', now()->year)
+                        ->lockForUpdate()
+                        ->first();
+                    
+                    if ($payslip) {
+                        $payslip->update([
+                            'encryption_status' => Payslip::STATUS_FAILED,
+                            'failure_reason' => 'Failed to prepare page for combination'
+                        ]);
+                    }
                 }
                 return;
             }
 
-            // Create temporary combined file path
-            $tempCombinedPath = $this->destination . '/temp_' . $employee->matricule . '_' . $pay_month . '_' . time() . '.pdf';
-            $tempCombinedFile = Storage::disk('modified')->path($tempCombinedPath);
-            
-            // Use pdftk to combine PDFs
+            // Combine unencrypted files
             $pdf = new Pdf([$existingFilePath, $newFilePath], ['command' => config('ciblerh.pdftk_path')]);
+            $pdf->tempDir = config('ciblerh.temp_dir');
             
-            // Combine the PDFs
             $combinedResult = $pdf->saveAs($tempCombinedFile);
             
             if ($combinedResult && file_exists($tempCombinedFile)) {
-                // Now encrypt the combined file
-                $combinedPdf = new Pdf($tempCombinedFile, ['command' => config('ciblerh.pdftk_path')]);
-                $encryptedResult = $combinedPdf->setUserPassword($employee->pdf_password)
-                    ->passwordEncryption(128)
-                    ->saveAs(Storage::disk('modified')->path($destinationFile));
-                
-                // Clean up temp file
-                if (file_exists($tempCombinedFile)) {
-                    @unlink($tempCombinedFile);
-                }
-                
-                // Delete old file if different
-                if ($existingFile !== $destinationFile && Storage::disk('modified')->exists($existingFile)) {
+                // Delete old temp file if different
+                if ($existingFile !== $tempCombinedPath && Storage::disk('modified')->exists($existingFile)) {
                     Storage::disk('modified')->delete($existingFile);
                 }
                 
-                if ($encryptedResult && Storage::disk('modified')->exists($destinationFile)) {
-                    $this->sendSlip($employee, $pay_month, $destinationFile);
-                    
-                    Log::info('Combined multi-page PDF for single employee', [
-                        'employee_id' => $employee->id,
-                        'matricule' => $employee->matricule,
-                        'files_combined' => 2
+                // Use locking for safe concurrent updates
+                $payslip = Payslip::where('employee_id', $employee->id)
+                    ->where('month', $pay_month)
+                    ->where('year', now()->year)
+                    ->lockForUpdate()
+                    ->first();
+                
+                if ($payslip) {
+                    $payslip->update([
+                        'file' => $tempCombinedPath,
+                        'encryption_status' => Payslip::STATUS_PENDING,
+                        'encryption_status_note' => 'Multi-page combination complete, pending encryption'
+                    ]);
+                }
+                
+                Log::info('SinglePayslipProcessingJob: Combined unencrypted multi-page PDF', [
+                    'employee_id' => $employee->id,
+                    'matricule' => $employee->matricule,
+                    'temp_file' => $tempCombinedPath
+                ]);
+            } else {
+                Log::error('SinglePayslipProcessingJob: Failed to combine unencrypted PDF files', [
+                    'employee_id' => $employee->id,
+                    'matricule' => $employee->matricule,
+                    'existing_file' => $existingFile,
+                    'new_file' => $newFile
+                ]);
+                
+                $payslip = Payslip::where('employee_id', $employee->id)
+                    ->where('month', $pay_month)
+                    ->where('year', now()->year)
+                    ->lockForUpdate()
+                    ->first();
+                
+                if ($payslip) {
+                    $payslip->update([
+                        'encryption_status' => Payslip::STATUS_FAILED,
+                        'failure_reason' => 'Failed to combine PDF pages'
                     ]);
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Error combining PDF files for single employee', [
+            Log::error('SinglePayslipProcessingJob: Error combining unencrypted PDF files', [
                 'employee_id' => $employee->id,
                 'matricule' => $employee->matricule,
                 'error' => $e->getMessage()
             ]);
+            
+            try {
+                $payslip = Payslip::where('employee_id', $employee->id)
+                    ->where('month', $pay_month)
+                    ->where('year', now()->year)
+                    ->lockForUpdate()
+                    ->first();
+                
+                if ($payslip) {
+                    $payslip->update([
+                        'encryption_status' => Payslip::STATUS_FAILED,
+                        'failure_reason' => 'PDF combination error: ' . substr($e->getMessage(), 0, 100)
+                    ]);
+                }
+            } catch (Exception $updateError) {
+                Log::error('SinglePayslipProcessingJob: Failed to update payslip status after combination error', [
+                    'employee_id' => $employee->id,
+                    'original_error' => $e->getMessage(),
+                    'update_error' => $updateError->getMessage()
+                ]);
+            }
+        }
+    }
+    
+    /**
+     * Finalize single payslip: encrypt combined file and send email
+     * Called after all pages have been processed and combined
+     */
+    private function finalizeAndSend($employee, $pay_month)
+    {
+        try {
+            $payslip = Payslip::where('employee_id', $employee->id)
+                ->where('month', $pay_month)
+                ->where('year', now()->year)
+                ->first();
+            
+            if (!$payslip) {
+                return; // No payslip record found
+            }
+            
+            // Skip if already processed successfully
+            if ($payslip->encryption_status === Payslip::STATUS_SUCCESSFUL) {
+                Log::info('SinglePayslipProcessingJob: Payslip already finalized', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id
+                ]);
+                return;
+            }
+            
+            // Skip if marked as failed
+            if ($payslip->encryption_status === Payslip::STATUS_FAILED) {
+                Log::warning('SinglePayslipProcessingJob: Skipping failed payslip finalization', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id,
+                    'reason' => $payslip->failure_reason
+                ]);
+                return;
+            }
+            
+            // Verify temp file exists
+            if (!Storage::disk('modified')->exists($payslip->file)) {
+                $payslip->update([
+                    'encryption_status' => Payslip::STATUS_FAILED,
+                    'failure_reason' => 'Unencrypted temp file not found during finalization'
+                ]);
+                return;
+            }
+            
+            // Encrypt the combined unencrypted file
+            $unencryptedPath = Storage::disk('modified')->path($payslip->file);
+            $finalFile = $this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf';
+            $finalPath = Storage::disk('modified')->path($finalFile);
+            
+            $pdf = new Pdf($unencryptedPath, ['command' => config('ciblerh.pdftk_path')]);
+            $pdf->tempDir = config('ciblerh.temp_dir');
+            
+            $encryptResult = $pdf->setUserPassword($employee->pdf_password)
+                ->passwordEncryption(128)
+                ->saveAs($finalPath);
+            
+            if (!$encryptResult || !Storage::disk('modified')->exists($finalFile)) {
+                throw new \Exception('Encryption failed or output file not created');
+            }
+            
+            // Verify file has content
+            $fileSize = Storage::disk('modified')->size($finalFile);
+            if ($fileSize <= 0) {
+                Storage::disk('modified')->delete($finalFile);
+                throw new \Exception('Encrypted file is empty (0 bytes)');
+            }
+            
+            // Delete temp unencrypted file
+            if (Storage::disk('modified')->exists($payslip->file)) {
+                Storage::disk('modified')->delete($payslip->file);
+            }
+            
+            // Update payslip - mark as encrypted
+            $payslip->update([
+                'file' => $finalFile,
+                'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                'encryption_status_note' => null
+            ]);
+            
+            Log::info('SinglePayslipProcessingJob: Successfully encrypted and finalized payslip', [
+                'payslip_id' => $payslip->id,
+                'employee_id' => $employee->id,
+                'final_file' => $finalFile,
+                'file_size_bytes' => $fileSize
+            ]);
+            
+            // NOW send the email with encrypted file
+            $this->sendSlip($employee, $pay_month, $finalFile);
+            
+        } catch (\Exception $e) {
+            Log::error('SinglePayslipProcessingJob: Error during finalization', [
+                'employee_id' => $employee->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            // Mark payslip as failed
+            try {
+                Payslip::where('employee_id', $employee->id)
+                    ->where('month', $pay_month)
+                    ->where('year', now()->year)
+                    ->update([
+                        'encryption_status' => Payslip::STATUS_FAILED,
+                        'failure_reason' => 'Finalization error: ' . substr($e->getMessage(), 0, 100)
+                    ]);
+            } catch (Exception $updateError) {
+                Log::error('SinglePayslipProcessingJob: Failed to mark payslip as failed', [
+                    'employee_id' => $employee->id,
+                    'error' => $updateError->getMessage()
+                ]);
+            }
         }
     }
 }

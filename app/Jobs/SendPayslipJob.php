@@ -218,12 +218,14 @@ class SendPayslipJob implements ShouldQueue
                                                 ->where('year',now()->year)
                                                 ->first();
                         
-                    // Check if encryption failed - skip email/SMS if so
-                    if (!empty($record_exists) && $record_exists->encryption_status === Payslip::STATUS_FAILED) {
-                        Log::info('Skipping email/SMS for employee - encryption failed', [
+                    // Check if encryption failed or is still pending - skip email/SMS if so
+                    if (!empty($record_exists) && ($record_exists->encryption_status === Payslip::STATUS_FAILED || $record_exists->encryption_status === Payslip::STATUS_PENDING)) {
+                        $status = $record_exists->encryption_status === Payslip::STATUS_PENDING ? 'PENDING' : 'FAILED';
+                        Log::info('Skipping email/SMS for employee - encryption not ready', [
                             'employee_id' => $employee->id,
                             'matricule' => $employee->matricule,
-                            'failure_reason' => $record_exists->failure_reason
+                            'encryption_status' => $status,
+                            'failure_reason' => $record_exists->failure_reason ?? 'Still awaiting encryption finalization'
                         ]);
                         
                         // Update status to indicate email was skipped due to encryption failure
