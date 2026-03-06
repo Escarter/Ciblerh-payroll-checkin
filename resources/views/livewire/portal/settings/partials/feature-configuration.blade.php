@@ -161,11 +161,11 @@
                                     {{ __('settings.test_sftp_connection') }}
                                 </button>
                                 @if ($sftp_connection_status)
-                                    <span class="badge bg-success ms-2">
+                                    <span class="badge bg-success ms-2 px-3 py-2">
                                         <i class="fas fa-check-circle me-1"></i>{{ __('settings.connected') }}
                                     </span>
                                 @else
-                                    <span class="badge bg-secondary ms-2">
+                                    <span class="badge bg-secondary ms-2 px-3 py-2">
                                         <i class="fas fa-times-circle me-1"></i>{{ __('settings.disconnected') }}
                                     </span>
                                 @endif

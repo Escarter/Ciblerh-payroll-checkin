@@ -9,5 +9,9 @@ class Setting extends Model
 {
     use HasFactory;
     protected $guarded = [];
+    
+    protected $casts = [
+        'sftp_matching_strategies' => 'json',
+    ];
 
 }

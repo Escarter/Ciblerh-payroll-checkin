@@ -164,6 +164,9 @@ class Index extends Component
             ? $this->setting->sftp_matching_strategies 
             : [];
 
+        // Check if SFTP is already configured
+        $this->checkSftpConnectionStatus();
+
         // Initialize provider-specific properties based on current provider (after all properties are loaded)
         $this->initializeProviderSpecificProperties();
 
@@ -471,6 +474,29 @@ class Index extends Component
             $this->sftp_connection_status = false;
             $this->test_sftp_message = __('settings.test_connection_failed') . ': ' . $e->getMessage();
             $this->showToast($this->test_sftp_message, 'danger');
+        }
+    }
+
+    /**
+     * Check if SFTP is already configured by validating that all required credentials exist
+     */
+    private function checkSftpConnectionStatus()
+    {
+        // Check if all required SFTP credentials are configured
+        if (!empty($this->sftp_host) && !empty($this->sftp_username) && !empty($this->sftp_port)) {
+            // If auth_type is password, check password exists
+            if ($this->sftp_auth_type === 'password' && !empty($this->sftp_password)) {
+                $this->sftp_connection_status = true;
+            }
+            // If auth_type is ssh_key, check private key path exists
+            elseif ($this->sftp_auth_type === 'ssh_key' && !empty($this->sftp_private_key_path)) {
+                $this->sftp_connection_status = true;
+            }
+            else {
+                $this->sftp_connection_status = false;
+            }
+        } else {
+            $this->sftp_connection_status = false;
         }
     }
 
