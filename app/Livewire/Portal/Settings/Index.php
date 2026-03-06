@@ -146,11 +146,11 @@ class Index extends Component
         $this->birthday_sms_message_fr = !empty($this->setting) ? (!empty($this->setting->birthday_sms_message_fr) ? $this->setting->birthday_sms_message_fr : "Joyeux anniversaire! :name:, Je te souhaite une journée fantastique pleine de joie et une année à venir remplie de succès. Profite bien de ta journée spéciale!") :'';
 
         // Feature Configuration initialization
-        $this->inactivity_deactivation_enabled = !empty($this->setting) ? $this->setting->inactivity_deactivation_enabled : false;
+        $this->inactivity_deactivation_enabled = $this->setting ? (bool) $this->setting->inactivity_deactivation_enabled : false;
         $this->inactivity_months_threshold = !empty($this->setting) ? $this->setting->inactivity_months_threshold : 6;
         $this->deactivation_check_time = !empty($this->setting) ? $this->setting->deactivation_check_time : '02:00';
 
-        $this->sftp_sync_enabled = !empty($this->setting) ? $this->setting->sftp_sync_enabled : false;
+        $this->sftp_sync_enabled = $this->setting ? (bool) $this->setting->sftp_sync_enabled : false;
         $this->sftp_host = !empty($this->setting) ? $this->setting->sftp_host : '';
         $this->sftp_port = !empty($this->setting) ? $this->setting->sftp_port : 22;
         $this->sftp_username = !empty($this->setting) ? $this->setting->sftp_username : '';

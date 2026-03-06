@@ -182,51 +182,62 @@ class All extends BaseImportComponent
         if (!Gate::allows('employee-create')) {
             return abort(401);
         }
+        // Updated validation - only 5 fields are mandatory
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
             'matricule' => 'required',
             'professional_phone_number' => ['required', new PhoneNumber()],
-            'personal_phone_number' => ['required', new PhoneNumber()],
-            'date_of_birth' => 'required|date',
             'email' => ['required', new ValidEmail(), 'unique:users'],
-            'selected_roles' => 'required|array|max:2',
+            
+            // Optional fields
+            'personal_phone_number' => ['nullable', new PhoneNumber()],
+            'date_of_birth' => 'nullable|date',
+            'selected_roles' => 'nullable|array|max:2',
         ]);
 
-        // Validate that employee role is always included
-        if (!in_array('employee', $this->selected_roles)) {
+        // Validate that employee role is always included if roles are provided
+        if (!empty($this->selected_roles) && !in_array('employee', $this->selected_roles)) {
             $this->addError('selected_roles', 'Employee role must always be included.');
             return;
         }
 
         // Validate maximum 2 roles (including employee)
-        if (count($this->selected_roles) > 2) {
+        if (!empty($this->selected_roles) && count($this->selected_roles) > 2) {
             $this->addError('selected_roles', 'A user can have a maximum of 2 roles (including the employee role).');
             return;
         }
 
-        // Ensure employee role is first in the array
-        $this->selected_roles = array_unique($this->selected_roles);
-        $employeeKey = array_search('employee', $this->selected_roles);
-        if ($employeeKey !== false) {
-            unset($this->selected_roles[$employeeKey]);
-            // Reindex the array
-            $this->selected_roles = array_values($this->selected_roles);
+        // Ensure employee role is first in the array if roles are provided
+        if (!empty($this->selected_roles)) {
+            $this->selected_roles = array_unique($this->selected_roles);
+            $employeeKey = array_search('employee', $this->selected_roles);
+            if ($employeeKey !== false) {
+                unset($this->selected_roles[$employeeKey]);
+                // Reindex the array
+                $this->selected_roles = array_values($this->selected_roles);
+            }
+            array_unshift($this->selected_roles, 'employee');
+        } else {
+            $this->selected_roles = ['employee'];
         }
-        array_unshift($this->selected_roles, 'employee');
 
         // Format phone numbers before saving
         $professionalPhone = validatePhoneNumber($this->professional_phone_number);
-        $personalPhone = validatePhoneNumber($this->personal_phone_number);
         
         if (!$professionalPhone['valid']) {
             $this->addError('professional_phone_number', $professionalPhone['error']);
             return;
         }
-        
-        if (!$personalPhone['valid']) {
-            $this->addError('personal_phone_number', $personalPhone['error']);
-            return;
+
+        // Validate personal phone number if provided
+        $personalPhone = null;
+        if (!empty($this->personal_phone_number)) {
+            $personalPhone = validatePhoneNumber($this->personal_phone_number);
+            if (!$personalPhone['valid']) {
+                $this->addError('personal_phone_number', $personalPhone['error']);
+                return;
+            }
         }
 
         $user = User::create([
@@ -235,7 +246,7 @@ class All extends BaseImportComponent
             'matricule' => $this->matricule,
             'email' => $this->email,
             'professional_phone_number' => $professionalPhone['formatted'],
-            'personal_phone_number' => $personalPhone['formatted'],
+            'personal_phone_number' => $personalPhone['formatted'] ?? null,
             'mobile_money_number' => $this->mobile_money_number,
             'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ? true : false,
@@ -257,52 +268,63 @@ class All extends BaseImportComponent
             return abort(401);
         }
 
+        // Updated validation - only 5 fields are mandatory
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
             'matricule' => 'required',
             'professional_phone_number' => ['required', new PhoneNumber()],
-            'personal_phone_number' => ['required', new PhoneNumber()],
-            'date_of_birth' => 'required|date',
             'email' => ['required', new ValidEmail()],
-            'selected_roles' => 'required|array|max:2',
+            
+            // Optional fields
+            'personal_phone_number' => ['nullable', new PhoneNumber()],
+            'date_of_birth' => 'nullable|date',
+            'selected_roles' => 'nullable|array|max:2',
         ]);
 
-        // Validate that employee role is always included
-        if (!in_array('employee', $this->selected_roles)) {
+        // Validate that employee role is always included if roles are provided
+        if (!empty($this->selected_roles) && !in_array('employee', $this->selected_roles)) {
             $this->addError('selected_roles', 'Employee role must always be included.');
             return;
         }
 
         // Validate maximum 2 roles (including employee)
-        if (count($this->selected_roles) > 2) {
+        if (!empty($this->selected_roles) && count($this->selected_roles) > 2) {
             $this->addError('selected_roles', 'A user can have a maximum of 2 roles (including the employee role).');
             return;
         }
 
-        // Ensure employee role is first in the array
-        $this->selected_roles = array_unique($this->selected_roles);
-        $employeeKey = array_search('employee', $this->selected_roles);
-        if ($employeeKey !== false) {
-            unset($this->selected_roles[$employeeKey]);
-            // Reindex the array
-            $this->selected_roles = array_values($this->selected_roles);
+        // Ensure employee role is first in the array if roles are provided
+        if (!empty($this->selected_roles)) {
+            $this->selected_roles = array_unique($this->selected_roles);
+            $employeeKey = array_search('employee', $this->selected_roles);
+            if ($employeeKey !== false) {
+                unset($this->selected_roles[$employeeKey]);
+                // Reindex the array
+                $this->selected_roles = array_values($this->selected_roles);
+            }
+            array_unshift($this->selected_roles, 'employee');
         }
-        array_unshift($this->selected_roles, 'employee');
 
         // Format phone numbers before updating
         $professionalPhone = validatePhoneNumber($this->professional_phone_number);
-        $personalPhone = validatePhoneNumber($this->personal_phone_number);
         
         if (!$professionalPhone['valid']) {
             $this->addError('professional_phone_number', $professionalPhone['error']);
             return;
         }
-        
-        if (!$personalPhone['valid']) {
-            $this->addError('personal_phone_number', $personalPhone['error']);
-            return;
+
+        // Validate personal phone number if provided
+        $personalPhone = null;
+        if (!empty($this->personal_phone_number)) {
+            $personalPhone = validatePhoneNumber($this->personal_phone_number);
+            if (!$personalPhone['valid']) {
+                $this->addError('personal_phone_number', $personalPhone['error']);
+                return;
+            }
         }
+
+        $passwordChanged = !empty($this->password) && $this->password !== $this->employee->password;
 
         $this->employee->update([
             'first_name' => $this->first_name,
@@ -310,12 +332,21 @@ class All extends BaseImportComponent
             'matricule' => $this->matricule,
             'email' => $this->email,
             'professional_phone_number' => $professionalPhone['formatted'],
-            'personal_phone_number' => $personalPhone['formatted'],
+            'personal_phone_number' => $personalPhone['formatted'] ?? $this->employee->personal_phone_number,
             'mobile_money_number' => $this->mobile_money_number,
             'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ? true : false,
-            'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
         ]);
+
+        // Only update password if it was actually changed
+        if ($passwordChanged) {
+            $this->employee->update([
+                'password' => bcrypt($this->password),
+            ]);
+            
+            // Send welcome email with new credentials
+            event(new EmployeeCreated($this->employee, $this->password));
+        }
 
         // Sync roles (this will remove old roles and assign new ones)
         $this->employee->syncRoles($this->selected_roles);
@@ -1104,11 +1135,8 @@ class All extends BaseImportComponent
                 }
             }
 
-            // Validate department
-            if (empty($rowData[9] ?? '')) {
-                $errors[] = __('departments.department_required');
-            } else {
-                // Check if company is set before validating department
+            // Optional fields - Validate department if provided
+            if (!empty($rowData[9] ?? '')) {
                 $companyId = $this->getCompanyId();
                 if (!$companyId) {
                     $errors[] = __('employees.company_required_for_import');
@@ -1122,25 +1150,23 @@ class All extends BaseImportComponent
                 }
             }
 
-            // Validate service (requires valid department)
-            if (empty($rowData[10] ?? '')) {
-                $errors[] = __('employees.service_required');
-            } elseif (!isset($departmentResult) || !$departmentResult['found']) {
-                $errors[] = __('departments.department_required_for_service_import');
-            } else {
-                $companyId = $this->getCompanyId();
-                $serviceResult = findOrCreateService($rowData[10], $departmentResult['department']->id, $companyId, $this->autoCreateEntities);
-                if (!$serviceResult['found']) {
-                    $errors[] = $serviceResult['error'];
-                } else {
-                    $parsedData[10] = $serviceResult['service']->name;
+            // Validate service if provided (requires valid department)
+            if (!empty($rowData[10] ?? '')) {
+                if (empty($rowData[9] ?? '')) {
+                    $errors[] = __('departments.department_required_for_service_import');
+                } elseif (isset($departmentResult) && $departmentResult['found']) {
+                    $companyId = $this->getCompanyId();
+                    $serviceResult = findOrCreateService($rowData[10], $departmentResult['department']->id, $companyId, $this->autoCreateEntities);
+                    if (!$serviceResult['found']) {
+                        $errors[] = $serviceResult['error'];
+                    } else {
+                        $parsedData[10] = $serviceResult['service']->name;
+                    }
                 }
             }
 
-            // Validate role
-            if (empty($rowData[11] ?? '')) {
-                $errors[] = __('employees.role_required');
-            } else {
+            // Validate role if provided
+            if (!empty($rowData[11] ?? '')) {
                 $validRoles = ['employee', 'supervisor', 'manager'];
                 if (!in_array(strtolower($rowData[11]), $validRoles)) {
                     $errors[] = __('employees.invalid_role');

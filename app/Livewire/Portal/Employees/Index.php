@@ -74,24 +74,26 @@ class Index extends BaseImportComponent
     public $isEditMode = false;
     public $autoCreateEntities = false;
 
-    //Update & Store Rules
+    //Update & Store Rules - Only 5 fields are mandatory
     protected array $rules = [
         'first_name' => 'required',
         'last_name' => 'required',
         'professional_phone_number' => 'required',
-        'remaining_leave_days' => 'required',
-        'monthly_leave_allocation' => 'required',
-        'net_salary' => 'required|integer',
         'email' => 'required|email|unique:users',
         'matricule' => 'required',
-        'position' => 'required',
-        'salary_grade' => 'required',
-        'department_id' => 'required',
-        'service_id' => 'required',
-        'date_of_birth' => 'required',
-        'work_start_time' => 'required|date_format:H:i',
-        'work_end_time' => 'required|date_format:H:i|after:work_start_time',
-        'selected_roles' => 'required|array|max:2',
+        
+        // Optional fields
+        'remaining_leave_days' => 'nullable',
+        'monthly_leave_allocation' => 'nullable',
+        'net_salary' => 'nullable|integer',
+        'position' => 'nullable',
+        'salary_grade' => 'nullable',
+        'department_id' => 'nullable',
+        'service_id' => 'nullable',
+        'date_of_birth' => 'nullable',
+        'work_start_time' => 'nullable|date_format:H:i',
+        'work_end_time' => 'nullable|date_format:H:i|after:work_start_time',
+        'selected_roles' => 'nullable|array|max:2',
     ];
 
     public function mount($company_uuid = null, $department_uuid = null)
@@ -271,24 +273,30 @@ class Index extends BaseImportComponent
         if (!Gate::allows('employee-update')) {
             return abort(401);
         }
+        
+        // Updated validation - only 5 fields are mandatory
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
             'professional_phone_number' => 'required',
-            'remaining_leave_days' => 'required',
-            'monthly_leave_allocation' => 'required',
-            'net_salary' => 'required|integer',
             'email' => ['required','email', Rule::unique('users')->ignore($this->employee->id)],
             'matricule' => 'required',
-            'position' => 'required',
-            'salary_grade' => 'required',
-            'department_id' => 'required',
-            'service_id' => 'required',
-            'date_of_birth' => 'required|date',
-            'work_start_time' => 'required|date_format:H:i',
-            'work_end_time' => 'required|date_format:H:i|after:work_start_time',
-            'selected_roles' => 'required|array|max:2',
+            
+            // Optional fields
+            'remaining_leave_days' => 'nullable',
+            'monthly_leave_allocation' => 'nullable',
+            'net_salary' => 'nullable|integer',
+            'position' => 'nullable',
+            'salary_grade' => 'nullable',
+            'department_id' => 'nullable',
+            'service_id' => 'nullable',
+            'date_of_birth' => 'nullable|date',
+            'work_start_time' => 'nullable|date_format:H:i',
+            'work_end_time' => 'nullable|date_format:H:i|after:work_start_time',
+            'selected_roles' => 'nullable|array|max:2',
         ]);
+
+        $passwordChanged = !empty($this->password) && $this->password !== $this->employee->password;
 
         $this->employee->update([
             'first_name' => $this->first_name,
@@ -312,9 +320,17 @@ class Index extends BaseImportComponent
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ? true : false,
             'receive_sms_notifications' => $this->receive_sms_notifications === true || $this->receive_sms_notifications === "true" || $this->receive_sms_notifications === 1,
-            'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
-            // 'pdf_password' => Str::random(10),
         ]);
+
+        // Only update password if it was actually changed
+        if ($passwordChanged) {
+            $this->employee->update([
+                'password' => bcrypt($this->password),
+            ]);
+            
+            // Send welcome email with new credentials
+            event(new EmployeeCreated($this->employee, $this->password));
+        }
 
         // Validate that employee role is always included
         if (!in_array('employee', $this->selected_roles)) {

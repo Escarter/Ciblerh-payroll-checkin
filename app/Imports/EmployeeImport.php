@@ -452,36 +452,21 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
         ]);
         
         return [
-            '0' => 'nullable|string', // first_name (can be empty if last_name exists, will be replaced with 'NA')
-            '1' => 'nullable|string', // last_name (can be empty if first_name exists, will be replaced with 'NA')
-            // At least one of first_name or last_name must be present (validated in model method)
-            '2' => ['required', 'email', 'unique:users,email'], // email - using built-in email validation
+            // Mandatory fields only
+            '0' => 'required|string', // first_name
+            '1' => 'required|string', // last_name
+            '2' => ['required', 'email', 'unique:users,email'], // email
             '3' => ['required', new PhoneNumber()], // professional_phone_number
             '4' => 'required', // matricule (can be string or numeric)
-            '5' => 'required|string', // position
-            '6' => 'required|numeric', // net_salary
-            '7' => 'required|string', // salary_grade
-            '9' => function ($attribute, $value, $onFailure) use ($hasDepartmentContext) {
-                // Only require department if no context is provided
-                // Use the $hasDepartmentContext variable from the outer scope
-                if (!$hasDepartmentContext && (empty($value) || $value === null || trim($value) === '')) {
-                    \Log::debug('Department validation failing', [
-                        'has_department_context' => $hasDepartmentContext,
-                        'value' => $value,
-                        'attribute' => $attribute
-                    ]);
-                    $onFailure(__('employees.department_required'));
-                } else {
-                    \Log::debug('Department validation passing', [
-                        'has_department_context' => $hasDepartmentContext,
-                        'value' => $value
-                    ]);
-                }
-            },
+            
+            // Optional fields
+            '5' => 'nullable|string', // position
+            '6' => 'nullable|numeric', // net_salary
+            '7' => 'nullable|string', // salary_grade
+            '9' => 'nullable', // department (optional, can use context if provided)
             '10' => 'nullable', // service - always optional (can use context if provided)
             '11' => function ($attribute, $value, $onFailure) {
-                $array = ['employee', 'supervisor', 'manager'];
-                if (!in_array(strtolower($value), $array)) {
+                if (!empty($value) && !in_array(strtolower($value), ['employee', 'supervisor', 'manager'])) {
                     $onFailure(__('employees.role_invalid'));
                 }
             },
