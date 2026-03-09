@@ -59,7 +59,13 @@
                                                 @endif
                                                 <div>
                                                     <strong class="text-sm">{{__('payslips.department')}}:</strong>
-                                                    <p class="mb-0 text-sm">{{ $selectedPayslip->sendProcess->department?->name ?? __('payslips.department_deleted') }}</p>
+                                                    <p class="mb-0 text-sm">
+                                                        @if($selectedPayslip->sendProcess->department_id)
+                                                            {{ $selectedPayslip->sendProcess->department?->name ?? __('payslips.department_deleted') }}
+                                                        @else
+                                                            {{ $selectedPayslip->sendProcess->company?->name ?? __('payslips.company_deleted') }}
+                                                        @endif
+                                                    </p>
                                                 </div>
                                                 <div>
                                                     <strong class="text-sm">{{__('common.period')}}:</strong>

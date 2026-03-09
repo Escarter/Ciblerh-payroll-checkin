@@ -138,7 +138,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
                             {{ __('payslips.process_selected') }}
-                            <span class="badge bg-white text-dark ms-1">{{ count($selectedProposals) }}</span>
+                            <span class="badge bg-white text-dark ms-1 p-3">{{ count($selectedProposals) }}</span>
                         </button>
                     @endif
                 </div>
@@ -149,18 +149,18 @@
     {{-- ── Status Tabs ──────────────────────────────────────────── --}}
     <div class="d-flex flex-wrap gap-2 mb-3">
         @foreach ([
-            'all'       => ['label' => __('common.all'),            'color' => 'secondary', 'count' => null],
-            'pending'   => ['label' => __('payslips.pending'),      'color' => 'warning',   'count' => $totalPending],
-            'validated' => ['label' => __('payslips.validated'),    'color' => 'info',      'count' => $totalValidated],
-            'processed' => ['label' => __('payslips.processed'),    'color' => 'success',   'count' => $totalProcessed],
-            'rejected'  => ['label' => __('payslips.rejected'),     'color' => 'danger',    'count' => $totalRejected],
+            'all'       => ['label' => __('common.all'),            'color' => 'secondary', 'count' => null,             'text' => 'text-white'],
+            'pending'   => ['label' => __('payslips.pending'),      'color' => 'warning',   'count' => $totalPending,   'text' => 'text-dark'],
+            'validated' => ['label' => __('payslips.validated'),    'color' => 'info',      'count' => $totalValidated, 'text' => 'text-dark'],
+            'processed' => ['label' => __('payslips.processed'),    'color' => 'success',   'count' => $totalProcessed, 'text' => 'text-white'],
+            'rejected'  => ['label' => __('payslips.rejected'),     'color' => 'danger',    'count' => $totalRejected,  'text' => 'text-white'],
         ] as $tabStatus => $tab)
             <button type="button"
                 class="btn {{ $filterStatus === $tabStatus ? 'btn-'.$tab['color'] : 'btn-outline-'.$tab['color'] }}"
                 wire:click="$set('filterStatus', '{{ $tabStatus }}')">
                 {{ $tab['label'] }}
                 @if ($tab['count'] !== null)
-                    <span class="badge {{ $filterStatus === $tabStatus ? 'bg-light text-dark' : 'bg-'.$tab['color'].' text-white' }} ms-1">{{ $tab['count'] }}</span>
+                    <span class="badge {{ $filterStatus === $tabStatus ? 'bg-light text-dark' : 'bg-'.$tab['color'].' '.$tab['text'] }} ms-1 p-3">{{ $tab['count'] }}</span>
                 @endif
             </button>
         @endforeach
@@ -215,7 +215,7 @@
                             <td>
                                 @if ($bestMatch)
                                     <div class="small">
-                                        <span class="badge bg-light text-dark border mb-1">{{ ucfirst($bestMatch['strategy']) }}</span>
+                                        <span class="badge bg-light text-dark border mb-1 p-3">{{ ucfirst($bestMatch['strategy']) }}</span>
                                         @if (!empty($bestMatch['company_name']))
                                             <div class="fw-semibold">{{ $bestMatch['company_name'] }}</div>
                                         @endif
@@ -224,7 +224,7 @@
                                         @endif
                                     </div>
                                 @else
-                                    <span class="badge bg-secondary bg-opacity-25 text-secondary">{{ __('payslips.no_match') }}</span>
+                                    <span class="badge bg-secondary bg-opacity-25 text-dark p-3">{{ __('payslips.no_match') }}</span>
                                 @endif
                             </td>
 
@@ -264,7 +264,7 @@
                             {{-- Period --}}
                             <td class="small text-center">
                                 @if ($proposal->matched_month && $proposal->matched_year)
-                                    <span class="badge bg-light text-dark border">
+                                    <span class="badge bg-light text-dark border p-3">
                                         {{ str_pad($proposal->matched_month, 2, '0', STR_PAD_LEFT) }}/{{ $proposal->matched_year }}
                                     </span>
                                 @else
@@ -276,67 +276,60 @@
                             <td>
                                 @switch($proposal->status)
                                     @case('pending')
-                                        <span class="badge bg-warning text-dark">{{ __('payslips.pending') }}</span>
+                                        <span class="badge bg-warning text-dark p-3">{{ __('payslips.pending') }}</span>
                                         @break
                                     @case('validated')
-                                        <span class="badge bg-info">{{ __('payslips.validated') }}</span>
+                                        <span class="badge bg-info text-dark p-3">{{ __('payslips.validated') }}</span>
                                         @break
                                     @case('processed')
-                                        <span class="badge bg-success">{{ __('payslips.processed') }}</span>
+                                        <span class="badge bg-success text-white p-3">{{ __('payslips.processed') }}</span>
                                         @break
                                     @case('rejected')
-                                        <span class="badge bg-danger">{{ __('payslips.rejected') }}</span>
+                                        <span class="badge bg-danger text-white p-3">{{ __('payslips.rejected') }}</span>
                                         @break
                                     @case('failed')
-                                        <span class="badge bg-dark">{{ __('payslips.failed') }}</span>
+                                        <span class="badge bg-dark text-white p-3">{{ __('payslips.failed') }}</span>
                                         @break
                                 @endswitch
                             </td>
 
                             {{-- Actions --}}
                             <td class="text-end pe-3">
-                                <div class="d-flex gap-2 justify-content-end">
-                                    {{-- View: pure wire:click, no data-bs-toggle --}}
-                                    <button type="button"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        wire:click="openViewModal('{{ $proposal->id }}')"
-                                        title="{{ __('common.view') }}">
+                                <div class="d-flex gap-2 justify-content-end align-items-center">
+                                    {{-- View --}}
+                                    <a href="#" wire:click.prevent="openViewModal('{{ $proposal->id }}')"
+                                        class="text-info me-1" title="{{ __('common.view') }}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                         </svg>
-                                    </button>
+                                    </a>
 
                                     @if ($proposal->status === 'pending')
                                         {{-- Re-match --}}
-                                        <button type="button"
-                                            class="btn btn-sm btn-outline-warning"
-                                            wire:click="rematch('{{ $proposal->id }}')"
-                                            wire:loading.attr="disabled"
+                                        <a href="#"
+                                            wire:click.prevent="rematch('{{ $proposal->id }}')"
+                                            wire:loading.class="opacity-50 pe-none"
                                             wire:target="rematch('{{ $proposal->id }}')"
-                                            title="{{ __('payslips.rematch') }}">
+                                            class="text-warning me-1" title="{{ __('payslips.rematch') }}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                                             </svg>
-                                        </button>
+                                        </a>
                                         {{-- Edit/Validate --}}
-                                        <button type="button"
-                                            class="btn btn-sm btn-outline-primary"
-                                            wire:click="editProposal('{{ $proposal->id }}')"
-                                            title="{{ __('payslips.validate') }}">
+                                        <a href="#" wire:click.prevent="editProposal('{{ $proposal->id }}')"
+                                            class="text-primary me-1" title="{{ __('payslips.validate') }}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                             </svg>
-                                        </button>
+                                        </a>
                                         {{-- Reject --}}
-                                        <button type="button"
-                                            class="btn btn-sm btn-outline-danger"
-                                            wire:click="rejectProposal('{{ $proposal->id }}')"
-                                            title="{{ __('common.reject') }}">
+                                        <a href="#" wire:click.prevent="rejectProposal('{{ $proposal->id }}')"
+                                            class="text-danger" title="{{ __('common.reject') }}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                             </svg>
-                                        </button>
+                                        </a>
                                     @endif
                                 </div>
                             </td>
@@ -426,7 +419,7 @@
                                 <div class="card-body py-2 px-3">
                                     <div class="d-flex align-items-start justify-content-between gap-3">
                                         <div class="small">
-                                            <span class="badge bg-light text-dark border me-1">{{ ucfirst($candidate['strategy']) }}</span>
+                                            <span class="badge bg-light text-dark border me-1 p-3">{{ ucfirst($candidate['strategy']) }}</span>
                                             @if (!empty($candidate['company_name']))
                                                 <span class="fw-semibold">{{ $candidate['company_name'] }}</span>
                                             @endif

@@ -787,9 +787,12 @@ class All extends Component
         $timeline = [];
 
         // Process creation
+        $scopeName = $this->selectedProcess->department_id 
+            ? ($this->selectedProcess->department?->name ?? __('payslips.department_deleted'))
+            : ($this->selectedProcess->company?->name ?? __('payslips.company_deleted'));
         $timeline[] = [
             'title' => __('payslips.task_created'),
-            'description' => __('payslips.payslip_task_initiated', ['department' => $this->selectedProcess->department?->name ?? __('common.unknown')]),
+            'description' => __('payslips.payslip_task_initiated', ['department' => $scopeName]),
             'time' => $this->selectedProcess->created_at->diffForHumans(),
             'type' => 'info'
         ];

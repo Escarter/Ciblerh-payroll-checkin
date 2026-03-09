@@ -186,6 +186,7 @@ return [
     // Missing translation keys
     'move_selected_payslip_processes_to_trash' => 'Move Selected Payslip Processes to Trash',
     'department_deleted' => 'Department deleted!',
+    'company_deleted' => 'Company deleted!',
     'start_processing_payslip_to_see_the_outcome_here' => 'Start processing payslip to see the outcome here',
     'view_past_history' => 'View past history',
     'unknown_error' => 'Unknown error',
@@ -248,6 +249,7 @@ return [
     'payslip_task_details' => 'Payslip Task Details',
     'task_overview' => 'Task Overview',
     'target_employees' => 'Target Employees',
+    'total_company_employees' => 'Total Company Employees',
     'task_information' => 'Task Information',
     'progress_statistics' => 'Progress Statistics',
     'task_timeline' => 'Task Timeline',

@@ -186,6 +186,7 @@ return [
     // Missing translation keys
     'move_selected_payslip_processes_to_trash' => 'Déplacer les processus de fiches de paie sélectionnés vers la corbeille',
     'department_deleted' => 'Département supprimé!',
+    'company_deleted' => 'Entreprise supprimée!',
     'start_processing_payslip_to_see_the_outcome_here' => 'Commencer le traitement des fiches de paie pour voir le résultat ici',
     'view_past_history' => 'Voir l\'historique passé',
     'unknown_error' => 'Erreur inconnue',
@@ -248,6 +249,7 @@ return [
     'payslip_task_details' => 'Détails de la tâche des fiches de paie',
     'task_overview' => 'Aperçu de la tâche',
     'target_employees' => 'Employés cibles',
+    'total_company_employees' => 'Total des employés de l\'entreprise',
     'task_information' => 'Informations sur la tâche',
     'progress_statistics' => 'Statistiques de progression',
     'task_timeline' => 'Chronologie des tâches',

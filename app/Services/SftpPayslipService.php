@@ -571,14 +571,114 @@ class SftpPayslipService
         $result['company_raw'] = $companyCandidate;
 
         // ── 2. Extract pay period ────────────────────────────────────────────
-        // Matches: "Période du 01/01/2025", "Periode du 01/01/2025 au …"
-        if (preg_match(
-            '/p[ée]riode\s+du\s+(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/iu',
-            $text,
-            $m
+        // Helper: normalise 2-digit years to 4-digit (25 → 2025, 99 → 1999).
+        $normalizeYear = static function (int $y): int {
+            return $y < 100 ? ($y >= 50 ? 1900 + $y : 2000 + $y) : $y;
+        };
+
+        // French and English month name → integer map (accent-normalised)
+        $monthNames = [
+            'janvier'   => 1,  'fevrier'  => 2,  'février'  => 2,
+            'mars'      => 3,  'avril'    => 4,  'mai'      => 5,
+            'juin'      => 6,  'juillet'  => 7,  'aout'     => 8,  'août' => 8,
+            'septembre' => 9,  'octobre'  => 10, 'novembre' => 11,
+            'decembre'  => 12, 'décembre' => 12,
+            'january'   => 1,  'february' => 2,  'march'    => 3,
+            'april'     => 4,  'may'      => 5,  'june'     => 6,
+            'july'      => 7,  'august'   => 8,  'september'=> 9,
+            'october'   => 10, 'november' => 11, 'december' => 12,
+        ];
+
+        // Pass 1: "Période du DD/MM/YY[YY]" — explicit label (2- or 4-digit year)
+        //   Real layout: due to columnar PDF extraction the date may appear on a
+        //   separate line from "Période du", so allow [\s\S]{0,80} between them.
+        if (!$result['month'] && preg_match(
+            '/p[ée]riode\s+du[\s\S]{0,80}?(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/iu',
+            $text, $m
         )) {
             $result['month'] = (int) $m[2];
-            $result['year']  = (int) $m[3];
+            $result['year']  = $normalizeYear((int) $m[3]);
+        }
+
+        // Pass 2: "au DD/MM/YY[YY]" — end-of-period marker (appears alone in the
+        //   extracted text before "Période du" due to columnar layout).
+        //   e.g. "au 31/12/25"
+        if (!$result['month'] && preg_match(
+            '/\bau\s+(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b/iu',
+            $text, $m
+        )) {
+            $result['month'] = (int) $m[2];
+            $result['year']  = $normalizeYear((int) $m[3]);
+        }
+
+        // Pass 3: "Du DD/MM/YY[YY] au DD/MM/YY[YY]" — full date range on one line
+        if (!$result['month'] && preg_match(
+            '/\bdu\s+\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\s+au\s+\d{1,2}[\/\-.](\d{1,2})[\/\-.](\d{2,4})/iu',
+            $text, $m
+        )) {
+            $result['month'] = (int) $m[1];
+            $result['year']  = $normalizeYear((int) $m[2]);
+        }
+
+        // Pass 4: French/English month name followed by 2- or 4-digit year
+        //   e.g. "JANVIER 2025", "Mois : Janvier 25", "Bulletin de Paie Mars 2025"
+        if (!$result['month'] && preg_match(
+            '/\b(janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre'
+            . '|january|february|march|april|may|june|july|august|september|october|november|december)'
+            . '\b[^0-9]{0,25}(\d{2,4})\b/iu',
+            $text, $m
+        )) {
+            $key = mb_strtolower(trim($m[1]));
+            $yr  = $normalizeYear((int) $m[2]);
+            if (isset($monthNames[$key]) && $yr >= 2000) {
+                $result['month'] = $monthNames[$key];
+                $result['year']  = $yr;
+            }
+        }
+
+        // Pass 5: Filename patterns (basename may encode the period)
+        //   YYYY-MM / YYYY_MM, MM-YYYY / MM_YYYY, YY-MM / YY_MM, French month + year
+        if (!$result['month']) {
+            $basename = pathinfo($absoluteFilePath, PATHINFO_FILENAME);
+
+            if (preg_match('/\b(20\d{2})[-_](0[1-9]|1[0-2])\b/', $basename, $m)) {
+                $result['year']  = (int) $m[1];
+                $result['month'] = (int) $m[2];
+            } elseif (preg_match('/\b(0[1-9]|1[0-2])[-_](20\d{2})\b/', $basename, $m)) {
+                $result['month'] = (int) $m[1];
+                $result['year']  = (int) $m[2];
+            } elseif (preg_match('/\b(\d{2})[-_](0[1-9]|1[0-2])\b/', $basename, $m)) {
+                $result['year']  = $normalizeYear((int) $m[1]);
+                $result['month'] = (int) $m[2];
+            } elseif (preg_match('/\b(0[1-9]|1[0-2])[-_](\d{2})\b/', $basename, $m)) {
+                $result['month'] = (int) $m[1];
+                $result['year']  = $normalizeYear((int) $m[2]);
+            } elseif (preg_match(
+                '/\b(janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[uû]t|septembre|octobre|novembre|d[ée]cembre)'
+                . '[^0-9]{0,15}(\d{2,4})\b/iu',
+                $basename, $m
+            )) {
+                $key = mb_strtolower(trim($m[1]));
+                $yr  = $normalizeYear((int) $m[2]);
+                if ($yr >= 2000) {
+                    $result['month'] = $monthNames[$key] ?? null;
+                    $result['year']  = $yr;
+                }
+            }
+        }
+
+        // Pass 6: Standalone DD/MM/YY[YY] date — look for a day-31 or day-28/30 end-of-month
+        //   date which strongly signals the payslip period. e.g. "01/12/25"
+        //   Require day 01 (period start) or 28-31 (period end) to reduce false positives.
+        if (!$result['month'] && preg_match(
+            '/\b(0[1-9]|[12]\d|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](\d{2,4})\b/',
+            $text, $m
+        )) {
+            $yr = $normalizeYear((int) $m[3]);
+            if ($yr >= 2000) {
+                $result['month'] = (int) $m[2];
+                $result['year']  = $yr;
+            }
         }
 
         return $result;
