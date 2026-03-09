@@ -601,36 +601,53 @@ class SftpPayslipService
         }
 
         $candidates = [];
-        $seen = [];
+        $seen       = [];
+        $rawLower   = mb_strtolower(trim($rawName));
 
-        // Pass 1: SQL partial match
-        $likeMatches = Company::where('is_active', true)
-            ->where('name', 'like', '%' . $rawName . '%')
-            ->get();
-
-        foreach ($likeMatches as $company) {
-            $seen[$company->id] = true;
-            $candidates[] = [
-                'company_id'   => $company->id,
-                'company_name' => $company->name,
-                'confidence'   => 0.90,
-                'strategy'     => 'partial_match',
-            ];
-        }
-
-        // Pass 2: similar_text() across ALL active companies (for fuzzy coverage)
         $allCompanies = Company::where('is_active', true)->get();
 
         foreach ($allCompanies as $company) {
-            if (isset($seen[$company->id])) {
-                continue; // Already included from pass 1
+            $companyLower = mb_strtolower($company->name);
+
+            // Pass 1a: company name contains the full raw text
+            // (e.g. raw = "PERENCO", company = "PERENCO CAMEROUN")
+            if (str_contains($companyLower, $rawLower)) {
+                $seen[$company->id] = true;
+                $candidates[] = [
+                    'company_id'   => $company->id,
+                    'company_name' => $company->name,
+                    'confidence'   => 0.90,
+                    'strategy'     => 'partial_match',
+                ];
+                continue;
             }
 
-            similar_text(
-                mb_strtolower($rawName),
-                mb_strtolower($company->name),
-                $percent
-            );
+            // Pass 1b: raw text contains the company name as a whole word/phrase
+            // (e.g. raw = "CIBLE RH MISE A DISPOSITION PERENCO WORK OVER", company = "PERENCO")
+            if (preg_match('/\b' . preg_quote($companyLower, '/') . '\b/iu', $rawLower)) {
+                $seen[$company->id] = true;
+                $candidates[] = [
+                    'company_id'   => $company->id,
+                    'company_name' => $company->name,
+                    'confidence'   => 0.85,
+                    'strategy'     => 'reverse_partial_match',
+                ];
+                continue;
+            }
+
+            // Pass 2: fuzzy similarity — handles typos and short names not caught above
+            // Compare company name against raw text for a fair length-normalised score
+            similar_text($companyLower, $rawLower, $percent);
+
+            // Also test similarity against individual words from raw text
+            $words = preg_split('/\s+/', $rawLower);
+            foreach ($words as $word) {
+                if (strlen($word) < 3) continue;
+                similar_text($companyLower, $word, $wordPercent);
+                if ($wordPercent > $percent) {
+                    $percent = $wordPercent;
+                }
+            }
 
             if ($percent >= 50.0) {
                 $candidates[] = [
