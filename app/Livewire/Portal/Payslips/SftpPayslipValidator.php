@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Company;
 use App\Models\PayslipMatchingProposal;
 use App\Jobs\ProcessValidatedPayslipsJob;
+use App\Services\SftpPayslipService;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Livewire\Traits\WithDataTable;
@@ -98,6 +99,47 @@ class SftpPayslipValidator extends Component
             'totalProcessed' => PayslipMatchingProposal::processed()->count(),
             'totalRejected' => PayslipMatchingProposal::rejected()->count(),
         ])->layout('components.layouts.dashboard');
+    }
+
+    /**
+     * Re-run company matching on an existing proposal's local file
+     */
+    public function rematch(string $proposalId): void
+    {
+        $proposal = PayslipMatchingProposal::findOrFail($proposalId);
+
+        if (!$proposal->local_file_path || !file_exists($proposal->local_file_path)) {
+            $this->dispatch('alert', ['type' => 'error', 'message' => __('payslips.local_file_not_found')]);
+            return;
+        }
+
+        $service    = new SftpPayslipService();
+        $metadata   = $service->extractPdfMetadata($proposal->local_file_path);
+        $candidates = !empty($metadata['company_raw'])
+            ? $service->matchCompanyFuzzy($metadata['company_raw'])
+            : [];
+
+        $best = $candidates[0] ?? null;
+
+        $proposal->update([
+            'proposed_match' => [
+                'company_raw' => $metadata['company_raw'],
+                'candidates'  => $candidates,
+                'best_match'  => $best,
+            ],
+            'matched_to_company_id'    => $best['company_id']    ?? $proposal->matched_to_company_id,
+            'matched_to_department_id' => $proposal->matched_to_department_id,
+            'matched_month'            => $metadata['month']     ?? $proposal->matched_month,
+            'matched_year'             => $metadata['year']      ?? $proposal->matched_year,
+            'raw_text_preview'         => $metadata['raw_text_preview'] ?? $proposal->raw_text_preview,
+        ]);
+
+        $this->dispatch('alert', [
+            'type'    => empty($candidates) ? 'warning' : 'success',
+            'message' => empty($candidates)
+                ? __('payslips.rematch_no_candidates')
+                : __('payslips.rematch_found', ['count' => count($candidates)]),
+        ]);
     }
 
     /**
