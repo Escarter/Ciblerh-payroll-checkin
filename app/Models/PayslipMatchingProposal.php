@@ -34,7 +34,7 @@ class PayslipMatchingProposal extends Model
 
     protected $casts = [
         'proposed_match' => 'array',
-        'file_timestamp' => 'timestamp',
+        'file_timestamp' => 'datetime',
         'matched_at' => 'datetime',
         'processed_at' => 'datetime',
     ];
