@@ -103,7 +103,7 @@
                 <div class="col-12 col-md-3">
                     <label class="form-label form-label-sm mb-1 text-muted">{{ __('common.search_filename') }}</label>
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-gray-500 border-end-0">
+                        <span class="input-group-text border-end-0">
                             <svg class="icon icon-xs text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
@@ -397,7 +397,7 @@
                         @if ($companyRaw)
                             <div class="mb-3">
                                 <div class="small text-muted mb-1">{{ __('payslips.extracted_company_text') }}</div>
-                                <div class="p-2 bg-gray-500 rounded border small font-monospace">{{ $companyRaw }}</div>
+                                <div class="p-2 bg-gray-200 rounded border small font-monospace">{{ $companyRaw }}</div>
                             </div>
                         @endif
 
