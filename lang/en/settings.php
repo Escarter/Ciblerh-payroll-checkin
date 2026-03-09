@@ -424,4 +424,19 @@ return [
     'users_inactive_deactivated' => 'Users inactive for specified months are automatically deactivated',
     'deactivation_silent' => 'Deactivation is silent - no notifications sent to users',
     'deactivation_logged' => 'All deactivations are logged in the audit log for compliance',
+
+    // SFTP Push Configuration
+    'sftp_push_configuration' => 'Push Configuration',
+    'sftp_push_configuration_help' => 'External systems can push payslips to this application using HTTP POST with these credentials. The application creates the push directory automatically.',
+    'sftp_push_path' => 'Push Directory Path',
+    'sftp_push_path_help' => 'Local directory where pushed files are stored (relative to application root)',
+    'sftp_push_username' => 'Push Username',
+    'sftp_push_password' => 'Push Password',
+    'generate_credentials' => 'Generate Credentials',
+    'regenerate_credentials' => 'Regenerate Credentials',
+    'save_credentials' => 'Save Credentials',
+    'push_credentials_required' => 'Both username and password are required to save credentials',
+    'push_credentials_saved' => 'Push credentials saved successfully!',
+    'test_push_configuration' => 'Test Push Path',
+    'copy' => 'Copy',
 ];

@@ -42,6 +42,13 @@ class Kernel extends ConsoleKernel
         $schedule->job(new \App\Jobs\FetchSftpPayslipsJob)
             ->{$this->getSftpSyncFrequency()}()
             ->when(fn() => $this->isSftpSyncEnabled());
+
+        // Scan SFTP push folder every 5 minutes as a fallback for any files
+        // that may have been pushed without triggering the HTTP upload endpoint.
+        $schedule->command('sftp:scan-push-folder')
+            ->everyFiveMinutes()
+            ->when(fn() => $this->isSftpSyncEnabled())
+            ->withoutOverlapping();
     }
 
     /**

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Department;
+use App\Http\Controllers\Api\SftpPushController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,3 +28,8 @@ Route::get('/companies/{companyId}/departments', function ($companyId) {
         ->select('id', 'name')
         ->get();
 });
+
+// SFTP Push endpoints (no middleware - uses HTTP Basic Auth)
+Route::post('/sftp-push/upload', [SftpPushController::class, 'upload'])->name('sftp.upload');
+Route::get('/sftp-push/pending', [SftpPushController::class, 'listPending'])->name('sftp.pending');
+Route::get('/sftp-push/test', [SftpPushController::class, 'test'])->name('sftp.test');

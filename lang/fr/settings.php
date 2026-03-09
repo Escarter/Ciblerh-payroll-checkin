@@ -425,4 +425,19 @@ return [
     'users_inactive_deactivated' => 'Les utilisateurs inactifs pendant le nombre de mois spécifié sont automatiquement désactivés',
     'deactivation_silent' => 'La désactivation est silencieuse - aucune notification n\'est envoyée aux utilisateurs',
     'deactivation_logged' => 'Toutes les désactivations sont enregistrées dans le journal d\'audit à des fins de conformité',
+
+    // SFTP Push Configuration
+    'sftp_push_configuration' => 'Configuration Push',
+    'sftp_push_configuration_help' => 'Les systèmes externes peuvent envoyer des fiches de paie à cette application en utilisant HTTP POST avec ces identifiants. L\'application crée le répertoire push automatiquement.',
+    'sftp_push_path' => 'Chemin du répertoire push',
+    'sftp_push_path_help' => 'Répertoire local où sont stockés les fichiers envoyés (relatif à la racine de l\'application)',
+    'sftp_push_username' => 'Nom d\'utilisateur Push',
+    'sftp_push_password' => 'Mot de passe Push',
+    'generate_credentials' => 'Générer les identifiants',
+    'regenerate_credentials' => 'Régénérer les identifiants',
+    'save_credentials' => 'Enregistrer les identifiants',
+    'push_credentials_required' => 'Le nom d\'utilisateur et le mot de passe sont tous deux requis pour enregistrer les identifiants',
+    'push_credentials_saved' => 'Identifiants push enregistrés avec succès!',
+    'test_push_configuration' => 'Tester le chemin push',
+    'copy' => 'Copier',
 ];

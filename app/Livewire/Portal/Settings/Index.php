@@ -10,7 +10,7 @@ use App\Services\TwilioSMS;
 use App\Services\AwsSnsSMS;
 use Illuminate\Support\Facades\Mail;
 use App\Livewire\Traits\WithDataTable;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class Index extends Component
@@ -80,21 +80,18 @@ class Index extends Component
     public $deactivation_check_time = '02:00';
 
     public $sftp_sync_enabled = false;
-    public $sftp_host;
-    public $sftp_port = 22;
-    public $sftp_username;
-    public $sftp_password;
-    public $sftp_private_key_path;
-    public $sftp_passphrase;
-    public $sftp_root = '/payslips';
-    public $sftp_auth_type = 'password';
+    public $sftp_push_username;
+    public $sftp_push_password;
+    public $sftp_push_path = 'storage/app/sftp-push';
     public $sftp_sync_frequency = 'daily';
     public $sftp_matching_strategies = [];
     public $sftp_connection_status = false;
     public $test_sftp_message;
 
-    /** One-time display of generated SFTP password (cleared after user acknowledges) */
+    /** One-time display of generated push credentials */
+    public $sftp_generated_username_display = null;
     public $sftp_generated_password_display = null;
+    public $show_push_password = false;
 
     public function mount() {
 
@@ -151,20 +148,15 @@ class Index extends Component
         $this->deactivation_check_time = !empty($this->setting) ? $this->setting->deactivation_check_time : '02:00';
 
         $this->sftp_sync_enabled = $this->setting ? (bool) $this->setting->sftp_sync_enabled : false;
-        $this->sftp_host = !empty($this->setting) ? $this->setting->sftp_host : '';
-        $this->sftp_port = !empty($this->setting) ? $this->setting->sftp_port : 22;
-        $this->sftp_username = !empty($this->setting) ? $this->setting->sftp_username : '';
-        $this->sftp_password = !empty($this->setting) ? $this->setting->sftp_password : '';
-        $this->sftp_private_key_path = !empty($this->setting) ? $this->setting->sftp_private_key_path : '';
-        $this->sftp_passphrase = !empty($this->setting) ? $this->setting->sftp_passphrase : '';
-        $this->sftp_root = !empty($this->setting) ? $this->setting->sftp_root : '/payslips';
-        $this->sftp_auth_type = !empty($this->setting) ? $this->setting->sftp_auth_type : 'password';
+        $this->sftp_push_username = !empty($this->setting) ? $this->setting->sftp_push_username : '';
+        $this->sftp_push_password = !empty($this->setting) ? $this->setting->sftp_push_password : '';
+        $this->sftp_push_path = !empty($this->setting) ? $this->setting->sftp_push_path : 'storage/app/sftp-push';
         $this->sftp_sync_frequency = !empty($this->setting) ? $this->setting->sftp_sync_frequency : 'daily';
         $this->sftp_matching_strategies = !empty($this->setting) && !empty($this->setting->sftp_matching_strategies) 
             ? $this->setting->sftp_matching_strategies 
             : [];
 
-        // Check if SFTP is already configured
+        // Check if SFTP push is already configured
         $this->checkSftpConnectionStatus();
 
         // Initialize provider-specific properties based on current provider (after all properties are loaded)
@@ -425,106 +417,142 @@ class Index extends Component
             [
                 'company_id' => 1,
                 'sftp_sync_enabled' => $this->sftp_sync_enabled,
-                'sftp_host' => $this->sftp_host,
-                'sftp_port' => $this->sftp_port,
-                'sftp_username' => $this->sftp_username,
-                'sftp_password' => $this->sftp_password,
-                'sftp_private_key_path' => $this->sftp_private_key_path,
-                'sftp_passphrase' => $this->sftp_passphrase,
-                'sftp_root' => $this->sftp_root,
-                'sftp_auth_type' => $this->sftp_auth_type,
+                'sftp_push_username' => $this->sftp_push_username,
+                'sftp_push_password' => $this->sftp_push_password,
+                'sftp_push_path' => $this->sftp_push_path,
                 'sftp_sync_frequency' => $this->sftp_sync_frequency,
                 'sftp_matching_strategies' => $this->sftp_matching_strategies,
             ]
         );
 
         if ($setting) {
+            // Update checksum for push path changes
+            $this->checkSftpConnectionStatus();
             $this->showToast(__('common.saved_successfully'), 'success');
         }
     }
 
-    public function testSftpConnection()
-    {
-        try {
-            $this->validate([
-                'sftp_host' => 'required',
-                'sftp_username' => 'required',
-                'sftp_port' => 'required|integer',
-            ]);
-
-            $config = [
-                'driver' => 'sftp',
-                'host' => $this->sftp_host,
-                'username' => $this->sftp_username,
-                'password' => $this->sftp_auth_type === 'password' ? $this->sftp_password : null,
-                'privateKey' => $this->sftp_auth_type === 'ssh_key' ? $this->sftp_private_key_path : null,
-                'passphrase' => $this->sftp_auth_type === 'ssh_key' ? $this->sftp_passphrase : null,
-                'port' => $this->sftp_port,
-                'root' => $this->sftp_root ?? '/',
-                'timeout' => 10,
-            ];
-
-            $disk = \Illuminate\Support\Facades\Storage::build($config);
-            $files = $disk->listContents('/', false);
-            
-            $this->sftp_connection_status = true;
-            $this->test_sftp_message = __('settings.test_connection_success');
-            $this->showToast(__('settings.test_connection_success'), 'success');
-        } catch (\Exception $e) {
-            $this->sftp_connection_status = false;
-            $this->test_sftp_message = __('settings.test_connection_failed') . ': ' . $e->getMessage();
-            $this->showToast($this->test_sftp_message, 'danger');
-        }
-    }
-
     /**
-     * Check if SFTP is already configured by validating that all required credentials exist
+     * Check if SFTP push is already configured
      */
     private function checkSftpConnectionStatus()
     {
-        // Check if all required SFTP credentials are configured
-        if (!empty($this->sftp_host) && !empty($this->sftp_username) && !empty($this->sftp_port)) {
-            // If auth_type is password, check password exists
-            if ($this->sftp_auth_type === 'password' && !empty($this->sftp_password)) {
-                $this->sftp_connection_status = true;
-            }
-            // If auth_type is ssh_key, check private key path exists
-            elseif ($this->sftp_auth_type === 'ssh_key' && !empty($this->sftp_private_key_path)) {
-                $this->sftp_connection_status = true;
-            }
-            else {
-                $this->sftp_connection_status = false;
-            }
+        // Check if all required SFTP push credentials are configured
+        if (!empty($this->sftp_push_username) && !empty($this->sftp_push_password) && !empty($this->sftp_push_path)) {
+            $this->sftp_connection_status = true;
         } else {
             $this->sftp_connection_status = false;
         }
     }
 
     /**
-     * Generate SFTP user credentials (username + password) and save to settings.
-     * The password is shown once in the UI; the admin must create this user on the SFTP server.
+     * Generate SFTP push credentials (username + password) for receiving payslips
+     * The credentials are displayed once and stored in settings
      */
-    public function generateSftpCredentials()
+    public function generateSftpPushCredentials()
     {
-        $username = 'ciblerh_payslip_' . Str::lower(Str::random(8));
+        $username = 'push_' . Str::lower(Str::random(8));
         $password = Str::random(24);
 
-        Setting::updateOrCreate(
-            ['company_id' => 1],
-            [
-                'company_id' => 1,
-                'sftp_username' => $username,
-                'sftp_password' => $password,
-                'sftp_auth_type' => 'password',
-            ]
-        );
-
-        $this->sftp_username = $username;
-        $this->sftp_password = $password;
-        $this->sftp_auth_type = 'password';
+        $this->sftp_push_username = $username;
+        $this->sftp_push_password = $password;
+        $this->sftp_generated_username_display = $username;
         $this->sftp_generated_password_display = $password;
 
         $this->showToast(__('settings.sftp_credentials_generated'), 'success');
+    }
+
+    /**
+     * Save generated push credentials to settings
+     */
+    public function saveSftpPushCredentials()
+    {
+        if (empty($this->sftp_push_username) || empty($this->sftp_push_password)) {
+            $this->addError('sftp_push_credentials', __('settings.push_credentials_required'));
+            return;
+        }
+
+        // Auto-create the push directory if it doesn't exist
+        $pushPath = base_path($this->sftp_push_path);
+        if (!file_exists($pushPath)) {
+            @mkdir($pushPath, 0755, true);
+        }
+
+        // Create 'processed' subdirectory if it doesn't exist
+        $processedDir = $pushPath . '/processed';
+        if (!file_exists($processedDir)) {
+            @mkdir($processedDir, 0755, true);
+        }
+
+        // Create 'failed' subdirectory if it doesn't exist
+        $failedDir = $pushPath . '/failed';
+        if (!file_exists($failedDir)) {
+            @mkdir($failedDir, 0755, true);
+        }
+
+        Setting::updateOrCreate(
+            [],
+            [
+                'sftp_push_username' => $this->sftp_push_username,
+                'sftp_push_password' => $this->sftp_push_password,
+                'sftp_push_path' => $this->sftp_push_path,
+                'sftp_credentials_generated_at' => now(),
+            ]
+        );
+
+        $this->showToast(__('settings.push_credentials_saved'), 'success');
+        $this->sftp_generated_username_display = null;
+        $this->sftp_generated_password_display = null;
+    }
+
+    /**
+     * Test SFTP push endpoint and path accessibility
+     */
+    public function testSftpPushConfiguration()
+    {
+        try {
+            $filesystemService = new \App\Services\FilesystemPayslipService();
+            $result = $filesystemService->testPushPath();
+
+            if ($result['success']) {
+                $this->sftp_connection_status = true;
+                $this->test_sftp_message = $result['message'] . '. Files found: ' . ($result['file_count'] ?? 0);
+                $this->showToast(__('settings.test_connection_success'), 'success');
+            } else {
+                $this->sftp_connection_status = false;
+                $this->test_sftp_message = $result['message'];
+                $this->showToast($result['message'], 'warning');
+            }
+        } catch (\Exception $e) {
+            $this->sftp_connection_status = false;
+            $this->test_sftp_message = $e->getMessage();
+            $this->showToast(__('settings.test_connection_failed') . ': ' . $e->getMessage(), 'danger');
+        }
+    }
+
+    /**
+     * Copy push credentials to clipboard (JSON format for integration documentation)
+     */
+    public function copyPushCredentialsToClipboard()
+    {
+        $credentials = [
+            'http_endpoint' => route('sftp.upload'),
+            'username' => $this->sftp_push_username,
+            'password' => $this->sftp_push_password,
+            'auth_type' => 'http_basic',
+            'example_curl' => 'curl -F "file=@payslip.pdf" -u ' . $this->sftp_push_username . ':' . $this->sftp_push_password . ' ' . route('sftp.upload'),
+        ];
+
+        $this->dispatch('copy-to-clipboard', json_encode($credentials, JSON_PRETTY_PRINT));
+        $this->showToast(__('settings.credentials_copied'), 'success');
+    }
+
+    /**
+     * Regenerate push credentials (creates new username/password)
+     */
+    public function regenerateSftpPushCredentials()
+    {
+        $this->generateSftpPushCredentials();
     }
 
     /**
@@ -532,7 +560,30 @@ class Index extends Component
      */
     public function clearSftpGeneratedPasswordDisplay()
     {
+        $this->sftp_generated_username_display = null;
         $this->sftp_generated_password_display = null;
+    }
+
+    /**
+     * Save SFTP configuration to settings
+     */
+    public function save()
+    {
+        if (!Gate::allows('manage-settings')) {
+            return abort(401);
+        }
+
+        Setting::updateOrCreate(
+            [],
+            [
+                'sftp_sync_enabled' => $this->sftp_sync_enabled,
+                'sftp_push_path' => $this->sftp_push_path,
+                'sftp_sync_frequency' => $this->sftp_sync_frequency,
+                'sftp_matching_strategies' => $this->sftp_matching_strategies,
+            ]
+        );
+
+        $this->showToast(__('settings.configuration_saved'), 'success');
     }
 
     public function render()

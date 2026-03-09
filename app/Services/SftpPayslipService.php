@@ -4,8 +4,9 @@ namespace App\Services;
 
 use App\Models\Department;
 use App\Models\Company;
+use Escarter\PopplerPhp\PdfToText;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Collection;
+use League\Flysystem\FilesystemOperationFailed;
 
 class SftpPayslipService
 {
@@ -13,6 +14,11 @@ class SftpPayslipService
      * SFTP configuration from settings
      */
     private array $config;
+    
+    /**
+     * Cached SFTP disk instance
+     */
+    private $disk = null;
 
     public function __construct()
     {
@@ -31,13 +37,13 @@ class SftpPayslipService
     }
 
     /**
-     * Fetch payslips from SFTP server
+     * Get or create SFTP disk connection (connection pooling)
      *
-     * @return array
+     * @return mixed
      */
-    public function fetchPayslipsFromSftp(): array
+    private function getDisk()
     {
-        try {
+        if ($this->disk === null) {
             $config = [
                 'host' => $this->config['host'],
                 'username' => $this->config['username'],
@@ -55,25 +61,119 @@ class SftpPayslipService
                 $config['password'] = $this->config['password'];
             }
 
-            $disk = Storage::build([
+            $this->disk = Storage::build([
                 'driver' => 'sftp',
                 ...$config,
                 'root' => $this->config['root'],
             ]);
+        }
 
+        return $this->disk;
+    }
+
+    /**
+     * Fetch payslips from SFTP server with advanced filtering
+     *
+     * @param array $options Options for filtering:
+     *   - lastModifiedAfter: int (timestamp) - only files modified after this time
+     *   - maxDepth: int - limit directory depth (default: unlimited)
+     *   - limit: int - max files to return per batch (default: 100)
+     *   - offset: int - pagination offset (default: 0)
+     *   - extensions: array - file extensions to include (default: ['pdf'])
+     *   - returnDirs: bool - include directories in response (default: false)
+     * @return array
+     */
+    public function fetchPayslipsFromSftp(array $options = []): array
+    {
+        try {
+            // Set defaults
+            $lastModifiedAfter = $options['lastModifiedAfter'] ?? 0;
+            $maxDepth = $options['maxDepth'] ?? null;
+            $limit = $options['limit'] ?? 100;
+            $offset = $options['offset'] ?? 0;
+            $extensions = $options['extensions'] ?? ['pdf'];
+            $returnDirs = $options['returnDirs'] ?? false;
+
+            $disk = $this->getDisk();
+            
             $files = [];
-            $contents = $disk->listContents('/', true);
+            $skipped = 0;
+            $processedCount = 0;
+
+            try {
+                $contents = $disk->listContents('/', true);
+            } catch (FilesystemOperationFailed $e) {
+                return [
+                    'success' => false,
+                    'error' => "Failed to list SFTP contents: {$e->getMessage()}",
+                    'files' => [],
+                    'count' => 0,
+                    'skipped' => 0,
+                ];
+            }
 
             foreach ($contents as $item) {
-                if ($item->isFile()) {
+                // Respect max depth setting
+                if ($maxDepth !== null) {
+                    $depth = substr_count($item->path(), '/');
+                    if ($depth > $maxDepth) {
+                        continue;
+                    }
+                }
+
+                // Handle directories if requested
+                if ($item->isDir()) {
+                    if ($returnDirs) {
+                        $files[] = [
+                            'type' => 'dir',
+                            'path' => $item->path(),
+                            'basename' => basename($item->path()),
+                        ];
+                    }
+                    continue;
+                }
+
+                // Filter by file extension
+                $filename = strtolower($item->filename());
+                $ext = pathinfo($filename, PATHINFO_EXTENSION);
+                
+                if (!in_array($ext, $extensions)) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Filter by lastModified timestamp
+                $fileTimestamp = $item->lastModified();
+                if ($fileTimestamp < $lastModifiedAfter) {
+                    $skipped++;
+                    continue;
+                }
+
+                $processedCount++;
+
+                // Apply pagination
+                if ($processedCount <= $offset) {
+                    continue;
+                }
+
+                if (count($files) >= $limit) {
+                    break;
+                }
+
+                // Safely extract file metadata with error handling
+                try {
                     $files[] = [
+                        'type' => 'file',
                         'path' => $item->path(),
                         'filename' => $item->filename(),
                         'basename' => basename($item->path()),
                         'size' => $item->fileSize(),
-                        'timestamp' => $item->lastModified(),
-                        'mimetype' => $item->mimeType(),
+                        'timestamp' => $fileTimestamp,
+                        'mimetype' => $item->mimeType() ?? 'application/octet-stream',
                     ];
+                } catch (\Exception $e) {
+                    \Log::warning("Error extracting metadata for {$item->path()}: {$e->getMessage()}");
+                    continue;
                 }
             }
 
@@ -81,15 +181,39 @@ class SftpPayslipService
                 'success' => true,
                 'files' => $files,
                 'count' => count($files),
+                'skipped' => $skipped,
+                'processed' => $processedCount,
+                'hasMore' => $processedCount > ($offset + $limit),
+                'offset' => $offset,
+                'limit' => $limit,
             ];
         } catch (\Exception $e) {
+            \Log::error("SFTP fetch error: {$e->getMessage()}", [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
                 'files' => [],
                 'count' => 0,
+                'skipped' => 0,
             ];
         }
+    }
+
+    /**
+     * Legacy method for backward compatibility - fetches all PDFs
+     *
+     * @return array
+     */
+    public function fetchPayslipsFromSftpLegacy(): array
+    {
+        return $this->fetchPayslipsFromSftp([
+            'extensions' => ['pdf'],
+            'limit' => 1000, // Fetch up to 1000 files
+        ]);
     }
 
     /**
@@ -301,8 +425,8 @@ class SftpPayslipService
                 'root' => $this->config['root'],
             ]);
 
-            // Try to list root directory
-            $disk->listContents('/', false);
+            // Try to access the root directory to test connection
+            $disk->exists('/');
 
             return [
                 'success' => true,
@@ -371,5 +495,156 @@ class SftpPayslipService
         $date = \Carbon\Carbon::createFromTimestamp($timestamp);
         $metadata['matches']['timestamp_month'] = $date->month;
         $metadata['matches']['timestamp_year'] = $date->year;
+    }
+
+    /**
+     * Extract company name and pay period from a pushed PDF file.
+     *
+     * Company name: reads the first non-empty lines at the top of the document
+     * before any employee-specific field appears (Matricule, Nom, CIN, etc.).
+     *
+     * Period: searches for "Période du DD/MM/YYYY" (or "Periode du …") anywhere
+     * in the text and derives month + year from the start date.
+     *
+     * @param  string $absoluteFilePath Absolute filesystem path to the PDF
+     * @return array{company_raw: string|null, month: int|null, year: int|null, raw_text_preview: string}
+     */
+    public function extractPdfMetadata(string $absoluteFilePath): array
+    {
+        $result = [
+            'company_raw'       => null,
+            'month'             => null,
+            'year'              => null,
+            'raw_text_preview'  => '',
+        ];
+
+        try {
+            $text = PdfToText::getText($absoluteFilePath, config('ciblerh.pdftotext_path'));
+        } catch (\Throwable $e) {
+            \Log::warning('SftpPayslipService: PdfToText failed', [
+                'file' => $absoluteFilePath,
+                'error' => $e->getMessage(),
+            ]);
+            return $result;
+        }
+
+        if (empty(trim($text))) {
+            return $result;
+        }
+
+        $result['raw_text_preview'] = substr($text, 0, 500);
+
+        // ── 1. Extract company name ──────────────────────────────────────────
+        // Employee-specific keywords that signal the header block has ended.
+        $stopKeywords = ['matricule', 'nom', 'cin', 'employé', 'employe', 'département', 'departement',
+                         'service', 'bulletin', 'fiche', 'salaire', 'brut', 'net', 'date'];
+
+        $lines = preg_split('/\r?\n/', $text);
+        $companyCandidate = null;
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+            if (empty($trimmed)) {
+                continue;
+            }
+
+            // Stop as soon as we reach an employee-specific field
+            $lower = mb_strtolower($trimmed);
+            $isStop = false;
+            foreach ($stopKeywords as $kw) {
+                if (str_contains($lower, $kw)) {
+                    $isStop = true;
+                    break;
+                }
+            }
+            if ($isStop) {
+                break;
+            }
+
+            // Take the first meaningful line as company name candidate
+            // Skip lines that look like page numbers or pure numbers
+            if (!$companyCandidate && !preg_match('/^\d+$/', $trimmed)) {
+                $companyCandidate = $trimmed;
+            }
+        }
+
+        $result['company_raw'] = $companyCandidate;
+
+        // ── 2. Extract pay period ────────────────────────────────────────────
+        // Matches: "Période du 01/01/2025", "Periode du 01/01/2025 au …"
+        if (preg_match(
+            '/p[ée]riode\s+du\s+(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/iu',
+            $text,
+            $m
+        )) {
+            $result['month'] = (int) $m[2];
+            $result['year']  = (int) $m[3];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Fuzzy-match a raw company name string against all active companies.
+     *
+     * Strategy:
+     *  1. SQL LIKE partial match (confidence 0.90)
+     *  2. PHP similar_text() scoring across all companies (min 50% similarity)
+     *
+     * @param  string $rawName
+     * @return array  Sorted candidates: [['company_id', 'company_name', 'confidence', 'strategy'], …]
+     */
+    public function matchCompanyFuzzy(string $rawName): array
+    {
+        if (empty(trim($rawName))) {
+            return [];
+        }
+
+        $candidates = [];
+        $seen = [];
+
+        // Pass 1: SQL partial match
+        $likeMatches = Company::where('is_active', true)
+            ->where('name', 'like', '%' . $rawName . '%')
+            ->get();
+
+        foreach ($likeMatches as $company) {
+            $seen[$company->id] = true;
+            $candidates[] = [
+                'company_id'   => $company->id,
+                'company_name' => $company->name,
+                'confidence'   => 0.90,
+                'strategy'     => 'partial_match',
+            ];
+        }
+
+        // Pass 2: similar_text() across ALL active companies (for fuzzy coverage)
+        $allCompanies = Company::where('is_active', true)->get();
+
+        foreach ($allCompanies as $company) {
+            if (isset($seen[$company->id])) {
+                continue; // Already included from pass 1
+            }
+
+            similar_text(
+                mb_strtolower($rawName),
+                mb_strtolower($company->name),
+                $percent
+            );
+
+            if ($percent >= 50.0) {
+                $candidates[] = [
+                    'company_id'   => $company->id,
+                    'company_name' => $company->name,
+                    'confidence'   => round($percent / 100, 2),
+                    'strategy'     => 'fuzzy',
+                ];
+            }
+        }
+
+        // Sort by confidence descending
+        usort($candidates, fn($a, $b) => $b['confidence'] <=> $a['confidence']);
+
+        return $candidates;
     }
 }

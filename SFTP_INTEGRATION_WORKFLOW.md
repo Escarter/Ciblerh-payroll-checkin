@@ -357,3 +357,186 @@ When proposal processing fails:
 - Proposal marked as `failed` with reason
 - Admin can take corrective action
 
+---
+
+## Performance Improvements (v2.0)
+
+### 1. **PDF-Only Filtering During Listing**
+- **Before**: Listed ALL files, then filtered for PDFs in the job
+- **After**: Filters by extension (`pdf`) during SFTP listing to reduce data transfer and processing
+
+### 2. **Incremental Fetching with `lastModifiedAfter`**
+- **Feature**: Only fetch files modified after last sync time
+- **Benefit**: Significantly reduces I/O for servers with thousands of files
+- **Implementation**: 
+  ```php
+  $result = $sftpService->fetchPayslipsFromSftp([
+      'lastModifiedAfter' => Cache::get('sftp_last_sync_time', 0),
+  ]);
+  ```
+- **Cache Key**: `sftp_last_sync_time` (24-hour TTL)
+
+### 3. **Configurable Depth Limiting**
+- **Feature**: Limit directory depth to avoid searching deeply nested folders
+- **Default**: `maxDepth: 5` in FetchSftpPayslipsJob
+- **Use Case**: Speed up searches when files are in known shallow directories
+- **Configuration**:
+  ```php
+  $result = $sftpService->fetchPayslipsFromSftp([
+      'maxDepth' => 3, // Only search 3 levels deep
+  ]);
+  ```
+
+### 4. **Pagination Support**
+- **Feature**: Process large file sets in batches to prevent timeouts
+- **Batch Size**: 100 files per job (configurable via `limit` option)
+- **Auto-queueing**: If more files exist, automatically queue another fetch job
+- **Implementation**:
+  ```php
+  if ($result['hasMore'] ?? false) {
+      dispatch(new FetchSftpPayslipsJob())
+          ->delay(now()->addSeconds(30))
+          ->onQueue('processing');
+  }
+  ```
+- **Example**: Server with 5,000 files processed in 50 jobs (100 files each)
+
+### 5. **Connection Pooling**
+- **Feature**: Reuse SFTP disk connection within request lifecycle
+- **Benefit**: Reduces connection overhead for multiple operations
+- **Implementation**: Private `$disk` property cached in `getDisk()` method
+
+### 6. **Enhanced Error Handling**
+- **File-Level Errors**: Individual file processing errors don't break entire job
+- **Detailed Logging**: Each error logs file name, path, and error message
+- **Error Tracking**: `download_status` and `download_error` stored in PayslipMatchingProposal
+- **Metrics**: Job logs total errors, downloads succeeded, and files skipped
+
+### 7. **Legacy Compatibility**
+- **Method**: `fetchPayslipsFromSftpLegacy()`
+- **Purpose**: Fetch up to 1,000 files in single batch (old behavior)
+- **Usage**: Only if backward compatibility needed
+
+---
+
+## Advanced Usage Examples
+
+### Fetch Only Recent Files
+```php
+$sftpService = new SftpPayslipService();
+$result = $sftpService->fetchPayslipsFromSftp([
+    'lastModifiedAfter' => now()->subDays(7)->timestamp, // Last 7 days
+    'extensions' => ['pdf'],
+    'limit' => 50,
+]);
+```
+
+### Search Shallow Directory Structure
+```php
+$result = $sftpService->fetchPayslipsFromSftp([
+    'maxDepth' => 2, // Only current and one subfolder
+    'limit' => 200,
+]);
+```
+
+### Paginated Processing with Callback
+```php
+$offset = 0;
+$limit = 50;
+
+while (true) {
+    $result = $sftpService->fetchPayslipsFromSftp([
+        'limit' => $limit,
+        'offset' => $offset,
+    ]);
+    
+    foreach ($result['files'] as $file) {
+        // Process file
+    }
+    
+    if (!($result['hasMore'] ?? false)) {
+        break;
+    }
+    
+    $offset += $limit;
+}
+```
+
+### Custom Extensions
+```php
+$result = $sftpService->fetchPayslipsFromSftp([
+    'extensions' => ['pdf', 'xlsx', 'csv'], // Multiple file types
+]);
+```
+
+---
+
+## Configuration Reference
+
+### SftpPayslipService::fetchPayslipsFromSftp() Options
+
+| Option | Type | Default | Purpose |
+|--------|------|---------|---------|
+| `extensions` | array | `['pdf']` | File extensions to include |
+| `maxDepth` | int\|null | null | Max directory nesting level |
+| `lastModifiedAfter` | int | 0 | Unix timestamp - only newer files |
+| `limit` | int | 100 | Max files returned per batch |
+| `offset` | int | 0 | Pagination offset |
+| `returnDirs` | bool | false | Include directories in results |
+
+### Response Format
+
+```php
+[
+    'success' => bool,
+    'error' => 'Error message if failed' (string|null),
+    'files' => [
+        [
+            'type' => 'file|dir',
+            'path' => '/payslips/2024/file.pdf',
+            'basename' => 'file.pdf',
+            'filename' => 'file',
+            'size' => 1024000,
+            'timestamp' => 1709123456,
+            'mimetype' => 'application/pdf',
+        ],
+        // ... more files
+    ],
+    'count' => 15,           // Files returned in this batch
+    'skipped' => 42,         // Files skipped (filtered out)
+    'processed' => 57,       // Total files checked
+    'hasMore' => false,      // More files available beyond limit
+    'offset' => 0,
+    'limit' => 100,
+]
+```
+
+---
+
+## Monitoring & Debugging
+
+### Cache Key
+- **Key**: `sftp_last_sync_time`
+- **Value**: Unix timestamp of last successful sync
+- **TTL**: 24 hours (regenerated on each successful fetch)
+- **Clear**: `Cache::forget('sftp_last_sync_time')`
+
+### Log Entries
+```
+[INFO] Fetched 23 new PDF files from SFTP (skipped 156 non-PDF/old files)
+[INFO] Downloaded SFTP file 2024_02_dept.pdf to storage/app/sftp/2026-03-06/...
+[INFO] Created 5 new payslip file proposals. Downloaded: 5, Errors: 0
+[ERROR] Error processing file invalid.pdf: {error details}
+[WARNING] Failed to download 2024_01_dept.pdf: Connection timeout
+```
+
+### Debug Incremental Fetch
+```php
+// Check last sync time
+$lastSync = Cache::get('sftp_last_sync_time', 0);
+echo "Last sync: " . date('Y-m-d H:i:s', $lastSync);
+
+// Force full refresh (clear cache)
+Cache::forget('sftp_last_sync_time');
+```
+
