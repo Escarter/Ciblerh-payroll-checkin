@@ -147,7 +147,7 @@
     </div>
 
     {{-- ── Status Tabs ──────────────────────────────────────────── --}}
-    <ul class="nav nav-tabs mb-3">
+    <div class="d-flex flex-wrap gap-2 mb-3">
         @foreach ([
             'all'       => ['label' => __('common.all'),            'color' => 'secondary', 'count' => null],
             'pending'   => ['label' => __('payslips.pending'),      'color' => 'warning',   'count' => $totalPending],
@@ -155,23 +155,22 @@
             'processed' => ['label' => __('payslips.processed'),    'color' => 'success',   'count' => $totalProcessed],
             'rejected'  => ['label' => __('payslips.rejected'),     'color' => 'danger',    'count' => $totalRejected],
         ] as $tabStatus => $tab)
-            <li class="nav-item">
-                <button class="nav-link {{ $filterStatus === $tabStatus ? 'active' : '' }}"
-                    wire:click="$set('filterStatus', '{{ $tabStatus }}')">
-                    {{ $tab['label'] }}
-                    @if ($tab['count'] !== null)
-                        <span class="badge bg-{{ $tab['color'] }} ms-1">{{ $tab['count'] }}</span>
-                    @endif
-                </button>
-            </li>
+            <button type="button"
+                class="btn {{ $filterStatus === $tabStatus ? 'btn-'.$tab['color'] : 'btn-outline-'.$tab['color'] }}"
+                wire:click="$set('filterStatus', '{{ $tabStatus }}')">
+                {{ $tab['label'] }}
+                @if ($tab['count'] !== null)
+                    <span class="badge {{ $filterStatus === $tabStatus ? 'bg-light text-dark' : 'bg-'.$tab['color'].' text-white' }} ms-1">{{ $tab['count'] }}</span>
+                @endif
+            </button>
         @endforeach
-    </ul>
+    </div>
 
     {{-- ── Proposals Table ──────────────────────────────────────── --}}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+                <thead class="">
                     <tr>
                         @if ($filterStatus === 'validated')
                             <th class="ps-3" style="width:40px">
@@ -299,7 +298,7 @@
                                 <div class="d-flex gap-2 justify-content-end">
                                     {{-- View: pure wire:click, no data-bs-toggle --}}
                                     <button type="button"
-                                        class="btn btn-sm btn-light border"
+                                        class="btn btn-sm btn-outline-secondary"
                                         wire:click="openViewModal('{{ $proposal->id }}')"
                                         title="{{ __('common.view') }}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -311,7 +310,7 @@
                                     @if ($proposal->status === 'pending')
                                         {{-- Edit/Validate --}}
                                         <button type="button"
-                                            class="btn btn-sm btn-primary"
+                                            class="btn btn-sm btn-outline-primary"
                                             wire:click="editProposal('{{ $proposal->id }}')"
                                             title="{{ __('payslips.validate') }}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
