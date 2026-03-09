@@ -37,7 +37,7 @@ class RenameEncryptPdfJob implements ShouldQueue
     public $maxExceptions = 3;
 
     protected $process;
-    protected $department;
+    protected $department; // null when processing company-level (no department)
     protected $destination;
     protected $chunk;
     protected $month;
@@ -52,7 +52,9 @@ class RenameEncryptPdfJob implements ShouldQueue
     public function __construct(Collection $chunk, $process_id)
     {
         $this->process = SendPayslipProcess::findOrFail($process_id);
-        $this->department = Department::findOrFail($this->process->department_id);
+        $this->department = $this->process->department_id
+            ? Department::findOrFail($this->process->department_id)
+            : null;
         $this->destination = $this->process->destination_directory;
         $this->month = $this->process->month;
         $this->chunk = $chunk;
@@ -83,15 +85,18 @@ class RenameEncryptPdfJob implements ShouldQueue
 
         Storage::disk('modified')->makeDirectory($this->destination);
 
+        // Resolve employee pool: department employees, or all company employees if no department
+        $employees = $this->department
+            ? $this->department->employees
+            : $this->process->company->employees;
+
         foreach ($this->chunk as $file) {
 
             $from_path = Storage::disk('splitted')->path($file);
             // $pdf_text = PdfToText::getText($from_path, '/usr/local/bin/pdftotext');
             $pdf_text = PdfToText::getText($from_path, config('ciblerh.pdftotext_path'));
-            // dd(strpos(PdfToText::getText($from_path, '/usr/local/bin/pdftotext'), 'Matricule 135121') !== FALSE);
 
-
-            collect($this->department->employees)->each(function ($employee) use ($pdf_text, $file, $pay_month) {
+            collect($employees)->each(function ($employee) use ($pdf_text, $file, $pay_month) {
 
                 if (empty($employee->matricule)) {
                     $created_record = Payslip::create([
