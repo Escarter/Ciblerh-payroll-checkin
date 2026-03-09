@@ -103,7 +103,7 @@
                 <div class="col-12 col-md-3">
                     <label class="form-label form-label-sm mb-1 text-muted">{{ __('common.search_filename') }}</label>
                     <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-end-0">
+                        <span class="input-group-text bg-gray-500 border-end-0">
                             <svg class="icon icon-xs text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
@@ -160,7 +160,7 @@
                 wire:click="$set('filterStatus', '{{ $tabStatus }}')">
                 {{ $tab['label'] }}
                 @if ($tab['count'] !== null)
-                    <span class="badge {{ $filterStatus === $tabStatus ? 'bg-light text-dark' : 'bg-'.$tab['color'].' '.$tab['text'] }} ms-1 p-2">{{ $tab['count'] }}</span>
+                    <span class="badge {{ $filterStatus === $tabStatus ? 'bg-gray-500 text-dark' : 'bg-'.$tab['color'].' '.$tab['text'] }} ms-1 p-2">{{ $tab['count'] }}</span>
                 @endif
             </button>
         @endforeach
@@ -215,7 +215,7 @@
                             <td>
                                 @if ($bestMatch)
                                     <div class="small">
-                                        <span class="badge bg-light text-dark border mb-1 p-2">{{ ucfirst($bestMatch['strategy']) }}</span>
+                                        <span class="badge bg-gray-500 text-dark border mb-1 p-2">{{ ucfirst($bestMatch['strategy']) }}</span>
                                         @if (!empty($bestMatch['company_name']))
                                             <div class="fw-semibold">{{ $bestMatch['company_name'] }}</div>
                                         @endif
@@ -264,7 +264,7 @@
                             {{-- Period --}}
                             <td class="small text-center">
                                 @if ($proposal->matched_month && $proposal->matched_year)
-                                    <span class="badge bg-light text-dark border p-2">
+                                    <span class="badge bg-gray-500 text-dark border p-2">
                                         {{ str_pad($proposal->matched_month, 2, '0', STR_PAD_LEFT) }}/{{ $proposal->matched_year }}
                                     </span>
                                 @else
@@ -397,7 +397,7 @@
                         @if ($companyRaw)
                             <div class="mb-3">
                                 <div class="small text-muted mb-1">{{ __('payslips.extracted_company_text') }}</div>
-                                <div class="p-2 bg-light rounded border small font-monospace">{{ $companyRaw }}</div>
+                                <div class="p-2 bg-gray-500 rounded border small font-monospace">{{ $companyRaw }}</div>
                             </div>
                         @endif
 
@@ -405,7 +405,7 @@
                         @if ($preview)
                             <div class="mb-4">
                                 <div class="small text-muted mb-1">{{ __('payslips.raw_text_preview') }}</div>
-                                <pre class="p-2 bg-light rounded border small" style="max-height:150px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;">{{ $preview }}</pre>
+                                <pre class="p-2 bg-gray-500 rounded border small" style="max-height:150px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;">{{ $preview }}</pre>
                             </div>
                         @endif
 
@@ -419,7 +419,7 @@
                                 <div class="card-body py-2 px-3">
                                     <div class="d-flex align-items-start justify-content-between gap-3">
                                         <div class="small">
-                                            <span class="badge bg-light text-dark border me-1 p-2">{{ ucfirst($candidate['strategy']) }}</span>
+                                            <span class="badge bg-gray-500 text-dark border me-1 p-2">{{ ucfirst($candidate['strategy']) }}</span>
                                             @if (!empty($candidate['company_name']))
                                                 <span class="fw-semibold">{{ $candidate['company_name'] }}</span>
                                             @endif
