@@ -138,7 +138,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
                             {{ __('payslips.process_selected') }}
-                            <span class="badge bg-white text-dark ms-1 p-3">{{ count($selectedProposals) }}</span>
+                            <span class="badge bg-white text-dark ms-1 p-2">{{ count($selectedProposals) }}</span>
                         </button>
                     @endif
                 </div>
@@ -160,7 +160,7 @@
                 wire:click="$set('filterStatus', '{{ $tabStatus }}')">
                 {{ $tab['label'] }}
                 @if ($tab['count'] !== null)
-                    <span class="badge {{ $filterStatus === $tabStatus ? 'bg-light text-dark' : 'bg-'.$tab['color'].' '.$tab['text'] }} ms-1 p-3">{{ $tab['count'] }}</span>
+                    <span class="badge {{ $filterStatus === $tabStatus ? 'bg-light text-dark' : 'bg-'.$tab['color'].' '.$tab['text'] }} ms-1 p-2">{{ $tab['count'] }}</span>
                 @endif
             </button>
         @endforeach
@@ -215,7 +215,7 @@
                             <td>
                                 @if ($bestMatch)
                                     <div class="small">
-                                        <span class="badge bg-light text-dark border mb-1 p-3">{{ ucfirst($bestMatch['strategy']) }}</span>
+                                        <span class="badge bg-light text-dark border mb-1 p-2">{{ ucfirst($bestMatch['strategy']) }}</span>
                                         @if (!empty($bestMatch['company_name']))
                                             <div class="fw-semibold">{{ $bestMatch['company_name'] }}</div>
                                         @endif
@@ -224,7 +224,7 @@
                                         @endif
                                     </div>
                                 @else
-                                    <span class="badge bg-secondary bg-opacity-25 text-dark p-3">{{ __('payslips.no_match') }}</span>
+                                    <span class="badge bg-secondary bg-opacity-25 text-dark p-2">{{ __('payslips.no_match') }}</span>
                                 @endif
                             </td>
 
@@ -264,7 +264,7 @@
                             {{-- Period --}}
                             <td class="small text-center">
                                 @if ($proposal->matched_month && $proposal->matched_year)
-                                    <span class="badge bg-light text-dark border p-3">
+                                    <span class="badge bg-light text-dark border p-2">
                                         {{ str_pad($proposal->matched_month, 2, '0', STR_PAD_LEFT) }}/{{ $proposal->matched_year }}
                                     </span>
                                 @else
@@ -276,19 +276,19 @@
                             <td>
                                 @switch($proposal->status)
                                     @case('pending')
-                                        <span class="badge bg-warning text-dark p-3">{{ __('payslips.pending') }}</span>
+                                        <span class="badge bg-warning text-dark p-2">{{ __('payslips.pending') }}</span>
                                         @break
                                     @case('validated')
-                                        <span class="badge bg-info text-dark p-3">{{ __('payslips.validated') }}</span>
+                                        <span class="badge bg-info text-dark p-2">{{ __('payslips.validated') }}</span>
                                         @break
                                     @case('processed')
-                                        <span class="badge bg-success text-white p-3">{{ __('payslips.processed') }}</span>
+                                        <span class="badge bg-success text-white p-2">{{ __('payslips.processed') }}</span>
                                         @break
                                     @case('rejected')
-                                        <span class="badge bg-danger text-white p-3">{{ __('payslips.rejected') }}</span>
+                                        <span class="badge bg-danger text-white p-2">{{ __('payslips.rejected') }}</span>
                                         @break
                                     @case('failed')
-                                        <span class="badge bg-dark text-white p-3">{{ __('payslips.failed') }}</span>
+                                        <span class="badge bg-dark text-white p-2">{{ __('payslips.failed') }}</span>
                                         @break
                                 @endswitch
                             </td>
@@ -419,7 +419,7 @@
                                 <div class="card-body py-2 px-3">
                                     <div class="d-flex align-items-start justify-content-between gap-3">
                                         <div class="small">
-                                            <span class="badge bg-light text-dark border me-1 p-3">{{ ucfirst($candidate['strategy']) }}</span>
+                                            <span class="badge bg-light text-dark border me-1 p-2">{{ ucfirst($candidate['strategy']) }}</span>
                                             @if (!empty($candidate['company_name']))
                                                 <span class="fw-semibold">{{ $candidate['company_name'] }}</span>
                                             @endif

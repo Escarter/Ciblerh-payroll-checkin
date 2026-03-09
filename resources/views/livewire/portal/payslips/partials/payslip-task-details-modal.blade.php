@@ -391,7 +391,7 @@
                                             $stats = $this->getTaskStatistics();
                                         @endphp
                                         @if(($stats['failed_percentage'] ?? 0) > 10)
-                                            <span class="badge bg-danger text-white fs-7 p-3" data-bs-toggle="tooltip" title="{{ __('payslips.high_failure_rate_detected') }}">
+                                            <span class="badge bg-danger text-white fs-7 p-2" data-bs-toggle="tooltip" title="{{ __('payslips.high_failure_rate_detected') }}">
                                                 <svg class="icon icon-xs me-1" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                                                 </svg>
@@ -488,7 +488,7 @@
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6 class="mb-0 fw-semibold text-dark">{{ __('payslips.overall_progress') }}</h6>
                                             <div class="d-flex align-items-center gap-2">
-                                                <span class="badge bg-primary text-white fs-7 p-3">{{ number_format($this->getTaskProgressPercentage(), 1) }}% {{ __('common.complete') }}</span>
+                                                <span class="badge bg-primary text-white fs-7 p-2">{{ number_format($this->getTaskProgressPercentage(), 1) }}% {{ __('common.complete') }}</span>
                                                 @if($selectedProcess->status === 'processing')
                                                     <div class="spinner-border spinner-border-sm text-primary" role="status">
                                                         <span class="visually-hidden">{{ __('common.loading') }}</span>
