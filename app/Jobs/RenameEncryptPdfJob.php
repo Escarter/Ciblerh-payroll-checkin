@@ -85,10 +85,12 @@ class RenameEncryptPdfJob implements ShouldQueue
 
         Storage::disk('modified')->makeDirectory($this->destination);
 
-        // Resolve employee pool: department employees, or all company employees if no department
+        // Resolve employee pool: department employees, or all company employees with 'employee' role if no department
         $employees = $this->department
             ? $this->department->employees
-            : $this->process->company->employees;
+            : \App\Models\User::where('company_id', $this->process->company_id)
+                ->whereHas('roles', fn($q) => $q->where('name', 'employee'))
+                ->get();
 
         foreach ($this->chunk as $file) {
 

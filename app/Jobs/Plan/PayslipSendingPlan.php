@@ -103,7 +103,9 @@ class PayslipSendingPlan
     {
         $employees = $payslip_process->department_id
             ? Department::findOrFail($payslip_process->department_id)->employees
-            : $payslip_process->company->employees;
+            : \App\Models\User::where('company_id', $payslip_process->company_id)
+                ->whereHas('roles', fn($q) => $q->where('name', 'employee'))
+                ->get();
 
         $email_jobs = $employees->chunk(config('ciblerh.chunk_size'))->map(function ($employee_chunk) use ($payslip_process) {
             return new SendPayslipJob($employee_chunk, $payslip_process);
@@ -153,7 +155,9 @@ class PayslipSendingPlan
     {
         $allEmployees = $payslip_process->department_id
             ? Department::findOrFail($payslip_process->department_id)->employees
-            : $payslip_process->company->employees;
+            : \App\Models\User::where('company_id', $payslip_process->company_id)
+                ->whereHas('roles', fn($q) => $q->where('name', 'employee'))
+                ->get();
         
         // Get all employees who already have payslip records for this month/process
         $matchedEmployeeIds = Payslip::where('send_payslip_process_id', $payslip_process->id)
