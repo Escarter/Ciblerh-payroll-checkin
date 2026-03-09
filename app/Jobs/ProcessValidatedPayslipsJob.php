@@ -109,10 +109,10 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
                 ]
             );
 
-            // Queue the splitting job to start the pipeline
-            dispatch(new \App\Jobs\SplitPdfJob($sendPayslipProcess))->onQueue('processing');
+            // Start the full pipeline: split → rename/encrypt → finalize → send
+            PayslipSendingPlan::start($sendPayslipProcess);
 
-            \Log::info("SFTP payslip {$this->proposal->file_name} queued for processing. Process ID: {$sendPayslipProcess->id}");
+            \Log::info("SFTP payslip {$this->proposal->file_name} queued for processing via PayslipSendingPlan. Process ID: {$sendPayslipProcess->id}");
 
             // Update proposal to mark as processed
             $this->proposal->update([
