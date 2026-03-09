@@ -58,6 +58,8 @@ return [
     'select_company' => 'Sélectionner une société',
     'select_option' => 'Sélectionner une option',
     'all_companies' => 'Toutes les sociétés',
+    'all_departments' => 'Tous les départements',
+    'search_filename' => 'Rechercher par nom de fichier',
     'select_department' => 'Sélectionner un département',
     'contacts' => 'Contacts',
     'when' => 'Quand',

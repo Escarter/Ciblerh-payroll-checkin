@@ -46,6 +46,16 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
                 return;
             }
 
+            // Company must always be set
+            if (!$this->proposal->matched_to_company_id) {
+                $this->proposal->update([
+                    'status' => PayslipMatchingProposal::STATUS_FAILED,
+                    'rejection_reason' => 'No company assigned to this proposal.',
+                ]);
+                \Log::error("Cannot process proposal {$this->proposal->id}: No company assigned");
+                return;
+            }
+
             // Verify file was successfully downloaded during fetch phase
             if ($this->proposal->download_status !== 'downloaded' || !$this->proposal->local_file_path) {
                 $this->proposal->update([
@@ -73,7 +83,7 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
             // This triggers the standard splitting/encryption/sending pipeline
             $sendPayslipProcess = SendPayslipProcess::create([
                 'user_id' => auth()->id() ?? 1,  // System user or authenticated user
-                'department_id' => $this->proposal->matched_to_department_id,
+                'department_id' => $this->proposal->matched_to_department_id ?? null,
                 'company_id' => $this->proposal->matched_to_company_id,
                 'month' => $this->proposal->matched_month,
                 'year' => $this->proposal->matched_year,

@@ -370,6 +370,7 @@ return [
 
     // SFTP Validator
     'sftp_validator' => 'SFTP Payslip Validator',
+    'sftp_validator_description' => 'Review and validate payslip files downloaded from SFTP. Match files to departments, then process for sending to employees.',
     'pending' => 'Pending',
     'validated' => 'Validated',
     'processed' => 'Processed',
@@ -387,6 +388,7 @@ return [
     'year' => 'Year',
     'reason' => 'Reason',
     'reject' => 'Reject',
+    'validate' => 'Validate',
     'file_path' => 'File Path',
     'file_size' => 'File Size',
     'match_candidates' => 'Match Candidates',
@@ -395,12 +397,16 @@ return [
     'proposal_rejected' => 'Proposal rejected successfully',
     'proposals_queued_for_processing' => 'Proposals queued for processing (count: :count)',
     'process_selected' => 'Process Selected',
-    
-    // SFTP Validator
-    'sftp_validator' => 'SFTP Payslip Validator',
-    'sftp_validator_description' => 'Review and validate payslip files downloaded from SFTP. Match files to departments, then process for sending to employees.',
     'total_pending' => 'Total Pending',
     'total_validated' => 'Total Validated',
     'total_processed' => 'Total Processed',
     'total_rejected' => 'Total Rejected',
+    'unresolved' => 'Unresolved',
+    'no_department' => 'No department',
+    'no_departments_for_company' => 'No departments for this company',
+    'payslip_will_process_company_level' => 'Payslip will be processed at company level (all employees)',
+    'all_departments_company_level' => 'All departments (company level)',
+    'rejection_reason_placeholder' => 'Explain why this proposal is being rejected…',
+    'extracted_company_text' => 'Extracted company text',
+    'raw_text_preview' => 'Raw PDF text (preview)',
 ];

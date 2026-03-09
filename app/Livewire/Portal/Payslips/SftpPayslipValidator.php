@@ -28,6 +28,9 @@ class SftpPayslipValidator extends Component
     public $editingYear = '';
     public $editingReason = '';
 
+    // View modal
+    public $viewingProposalId = null;
+
     public function mount()
     {
         $this->authorize('manage-payslips');
@@ -87,6 +90,9 @@ class SftpPayslipValidator extends Component
             'departments' => $departments,
             'departmentsForFilter' => $departmentsForFilter,
             'companies' => $companies,
+            'viewingProposal' => $this->viewingProposalId
+                ? PayslipMatchingProposal::find($this->viewingProposalId)
+                : null,
             'totalPending' => PayslipMatchingProposal::pending()->count(),
             'totalValidated' => PayslipMatchingProposal::validated()->count(),
             'totalProcessed' => PayslipMatchingProposal::processed()->count(),
@@ -116,16 +122,16 @@ class SftpPayslipValidator extends Component
     public function validateMatch()
     {
         $this->validate([
-            'editingDepartmentId' => 'required|integer|exists:departments,id',
-            'editingCompanyId' => 'required|integer|exists:companies,id',
-            'editingMonth' => 'required|integer|min:1|max:12',
-            'editingYear' => 'required|integer|min:2020|max:2099',
+            'editingCompanyId'   => 'required|integer|exists:companies,id',
+            'editingDepartmentId'=> 'nullable|integer|exists:departments,id',
+            'editingMonth'       => 'required|integer|min:1|max:12',
+            'editingYear'        => 'required|integer|min:2020|max:2099',
         ]);
 
         $proposal = PayslipMatchingProposal::findOrFail($this->editingProposalId);
 
         $proposal->update([
-            'matched_to_department_id' => $this->editingDepartmentId,
+            'matched_to_department_id' => $this->editingDepartmentId ?: null,
             'matched_to_company_id' => $this->editingCompanyId,
             'matched_month' => $this->editingMonth,
             'matched_year' => $this->editingYear,
@@ -143,6 +149,7 @@ class SftpPayslipValidator extends Component
         ]);
 
         $this->resetEditForm();
+        $this->dispatch('closeModals');
     }
 
     /**
@@ -150,9 +157,8 @@ class SftpPayslipValidator extends Component
      */
     public function openViewModal(string $proposalId)
     {
-        $proposal = PayslipMatchingProposal::findOrFail($proposalId);
-
-        $this->editingProposalId = $proposalId;
+        PayslipMatchingProposal::findOrFail($proposalId); // ensure exists
+        $this->viewingProposalId = $proposalId;
         $this->dispatch('openViewModal');
     }
 
@@ -200,6 +206,7 @@ class SftpPayslipValidator extends Component
         ]);
 
         $this->resetEditForm();
+        $this->dispatch('closeModals');
     }
 
     /**
@@ -237,6 +244,7 @@ class SftpPayslipValidator extends Component
     private function resetEditForm()
     {
         $this->editingProposalId = null;
+        $this->viewingProposalId = null;
         $this->editingDepartmentId = '';
         $this->editingCompanyId = '';
         $this->editingMonth = '';

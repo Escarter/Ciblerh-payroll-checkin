@@ -59,6 +59,8 @@ return [
     'select_company' => 'Select Company',
     'select_option' => 'Select an option',
     'all_companies' => 'All Companies',
+    'all_departments' => 'All Departments',
+    'search_filename' => 'Search by filename',
     'select_department' => 'Select Department',
     'contacts' => 'Contacts',
     'when' => 'When',

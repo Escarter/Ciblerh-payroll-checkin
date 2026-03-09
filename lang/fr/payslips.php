@@ -401,4 +401,13 @@ return [
     'total_validated' => 'Total validé',
     'total_processed' => 'Total traité',
     'total_rejected' => 'Total rejeté',
+    'unresolved' => 'Non résolu',
+    'no_department' => 'Aucun département',
+    'no_departments_for_company' => 'Aucun département pour cette société',
+    'payslip_will_process_company_level' => 'Le bulletin sera traité au niveau société (tous les employés)',
+    'all_departments_company_level' => 'Tous les départements (niveau société)',
+    'rejection_reason_placeholder' => 'Expliquez pourquoi cette proposition est rejetée…',
+    'extracted_company_text' => 'Texte société extrait',
+    'raw_text_preview' => 'Aperçu du texte PDF brut',
+    'validate' => 'Valider',
 ];
