@@ -192,12 +192,13 @@ class SftpPayslipValidator extends Component
         ]);
 
         auditLog(
-            "Payslip Proposal Rejected",
+            auth()->user(),
+            'sftp_proposal_rejected',
+            'web',
             "Proposal {$proposal->id} for file {$proposal->file_name} rejected: {$this->editingReason}",
-            auth()->id(),
-            PayslipMatchingProposal::class,
-            $proposal->id,
-            'rejection'
+            $proposal,
+            ['status' => PayslipMatchingProposal::STATUS_VALIDATED],
+            ['status' => PayslipMatchingProposal::STATUS_REJECTED, 'rejection_reason' => $this->editingReason]
         );
 
         $this->dispatch('alert', [
