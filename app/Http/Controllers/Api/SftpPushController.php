@@ -140,6 +140,7 @@ class SftpPushController extends Controller
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $filename = $originalName . '_' . time() . '.pdf';
             $storagePath = $pushPath . '/' . $filename;
+            $fileSize = $file->getSize(); // capture before move() invalidates the temp path
 
             if (!$file->move($pushPath, $filename)) {
                 throw new \Exception('Failed to move uploaded file');
@@ -150,7 +151,7 @@ class SftpPushController extends Controller
                 'username' => $providedUsername,
                 'filename' => $filename,
                 'original_name' => $file->getClientOriginalName(),
-                'size' => $file->getSize(),
+                'size' => $fileSize,
                 'ip' => $request->ip(),
                 'timestamp' => now(),
             ]);
@@ -160,7 +161,7 @@ class SftpPushController extends Controller
                 'username' => $providedUsername,
                 'filename' => $file->getClientOriginalName(),
                 'stored_filename' => $filename,
-                'file_size' => $file->getSize(),
+                'file_size' => $fileSize,
                 'remote_ip' => $request->ip(),
                 'status' => 'success',
             ]);
@@ -173,7 +174,7 @@ class SftpPushController extends Controller
                 'message' => 'File uploaded successfully',
                 'filename' => $filename,
                 'original_name' => $file->getClientOriginalName(),
-                'size' => $file->getSize(),
+                'size' => $fileSize,
                 'stored_at' => now(),
             ], 201);
         } catch (\Exception $e) {
@@ -187,7 +188,7 @@ class SftpPushController extends Controller
             SftpPushLog::create([
                 'username' => $providedUsername,
                 'filename' => $file->getClientOriginalName(),
-                'file_size' => $file->getSize(),
+                'file_size' => $fileSize ?? 0,
                 'remote_ip' => $request->ip(),
                 'status' => 'failed',
                 'error_message' => $e->getMessage(),
