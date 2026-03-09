@@ -114,7 +114,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
             'local_file_path'         => $this->absoluteFilePath,
             'file_name'               => $basename,
             'file_size'               => filesize($this->absoluteFilePath) ?: null,
-            'file_timestamp'          => filemtime($this->absoluteFilePath) ?: null,
+            'file_timestamp'          => ($mtime = filemtime($this->absoluteFilePath)) ? \Carbon\Carbon::createFromTimestamp($mtime) : null,
             'proposed_match'          => $proposedMatch,
             'matched_to_company_id'   => $bestCompany?->id,
             'matched_to_department_id'=> $bestDepartment?->id,

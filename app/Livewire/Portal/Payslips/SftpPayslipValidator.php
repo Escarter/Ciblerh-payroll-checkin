@@ -54,7 +54,7 @@ class SftpPayslipValidator extends Component
 
         // Search by filename
         if (!empty($this->searchFilename)) {
-            $query->where('file_name', 'ilike', '%' . $this->searchFilename . '%');
+            $query->where('file_name', 'like', '%' . $this->searchFilename . '%');
         }
 
         $proposals = $query->orderBy('created_at', 'desc')->paginate(15);
