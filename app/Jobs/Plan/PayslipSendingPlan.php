@@ -101,9 +101,11 @@ class PayslipSendingPlan
 
     private static function step3($payslip_process)
     {
-        $department = Department::findOrFail($payslip_process->department_id);
+        $employees = $payslip_process->department_id
+            ? Department::findOrFail($payslip_process->department_id)->employees
+            : $payslip_process->company->employees;
 
-        $email_jobs = $department->employees->chunk(config('ciblerh.chunk_size'))->map(function ($employee_chunk) use ($payslip_process) {
+        $email_jobs = $employees->chunk(config('ciblerh.chunk_size'))->map(function ($employee_chunk) use ($payslip_process) {
             return new SendPayslipJob($employee_chunk, $payslip_process);
         });
 
@@ -149,8 +151,9 @@ class PayslipSendingPlan
      */
     private static function reconcileUnmatchedEmployees($payslip_process)
     {
-        $department = Department::findOrFail($payslip_process->department_id);
-        $allEmployees = $department->employees;
+        $allEmployees = $payslip_process->department_id
+            ? Department::findOrFail($payslip_process->department_id)->employees
+            : $payslip_process->company->employees;
         
         // Get all employees who already have payslip records for this month/process
         $matchedEmployeeIds = Payslip::where('send_payslip_process_id', $payslip_process->id)

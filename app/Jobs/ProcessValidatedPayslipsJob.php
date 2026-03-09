@@ -88,7 +88,9 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
                 'month' => $this->proposal->matched_month,
                 'year' => $this->proposal->matched_year,
                 'raw_file' => $rawFilePath,  // Full filesystem path to local file
-                'destination_directory' => "dept_{$this->proposal->matched_to_department_id}_" . date('YmdHis'),
+                'destination_directory' => $this->proposal->matched_to_department_id
+                    ? "dept_{$this->proposal->matched_to_department_id}_" . date('YmdHis')
+                    : "sftp_company_{$this->proposal->matched_to_company_id}_" . date('YmdHis'),
                 'status' => 'processing',
                 'percentage_completion' => 0,
             ]);
