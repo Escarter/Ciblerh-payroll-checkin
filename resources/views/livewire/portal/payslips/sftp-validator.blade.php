@@ -604,7 +604,8 @@
         document.addEventListener('livewire:initialized', () => {
             const getModal = (id) => {
                 const el = document.getElementById(id);
-                return el ? bootstrap.Modal.getOrCreateInstance(el) : null;
+                if (!el) return null;
+                return bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
             };
 
             Livewire.on('openViewModal',   () => getModal('viewProposalModal')?.show());
