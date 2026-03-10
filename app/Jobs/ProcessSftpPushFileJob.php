@@ -88,9 +88,36 @@ class ProcessSftpPushFileJob implements ShouldQueue
         if (!empty($metadata['company_raw']) && !in_array($metadata['company_raw'], $matchSources, true)) {
             $matchSources[] = $metadata['company_raw'];
         }
-        // Filename stem (e.g. "BULLS ENEO" → also tested for company match)
+        // Filename stem — clean it before using it as a match source so that
+        // date tokens, pay-period keywords and month names don't pollute matching.
+        //
+        // e.g. "PERENCO_WORK_OVER_JUILLET_2025.pdf"
+        //    → strip separators   → "PERENCO WORK OVER JUILLET 2025"
+        //    → strip years        → "PERENCO WORK OVER JUILLET"
+        //    → strip month names  → "PERENCO WORK OVER"
+        //    → strip noise words  → "PERENCO WORK OVER"   ← clean company token
         $filenameStem = pathinfo($this->originalFilename, PATHINFO_FILENAME);
-        $filenameStem = trim(preg_replace('/[-_.]+/', ' ', $filenameStem));
+
+        // 1. Replace separators (dash, underscore, dot) with spaces
+        $filenameStem = preg_replace('/[-_.\s]+/', ' ', $filenameStem);
+
+        // 2. Remove 4-digit years (1990–2099) and standalone 1-2-digit month numbers
+        $filenameStem = preg_replace('/\b(19|20)\d{2}\b/', '', $filenameStem);
+        $filenameStem = preg_replace('/\b(0?[1-9]|1[0-2])\b/', '', $filenameStem);
+
+        // 3. Remove French and English month names (they encode the pay period, not the company)
+        $monthPattern = '/\b(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout'
+            . '|septembre|octobre|novembre|décembre|decembre'
+            . '|january|february|march|april|may|june|july|august|september|october|november|december)\b/iu';
+        $filenameStem = preg_replace($monthPattern, '', $filenameStem);
+
+        // 4. Remove common payslip noise keywords
+        $noisePattern = '/\b(bulletin|paie|fiche|salaire|payslip|salary|wage|slip|pay|bulletin_de_paie)\b/iu';
+        $filenameStem = preg_replace($noisePattern, '', $filenameStem);
+
+        // 5. Collapse whitespace
+        $filenameStem = trim(preg_replace('/\s+/', ' ', $filenameStem));
+
         if (!empty($filenameStem)) {
             $matchSources[] = $filenameStem;
         }
