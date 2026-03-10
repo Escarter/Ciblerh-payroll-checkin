@@ -253,6 +253,71 @@
 
                         <hr>
 
+                        <!-- Push Scan Frequency -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-clock me-1"></i>{{ __('settings.sftp_push_scan_frequency_title') }}
+                            </h6>
+                            <small class="d-block text-muted mb-3">
+                                {{ __('settings.sftp_push_scan_frequency_help') }}
+                            </small>
+
+                            <div class="row g-3">
+                                <!-- Frequency type -->
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_scan_frequency_label') }}</label>
+                                    <select class="form-select" wire:model.live="sftp_push_scan_frequency">
+                                        <optgroup label="{{ __('settings.sftp_push_scan_group_minutes') }}">
+                                            <option value="everyMinute">{{ __('settings.sftp_push_scan_every_minute') }}</option>
+                                            <option value="everyFiveMinutes">{{ __('settings.sftp_push_scan_every_5_minutes') }}</option>
+                                            <option value="everyTenMinutes">{{ __('settings.sftp_push_scan_every_10_minutes') }}</option>
+                                            <option value="everyFifteenMinutes">{{ __('settings.sftp_push_scan_every_15_minutes') }}</option>
+                                            <option value="everyThirtyMinutes">{{ __('settings.sftp_push_scan_every_30_minutes') }}</option>
+                                        </optgroup>
+                                        <optgroup label="{{ __('settings.sftp_push_scan_group_hours') }}">
+                                            <option value="hourly">{{ __('settings.sftp_push_scan_hourly') }}</option>
+                                            <option value="everyTwoHours">{{ __('settings.sftp_push_scan_every_2_hours') }}</option>
+                                            <option value="everyThreeHours">{{ __('settings.sftp_push_scan_every_3_hours') }}</option>
+                                            <option value="everyFourHours">{{ __('settings.sftp_push_scan_every_4_hours') }}</option>
+                                            <option value="everySixHours">{{ __('settings.sftp_push_scan_every_6_hours') }}</option>
+                                            <option value="everyTwelveHours">{{ __('settings.sftp_push_scan_every_12_hours') }}</option>
+                                        </optgroup>
+                                        <optgroup label="{{ __('settings.sftp_push_scan_group_schedule') }}">
+                                            <option value="daily">{{ __('settings.sftp_push_scan_daily') }}</option>
+                                            <option value="custom_days">{{ __('settings.sftp_push_scan_custom_days') }}</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+
+                                <!-- Time picker (shown for daily and custom_days) -->
+                                @if(in_array($sftp_push_scan_frequency, ['daily', 'custom_days']))
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_scan_time_label') }}</label>
+                                    <input type="time" class="form-control" wire:model="sftp_push_scan_time">
+                                </div>
+                                @endif
+                            </div>
+
+                            <!-- Day checkboxes (shown for custom_days) -->
+                            @if($sftp_push_scan_frequency === 'custom_days')
+                            <div class="mt-3">
+                                <label class="form-label fw-semibold">{{ __('settings.sftp_push_scan_days_label') }}</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    @foreach(['0' => __('settings.day_sunday'), '1' => __('settings.day_monday'), '2' => __('settings.day_tuesday'), '3' => __('settings.day_wednesday'), '4' => __('settings.day_thursday'), '5' => __('settings.day_friday'), '6' => __('settings.day_saturday')] as $dayNum => $dayName)
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="scan_day_{{ $dayNum }}"
+                                            value="{{ $dayNum }}"
+                                            wire:model="sftp_push_scan_days">
+                                        <label class="form-check-label" for="scan_day_{{ $dayNum }}">{{ $dayName }}</label>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+
+                        <hr>
+
                         <!-- Company Matching -->
                         <div class="mb-4">
                             <h6 class="text-primary mb-3">

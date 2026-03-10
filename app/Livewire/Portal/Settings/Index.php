@@ -84,6 +84,9 @@ class Index extends Component
     public $sftp_push_password;
     public $sftp_push_path = 'storage/app/sftp-push';
     public $sftp_sync_frequency = 'daily';
+    public $sftp_push_scan_frequency = 'everyFiveMinutes';
+    public $sftp_push_scan_days = [];
+    public $sftp_push_scan_time = '00:00';
     public $sftp_matching_strategies = [];
     public $sftp_connection_status = false;
     public $test_sftp_message;
@@ -165,6 +168,11 @@ class Index extends Component
         $this->sftp_push_password = !empty($this->setting) ? $this->setting->sftp_push_password : '';
         $this->sftp_push_path = !empty($this->setting) ? $this->setting->sftp_push_path : 'storage/app/sftp-push';
         $this->sftp_sync_frequency = !empty($this->setting) ? $this->setting->sftp_sync_frequency : 'daily';
+        $this->sftp_push_scan_frequency = !empty($this->setting) ? ($this->setting->sftp_push_scan_frequency ?? 'everyFiveMinutes') : 'everyFiveMinutes';
+        $this->sftp_push_scan_days = !empty($this->setting) && !empty($this->setting->sftp_push_scan_days)
+            ? explode(',', $this->setting->sftp_push_scan_days)
+            : [];
+        $this->sftp_push_scan_time = !empty($this->setting) ? ($this->setting->sftp_push_scan_time ?? '00:00') : '00:00';
         $this->sftp_matching_strategies = !empty($this->setting) && !empty($this->setting->sftp_matching_strategies) 
             ? $this->setting->sftp_matching_strategies 
             : [];
@@ -451,6 +459,9 @@ class Index extends Component
                 'sftp_push_password' => $this->sftp_push_password,
                 'sftp_push_path' => $this->sftp_push_path,
                 'sftp_sync_frequency' => $this->sftp_sync_frequency,
+                'sftp_push_scan_frequency' => $this->sftp_push_scan_frequency,
+                'sftp_push_scan_days' => implode(',', $this->sftp_push_scan_days ?? []),
+                'sftp_push_scan_time' => $this->sftp_push_scan_time,
                 'sftp_matching_strategies' => $this->sftp_matching_strategies,
                 'sftp_auto_match_enabled' => $this->sftp_auto_match_enabled,
                 'sftp_auto_match_threshold' => (int) $this->sftp_auto_match_threshold,
@@ -764,6 +775,9 @@ class Index extends Component
                 'sftp_sync_enabled' => $this->sftp_sync_enabled,
                 'sftp_push_path' => $this->sftp_push_path,
                 'sftp_sync_frequency' => $this->sftp_sync_frequency,
+                'sftp_push_scan_frequency' => $this->sftp_push_scan_frequency,
+                'sftp_push_scan_days' => implode(',', $this->sftp_push_scan_days ?? []),
+                'sftp_push_scan_time' => $this->sftp_push_scan_time,
                 'sftp_matching_strategies' => $this->sftp_matching_strategies,
             ]
         );

@@ -48,12 +48,11 @@ class Kernel extends ConsoleKernel
             ->{$this->getSftpSyncFrequency()}()
             ->when(fn() => $this->isSftpSyncEnabled());
 
-        // Scan SFTP push folder every 5 minutes as a fallback for any files
-        // that may have been pushed without triggering the HTTP upload endpoint.
-        $schedule->command('sftp:scan-push-folder')
-            ->everyFiveMinutes()
+        // Scan SFTP push folder - frequency configurable from settings
+        $pushEvent = $schedule->command('sftp:scan-push-folder')
             ->when(fn() => $this->isSftpSyncEnabled())
             ->withoutOverlapping();
+        $this->applySftpPushScanFrequency($pushEvent);
     }
 
     /**
@@ -79,6 +78,57 @@ class Kernel extends ConsoleKernel
         } catch (\Exception $e) {
             return false;
         }
+    }
+
+    /**
+     * Apply the configured push-scan frequency to a schedule event.
+     * Days are stored as comma-separated weekday numbers (0=Sun … 6=Sat).
+     */
+    private function applySftpPushScanFrequency(\Illuminate\Console\Scheduling\Event $event): void
+    {
+        try {
+            $config   = \App\Services\FeatureConfigurationService::getSftpConfig();
+            $freq     = $config['push_scan_frequency'] ?? 'everyFiveMinutes';
+            $time     = $config['push_scan_time']      ?? '00:00';
+            $daysStr  = $config['push_scan_days']      ?? '';
+
+            $simpleMethods = [
+                'everyMinute'         => 'everyMinute',
+                'everyFiveMinutes'    => 'everyFiveMinutes',
+                'everyTenMinutes'     => 'everyTenMinutes',
+                'everyFifteenMinutes' => 'everyFifteenMinutes',
+                'everyThirtyMinutes'  => 'everyThirtyMinutes',
+                'hourly'              => 'hourly',
+                'everyTwoHours'       => 'everyTwoHours',
+                'everyThreeHours'     => 'everyThreeHours',
+                'everyFourHours'      => 'everyFourHours',
+                'everySixHours'       => 'everySixHours',
+                'everyTwelveHours'    => 'everyTwelveHours',
+            ];
+
+            if (isset($simpleMethods[$freq])) {
+                $method = $simpleMethods[$freq];
+                $event->$method();
+                return;
+            }
+
+            if ($freq === 'daily') {
+                $event->dailyAt($time ?: '00:00');
+                return;
+            }
+
+            if ($freq === 'custom_days' && !empty($daysStr)) {
+                $days = array_filter(array_map('intval', explode(',', $daysStr)));
+                if (!empty($days)) {
+                    $event->days($days)->at($time ?: '00:00');
+                    return;
+                }
+            }
+        } catch (\Exception $e) {
+            // fall through to safe default
+        }
+
+        $event->everyFiveMinutes();
     }
 
     /**

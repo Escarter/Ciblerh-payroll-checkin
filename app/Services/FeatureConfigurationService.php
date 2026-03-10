@@ -43,6 +43,9 @@ class FeatureConfigurationService
             'auth_type' => $config['sftp_auth_type'] ?? 'password',
             'sync_frequency' => $config['sftp_sync_frequency'] ?? 'daily',
             'matching_strategies' => $config['sftp_matching_strategies'] ?? [],
+            'push_scan_frequency' => $config['sftp_push_scan_frequency'] ?? 'everyFiveMinutes',
+            'push_scan_days' => $config['sftp_push_scan_days'] ?? '',
+            'push_scan_time' => $config['sftp_push_scan_time'] ?? '00:00',
         ];
     }
 
