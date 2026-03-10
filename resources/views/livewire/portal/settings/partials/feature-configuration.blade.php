@@ -84,7 +84,7 @@
                                         <label class="form-label small mb-0">{{ __('settings.sftp_push_username') }}</label>
                                         <div class="d-flex align-items-center gap-2">
                                             <code class="flex-grow-1 py-2 px-2 bg-white border rounded" id="push-generated-username">{{ $sftp_generated_username_display }}</code>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="push-generated-username">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="push-generated-username" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">
                                                 {{ __('settings.copy') }}
                                             </button>
                                         </div>
@@ -93,7 +93,7 @@
                                         <label class="form-label small mb-0">{{ __('settings.sftp_push_password') }}</label>
                                         <div class="d-flex align-items-center gap-2">
                                             <code class="flex-grow-1 py-2 px-2 bg-white border rounded font-monospace" id="push-generated-password">{{ $sftp_generated_password_display }}</code>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="push-generated-password">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="push-generated-password" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">
                                                 {{ __('settings.copy') }}
                                             </button>
                                         </div>
@@ -442,19 +442,30 @@
     </div>
 
     <script>
-        if (typeof window.sftpCopyHandlerBound === 'undefined') {
-            window.sftpCopyHandlerBound = true;
-            document.addEventListener('click', function(e) {
+        (function () {
+            function sftpCopyHandler(e) {
                 var btn = e.target.closest('.sftp-copy-btn');
                 if (!btn) return;
                 var id = btn.getAttribute('data-copy-target');
                 var el = document.getElementById(id);
-                if (el) {
-                    navigator.clipboard.writeText(el.textContent);
-                    btn.textContent = btn.getAttribute('data-copied-label');
-                    setTimeout(function() { btn.textContent = btn.getAttribute('data-copy-label'); }, 2000);
-                }
+                if (!el) return;
+                navigator.clipboard.writeText(el.textContent.trim()).then(function () {
+                    var orig = btn.getAttribute('data-copy-label') || btn.textContent.trim();
+                    btn.textContent = btn.getAttribute('data-copied-label') || '✓';
+                    setTimeout(function () { btn.textContent = orig; }, 2000);
+                });
+            }
+
+            // Attach once on initial load
+            if (!window._sftpCopyBound) {
+                window._sftpCopyBound = true;
+                document.addEventListener('click', sftpCopyHandler);
+            }
+
+            // Re-attach after Livewire morphs the DOM (Livewire 3)
+            document.addEventListener('livewire:navigated', function () {
+                window._sftpCopyBound = false;
             });
-        }
+        })();
     </script>
 </div>
