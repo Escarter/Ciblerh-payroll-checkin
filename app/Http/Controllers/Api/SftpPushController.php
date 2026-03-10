@@ -115,17 +115,18 @@ class SftpPushController extends Controller
             ], 415);
         }
 
-        // Get push path
-        $pushPath = base_path($setting->sftp_push_path ?? 'storage/app/sftp-push');
+        // Get push path — HTTP uploads land in incoming/ so the SFTP scan only touches that subfolder
+        $pushPath   = base_path($setting->sftp_push_path ?? 'storage/app/sftp-push');
+        $incomingPath = $pushPath . '/incoming';
 
         // Create directory if it doesn't exist
         try {
-            if (!file_exists($pushPath)) {
-                mkdir($pushPath, 0755, true);
+            if (!file_exists($incomingPath)) {
+                mkdir($incomingPath, 0775, true);
             }
         } catch (\Exception $e) {
             \Log::error('Failed to create push directory', [
-                'path' => $pushPath,
+                'path' => $incomingPath,
                 'error' => $e->getMessage(),
             ]);
 
@@ -139,10 +140,10 @@ class SftpPushController extends Controller
         try {
             $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $filename = $originalName . '_' . time() . '.pdf';
-            $storagePath = $pushPath . '/' . $filename;
+            $storagePath = $incomingPath . '/' . $filename;
             $fileSize = $file->getSize(); // capture before move() invalidates the temp path
 
-            if (!$file->move($pushPath, $filename)) {
+            if (!$file->move($incomingPath, $filename)) {
                 throw new \Exception('Failed to move uploaded file');
             }
 

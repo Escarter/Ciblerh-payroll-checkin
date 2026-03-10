@@ -21,14 +21,15 @@ class ScanSftpPushFolderCommand extends Command
             return self::SUCCESS;
         }
 
-        $pushPath = base_path($setting->sftp_push_path ?? 'storage/app/sftp-push');
+        $pushPath     = base_path($setting->sftp_push_path ?? 'storage/app/sftp-push');
+        $incomingPath = $pushPath . '/incoming';
 
-        if (!is_dir($pushPath)) {
-            $this->warn("Push folder does not exist: {$pushPath}");
+        if (!is_dir($incomingPath)) {
+            $this->warn("Incoming folder does not exist: {$incomingPath}");
             return self::SUCCESS;
         }
 
-        $files = glob($pushPath . '/*.pdf');
+        $files = glob($incomingPath . '/*.pdf');
 
         if (empty($files)) {
             $this->info('No PDF files found in push folder.');

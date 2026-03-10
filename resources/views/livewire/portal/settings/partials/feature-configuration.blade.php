@@ -1,8 +1,8 @@
-<!-- Feature Configuration Section - Two Column Layout -->
+<!-- Feature Configuration Section -->
 <div class="row">
-    <!-- Left Column: SFTP Configuration -->
-    <div class="col-lg-7">
-        <div class="mb-5 card shadow-md card-raised" style="min-height: 600px;">
+    <!-- SFTP Payslip Integration -->
+    <div class="col-12 order-2">
+        <div class="mb-5 card shadow-md card-raised">
             <div class="py-4 px-5 card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="card-title h5 mb-0">
@@ -131,6 +131,98 @@
                                 @else
                                     <small class="text-muted d-block mt-2">Replace <code>/path/to/payslip.pdf</code> with the actual file path. The file must be a PDF.</small>
                                 @endif
+                            </div>
+
+                            <!-- SFTP Client Access -->
+                            <div class="mt-4 pt-3 border-top">
+                                <label class="form-label fw-semibold mb-1">
+                                    <i class="fas fa-plug me-1"></i>SFTP Client Access
+                                    <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">FileZilla / WinSCP / sftp</span>
+                                </label>
+                                <small class="d-block text-muted mb-3">
+                                    Allows a payroll operator to drop PDF files directly into the server folder using an SFTP client.
+                                    Generate a dedicated OS user once, then run the server script that appears below.
+                                </small>
+
+                                @if ($sftp_os_username && $sftp_os_password)
+                                    <!-- Connection details grid -->
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-sm-5">
+                                            <label class="form-label small mb-1">Host</label>
+                                            <div class="d-flex gap-2">
+                                                <code class="flex-grow-1 px-2 py-1 bg-light border rounded d-block" id="sftp-host">{{ $sftp_server_host }}</code>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-host" data-copy-label="Copy" data-copied-label="✓">Copy</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <label class="form-label small mb-1">Port</label>
+                                            <code class="px-2 py-1 bg-light border rounded d-block text-center" id="sftp-port">{{ $sftp_server_port }}</code>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <label class="form-label small mb-1">Remote path</label>
+                                            <code class="px-2 py-1 bg-light border rounded d-block text-truncate" id="sftp-path" title="{{ base_path($sftp_push_path) }}">{{ base_path($sftp_push_path) }}</code>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <label class="form-label small mb-1">Username</label>
+                                            <div class="d-flex gap-2">
+                                                <code class="flex-grow-1 px-2 py-1 bg-light border rounded d-block" id="sftp-os-user">{{ $sftp_os_username }}</code>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-os-user" data-copy-label="Copy" data-copied-label="✓">Copy</button>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <label class="form-label small mb-1">Password</label>
+                                            <div class="d-flex gap-2">
+                                                <code class="flex-grow-1 px-2 py-1 bg-light border rounded d-block" id="sftp-os-pass">{{ $sftp_os_password }}</code>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-os-pass" data-copy-label="Copy" data-copied-label="✓">Copy</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if ($sftp_os_generated_display)
+                                    <!-- One-time server setup script -->
+                                    <div class="alert alert-warning py-3 mb-3">
+                                        <strong><i class="fas fa-exclamation-triangle me-1"></i>Run this once on the server (as root):</strong>
+                                        <div class="bg-dark rounded p-3 mt-2 position-relative">
+                                            <code class="text-success d-block" id="sftp-server-script" style="font-size:0.8rem; white-space:pre;">{{ $sftp_os_generated_display['script'] }}</code>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 sftp-copy-btn"
+                                                data-copy-target="sftp-server-script"
+                                                data-copy-label="Copy script"
+                                                data-copied-label="Copied!">
+                                                Copy script
+                                            </button>
+                                        </div>
+                                        <small class="d-block mt-2 text-muted">
+                                            This creates the OS user, restricts it to SFTP-only (no shell), sets the chroot jail root to <code>root:root 755</code> (required by sshd), and gives write access to <code>incoming/</code> via group <code>laravel</code>. After running, the client connects to <code>{{ $sftp_os_generated_display['host'] }}:{{ $sftp_os_generated_display['port'] }}</code> and uploads to the path <code>/incoming</code>.
+                                        </small>
+                                    </div>
+                                @endif
+
+                                <!-- Server host/port fields (editable) -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-sm-7">
+                                        <label class="form-label small mb-1" for="sftp_server_host">Server hostname / IP</label>
+                                        <input wire:model="sftp_server_host" id="sftp_server_host" type="text" class="form-control form-control-sm" placeholder="portail.example.com">
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <label class="form-label small mb-1" for="sftp_server_port">SSH Port</label>
+                                        <input wire:model="sftp_server_port" id="sftp_server_port" type="number" min="1" max="65535" class="form-control form-control-sm" placeholder="22">
+                                    </div>
+                                </div>
+
+                                <button type="button" wire:click="generateSftpOsCredentials" class="btn btn-outline-primary btn-sm" wire:loading.attr="disabled">
+                                    <i class="fas fa-user-plus me-1" wire:loading.class="spinner-border spinner-border-sm"></i>
+                                    @if ($sftp_os_username)
+                                        Regenerate SFTP OS User
+                                    @else
+                                        Generate SFTP OS User
+                                    @endif
+                                </button>
+                                <small class="d-block text-muted mt-2">
+                                    Generating creates a new username/password and stores them. A ready-to-run shell script will appear above — copy and execute it on the server as root.
+                                    Files dropped by the SFTP client are picked up automatically every 5 minutes.
+                                </small>
                             </div>
                         </div>
 
@@ -295,27 +387,11 @@
                 </x-form-items.form>
             </div>
         </div>
-        <script>
-            if (typeof window.sftpCopyHandlerBound === 'undefined') {
-                window.sftpCopyHandlerBound = true;
-                document.addEventListener('click', function(e) {
-                    var btn = e.target.closest('.sftp-copy-btn');
-                    if (!btn) return;
-                    var id = btn.getAttribute('data-copy-target');
-                    var el = document.getElementById(id);
-                    if (el) {
-                        navigator.clipboard.writeText(el.textContent);
-                        btn.textContent = btn.getAttribute('data-copied-label');
-                        setTimeout(function() { btn.textContent = btn.getAttribute('data-copy-label'); }, 2000);
-                    }
-                });
-            }
-        </script>
     </div>
 
-    <!-- Right Column: Inactivity Deactivation -->
-    <div class="col-lg-5">
-        <div class="mb-5 card shadow-md card-raised" style="min-height: 600px;">
+    <!-- Inactivity Deactivation -->
+    <div class="col-12 order-1">
+        <div class="mb-5 card shadow-md card-raised">
             <div class="py-4 px-5 card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="card-title h5 mb-0">
@@ -364,4 +440,21 @@
             </div>
         </div>
     </div>
+
+    <script>
+        if (typeof window.sftpCopyHandlerBound === 'undefined') {
+            window.sftpCopyHandlerBound = true;
+            document.addEventListener('click', function(e) {
+                var btn = e.target.closest('.sftp-copy-btn');
+                if (!btn) return;
+                var id = btn.getAttribute('data-copy-target');
+                var el = document.getElementById(id);
+                if (el) {
+                    navigator.clipboard.writeText(el.textContent);
+                    btn.textContent = btn.getAttribute('data-copied-label');
+                    setTimeout(function() { btn.textContent = btn.getAttribute('data-copy-label'); }, 2000);
+                }
+            });
+        }
+    </script>
 </div>

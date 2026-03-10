@@ -49,6 +49,15 @@ class SetupSftpPush extends Command
                 $this->info("  ℹ️  Main directory already exists");
             }
 
+            // Create 'incoming' subdirectory — SFTP clients drop files here; the scanner only reads this folder
+            $incomingDir = $pushPath . '/incoming';
+            if (!file_exists($incomingDir)) {
+                @mkdir($incomingDir, 0775, true);
+                $this->info("  ✅ Created incoming directory: {$incomingDir}");
+            } else {
+                $this->info("  ℹ️  Incoming directory already exists");
+            }
+
             // Create 'processed' subdirectory for archived files
             $processedDir = $pushPath . '/processed';
             if (!file_exists($processedDir)) {

@@ -94,10 +94,17 @@ class Index extends Component
     public $sftp_auto_match_min_strategy = 'reverse_partial_match';
     public $sftp_auto_match_notification_email = '';
 
+    // SFTP OS user (real SFTP/SSH client access)
+    public $sftp_os_username;
+    public $sftp_os_password;
+    public $sftp_server_host;
+    public $sftp_server_port = 22;
+
     /** One-time display of generated push credentials */
     public $sftp_generated_username_display = null;
     public $sftp_generated_password_display = null;
     public $show_push_password = false;
+    public $sftp_os_generated_display = null; // one-time display of OS credentials + server script
 
     public function mount() {
 
@@ -169,6 +176,15 @@ class Index extends Component
             : 80;
         $this->sftp_auto_match_min_strategy = !empty($this->setting) ? ($this->setting->sftp_auto_match_min_strategy ?? 'reverse_partial_match') : 'reverse_partial_match';
         $this->sftp_auto_match_notification_email = !empty($this->setting) ? ($this->setting->sftp_auto_match_notification_email ?? '') : '';
+
+        // SFTP OS user
+        $this->sftp_os_username = !empty($this->setting) ? ($this->setting->sftp_os_username ?? '') : '';
+        $this->sftp_os_password = !empty($this->setting) ? ($this->setting->sftp_os_password ?? '') : '';
+        $this->sftp_server_host = !empty($this->setting) ? ($this->setting->sftp_server_host ?? '') : '';
+        $this->sftp_server_port = !empty($this->setting) ? ($this->setting->sftp_server_port ?? 22) : 22;
+        if (empty($this->sftp_server_host)) {
+            $this->sftp_server_host = request()->getHost();
+        }
 
         // Check if SFTP push is already configured
         $this->checkSftpConnectionStatus();
@@ -440,6 +456,10 @@ class Index extends Component
                 'sftp_auto_match_threshold' => (int) $this->sftp_auto_match_threshold,
                 'sftp_auto_match_min_strategy' => $this->sftp_auto_match_min_strategy,
                 'sftp_auto_match_notification_email' => $this->normalizeEmails($this->sftp_auto_match_notification_email),
+                'sftp_os_username' => $this->sftp_os_username ?: null,
+                'sftp_os_password' => $this->sftp_os_password ?: null,
+                'sftp_server_host' => $this->sftp_server_host ?: null,
+                'sftp_server_port' => (int) $this->sftp_server_port ?: 22,
             ]
         );
 
@@ -449,6 +469,78 @@ class Index extends Component
             $this->checkSftpConnectionStatus();
             $this->showToast(__('common.saved_successfully'), 'success');
         }
+    }
+
+    /**
+     * Generate OS-level SFTP credentials and build the one-time server setup script.
+     * Nothing is written to the OS — the admin copies and runs the script on the server.
+     */
+    public function generateSftpOsCredentials()
+    {
+        $username = 'sftp_' . \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(8));
+        $password = \Illuminate\Support\Str::random(20);
+        $absPath  = base_path($this->sftp_push_path ?? 'storage/app/sftp-push');
+        $host     = $this->sftp_server_host ?: request()->getHost();
+        $port     = (int) ($this->sftp_server_port ?: 22);
+
+        $this->sftp_os_username = $username;
+        $this->sftp_os_password = $password;
+        $this->sftp_server_host = $host;
+        $this->sftp_server_port = $port;
+
+        // Persist immediately so the credentials survive a page reload
+        Setting::updateOrCreate(
+            ['company_id' => 1],
+            [
+                'sftp_os_username' => $username,
+                'sftp_os_password' => $password,
+                'sftp_server_host' => $host,
+                'sftp_server_port' => $port,
+            ]
+        );
+
+        $incomingPath = $absPath . '/incoming';
+
+        $this->sftp_os_generated_display = [
+            'username' => $username,
+            'password' => $password,
+            'host'     => $host,
+            'port'     => $port,
+            'path'     => $incomingPath,
+            'script'   => implode("\n", [
+                "# Run as root on the server",
+                "",
+                "# 1. Create OS user (SFTP-only, no shell)",
+                "useradd -M -s /usr/sbin/nologin {$username}",
+                "echo '{$username}:{$password}' | chpasswd",
+                "",
+                "# 2. Chroot jail root — MUST be owned root:root 755 (sshd requirement)",
+                "mkdir -p {$absPath}",
+                "chown root:root {$absPath}",
+                "chmod 755 {$absPath}",
+                "",
+                "# 3. incoming/ — owned by SFTP user, group laravel so the app can read it",
+                "mkdir -p {$incomingPath}",
+                "chown {$username}:laravel {$incomingPath}",
+                "chmod 775 {$incomingPath}",
+                "",
+                "# 4. Restrict user to this chroot in /etc/ssh/sshd_config",
+                "cat >> /etc/ssh/sshd_config << 'SSHEOF'",
+                "Match User {$username}",
+                "    ChrootDirectory {$absPath}",
+                "    ForceCommand internal-sftp",
+                "    PasswordAuthentication yes",
+                "    AllowTcpForwarding no",
+                "    X11Forwarding no",
+                "SSHEOF",
+                "",
+                "systemctl reload sshd",
+                "",
+                "# Client path to use in FileZilla/WinSCP: /incoming",
+            ]),
+        ];
+
+        $this->showToast('SFTP OS credentials generated. Copy and run the server script.', 'success');
     }
 
     /**
