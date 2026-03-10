@@ -472,16 +472,49 @@ class Index extends Component
     }
 
     /**
-     * Generate OS-level SFTP credentials and build the one-time server setup script.
-     * Nothing is written to the OS — the admin copies and runs the script on the server.
+     * Show the server setup script using existing credentials (if any).
+     * Only generates new credentials when none exist yet.
      */
     public function generateSftpOsCredentials()
     {
-        $username = 'sftp_' . \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(8));
-        $password = \Illuminate\Support\Str::random(20);
-        $absPath  = base_path($this->sftp_push_path ?? 'storage/app/sftp-push');
-        $host     = $this->sftp_server_host ?: request()->getHost();
-        $port     = (int) ($this->sftp_server_port ?: 22);
+        $this->buildSftpOsDisplay(forceNew: false);
+    }
+
+    /**
+     * Force-generate a brand-new username + password and rebuild the script.
+     * Called explicitly by the admin when they want to rotate credentials.
+     */
+    public function regenerateSftpOsCredentials()
+    {
+        $this->buildSftpOsDisplay(forceNew: true);
+    }
+
+    /**
+     * Core logic: build $sftp_os_generated_display.
+     * When $forceNew is false and credentials already exist, reuse them.
+     */
+    private function buildSftpOsDisplay(bool $forceNew): void
+    {
+        $existingUsername = $this->sftp_os_username;
+        $existingPassword = $this->sftp_os_password;
+        $hasExisting      = $existingUsername && $existingPassword;
+
+        if ($forceNew || ! $hasExisting) {
+            $username = 'sftp_' . \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(8));
+            $password = \Illuminate\Support\Str::random(20);
+        } else {
+            $username = $existingUsername;
+            $password = $existingPassword;
+        }
+
+        // $absPath = the real Laravel storage directory (app reads/scans here)
+        // $chrootPath = /var/sftp/... with root:root ancestors (sshd chroot requirement)
+        // incoming/ inside the chroot is bind-mounted from $absPath/incoming so files
+        // dropped by the SFTP client appear directly in the Laravel storage path.
+        $absPath    = base_path($this->sftp_push_path ?? 'storage/app/sftp-push');
+        $chrootPath = '/var/sftp/ciblerh-push';
+        $host       = $this->sftp_server_host ?: request()->getHost();
+        $port       = (int) ($this->sftp_server_port ?: 22);
 
         $this->sftp_os_username = $username;
         $this->sftp_os_password = $password;
@@ -499,14 +532,15 @@ class Index extends Component
             ]
         );
 
-        $incomingPath = $absPath . '/incoming';
+        $incomingPath       = $absPath . '/incoming';
+        $chrootIncomingPath = $chrootPath . '/incoming';
 
         $this->sftp_os_generated_display = [
             'username' => $username,
             'password' => $password,
             'host'     => $host,
             'port'     => $port,
-            'path'     => $incomingPath,
+            'path'     => '/incoming',
             'script'   => implode("\n", [
                 "# Run as root on the server",
                 "",
@@ -514,33 +548,57 @@ class Index extends Component
                 "useradd -M -s /usr/sbin/nologin {$username}",
                 "echo '{$username}:{$password}' | chpasswd",
                 "",
-                "# 2. Chroot jail root — MUST be owned root:root 755 (sshd requirement)",
-                "mkdir -p {$absPath}",
-                "chown root:root {$absPath}",
-                "chmod 755 {$absPath}",
+                "# 2. Chroot jail root — must sit under /var/sftp so all ancestors are root:root.",
+                "#    sshd silently kills sessions if any ancestor is group-writable.",
+                "mkdir -p {$chrootPath}",
+                "chown root:root {$chrootPath}",
+                "chmod 755 {$chrootPath}",
                 "",
-                "# 3. incoming/ — owned by SFTP user, group laravel so the app can read it",
+                "# 3. incoming/ inside the chroot — SFTP user writes here",
+                "mkdir -p {$chrootIncomingPath}",
+                "chown {$username}:laravel {$chrootIncomingPath}",
+                "chmod 2775 {$chrootIncomingPath}",
+                "",
+                "# 4. Ensure the real Laravel incoming/ dir exists",
                 "mkdir -p {$incomingPath}",
                 "chown {$username}:laravel {$incomingPath}",
-                "chmod 775 {$incomingPath}",
+                "chmod 2775 {$incomingPath}",
                 "",
-                "# 4. Restrict user to this chroot in /etc/ssh/sshd_config",
+                "# 4a. Add SFTP user to laravel group so they can write to laravel-owned dirs",
+                "usermod -aG laravel {$username}",
+                "",
+                "# 5. Bind-mount the real incoming/ into the chroot so the app sees files immediately",
+                "mount --bind {$incomingPath} {$chrootIncomingPath}",
+                "",
+                "# 6. Persist the bind mount across reboots",
+                "grep -qF '{$chrootIncomingPath}' /etc/fstab || echo '{$incomingPath} {$chrootIncomingPath} none bind 0 0' >> /etc/fstab",
+                "",
+                "# 7. Ensure Subsystem uses internal-sftp (required for ChrootDirectory)",
+                "sed -i 's|^Subsystem.*sftp.*|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config",
+                "",
+                "# 8. Add Match User block (idempotent — removes any existing block first)",
+                "sed -i '/^Match User {$username}/,/^    X11Forwarding no/d' /etc/ssh/sshd_config",
                 "cat >> /etc/ssh/sshd_config << 'SSHEOF'",
                 "Match User {$username}",
-                "    ChrootDirectory {$absPath}",
+                "    ChrootDirectory {$chrootPath}",
                 "    ForceCommand internal-sftp",
                 "    PasswordAuthentication yes",
                 "    AllowTcpForwarding no",
                 "    X11Forwarding no",
                 "SSHEOF",
                 "",
-                "systemctl reload sshd",
+                "# 9. Validate config then reload",
+                "sshd -t && systemctl reload sshd",
                 "",
-                "# Client path to use in FileZilla/WinSCP: /incoming",
+                "# Client remote path to set in FileZilla/WinSCP: /incoming",
             ]),
         ];
 
-        $this->showToast('SFTP OS credentials generated. Copy and run the server script.', 'success');
+        $toast = $forceNew
+            ? 'New SFTP OS credentials generated. Update the server and your SFTP client.'
+            : ($hasExisting ? 'Server setup script loaded with existing credentials.' : 'SFTP OS credentials generated. Copy and run the server script.');
+
+        $this->showToast($toast, 'success');
     }
 
     /**

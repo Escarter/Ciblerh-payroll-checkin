@@ -194,7 +194,16 @@
                                             </button>
                                         </div>
                                         <small class="d-block mt-2 text-muted">
-                                            This creates the OS user, restricts it to SFTP-only (no shell), sets the chroot jail root to <code>root:root 755</code> (required by sshd), and gives write access to <code>incoming/</code> via group <code>laravel</code>. After running, the client connects to <code>{{ $sftp_os_generated_display['host'] }}:{{ $sftp_os_generated_display['port'] }}</code> and uploads to the path <code>/incoming</code>.
+                                            This script does the following on your server:
+                                            <ol class="mt-1 mb-0 ps-3">
+                                                <li>Creates OS user <strong>{{ $sftp_os_generated_display['username'] }}</strong> (SFTP-only, no shell access).</li>
+                                                <li>Creates a clean chroot jail at <code>/var/sftp/ciblerh-push</code> — owned <code>root:root 755</code> as required by sshd.</li>
+                                                <li>Bind-mounts the app's real <code>storage/app/sftp-push/incoming/</code> into the jail, so files dropped by the SFTP client are immediately visible to the application.</li>
+                                                <li>Switches sshd's <code>Subsystem sftp</code> to <code>internal-sftp</code> (required for chroot).</li>
+                                                <li>Adds a <code>Match User</code> block restricting <strong>{{ $sftp_os_generated_display['username'] }}</strong> to the chroot jail with no shell or TCP forwarding.</li>
+                                                <li>Persists the bind mount in <code>/etc/fstab</code> so it survives reboots.</li>
+                                            </ol>
+                                            <span class="d-block mt-1">After running, connect your SFTP client to <code>{{ $sftp_os_generated_display['host'] }}:{{ $sftp_os_generated_display['port'] }}</code> and set the remote path to <code>/incoming</code>.</span>
                                         </small>
                                     </div>
                                 @endif
@@ -211,16 +220,33 @@
                                     </div>
                                 </div>
 
-                                <button type="button" wire:click="generateSftpOsCredentials" class="btn btn-outline-primary btn-sm" wire:loading.attr="disabled">
-                                    <i class="fas fa-user-plus me-1" wire:loading.class="spinner-border spinner-border-sm"></i>
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
                                     @if ($sftp_os_username)
-                                        Regenerate SFTP OS User
+                                        {{-- Existing credentials: show script without changing them --}}
+                                        <button type="button" wire:click="generateSftpOsCredentials" class="btn btn-outline-secondary btn-sm" wire:loading.attr="disabled">
+                                            <i class="fas fa-file-code me-1"></i>
+                                            Show Server Script
+                                        </button>
+                                        {{-- Explicit rotate: generates new username + password --}}
+                                        <button type="button" wire:click="regenerateSftpOsCredentials" class="btn btn-outline-danger btn-sm" wire:loading.attr="disabled"
+                                            onclick="return confirm('This will create a NEW username and password. You must update the server and your SFTP client manually. Continue?')">
+                                            <i class="fas fa-sync-alt me-1"></i>
+                                            Rotate Credentials
+                                        </button>
                                     @else
-                                        Generate SFTP OS User
+                                        <button type="button" wire:click="generateSftpOsCredentials" class="btn btn-outline-primary btn-sm" wire:loading.attr="disabled">
+                                            <i class="fas fa-user-plus me-1"></i>
+                                            Generate SFTP OS User
+                                        </button>
                                     @endif
-                                </button>
+                                </div>
                                 <small class="d-block text-muted mt-2">
-                                    Generating creates a new username/password and stores them. A ready-to-run shell script will appear above — copy and execute it on the server as root.
+                                    @if ($sftp_os_username)
+                                        Credentials already exist. <strong>Show Server Script</strong> displays the setup script with your current credentials.
+                                        Use <strong>Rotate Credentials</strong> only if you need a new username/password (you will need to update the server).
+                                    @else
+                                        Generates a new SFTP OS username and password. A ready-to-run shell script will appear — copy and execute it on the server as root.
+                                    @endif
                                     Files dropped by the SFTP client are picked up automatically every 5 minutes.
                                 </small>
                             </div>
