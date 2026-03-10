@@ -109,9 +109,9 @@
 
                             <!-- HTTP Upload Command -->
                             <div class="mt-4">
-                                <label class="form-label fw-semibold mb-2"><i class="fas fa-terminal me-1"></i>Upload Command</label>
+                                <label class="form-label fw-semibold mb-2"><i class="fas fa-terminal me-1"></i>{{ __('settings.sftp_upload_command_label') }}</label>
                                 <small class="d-block text-muted mb-2">
-                                    Use this command to push a payslip PDF from any system (payroll software, script, or cron job).
+                                    {{ __('settings.sftp_upload_command_help') }}
                                 </small>
 
                                 <div class="bg-dark rounded p-3 position-relative">
@@ -121,59 +121,58 @@
                                     <button type="button"
                                         class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 sftp-copy-btn"
                                         data-copy-target="curl-upload-cmd"
-                                        data-copy-label="Copy"
-                                        data-copied-label="Copied!">
-                                        Copy
+                                        data-copy-label="{{ __('settings.copy') }}"
+                                        data-copied-label="✓">
+                                        {{ __('settings.copy') }}
                                     </button>
                                 </div>
                                 @if (!$sftp_push_username || !$sftp_push_password)
-                                    <small class="text-warning d-block mt-2"><i class="fas fa-exclamation-triangle me-1"></i>Generate credentials above to fill in your username and password.</small>
+                                    <small class="text-warning d-block mt-2"><i class="fas fa-exclamation-triangle me-1"></i>{{ __('settings.sftp_upload_no_credentials_hint') }}</small>
                                 @else
-                                    <small class="text-muted d-block mt-2">Replace <code>/path/to/payslip.pdf</code> with the actual file path. The file must be a PDF.</small>
+                                    {!! __('settings.sftp_upload_file_hint') !!}
                                 @endif
                             </div>
 
                             <!-- SFTP Client Access -->
                             <div class="mt-4 pt-3 border-top">
                                 <label class="form-label fw-semibold mb-1">
-                                    <i class="fas fa-plug me-1"></i>SFTP Client Access
+                                    <i class="fas fa-plug me-1"></i>{{ __('settings.sftp_client_access_label') }}
                                     <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">FileZilla / WinSCP / sftp</span>
                                 </label>
                                 <small class="d-block text-muted mb-3">
-                                    Allows a payroll operator to drop PDF files directly into the server folder using an SFTP client.
-                                    Generate a dedicated OS user once, then run the server script that appears below.
+                                    {{ __('settings.sftp_client_access_help') }}
                                 </small>
 
                                 @if ($sftp_os_username && $sftp_os_password)
                                     <!-- Connection details grid -->
                                     <div class="row g-2 mb-3">
                                         <div class="col-sm-5">
-                                            <label class="form-label small mb-1">Host</label>
+                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_host_label') }}</label>
                                             <div class="d-flex gap-2">
                                                 <code class="flex-grow-1 px-2 py-1 bg-light border rounded d-block" id="sftp-host">{{ $sftp_server_host }}</code>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-host" data-copy-label="Copy" data-copied-label="✓">Copy</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-host" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">{{ __('settings.copy') }}</button>
                                             </div>
                                         </div>
                                         <div class="col-sm-2">
-                                            <label class="form-label small mb-1">Port</label>
+                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_port_label') }}</label>
                                             <code class="px-2 py-1 bg-light border rounded d-block text-center" id="sftp-port">{{ $sftp_server_port }}</code>
                                         </div>
                                         <div class="col-sm-5">
-                                            <label class="form-label small mb-1">Remote path</label>
+                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_remote_path_label') }}</label>
                                             <code class="px-2 py-1 bg-light border rounded d-block text-truncate" id="sftp-path" title="/incoming">/incoming</code>
                                         </div>
                                         <div class="col-sm-5">
-                                            <label class="form-label small mb-1">Username</label>
+                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_username_label') }}</label>
                                             <div class="d-flex gap-2">
                                                 <code class="flex-grow-1 px-2 py-1 bg-light border rounded d-block" id="sftp-os-user">{{ $sftp_os_username }}</code>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-os-user" data-copy-label="Copy" data-copied-label="✓">Copy</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-os-user" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">{{ __('settings.copy') }}</button>
                                             </div>
                                         </div>
                                         <div class="col-sm-5">
-                                            <label class="form-label small mb-1">Password</label>
+                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_password_label') }}</label>
                                             <div class="d-flex gap-2">
                                                 <code class="flex-grow-1 px-2 py-1 bg-light border rounded d-block" id="sftp-os-pass">{{ $sftp_os_password }}</code>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-os-pass" data-copy-label="Copy" data-copied-label="✓">Copy</button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-os-pass" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">{{ __('settings.copy') }}</button>
                                             </div>
                                         </div>
                                     </div>
@@ -182,28 +181,28 @@
                                 @if ($sftp_os_generated_display)
                                     <!-- One-time server setup script -->
                                     <div class="alert alert-warning py-3 mb-3">
-                                        <strong><i class="fas fa-exclamation-triangle me-1"></i>Run this once on the server (as root):</strong>
+                                        <strong><i class="fas fa-exclamation-triangle me-1"></i>{{ __('settings.sftp_server_script_run_title') }}</strong>
                                         <div class="bg-dark rounded p-3 mt-2 position-relative">
                                             <code class="text-success d-block" id="sftp-server-script" style="font-size:0.8rem; white-space:pre;">{{ $sftp_os_generated_display['script'] }}</code>
                                             <button type="button"
                                                 class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 sftp-copy-btn"
                                                 data-copy-target="sftp-server-script"
-                                                data-copy-label="Copy script"
-                                                data-copied-label="Copied!">
-                                                Copy script
+                                                data-copy-label="{{ __('settings.sftp_server_script_copy_btn') }}"
+                                                data-copied-label="✓">
+                                                {{ __('settings.sftp_server_script_copy_btn') }}
                                             </button>
                                         </div>
                                         <small class="d-block mt-2 text-muted">
-                                            This script does the following on your server:
+                                            {{ __('settings.sftp_server_script_desc_intro') }}
                                             <ol class="mt-1 mb-0 ps-3">
-                                                <li>Creates OS user <strong>{{ $sftp_os_generated_display['username'] }}</strong> (SFTP-only, no shell access).</li>
-                                                <li>Creates a clean chroot jail at <code>/var/sftp/ciblerh-push</code> — owned <code>root:root 755</code> as required by sshd.</li>
-                                                <li>Bind-mounts the app's real <code>storage/app/sftp-push/incoming/</code> into the jail, so files dropped by the SFTP client are immediately visible to the application.</li>
-                                                <li>Switches sshd's <code>Subsystem sftp</code> to <code>internal-sftp</code> (required for chroot).</li>
-                                                <li>Adds a <code>Match User</code> block restricting <strong>{{ $sftp_os_generated_display['username'] }}</strong> to the chroot jail with no shell or TCP forwarding.</li>
-                                                <li>Persists the bind mount in <code>/etc/fstab</code> so it survives reboots.</li>
+                                                <li>{!! __('settings.sftp_server_script_step_1', ['username' => $sftp_os_generated_display['username']]) !!}</li>
+                                                <li>{!! __('settings.sftp_server_script_step_2') !!}</li>
+                                                <li>{!! __('settings.sftp_server_script_step_3') !!}</li>
+                                                <li>{!! __('settings.sftp_server_script_step_4') !!}</li>
+                                                <li>{!! __('settings.sftp_server_script_step_5', ['username' => $sftp_os_generated_display['username']]) !!}</li>
+                                                <li>{!! __('settings.sftp_server_script_step_6') !!}</li>
                                             </ol>
-                                            <span class="d-block mt-1">After running, connect your SFTP client to <code>{{ $sftp_os_generated_display['host'] }}:{{ $sftp_os_generated_display['port'] }}</code> and set the remote path to <code>/incoming</code>.</span>
+                                            <span class="d-block mt-1">{!! __('settings.sftp_server_script_after', ['host' => e($sftp_os_generated_display['host']), 'port' => e($sftp_os_generated_display['port'])]) !!}</span>
                                         </small>
                                     </div>
                                 @endif
@@ -211,11 +210,11 @@
                                 <!-- Server host/port fields (editable) -->
                                 <div class="row g-2 mb-3">
                                     <div class="col-sm-7">
-                                        <label class="form-label small mb-1" for="sftp_server_host">Server hostname / IP</label>
+                                        <label class="form-label small mb-1" for="sftp_server_host">{{ __('settings.sftp_server_host_label') }}</label>
                                         <input wire:model="sftp_server_host" id="sftp_server_host" type="text" class="form-control form-control-sm" placeholder="portail.example.com">
                                     </div>
                                     <div class="col-sm-3">
-                                        <label class="form-label small mb-1" for="sftp_server_port">SSH Port</label>
+                                        <label class="form-label small mb-1" for="sftp_server_port">{{ __('settings.sftp_server_port_label') }}</label>
                                         <input wire:model="sftp_server_port" id="sftp_server_port" type="number" min="1" max="65535" class="form-control form-control-sm" placeholder="22">
                                     </div>
                                 </div>
@@ -225,29 +224,29 @@
                                         {{-- Existing credentials: show script without changing them --}}
                                         <button type="button" wire:click="generateSftpOsCredentials" class="btn btn-outline-secondary btn-sm" wire:loading.attr="disabled">
                                             <i class="fas fa-file-code me-1"></i>
-                                            Show Server Script
+                                            {{ __('settings.sftp_show_server_script') }}
                                         </button>
                                         {{-- Explicit rotate: generates new username + password --}}
                                         <button type="button" wire:click="regenerateSftpOsCredentials" class="btn btn-outline-danger btn-sm" wire:loading.attr="disabled"
-                                            onclick="return confirm('This will create a NEW username and password. You must update the server and your SFTP client manually. Continue?')">
+                                            data-confirm="{{ __('settings.sftp_rotate_confirm') }}"
+                                            onclick="return confirm(this.dataset.confirm)">
                                             <i class="fas fa-sync-alt me-1"></i>
-                                            Rotate Credentials
+                                            {{ __('settings.sftp_rotate_credentials') }}
                                         </button>
                                     @else
                                         <button type="button" wire:click="generateSftpOsCredentials" class="btn btn-outline-primary btn-sm" wire:loading.attr="disabled">
                                             <i class="fas fa-user-plus me-1"></i>
-                                            Generate SFTP OS User
+                                            {{ __('settings.sftp_generate_os_user') }}
                                         </button>
                                     @endif
                                 </div>
                                 <small class="d-block text-muted mt-2">
                                     @if ($sftp_os_username)
-                                        Credentials already exist. <strong>Show Server Script</strong> displays the setup script with your current credentials.
-                                        Use <strong>Rotate Credentials</strong> only if you need a new username/password (you will need to update the server).
+                                        {!! __('settings.sftp_credentials_exist_help') !!}
                                     @else
-                                        Generates a new SFTP OS username and password. A ready-to-run shell script will appear — copy and execute it on the server as root.
+                                        {{ __('settings.sftp_generate_os_user_help') }}
                                     @endif
-                                    Files dropped by the SFTP client are picked up automatically every 5 minutes.
+                                    {{ __('settings.sftp_auto_pickup_note') }}
                                 </small>
                             </div>
                         </div>
@@ -257,32 +256,32 @@
                         <!-- Company Matching -->
                         <div class="mb-4">
                             <h6 class="text-primary mb-3">
-                                <i class="fas fa-search me-1"></i>Company Matching
+                                <i class="fas fa-search me-1"></i>{{ __('settings.sftp_company_matching') }}
                             </h6>
                             <small class="d-block text-muted mb-3">
-                                Uploaded PDFs are matched against your company list automatically using the following three-step process. No configuration is required.
+                                {{ __('settings.sftp_company_matching_help') }}
                             </small>
 
                             <div class="d-flex flex-column gap-2">
                                 <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
                                     <span class="badge bg-success text-white" style="min-width:28px; text-align:center;">1</span>
                                     <div>
-                                        <strong>Partial match</strong> <span class="badge bg-success text-white ms-1">≥ 90%</span><br>
-                                        <small class="text-muted">The company name contains the text extracted from the PDF header (e.g. PDF says "PERENCO", company is "PERENCO CAMEROUN").</small>
+                                        <strong>{{ __('settings.sftp_match_partial') }}</strong> <span class="badge bg-success text-white ms-1">≥ 90%</span><br>
+                                        <small class="text-muted">{{ __('settings.sftp_match_partial_desc') }}</small>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
                                     <span class="badge bg-info text-dark" style="min-width:28px; text-align:center;">2</span>
                                     <div>
-                                        <strong>Reverse partial match</strong> <span class="badge bg-info text-dark ms-1">≥ 85%</span><br>
-                                        <small class="text-muted">The PDF header contains the company name as a whole word (e.g. PDF says "CIBLE RH — PERENCO SITE", company is "PERENCO").</small>
+                                        <strong>{{ __('settings.sftp_match_reverse_partial') }}</strong> <span class="badge bg-info text-dark ms-1">≥ 85%</span><br>
+                                        <small class="text-muted">{{ __('settings.sftp_match_reverse_partial_desc') }}</small>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
                                     <span class="badge bg-warning text-dark" style="min-width:28px; text-align:center;">3</span>
                                     <div>
-                                        <strong>Fuzzy match</strong> <span class="badge bg-warning text-dark ms-1">variable (≥ 50%)</span><br>
-                                        <small class="text-muted">Character-level similarity scoring between the PDF text and each company name. Handles typos and abbreviated names.</small>
+                                        <strong>{{ __('settings.sftp_match_fuzzy') }}</strong> <span class="badge bg-warning text-dark ms-1">variable (≥ 50%)</span><br>
+                                        <small class="text-muted">{{ __('settings.sftp_match_fuzzy_desc') }}</small>
                                     </div>
                                 </div>
                             </div>
@@ -293,10 +292,10 @@
                         <!-- Period Extraction -->
                         <div class="mb-4">
                             <h6 class="text-primary mb-3">
-                                <i class="fas fa-calendar-alt me-1"></i>Pay Period Extraction
+                                <i class="fas fa-calendar-alt me-1"></i>{{ __('settings.sftp_period_extraction') }}
                             </h6>
                             <small class="d-block text-muted mb-3">
-                                The pay period (month &amp; year) is extracted from each PDF automatically using a 6-pass priority chain. Both 2-digit and 4-digit years are supported.
+                                {{ __('settings.sftp_period_extraction_help') }}
                             </small>
 
                             <div class="d-flex flex-column gap-2">
@@ -304,42 +303,42 @@
                                     <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">1</span>
                                     <div>
                                         <strong>"Période du DD/MM/YY[YY]"</strong><br>
-                                        <small class="text-muted">Explicit French pay-period label. Works even when the date appears on a separate column due to PDF layout.</small>
+                                        <small class="text-muted">{{ __('settings.sftp_period_pass_1_desc') }}</small>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
                                     <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">2</span>
                                     <div>
                                         <strong>"au DD/MM/YY[YY]"</strong><br>
-                                        <small class="text-muted">End-of-period marker that appears above the label in columnar PDFs. The month/year of this end date is used.</small>
+                                        <small class="text-muted">{{ __('settings.sftp_period_pass_2_desc') }}</small>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
                                     <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">3</span>
                                     <div>
                                         <strong>"Du DD/MM/YY au DD/MM/YY"</strong><br>
-                                        <small class="text-muted">Full date range on a single line — uses the end date.</small>
+                                        <small class="text-muted">{{ __('settings.sftp_period_pass_3_desc') }}</small>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
                                     <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">4</span>
                                     <div>
-                                        <strong>French/English month name + year</strong><br>
-                                        <small class="text-muted">e.g. "Décembre 2025" or "December 25" anywhere in the text.</small>
+                                        <strong>{{ __('settings.sftp_period_pass_4_label') }}</strong><br>
+                                        <small class="text-muted">{{ __('settings.sftp_period_pass_4_desc') }}</small>
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
                                     <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">5</span>
                                     <div>
-                                        <strong>Filename patterns</strong><br>
-                                        <small class="text-muted">YYYY-MM, MM-YYYY, YY-MM, or French month name in the filename (e.g. <code>payslip_2025-12.pdf</code>).</small>
+                                        <strong>{{ __('settings.sftp_period_pass_5_label') }}</strong><br>
+                                        {!! __('settings.sftp_period_pass_5_desc') !!}
                                     </div>
                                 </div>
                                 <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
                                     <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">6</span>
                                     <div>
-                                        <strong>Standalone end-of-month date</strong><br>
-                                        <small class="text-muted">Any DD/MM/YY[YY] where the day is a typical month-end value (28, 29, 30, 31).</small>
+                                        <strong>{{ __('settings.sftp_period_pass_6_label') }}</strong><br>
+                                        <small class="text-muted">{{ __('settings.sftp_period_pass_6_desc') }}</small>
                                     </div>
                                 </div>
                             </div>
@@ -350,17 +349,17 @@
                         <!-- Auto-Match Configuration -->
                         <div class="mb-4">
                             <h6 class="text-primary mb-3">
-                                <i class="fas fa-magic me-1"></i>Auto-Match Configuration
+                                <i class="fas fa-magic me-1"></i>{{ __('settings.sftp_auto_match_configuration') }}
                             </h6>
                             <small class="d-block text-muted mb-3">
-                                When enabled, proposals whose confidence meets the threshold will be automatically validated and appear in the Validated tab for one-click processing.
+                                {{ __('settings.sftp_auto_match_configuration_help') }}
                             </small>
 
                             <div class="form-group mb-3">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" wire:model.live="sftp_auto_match_enabled" id="autoMatchEnabled">
                                     <label class="form-check-label" for="autoMatchEnabled">
-                                        <strong>Enable auto-match</strong>
+                                        <strong>{{ __('settings.sftp_auto_match_enable') }}</strong>
                                     </label>
                                 </div>
                             </div>
@@ -369,37 +368,33 @@
                                 <!-- Confidence threshold -->
                                 <div class="form-group mb-3">
                                     <label for="sftp_auto_match_threshold">
-                                        Confidence threshold: <strong>{{ $sftp_auto_match_threshold }}%</strong>
+                                        {{ __('settings.sftp_auto_match_threshold_label', ['value' => $sftp_auto_match_threshold]) }}
                                     </label>
                                     <input type="range" class="form-range" min="50" max="100" step="1"
                                         wire:model.live="sftp_auto_match_threshold" id="sftp_auto_match_threshold">
-                                    <small class="text-muted">Proposals below this confidence score will stay pending for manual review.</small>
+                                    <small class="text-muted">{{ __('settings.sftp_auto_match_threshold_help') }}</small>
                                 </div>
 
                                 <!-- Minimum strategy -->
                                 <div class="form-group mb-3">
-                                    <label for="sftp_auto_match_min_strategy">Minimum matching strategy</label>
+                                    <label for="sftp_auto_match_min_strategy">{{ __('settings.sftp_auto_match_min_strategy_label') }}</label>
                                     <select wire:model="sftp_auto_match_min_strategy" id="sftp_auto_match_min_strategy" class="form-control w-100">
-                                        <option value="partial_match">Partial match (≥ 90% typical) — highest precision</option>
-                                        <option value="reverse_partial_match">Reverse partial (≥ 85% typical) — recommended</option>
-                                        <option value="fuzzy">Fuzzy — any strategy allowed</option>
+                                        <option value="partial_match">{{ __('settings.sftp_auto_match_strategy_partial') }}</option>
+                                        <option value="reverse_partial_match">{{ __('settings.sftp_auto_match_strategy_reverse') }}</option>
+                                        <option value="fuzzy">{{ __('settings.sftp_auto_match_strategy_fuzzy') }}</option>
                                     </select>
-                                    <small class="text-muted">Strategies below the selected quality level will not trigger auto-match.</small>
+                                    <small class="text-muted">{{ __('settings.sftp_auto_match_strategy_help') }}</small>
                                 </div>
 
                                 <!-- Notification email -->
                                 <div class="form-group mb-3">
-                                    <label for="sftp_auto_match_notification_email">Notification email addresses</label>
+                                    <label for="sftp_auto_match_notification_email">{{ __('settings.sftp_auto_match_email_label') }}</label>
                                     <textarea wire:model="sftp_auto_match_notification_email"
                                         id="sftp_auto_match_notification_email"
                                         rows="3"
                                         placeholder="admin@example.com, hr@example.com"
                                         class="form-control w-100"></textarea>
-                                    <small class="text-muted">
-                                        Separate multiple addresses with a comma.
-                                        An email will be sent to all recipients when a proposal is auto-validated or when a department cannot be inferred.
-                                        Each email includes a direct link to open the proposal — recipients must log in before they can review or process it.
-                                    </small>
+                                    <small class="text-muted">{{ __('settings.sftp_auto_match_email_help') }}</small>
                                 </div>
                             @endif
                         </div>
