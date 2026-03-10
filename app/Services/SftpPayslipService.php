@@ -813,10 +813,11 @@ class SftpPayslipService
             // Every SIGNIFICANT word of the company name appears in the raw text
             // as a whole word — order does not matter.
             // "Significant" = length ≥ 3 chars AND not a common stop word.
-            // This handles:
-            //  • Connector words absent from PDF: "Electricity OF Cameroon" → "electricity cameroon"
-            //  • Non-consecutive word order
-            //  • "Les Cafés du Nord" → requires only "cafes" and "nord" in raw
+            // Word comparison uses stem matching (strip trailing s/es/aux) so that
+            // singular/plural variants are treated as equivalent:
+            //   "etude"  ↔ "etudes"   ("CIBLE RH ETUDE" matches "CIBLE ETUDES ET CONSEILS")
+            //   "etudes" ↔ "etude"    (reverse also works)
+            //   "conseil"↔ "conseils"
             // Requires ≥ 2 significant words to avoid over-matching single-word names.
             $sigWords = array_values(array_filter(
                 preg_split('/\s+/', $compNorm),
@@ -826,7 +827,30 @@ class SftpPayslipService
             if (count($sigWords) >= 2) {
                 $allPresent = true;
                 foreach ($sigWords as $sw) {
-                    if (!preg_match('/\b' . preg_quote($sw, '/') . '\b/u', $rawNorm)) {
+                    // Derive a stem by stripping the most common FR/EN plural suffixes.
+                    // Strip "aux" first (travaux→travail is irregular but handled elsewhere),
+                    // then "es" (etudes→etud, services→servic — then prefix match recovers),
+                    // then "s"  (conseils→conseil).
+                    // Only stem words ≥ 5 chars to avoid collapsing short tokens.
+                    $stem = $sw;
+                    if (mb_strlen($sw) > 5 && str_ends_with($sw, 'aux')) {
+                        $stem = mb_substr($sw, 0, -3); // travaux → trava (approx stem)
+                    } elseif (mb_strlen($sw) > 5 && str_ends_with($sw, 'es')) {
+                        $stem = mb_substr($sw, 0, -2); // etudes → etud
+                    } elseif (mb_strlen($sw) > 4 && str_ends_with($sw, 's')) {
+                        $stem = mb_substr($sw, 0, -1); // conseils → conseil
+                    }
+
+                    // For stems ≥ 4 chars: allow up to 2 extra letters after the stem
+                    // so "etud" matches "etude" and "etudes"; "conseil" matches "conseils".
+                    // For short words (< 4 chars stem): require exact match.
+                    if (mb_strlen($stem) >= 4) {
+                        $pattern = '/\b' . preg_quote($stem, '/') . '[a-z]{0,2}\b/u';
+                    } else {
+                        $pattern = '/\b' . preg_quote($sw, '/') . '\b/u';
+                    }
+
+                    if (!preg_match($pattern, $rawNorm)) {
                         $allPresent = false;
                         break;
                     }
@@ -846,14 +870,14 @@ class SftpPayslipService
 
             // ── Pass 2 ──────────────────────────────────────────────────────────
             // Character-level fuzzy similarity using PHP's similar_text().
-            // Guards against false positives for short company names:
-            //  • "AES" vs "DES" → similar_text = 67 %, but we skip per-word testing
-            //    for single-word names of ≤ 6 chars so they rely on Pass 1b instead.
-            //  • For longer names, also test against individual raw words to handle
-            //    cases where the raw line is very long.
-            //  • Per-word comparison only runs if the word is at least as long as
-            //    the company name minus two chars (prevents short-word noise).
-            $isSingleShortWord = !str_contains($compNorm, ' ') && mb_strlen($compNorm) <= 6;
+            // Three thresholds based on how "risky" the comparison is:
+            //  • Single short acronym (≤6 chars, no spaces): 80% — "AES" vs "DES" = 67%, blocked
+            //  • Multi-word company name: 55% — covers singular/plural divergence where
+            //    stems differ enough to block Pass 1c but overall text is clearly similar,
+            //    e.g. "CIBLE RH ETUDE" vs "CIBLE ETUDES ET CONSEILS" ≈ 58%
+            //  • Single long word: 65%
+            $isSingleShortWord  = !str_contains($compNorm, ' ') && mb_strlen($compNorm) <= 6;
+            $isMultiWord        = str_contains($compNorm, ' ');
 
             similar_text($compNorm, $rawNorm, $percent);
 
@@ -870,8 +894,11 @@ class SftpPayslipService
                 }
             }
 
-            // Short single-word acronyms need a higher bar to avoid noise.
-            $threshold = $isSingleShortWord ? 80.0 : 65.0;
+            $threshold = match(true) {
+                $isSingleShortWord => 80.0,
+                $isMultiWord       => 55.0,
+                default            => 65.0,
+            };
 
             if ($percent >= $threshold) {
                 $candidates[] = [
