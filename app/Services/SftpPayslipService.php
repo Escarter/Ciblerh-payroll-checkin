@@ -695,11 +695,70 @@ class SftpPayslipService
     }
 
     /**
+     * Normalize a string for accent-insensitive, punctuation-tolerant, case-insensitive comparison.
+     *
+     * Handles (FR + EN):
+     *  - Accents          : é→e, ç→c, ô→o, à→a, …  (NFD decompose + strip combining marks)
+     *  - Abbreviation dots: S.C.B. → scb, S.A.R.L. → sarl  (all dots removed)
+     *  - Dashes / slashes : CIBLE-RH → cible rh, E/P → e p
+     *  - Ampersand/plus   : E&P → e p, A+B → a b  (treated as word separators)
+     *  - Apostrophes      : Bull's → bulls, l'Afrique → lafrique (no space inserted)
+     *  - Any other symbol : replaced with space
+     *  - Whitespace       : collapsed to single space
+     */
+    private static function normalize(string $s): string
+    {
+        // 1. NFD decompose → strip combining marks (accents become base letters)
+        $s = \Normalizer::normalize($s, \Normalizer::FORM_D);
+        $s = preg_replace('/\p{Mn}/u', '', $s);
+        $s = mb_strtolower($s);
+
+        // 2. Remove dots — collapses dotted abbreviations: "S.C.B." → "scb"
+        $s = str_replace('.', '', $s);
+
+        // 3. Apostrophes / smart quotes — remove without inserting a space
+        //    ("l'Afrique" → "lafrique", "Bull's" → "bulls")
+        $s = preg_replace('/[\x{2019}\x{2018}\'`]/u', '', $s);
+
+        // 4. Ampersand and plus → word separator (Total E&P → total e p)
+        $s = preg_replace('/[&+]/', ' ', $s);
+
+        // 5. Dashes and slashes → word separator
+        $s = preg_replace('/[-\x{2013}\x{2014}\x{2010}\/\\\\]/u', ' ', $s);
+
+        // 6. Anything else that is not a letter, digit, or space → space
+        $s = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $s);
+
+        // 7. Collapse whitespace
+        return trim(preg_replace('/\s+/', ' ', $s));
+    }
+
+    /**
+     * Common French/English stop words that are routinely omitted from PDF headers.
+     * These are excluded from the Pass 1c word-set requirement so that, e.g.,
+     * company "Les Cafés du Nord" still matches a PDF that only says "CAFES NORD".
+     */
+    private static function stopWords(): array
+    {
+        return [
+            // French (3-4 chars — shorter ones are already filtered by strlen ≥ 3)
+            'les', 'des', 'une', 'son', 'ses', 'nos', 'vos', 'par', 'sur',
+            'avec', 'pour', 'dans', 'chez', 'vers', 'sans',
+            // English
+            'the', 'and', 'for', 'its', 'are', 'was', 'not', 'has', 'but',
+        ];
+    }
+
+    /**
      * Fuzzy-match a raw company name string against all active companies.
      *
-     * Strategy:
-     *  1. SQL LIKE partial match (confidence 0.90)
-     *  2. PHP similar_text() scoring across all companies (min 50% similarity)
+     * Pass 1a : company name contains the whole raw string (raw ⊆ company)          → 0.90
+     * Pass 1b : raw text contains the company name as an exact consecutive phrase    → 0.82–0.95 (scales with word count)
+     * Pass 1c : every significant word of the company name appears in raw (any order)→ 0.76–0.88 (scales with word count)
+     * Pass 2  : character-level fuzzy similarity (similar_text)                      → ≥ 65 %
+     *
+     * All comparisons use normalize() so accents, dots, dashes, apostrophes and
+     * case differences are irrelevant.
      *
      * @param  string $rawName
      * @return array  Sorted candidates: [['company_id', 'company_name', 'confidence', 'strategy'], …]
@@ -711,18 +770,18 @@ class SftpPayslipService
         }
 
         $candidates = [];
-        $seen       = [];
-        $rawLower   = mb_strtolower(trim($rawName));
+        $rawNorm    = self::normalize($rawName);
+        $stopWords  = self::stopWords();
 
         $allCompanies = Company::where('is_active', true)->get();
 
         foreach ($allCompanies as $company) {
-            $companyLower = mb_strtolower($company->name);
+            $compNorm = self::normalize($company->name);
 
-            // Pass 1a: company name contains the full raw text
-            // (e.g. raw = "PERENCO", company = "PERENCO CAMEROUN")
-            if (str_contains($companyLower, $rawLower)) {
-                $seen[$company->id] = true;
+            // ── Pass 1a ─────────────────────────────────────────────────────────
+            // The DB company name contains the full normalized raw string.
+            // e.g. raw = "perenco" → company "perenco cameroun" contains it.
+            if (str_contains($compNorm, $rawNorm)) {
                 $candidates[] = [
                     'company_id'   => $company->id,
                     'company_name' => $company->name,
@@ -732,34 +791,89 @@ class SftpPayslipService
                 continue;
             }
 
-            // Pass 1b: raw text contains the company name as a whole word/phrase
-            // (e.g. raw = "CIBLE RH MISE A DISPOSITION PERENCO WORK OVER", company = "PERENCO")
-            if (preg_match('/\b' . preg_quote($companyLower, '/') . '\b/iu', $rawLower)) {
-                $seen[$company->id] = true;
+            // ── Pass 1b ─────────────────────────────────────────────────────────
+            // The normalized raw text contains the company name as an EXACT
+            // consecutive phrase (whole-word boundaries).
+            // e.g. company "perenco work over" found inside
+            //      "cible rh mise a disposition perenco work over".
+            // Confidence rewards longer (more specific) company names.
+            if (preg_match('/\b' . preg_quote($compNorm, '/') . '\b/u', $rawNorm)) {
+                $wordCount  = substr_count($compNorm, ' ') + 1;
+                $confidence = min(0.95, 0.82 + ($wordCount - 1) * 0.04);
                 $candidates[] = [
                     'company_id'   => $company->id,
                     'company_name' => $company->name,
-                    'confidence'   => 0.85,
+                    'confidence'   => round($confidence, 2),
                     'strategy'     => 'reverse_partial_match',
                 ];
                 continue;
             }
 
-            // Pass 2: fuzzy similarity — handles typos and short names not caught above
-            // Compare company name against raw text for a fair length-normalised score
-            similar_text($companyLower, $rawLower, $percent);
+            // ── Pass 1c ─────────────────────────────────────────────────────────
+            // Every SIGNIFICANT word of the company name appears in the raw text
+            // as a whole word — order does not matter.
+            // "Significant" = length ≥ 3 chars AND not a common stop word.
+            // This handles:
+            //  • Connector words absent from PDF: "Electricity OF Cameroon" → "electricity cameroon"
+            //  • Non-consecutive word order
+            //  • "Les Cafés du Nord" → requires only "cafes" and "nord" in raw
+            // Requires ≥ 2 significant words to avoid over-matching single-word names.
+            $sigWords = array_values(array_filter(
+                preg_split('/\s+/', $compNorm),
+                static fn(string $w) => strlen($w) >= 3 && !in_array($w, $stopWords, true),
+            ));
 
-            // Also test similarity against individual words from raw text
-            $words = preg_split('/\s+/', $rawLower);
-            foreach ($words as $word) {
-                if (strlen($word) < 3) continue;
-                similar_text($companyLower, $word, $wordPercent);
-                if ($wordPercent > $percent) {
-                    $percent = $wordPercent;
+            if (count($sigWords) >= 2) {
+                $allPresent = true;
+                foreach ($sigWords as $sw) {
+                    if (!preg_match('/\b' . preg_quote($sw, '/') . '\b/u', $rawNorm)) {
+                        $allPresent = false;
+                        break;
+                    }
+                }
+                if ($allPresent) {
+                    $wordCount  = count($sigWords);
+                    $confidence = min(0.88, 0.76 + ($wordCount - 1) * 0.03);
+                    $candidates[] = [
+                        'company_id'   => $company->id,
+                        'company_name' => $company->name,
+                        'confidence'   => round($confidence, 2),
+                        'strategy'     => 'word_set_match',
+                    ];
+                    continue;
                 }
             }
 
-            if ($percent >= 50.0) {
+            // ── Pass 2 ──────────────────────────────────────────────────────────
+            // Character-level fuzzy similarity using PHP's similar_text().
+            // Guards against false positives for short company names:
+            //  • "AES" vs "DES" → similar_text = 67 %, but we skip per-word testing
+            //    for single-word names of ≤ 6 chars so they rely on Pass 1b instead.
+            //  • For longer names, also test against individual raw words to handle
+            //    cases where the raw line is very long.
+            //  • Per-word comparison only runs if the word is at least as long as
+            //    the company name minus two chars (prevents short-word noise).
+            $isSingleShortWord = !str_contains($compNorm, ' ') && mb_strlen($compNorm) <= 6;
+
+            similar_text($compNorm, $rawNorm, $percent);
+
+            if (!$isSingleShortWord) {
+                $minWordLen = mb_strlen($compNorm) - 2;
+                foreach (preg_split('/\s+/', $rawNorm) as $word) {
+                    if (mb_strlen($word) < max(3, $minWordLen)) {
+                        continue;
+                    }
+                    similar_text($compNorm, $word, $wordPct);
+                    if ($wordPct > $percent) {
+                        $percent = $wordPct;
+                    }
+                }
+            }
+
+            // Short single-word acronyms need a higher bar to avoid noise.
+            $threshold = $isSingleShortWord ? 80.0 : 65.0;
+
+            if ($percent >= $threshold) {
                 $candidates[] = [
                     'company_id'   => $company->id,
                     'company_name' => $company->name,
