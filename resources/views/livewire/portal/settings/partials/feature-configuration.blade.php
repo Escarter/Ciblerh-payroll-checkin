@@ -160,7 +160,7 @@
                                         </div>
                                         <div class="col-sm-5">
                                             <label class="form-label small mb-1">Remote path</label>
-                                            <code class="px-2 py-1 bg-light border rounded d-block text-truncate" id="sftp-path" title="{{ base_path($sftp_push_path) }}">{{ base_path($sftp_push_path) }}</code>
+                                            <code class="px-2 py-1 bg-light border rounded d-block text-truncate" id="sftp-path" title="/incoming">/incoming</code>
                                         </div>
                                         <div class="col-sm-5">
                                             <label class="form-label small mb-1">Username</label>
