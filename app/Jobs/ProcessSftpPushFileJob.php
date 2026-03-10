@@ -78,12 +78,25 @@ class ProcessSftpPushFileJob implements ShouldQueue
         ]);
 
         // ── Fuzzy-match company ──────────────────────────────────────────────
+        // Try every collected header line as well as the filename stem so that
+        // an address on line-1 doesn't block the real company name on line-2+.
         $candidates     = [];
         $bestCompany    = null;
         $bestDepartment = null;
 
-        if (!empty($metadata['company_raw'])) {
-            $candidates = $service->matchCompanyFuzzy($metadata['company_raw']);
+        $matchSources = $metadata['company_header_lines'] ?? [];
+        if (!empty($metadata['company_raw']) && !in_array($metadata['company_raw'], $matchSources, true)) {
+            $matchSources[] = $metadata['company_raw'];
+        }
+        // Filename stem (e.g. "BULLS ENEO" → also tested for company match)
+        $filenameStem = pathinfo($this->originalFilename, PATHINFO_FILENAME);
+        $filenameStem = trim(preg_replace('/[-_.]+/', ' ', $filenameStem));
+        if (!empty($filenameStem)) {
+            $matchSources[] = $filenameStem;
+        }
+
+        if (!empty($matchSources)) {
+            $candidates = $service->matchBestFromMultiple($matchSources);
         }
 
         if (!empty($candidates)) {
@@ -105,10 +118,11 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
         // ── Build proposed_match payload ─────────────────────────────────────
         $proposedMatch = [
-            'company_raw'      => $metadata['company_raw'],
-            'raw_text_preview' => $metadata['raw_text_preview'],
-            'candidates'       => $candidates,
-            'best_match'       => !empty($candidates) ? $candidates[0] : null,
+            'company_raw'          => $metadata['company_raw'],
+            'company_header_lines' => $metadata['company_header_lines'] ?? [],
+            'raw_text_preview'     => $metadata['raw_text_preview'],
+            'candidates'           => $candidates,
+            'best_match'           => !empty($candidates) ? $candidates[0] : null,
         ];
 
         // ── Create the proposal ──────────────────────────────────────────────

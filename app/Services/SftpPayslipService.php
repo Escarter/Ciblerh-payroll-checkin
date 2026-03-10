@@ -540,7 +540,8 @@ class SftpPayslipService
                          'service', 'bulletin', 'fiche', 'salaire', 'brut', 'net', 'date'];
 
         $lines = preg_split('/\r?\n/', $text);
-        $companyCandidate = null;
+        $companyCandidate   = null;
+        $companyCandidates  = [];   // collect up to 8 meaningful header lines
 
         foreach ($lines as $line) {
             $trimmed = trim($line);
@@ -561,14 +562,23 @@ class SftpPayslipService
                 break;
             }
 
-            // Take the first meaningful line as company name candidate
-            // Skip lines that look like page numbers or pure numbers
-            if (!$companyCandidate && !preg_match('/^\d+$/', $trimmed)) {
-                $companyCandidate = $trimmed;
+            // Skip pure numbers (page numbers etc.)
+            if (preg_match('/^\d+$/', $trimmed)) {
+                continue;
+            }
+
+            $companyCandidates[] = $trimmed;
+            if (!$companyCandidate) {
+                $companyCandidate = $trimmed;   // first line kept for backward-compat
+            }
+
+            if (count($companyCandidates) >= 8) {
+                break;
             }
         }
 
-        $result['company_raw'] = $companyCandidate;
+        $result['company_raw']          = $companyCandidate;
+        $result['company_header_lines'] = $companyCandidates;
 
         // ── 2. Extract pay period ────────────────────────────────────────────
         // Helper: normalise 2-digit years to 4-digit (25 → 2025, 99 → 1999).
@@ -760,6 +770,39 @@ class SftpPayslipService
         }
 
         // Sort by confidence descending
+        usort($candidates, fn($a, $b) => $b['confidence'] <=> $a['confidence']);
+
+        return $candidates;
+    }
+
+    /**
+     * Try matching an array of candidate strings against companies and return
+     * the best deduplicated result set. This allows using multiple header lines
+     * and the filename stem as sources without returning duplicates.
+     *
+     * @param  string[] $sources   Strings to try (header lines, filename stem, …)
+     * @return array               Sorted candidates (same shape as matchCompanyFuzzy)
+     */
+    public function matchBestFromMultiple(array $sources): array
+    {
+        $bestByCompany = [];   // keyed by company_id
+
+        foreach ($sources as $source) {
+            if (empty(trim((string) $source))) {
+                continue;
+            }
+
+            $matches = $this->matchCompanyFuzzy($source);
+
+            foreach ($matches as $match) {
+                $id = $match['company_id'];
+                if (!isset($bestByCompany[$id]) || $match['confidence'] > $bestByCompany[$id]['confidence']) {
+                    $bestByCompany[$id] = $match;
+                }
+            }
+        }
+
+        $candidates = array_values($bestByCompany);
         usort($candidates, fn($a, $b) => $b['confidence'] <=> $a['confidence']);
 
         return $candidates;
