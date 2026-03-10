@@ -35,6 +35,31 @@ class SftpPayslipValidator extends Component
     public function mount()
     {
         $this->authorize('manage-payslips');
+
+        // Handle deep-link from notification email: ?proposal=UUID&mode=view|edit
+        $proposalId = request('proposal');
+        $mode       = request('mode', 'view');
+
+        if ($proposalId) {
+            $proposal = PayslipMatchingProposal::find($proposalId);
+
+            if ($proposal) {
+                // Switch the tab to match the proposal's current status
+                $this->filterStatus = $proposal->status;
+
+                if ($mode === 'edit' && $proposal->status === PayslipMatchingProposal::STATUS_PENDING) {
+                    $this->editingProposalId   = $proposal->id;
+                    $this->editingCompanyId    = $proposal->matched_to_company_id;
+                    $this->editingDepartmentId = $proposal->matched_to_department_id;
+                    $this->editingMonth        = $proposal->matched_month;
+                    $this->editingYear         = $proposal->matched_year;
+                    $this->dispatch('openEditModal');
+                } else {
+                    $this->viewingProposalId = $proposal->id;
+                    $this->dispatch('openViewModal');
+                }
+            }
+        }
     }
 
     public function render()

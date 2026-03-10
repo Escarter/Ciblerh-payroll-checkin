@@ -75,6 +75,50 @@ class FeatureConfigurationService
     }
 
     /**
+     * Get SFTP auto-match configuration
+     */
+    public static function getSftpAutoMatchConfig(): array
+    {
+        $config = self::getConfiguration();
+
+        return [
+            'enabled' => $config['sftp_auto_match_enabled'] ?? false,
+            'threshold' => (int) ($config['sftp_auto_match_threshold'] ?? 80),
+            'min_strategy' => $config['sftp_auto_match_min_strategy'] ?? 'reverse_partial_match',
+            'notification_email' => $config['sftp_auto_match_notification_email'] ?? null,
+        ];
+    }
+
+    /**
+     * Strategy quality rank map (higher = better quality).
+     */
+    private const STRATEGY_RANK = [
+        'partial_match'         => 3,
+        'reverse_partial_match' => 2,
+        'fuzzy'                 => 1,
+    ];
+
+    /**
+     * Return true when the candidate's confidence and strategy both meet the
+     * configured auto-match thresholds.
+     *
+     * @param array $candidate  A single entry from matchCompanyFuzzy() results
+     * @param array $config     Result of getSftpAutoMatchConfig()
+     */
+    public static function canAutoMatch(array $candidate, array $config): bool
+    {
+        $confidencePct = ($candidate['confidence'] ?? 0) * 100;
+        if ($confidencePct < $config['threshold']) {
+            return false;
+        }
+
+        $candidateRank = self::STRATEGY_RANK[$candidate['strategy'] ?? ''] ?? 0;
+        $minRank       = self::STRATEGY_RANK[$config['min_strategy'] ?? ''] ?? 0;
+
+        return $candidateRank >= $minRank;
+    }
+
+    /**
      * Get all feature configurations
      */
     public static function getConfiguration(): array
@@ -97,6 +141,10 @@ class FeatureConfigurationService
                 'sftp_auth_type' => $setting->sftp_auth_type ?? 'password',
                 'sftp_sync_frequency' => $setting->sftp_sync_frequency ?? 'daily',
                 'sftp_matching_strategies' => $setting->sftp_matching_strategies ?? [],
+                'sftp_auto_match_enabled' => $setting->sftp_auto_match_enabled ?? false,
+                'sftp_auto_match_threshold' => $setting->sftp_auto_match_threshold ?? 80,
+                'sftp_auto_match_min_strategy' => $setting->sftp_auto_match_min_strategy ?? 'reverse_partial_match',
+                'sftp_auto_match_notification_email' => $setting->sftp_auto_match_notification_email ?? null,
             ];
         });
     }

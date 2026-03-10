@@ -32,6 +32,11 @@ class Kernel extends ConsoleKernel
         $schedule->command('wima:wish-happy-birthday')->dailyAt('08:00')->timezone('Africa/Douala');
         $schedule->command('reports:process-scheduled')->hourly();
 
+        // Clean up expired sessions every 30 minutes
+        $schedule->call(function () {
+            $this->pruneExpiredSessions();
+        })->everyThirtyMinutes();
+
         // Deactivate inactive users - scheduled based on setting time, defaults to 02:00
         $schedule->command('users:deactivate-inactive')
             ->dailyAt($this->getDeactivationTime())
@@ -115,5 +120,60 @@ class Kernel extends ConsoleKernel
         $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
+    }
+
+    /**
+     * Prune expired session files and database records
+     */
+    private function pruneExpiredSessions(): void
+    {
+        $sessionDriver = config('session.driver');
+        $lifetime = config('session.lifetime') * 60; // Convert minutes to seconds
+        $now = time();
+
+        // Clean up database sessions
+        if ($sessionDriver === 'database') {
+            try {
+                $pruned = \DB::table(config('session.table'))
+                    ->where('last_activity', '<', $now - $lifetime)
+                    ->delete();
+                
+                if ($pruned > 0) {
+                    \Log::info("Pruned $pruned expired database sessions");
+                }
+            } catch (\Exception $e) {
+                \Log::error("Failed to prune database sessions: " . $e->getMessage());
+            }
+        }
+
+        // Clean up file-based sessions
+        if ($sessionDriver === 'file') {
+            $sessionPath = config('session.files');
+
+            if (!is_dir($sessionPath)) {
+                return;
+            }
+
+            $files = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($sessionPath, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            );
+
+            $pruned = 0;
+
+            foreach ($files as $file) {
+                if ($file->isFile()) {
+                    // Check if file is older than session lifetime
+                    if (($now - $file->getMTime()) > $lifetime) {
+                        @unlink($file->getPathname());
+                        $pruned++;
+                    }
+                }
+            }
+
+            if ($pruned > 0) {
+                \Log::info("Pruned $pruned expired session files");
+            }
+        }
     }
 }

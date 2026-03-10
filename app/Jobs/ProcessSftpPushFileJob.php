@@ -5,12 +5,15 @@ namespace App\Jobs;
 use App\Models\Company;
 use App\Models\Department;
 use App\Models\PayslipMatchingProposal;
+use App\Notifications\SftpAutoMatchNotification;
+use App\Services\FeatureConfigurationService;
 use App\Services\SftpPayslipService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Notification;
 use Throwable;
 
 class ProcessSftpPushFileJob implements ShouldQueue
@@ -124,6 +127,47 @@ class ProcessSftpPushFileJob implements ShouldQueue
             'status'                  => PayslipMatchingProposal::STATUS_PENDING,
         ]);
 
+        // ── Auto-match: validate proposal if confidence meets configured threshold ──
+        $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
+
+        if ($autoMatchConfig['enabled'] && !empty($candidates)) {
+            $best = $candidates[0];
+
+            if (FeatureConfigurationService::canAutoMatch($best, $autoMatchConfig)) {
+                if ($bestCompany && !$bestDepartment) {
+                    // Company matched but department is ambiguous → notify, keep pending
+                    \Log::info('ProcessSftpPushFileJob: Auto-match skipped — department ambiguous.', [
+                        'file'    => $basename,
+                        'company' => $bestCompany->name,
+                    ]);
+
+                    $this->notifyEmails(
+                        $autoMatchConfig['notification_email'] ?? '',
+                        new SftpAutoMatchNotification($proposal, 'dept_required')
+                    );
+                } else {
+                    // Auto-validate
+                    $proposal->update([
+                        'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
+                        'is_auto_matched' => true,
+                        'matched_at'      => now(),
+                    ]);
+
+                    \Log::info('ProcessSftpPushFileJob: Proposal auto-validated.', [
+                        'file'       => $basename,
+                        'company'    => $bestCompany?->name,
+                        'confidence' => $best['confidence'],
+                        'strategy'   => $best['strategy'],
+                    ]);
+
+                    $this->notifyEmails(
+                        $autoMatchConfig['notification_email'] ?? '',
+                        new SftpAutoMatchNotification($proposal, 'auto_validated')
+                    );
+                }
+            }
+        }
+
         // ── Move file to processed/ subfolder so scanner skips it on future runs ──
         $pushDir = dirname($this->absoluteFilePath);
         $processedDir = $pushDir . '/processed';
@@ -155,5 +199,18 @@ class ProcessSftpPushFileJob implements ShouldQueue
             'file'  => $this->absoluteFilePath,
             'error' => $exception->getMessage(),
         ]);
+    }
+
+    /**
+     * Send the given notification to every email address in a
+     * comma-separated string (safe no-op when the string is empty).
+     */
+    private function notifyEmails(string $emailList, \Illuminate\Notifications\Notification $notification): void
+    {
+        $emails = array_filter(array_map('trim', preg_split('/[\s,]+/', $emailList, -1, PREG_SPLIT_NO_EMPTY)));
+
+        foreach ($emails as $email) {
+            Notification::route('mail', $email)->notify(clone $notification);
+        }
     }
 }

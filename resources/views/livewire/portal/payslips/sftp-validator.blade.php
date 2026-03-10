@@ -280,6 +280,9 @@
                                         @break
                                     @case('validated')
                                         <span class="badge bg-info text-dark p-2">{{ __('payslips.validated') }}</span>
+                                        @if($proposal->is_auto_matched)
+                                            <span class="badge bg-primary text-white p-2 ms-1">auto</span>
+                                        @endif
                                         @break
                                     @case('processed')
                                         <span class="badge bg-success text-white p-2">{{ __('payslips.processed') }}</span>

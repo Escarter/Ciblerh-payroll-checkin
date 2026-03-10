@@ -107,92 +107,183 @@
                                 </div>
                             @endif
 
-                            <!-- Test Configuration Button -->
-                            <div class="form-group mt-4">
-                                <button type="button" wire:click="testSftpPushConfiguration" class="btn btn-outline-info btn-sm" wire:loading.attr="disabled">
-                                    <i class="fas fa-plug me-2" wire:loading.class="spinner-border spinner-border-sm"></i>
-                                    {{ __('settings.test_push_configuration') }}
-                                </button>
-                                @if ($sftp_connection_status)
-                                    <span class="badge bg-success ms-2 px-3 py-2">
-                                        <i class="fas fa-check-circle me-1"></i>{{ __('settings.connected') }}
-                                    </span>
+                            <!-- HTTP Upload Command -->
+                            <div class="mt-4">
+                                <label class="form-label fw-semibold mb-2"><i class="fas fa-terminal me-1"></i>Upload Command</label>
+                                <small class="d-block text-muted mb-2">
+                                    Use this command to push a payslip PDF from any system (payroll software, script, or cron job).
+                                </small>
+
+                                <div class="bg-dark rounded p-3 position-relative">
+                                    <code class="text-success d-block" id="curl-upload-cmd" style="font-size: 0.82rem; word-break: break-all; white-space: pre-wrap;">curl -F "file=@/path/to/payslip.pdf" \
+     -u {{ $sftp_push_username ?: '<username>' }}:{{ $sftp_push_password ?: '<password>' }} \
+     {{ url('/api/sftp-push/upload') }}</code>
+                                    <button type="button"
+                                        class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 sftp-copy-btn"
+                                        data-copy-target="curl-upload-cmd"
+                                        data-copy-label="Copy"
+                                        data-copied-label="Copied!">
+                                        Copy
+                                    </button>
+                                </div>
+                                @if (!$sftp_push_username || !$sftp_push_password)
+                                    <small class="text-warning d-block mt-2"><i class="fas fa-exclamation-triangle me-1"></i>Generate credentials above to fill in your username and password.</small>
                                 @else
-                                    <span class="badge bg-secondary ms-2 px-3 py-2">
-                                        <i class="fas fa-times-circle me-1"></i>{{ __('settings.disconnected') }}
-                                    </span>
-                                @endif
-                                @if ($test_sftp_message)
-                                    <div class="mt-2 small text-muted">{{ $test_sftp_message }}</div>
+                                    <small class="text-muted d-block mt-2">Replace <code>/path/to/payslip.pdf</code> with the actual file path. The file must be a PDF.</small>
                                 @endif
                             </div>
                         </div>
 
                         <hr>
 
-                        <!-- Sync Settings -->
+                        <!-- Company Matching -->
                         <div class="mb-4">
-                            <h6 class="text-primary mb-3">{{ __('settings.sftp_sync_frequency') }}</h6>
-                            
-                            <div class="form-group row mb-3">
-                                <div class="col-md-6">
-                                    <label for="sync_freq">{{ __('settings.sftp_sync_frequency') }}</label>
-                                    <select wire:model="sftp_sync_frequency" id="sync_freq" class="form-control w-100 @error('sftp_sync_frequency') is-invalid @enderror">
-                                        <option value="hourly">{{ __('settings.sftp_hourly') }}</option>
-                                        <option value="daily">{{ __('settings.sftp_daily') }}</option>
-                                        <option value="weekly">{{ __('settings.sftp_weekly') }}</option>
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-search me-1"></i>Company Matching
+                            </h6>
+                            <small class="d-block text-muted mb-3">
+                                Uploaded PDFs are matched against your company list automatically using the following three-step process. No configuration is required.
+                            </small>
+
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
+                                    <span class="badge bg-success text-white" style="min-width:28px; text-align:center;">1</span>
+                                    <div>
+                                        <strong>Partial match</strong> <span class="badge bg-success text-white ms-1">≥ 90%</span><br>
+                                        <small class="text-muted">The company name contains the text extracted from the PDF header (e.g. PDF says "PERENCO", company is "PERENCO CAMEROUN").</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
+                                    <span class="badge bg-info text-dark" style="min-width:28px; text-align:center;">2</span>
+                                    <div>
+                                        <strong>Reverse partial match</strong> <span class="badge bg-info text-dark ms-1">≥ 85%</span><br>
+                                        <small class="text-muted">The PDF header contains the company name as a whole word (e.g. PDF says "CIBLE RH — PERENCO SITE", company is "PERENCO").</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
+                                    <span class="badge bg-warning text-dark" style="min-width:28px; text-align:center;">3</span>
+                                    <div>
+                                        <strong>Fuzzy match</strong> <span class="badge bg-warning text-dark ms-1">variable (≥ 50%)</span><br>
+                                        <small class="text-muted">Character-level similarity scoring between the PDF text and each company name. Handles typos and abbreviated names.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Period Extraction -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-calendar-alt me-1"></i>Pay Period Extraction
+                            </h6>
+                            <small class="d-block text-muted mb-3">
+                                The pay period (month &amp; year) is extracted from each PDF automatically using a 6-pass priority chain. Both 2-digit and 4-digit years are supported.
+                            </small>
+
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
+                                    <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">1</span>
+                                    <div>
+                                        <strong>"Période du DD/MM/YY[YY]"</strong><br>
+                                        <small class="text-muted">Explicit French pay-period label. Works even when the date appears on a separate column due to PDF layout.</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
+                                    <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">2</span>
+                                    <div>
+                                        <strong>"au DD/MM/YY[YY]"</strong><br>
+                                        <small class="text-muted">End-of-period marker that appears above the label in columnar PDFs. The month/year of this end date is used.</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
+                                    <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">3</span>
+                                    <div>
+                                        <strong>"Du DD/MM/YY au DD/MM/YY"</strong><br>
+                                        <small class="text-muted">Full date range on a single line — uses the end date.</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
+                                    <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">4</span>
+                                    <div>
+                                        <strong>French/English month name + year</strong><br>
+                                        <small class="text-muted">e.g. "Décembre 2025" or "December 25" anywhere in the text.</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
+                                    <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">5</span>
+                                    <div>
+                                        <strong>Filename patterns</strong><br>
+                                        <small class="text-muted">YYYY-MM, MM-YYYY, YY-MM, or French month name in the filename (e.g. <code>payslip_2025-12.pdf</code>).</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex align-items-start gap-3 p-3 bg-light rounded">
+                                    <span class="badge bg-secondary text-white" style="min-width:28px; text-align:center;">6</span>
+                                    <div>
+                                        <strong>Standalone end-of-month date</strong><br>
+                                        <small class="text-muted">Any DD/MM/YY[YY] where the day is a typical month-end value (28, 29, 30, 31).</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Auto-Match Configuration -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-magic me-1"></i>Auto-Match Configuration
+                            </h6>
+                            <small class="d-block text-muted mb-3">
+                                When enabled, proposals whose confidence meets the threshold will be automatically validated and appear in the Validated tab for one-click processing.
+                            </small>
+
+                            <div class="form-group mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" wire:model.live="sftp_auto_match_enabled" id="autoMatchEnabled">
+                                    <label class="form-check-label" for="autoMatchEnabled">
+                                        <strong>Enable auto-match</strong>
+                                    </label>
+                                </div>
+                            </div>
+
+                            @if ($sftp_auto_match_enabled)
+                                <!-- Confidence threshold -->
+                                <div class="form-group mb-3">
+                                    <label for="sftp_auto_match_threshold">
+                                        Confidence threshold: <strong>{{ $sftp_auto_match_threshold }}%</strong>
+                                    </label>
+                                    <input type="range" class="form-range" min="50" max="100" step="1"
+                                        wire:model.live="sftp_auto_match_threshold" id="sftp_auto_match_threshold">
+                                    <small class="text-muted">Proposals below this confidence score will stay pending for manual review.</small>
+                                </div>
+
+                                <!-- Minimum strategy -->
+                                <div class="form-group mb-3">
+                                    <label for="sftp_auto_match_min_strategy">Minimum matching strategy</label>
+                                    <select wire:model="sftp_auto_match_min_strategy" id="sftp_auto_match_min_strategy" class="form-control w-100">
+                                        <option value="partial_match">Partial match (≥ 90% typical) — highest precision</option>
+                                        <option value="reverse_partial_match">Reverse partial (≥ 85% typical) — recommended</option>
+                                        <option value="fuzzy">Fuzzy — any strategy allowed</option>
                                     </select>
-                                    <small class="d-block text-muted mt-2">{{ __('settings.sftp_sync_frequency_help') }}</small>
-                                    @error('sftp_sync_frequency')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
+                                    <small class="text-muted">Strategies below the selected quality level will not trigger auto-match.</small>
                                 </div>
-                            </div>
-                        </div>
 
-                        <hr>
-
-                        <!-- Matching Strategies -->
-                        <div class="mb-4">
-                            <h6 class="text-primary mb-3">{{ __('settings.sftp_matching_strategies') }}</h6>
-                            <small class="d-block text-muted mb-3">{{ __('settings.sftp_matching_strategies_help') }}</small>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" wire:model="sftp_matching_strategies" value="employee_id" id="strategy_emp_id">
-                                        <label class="form-check-label" for="strategy_emp_id">
-                                            {{ __('settings.sftp_strategy_employee_id') }}
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" wire:model="sftp_matching_strategies" value="department_code" id="strategy_dept_code">
-                                        <label class="form-check-label" for="strategy_dept_code">
-                                            {{ __('settings.sftp_strategy_department_code') }}
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" wire:model="sftp_matching_strategies" value="company_code" id="strategy_company_code">
-                                        <label class="form-check-label" for="strategy_company_code">
-                                            {{ __('settings.sftp_strategy_company_code') }}
-                                        </label>
-                                    </div>
+                                <!-- Notification email -->
+                                <div class="form-group mb-3">
+                                    <label for="sftp_auto_match_notification_email">Notification email addresses</label>
+                                    <textarea wire:model="sftp_auto_match_notification_email"
+                                        id="sftp_auto_match_notification_email"
+                                        rows="3"
+                                        placeholder="admin@example.com, hr@example.com"
+                                        class="form-control w-100"></textarea>
+                                    <small class="text-muted">
+                                        Separate multiple addresses with a comma.
+                                        An email will be sent to all recipients when a proposal is auto-validated or when a department cannot be inferred.
+                                        Each email includes a direct link to open the proposal — recipients must log in before they can review or process it.
+                                    </small>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" wire:model="sftp_matching_strategies" value="folder_structure" id="strategy_folder">
-                                        <label class="form-check-label" for="strategy_folder">
-                                            {{ __('settings.sftp_strategy_folder_structure') }}
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" wire:model="sftp_matching_strategies" value="fuzzy" id="strategy_timestamps">
-                                        <label class="form-check-label" for="strategy_timestamps">
-                                            {{ __('settings.sftp_strategy_timestamps') }}
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
+                            @endif
                         </div>
                     @endif
 

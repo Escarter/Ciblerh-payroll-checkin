@@ -109,11 +109,12 @@ return [
     |
     | Some session drivers must manually sweep their storage location to get
     | rid of old sessions from storage. Here are the chances that it will
-    | happen on a given request. By default, the odds are 2 out of 100.
+    | happen on a given request. Increased from 2/100 to 10/100 for better
+    | garbage collection of expired sessions.
     |
     */
 
-    'lottery' => [2, 100],
+    'lottery' => [10, 100],
 
     /*
     |--------------------------------------------------------------------------
@@ -130,6 +131,19 @@ return [
         'SESSION_COOKIE',
         Str::slug(env('APP_NAME', 'laravel'), '_').'_session'
     ),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Session Expiration (for reference)
+    |--------------------------------------------------------------------------
+    |
+    | Sessions using the database or cache drivers will be garbage collected
+    | by this value after they become inactive. They will be deleted if they
+    | have not been accessed within the specified number of minutes.
+    |
+    */
+
+    'expire_inactive_interval' => env('SESSION_LIFETIME', 120),
 
     /*
     |--------------------------------------------------------------------------

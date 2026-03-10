@@ -88,6 +88,12 @@ class Index extends Component
     public $sftp_connection_status = false;
     public $test_sftp_message;
 
+    // Auto-match configuration
+    public $sftp_auto_match_enabled = false;
+    public $sftp_auto_match_threshold = 80;
+    public $sftp_auto_match_min_strategy = 'reverse_partial_match';
+    public $sftp_auto_match_notification_email = '';
+
     /** One-time display of generated push credentials */
     public $sftp_generated_username_display = null;
     public $sftp_generated_password_display = null;
@@ -155,6 +161,14 @@ class Index extends Component
         $this->sftp_matching_strategies = !empty($this->setting) && !empty($this->setting->sftp_matching_strategies) 
             ? $this->setting->sftp_matching_strategies 
             : [];
+
+        // Auto-match configuration
+        $this->sftp_auto_match_enabled = $this->setting ? (bool) $this->setting->sftp_auto_match_enabled : false;
+        $this->sftp_auto_match_threshold = !empty($this->setting) && $this->setting->sftp_auto_match_threshold !== null
+            ? (int) $this->setting->sftp_auto_match_threshold
+            : 80;
+        $this->sftp_auto_match_min_strategy = !empty($this->setting) ? ($this->setting->sftp_auto_match_min_strategy ?? 'reverse_partial_match') : 'reverse_partial_match';
+        $this->sftp_auto_match_notification_email = !empty($this->setting) ? ($this->setting->sftp_auto_match_notification_email ?? '') : '';
 
         // Check if SFTP push is already configured
         $this->checkSftpConnectionStatus();
@@ -422,14 +436,35 @@ class Index extends Component
                 'sftp_push_path' => $this->sftp_push_path,
                 'sftp_sync_frequency' => $this->sftp_sync_frequency,
                 'sftp_matching_strategies' => $this->sftp_matching_strategies,
+                'sftp_auto_match_enabled' => $this->sftp_auto_match_enabled,
+                'sftp_auto_match_threshold' => (int) $this->sftp_auto_match_threshold,
+                'sftp_auto_match_min_strategy' => $this->sftp_auto_match_min_strategy,
+                'sftp_auto_match_notification_email' => $this->normalizeEmails($this->sftp_auto_match_notification_email),
             ]
         );
 
         if ($setting) {
+            \App\Services\FeatureConfigurationService::clearCache();
             // Update checksum for push path changes
             $this->checkSftpConnectionStatus();
             $this->showToast(__('common.saved_successfully'), 'success');
         }
+    }
+
+    /**
+     * Normalise a potentially messy (comma/newline separated) email string.
+     * Returns a clean comma-separated string, or null when empty.
+     */
+    private function normalizeEmails(?string $value): ?string
+    {
+        if (empty(trim((string) $value))) {
+            return null;
+        }
+
+        $emails = preg_split('/[\s,]+/', (string) $value, -1, PREG_SPLIT_NO_EMPTY);
+        $emails = array_values(array_filter(array_map('trim', $emails)));
+
+        return $emails ? implode(', ', $emails) : null;
     }
 
     /**

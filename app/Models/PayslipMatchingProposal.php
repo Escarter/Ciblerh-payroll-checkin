@@ -29,6 +29,7 @@ class PayslipMatchingProposal extends Model
         'download_status',
         'download_error',
         'status',
+        'is_auto_matched',
         'rejection_reason',
     ];
 
@@ -37,6 +38,7 @@ class PayslipMatchingProposal extends Model
         'file_timestamp' => 'datetime',
         'matched_at' => 'datetime',
         'processed_at' => 'datetime',
+        'is_auto_matched' => 'boolean',
     ];
 
     // Status constants
