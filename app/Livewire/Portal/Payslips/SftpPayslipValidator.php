@@ -138,10 +138,33 @@ class SftpPayslipValidator extends Component
             return;
         }
 
-        $service    = new SftpPayslipService();
-        $metadata   = $service->extractPdfMetadata($proposal->local_file_path);
-        $candidates = !empty($metadata['company_raw'])
-            ? $service->matchCompanyFuzzy($metadata['company_raw'])
+        $service  = new SftpPayslipService();
+        $metadata = $service->extractPdfMetadata($proposal->local_file_path);
+
+        // Build match sources identical to ProcessSftpPushFileJob:
+        // all extracted header lines + cleaned filename stem
+        $matchSources = $metadata['company_header_lines'] ?? [];
+        if (!empty($metadata['company_raw']) && !in_array($metadata['company_raw'], $matchSources, true)) {
+            $matchSources[] = $metadata['company_raw'];
+        }
+
+        $filename     = pathinfo($proposal->local_file_path, PATHINFO_FILENAME);
+        $filenameStem = preg_replace('/[-_\.]+/', ' ', $filename);
+        $filenameStem = preg_replace('/\b(19|20)\d{2}\b/', '', $filenameStem);
+        $filenameStem = preg_replace('/\b\d{1,2}\b/', '', $filenameStem);
+        $filenameStem = preg_replace(
+            '/\b(janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre|january|february|march|april|june|july|august|september|october|november|december)\b/iu',
+            '',
+            $filenameStem
+        );
+        $filenameStem = preg_replace('/\b(bulletin|paie|fiche|salaire|payslip|salary|sheet|payroll)\b/iu', '', $filenameStem);
+        $filenameStem = trim(preg_replace('/\s+/', ' ', $filenameStem));
+        if (!empty($filenameStem)) {
+            $matchSources[] = $filenameStem;
+        }
+
+        $candidates = !empty($matchSources)
+            ? $service->matchBestFromMultiple($matchSources)
             : [];
 
         $best = $candidates[0] ?? null;
