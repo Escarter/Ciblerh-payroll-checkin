@@ -414,5 +414,6 @@ return [
     'all_departments_company_level' => 'All departments (company level)',
     'rejection_reason_placeholder' => 'Explain why this proposal is being rejected…',
     'extracted_company_text' => 'Extracted company text',
+    'match_sources_used'     => 'Strings tried for company matching',
     'raw_text_preview' => 'Raw PDF text (preview)',
 ];

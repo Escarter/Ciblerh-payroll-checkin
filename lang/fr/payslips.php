@@ -414,6 +414,7 @@ return [
     'all_departments_company_level' => 'Tous les départements (niveau société)',
     'rejection_reason_placeholder' => 'Expliquez pourquoi cette proposition est rejetée…',
     'extracted_company_text' => 'Texte société extrait',
+    'match_sources_used'     => 'Textes utilisés pour la correspondance',
     'raw_text_preview' => 'Aperçu du texte PDF brut',
     'validate' => 'Valider',
 ];

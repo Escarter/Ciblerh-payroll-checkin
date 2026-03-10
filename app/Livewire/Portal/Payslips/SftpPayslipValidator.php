@@ -171,15 +171,18 @@ class SftpPayslipValidator extends Component
 
         $proposal->update([
             'proposed_match' => [
-                'company_raw' => $metadata['company_raw'],
-                'candidates'  => $candidates,
-                'best_match'  => $best,
+                'company_raw'          => $metadata['company_raw'],
+                'company_header_lines' => $metadata['company_header_lines'] ?? [],
+                'match_sources'        => $matchSources,
+                'raw_text_preview'     => $metadata['raw_text_preview'] ?? null,
+                'candidates'           => $candidates,
+                'best_match'           => $best,
             ],
+            'raw_text_preview' => $metadata['raw_text_preview'] ?? $proposal->raw_text_preview,
             'matched_to_company_id'    => $best['company_id']    ?? $proposal->matched_to_company_id,
             'matched_to_department_id' => $proposal->matched_to_department_id,
             'matched_month'            => $metadata['month']     ?? $proposal->matched_month,
             'matched_year'             => $metadata['year']      ?? $proposal->matched_year,
-            'raw_text_preview'         => $metadata['raw_text_preview'] ?? $proposal->raw_text_preview,
         ]);
 
         $this->dispatch('alert', [

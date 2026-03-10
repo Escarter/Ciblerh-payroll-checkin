@@ -315,8 +315,13 @@
                                             wire:loading.class="opacity-50 pe-none"
                                             wire:target="rematch('{{ $proposal->id }}')"
                                             class="text-warning me-1" title="{{ __('payslips.rematch') }}">
-                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            {{-- Arrow icon (hidden while loading) --}}
+                                            <svg wire:loading.remove wire:target="rematch('{{ $proposal->id }}')" class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                            </svg>
+                                            {{-- Spinner (shown while loading) --}}
+                                            <svg wire:loading wire:target="rematch('{{ $proposal->id }}')" class="icon icon-xs animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:spin .8s linear infinite">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                                             </svg>
                                         </a>
                                         {{-- Edit/Validate --}}
@@ -396,19 +401,43 @@
                             </div>
                         </div>
 
-                        @php $companyRaw = $viewingProposal->proposed_match['company_raw'] ?? null; @endphp
-                        @if ($companyRaw)
+                        {{-- Match Sources: all strings tried during matching --}}
+                        @php
+                            $matchSources    = $viewingProposal->proposed_match['match_sources'] ?? [];
+                            $headerLines     = $viewingProposal->proposed_match['company_header_lines'] ?? [];
+                            $companyRaw      = $viewingProposal->proposed_match['company_raw'] ?? null;
+                            // Fall back to single company_raw if no sources stored (old proposals)
+                            if (empty($matchSources) && $companyRaw) {
+                                $matchSources = array_values(array_unique(array_filter(
+                                    array_merge($headerLines, [$companyRaw])
+                                )));
+                            }
+                        @endphp
+
+                        @if (!empty($matchSources))
+                            <div class="mb-3">
+                                <div class="small text-muted mb-1 fw-semibold">{{ __('payslips.match_sources_used') }}</div>
+                                <div class="d-flex flex-column gap-1">
+                                    @foreach ($matchSources as $i => $src)
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-secondary text-white" style="min-width:22px">{{ $i + 1 }}</span>
+                                            <span class="small font-monospace text-break">{{ $src }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @elseif ($companyRaw)
                             <div class="mb-3">
                                 <div class="small text-muted mb-1">{{ __('payslips.extracted_company_text') }}</div>
-                                <div class="p-2 bg-gray-200 rounded border small font-monospace">{{ $companyRaw }}</div>
+                                <div class="p-2 bg-light rounded border small font-monospace">{{ $companyRaw }}</div>
                             </div>
                         @endif
 
-                        @php $preview = $viewingProposal->proposed_match['raw_text_preview'] ?? null; @endphp
+                        @php $preview = $viewingProposal->proposed_match['raw_text_preview'] ?? $viewingProposal->raw_text_preview ?? null; @endphp
                         @if ($preview)
                             <div class="mb-4">
                                 <div class="small text-muted mb-1">{{ __('payslips.raw_text_preview') }}</div>
-                                <pre class="p-2 bg-gray-500 rounded border small" style="max-height:150px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;">{{ $preview }}</pre>
+                                <pre class="p-2 bg-light rounded border small" style="max-height:150px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;">{{ $preview }}</pre>
                             </div>
                         @endif
 
