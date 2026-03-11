@@ -267,33 +267,12 @@ class EmployeeImportAdapter extends BaseImportAdapter
             ];
         }
 
-        // Position required
-        if (empty($this->cleanValue($row['position'] ?? null))) {
-            $errors[] = [
-                'field' => 'position',
-                'message' => __('validation.required', ['attribute' => __('common.position')]),
-            ];
-        }
-
-        // Net salary required and numeric
+        // Net salary — optional, but must be numeric when provided
         $salary = $row['net_salary'] ?? null;
-        if ($salary === null || $salary === '') {
-            $errors[] = [
-                'field' => 'net_salary',
-                'message' => __('validation.required', ['attribute' => __('employees.net_salary')]),
-            ];
-        } elseif ($this->parseNumeric($salary) === null) {
+        if ($salary !== null && $salary !== '' && $this->parseNumeric($salary) === null) {
             $errors[] = [
                 'field' => 'net_salary',
                 'message' => __('validation.numeric', ['attribute' => __('employees.net_salary')]),
-            ];
-        }
-
-        // Salary grade required
-        if (empty($this->cleanValue($row['salary_grade'] ?? null))) {
-            $errors[] = [
-                'field' => 'salary_grade',
-                'message' => __('validation.required', ['attribute' => __('employees.salary_grade')]),
             ];
         }
 
@@ -312,16 +291,6 @@ class EmployeeImportAdapter extends BaseImportAdapter
             $errors[] = [
                 'field' => 'alternative_email',
                 'message' => __('validation.email', ['attribute' => __('employees.alternative_email')]),
-            ];
-        }
-
-        // Department required if not in context
-        $deptValue = $this->cleanValue($row['department'] ?? null);
-        $contextDeptId = $this->context['department_id'] ?? null;
-        if (empty($deptValue) && empty($contextDeptId)) {
-            $errors[] = [
-                'field' => 'department',
-                'message' => __('validation.required', ['attribute' => __('departments.department')]),
             ];
         }
 
