@@ -430,20 +430,23 @@ class EmployeeImportAdapter extends BaseImportAdapter
             $department = $this->autoCreateEntities
                 ? $this->resolveFKOrCreate(Department::class, $deptValue, ['name'], ['company_id' => $company->id], ['company_id' => $company->id])
                 : $this->resolveFK(Department::class, $deptValue, ['name'], ['company_id' => $company->id]);
+
+            // A value was given but couldn't be resolved — this is an error
+            if (!$department) {
+                return ['__error' => __('import.department_not_found', ['value' => $deptValue])];
+            }
         }
         if (!$department && $contextDeptId) {
             $department = Department::find($contextDeptId);
         }
-        if (!$department) {
-            return ['__error' => __('import.department_resolution_failed')];
-        }
+        // department may be null — it is optional
 
         // Resolve service (optional)
         $serviceValue = $this->cleanValue($row['service'] ?? null);
         $contextServiceId = $this->context['service_id'] ?? null;
         $service = null;
 
-        if ($serviceValue) {
+        if ($serviceValue && $department) {
             $service = $this->autoCreateEntities
                 ? $this->resolveFKOrCreate(Service::class, $serviceValue, ['name'], ['department_id' => $department->id], ['department_id' => $department->id, 'company_id' => $company->id])
                 : $this->resolveFK(Service::class, $serviceValue, ['name'], ['department_id' => $department->id]);
@@ -484,7 +487,7 @@ class EmployeeImportAdapter extends BaseImportAdapter
             'salary_grade' => $this->cleanValue($row['salary_grade'] ?? null),
             'contract_end' => $this->parseDate($row['contract_end'] ?? null),
             'company_id' => $company->id,
-            'department_id' => $department->id,
+            'department_id' => $department?->id,
             'service_id' => $service?->id,
             'status' => $status,
             'password' => bcrypt($password),
