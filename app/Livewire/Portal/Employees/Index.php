@@ -1079,27 +1079,19 @@ class Index extends BaseImportComponent
                 $dangers[] = __('employees.matricule_required');
             }
 
-            // Validate position
-            if (empty($rowData[5] ?? '')) {
-                $dangers[] = __('employees.position_required');
+            // position — optional, no validation needed
+
+            // Validate net salary — optional, but must be numeric when provided
+            $salaryRaw = $rowData[6] ?? '';
+            if ($salaryRaw !== '' && $salaryRaw !== null && !is_numeric($salaryRaw)) {
+                $dangers[] = __('validation.numeric', ['attribute' => __('employees.net_salary')]);
             }
 
-            // Validate net salary
-            if (empty($rowData[6] ?? '') || !is_numeric($rowData[6])) {
-                $dangers[] = __('employees.net_salary_required_numeric');
-            }
+            // salary_grade — optional, no validation needed
 
-            // Validate salary grade
-            if (empty($rowData[7] ?? '')) {
-                $dangers[] = __('employees.salary_grade_required');
-            }
-
-            // Validate department (by name)
+            // Validate department (by name) — optional
             $departmentName = $rowData[9] ?? '';
-            if (empty($departmentName)) {
-                $dangers[] = __('employees.department_required');
-            } else {
-                // Check if company is set before validating department
+            if (!empty($departmentName)) {
                 if (!$this->company) {
                     $dangers[] = __('employees.company_required_for_import');
                 } else {
@@ -1112,11 +1104,9 @@ class Index extends BaseImportComponent
                 }
             }
 
-            // Validate service (by name, requires valid department)
+            // Validate service (by name) — optional, only checked when provided with a valid department
             $serviceName = $rowData[10] ?? '';
-            if (empty($serviceName)) {
-                $dangers[] = __('employees.service_required');
-            } elseif (isset($departmentResult) && $departmentResult['found']) {
+            if (!empty($serviceName) && isset($departmentResult) && $departmentResult['found']) {
                 $serviceResult = findServiceByName($serviceName, $departmentResult['department']->id);
                 if (!$serviceResult['found']) {
                     $dangers[] = $serviceResult['danger'];
@@ -1125,17 +1115,19 @@ class Index extends BaseImportComponent
                 }
             }
 
-            // Validate role based on user permissions
+            // Validate role — optional (defaults to employee); only validate when a value is given
             $role = strtolower($rowData[11] ?? '');
-            $userRole = auth()->user()->getRoleNames()->first();
-            $validRoles = match ($userRole) {
-                'admin' => ['admin', 'manager', 'supervisor', 'employee'],
-                'manager' => ['employee', 'supervisor'],
-                'supervisor' => ['employee'],
-                default => ['employee'],
-            };
-            if (empty($role) || !in_array($role, $validRoles)) {
-                $dangers[] = __('employees.role_invalid');
+            if (!empty($role)) {
+                $userRole = auth()->user()->getRoleNames()->first();
+                $validRoles = match ($userRole) {
+                    'admin' => ['admin', 'manager', 'supervisor', 'employee'],
+                    'manager' => ['employee', 'supervisor'],
+                    'supervisor' => ['employee'],
+                    default => ['employee'],
+                };
+                if (!in_array($role, $validRoles)) {
+                    $dangers[] = __('employees.role_invalid');
+                }
             }
 
             // Validate work times if provided
