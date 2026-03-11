@@ -272,8 +272,10 @@
                                             @endhasanyrole
                                         </div>
                                     </a>
+                                    @elseif (is_null($job->department_id))
+                                    <span class="text-muted fst-italic small">{{ __('payslips.all_departments_company_level') }}</span>
                                     @else
-                                    <p>{{__('payslips.department_deleted')}}</p>
+                                    <span class="text-danger small">{{ __('payslips.department_deleted') }}</span>
                                     @endif
                                 </td>
                                 <td>

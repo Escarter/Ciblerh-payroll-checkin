@@ -21,6 +21,11 @@ class SendPayslipProcess extends Model
     {
         return $this->belongsTo(Department::class);
     }
+
+    public function departmentWithTrashed()
+    {
+        return $this->belongsTo(Department::class)->withTrashed();
+    }
     
     public function scopeSupervisor($query)
     {
