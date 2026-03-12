@@ -400,6 +400,7 @@ return [
     'rematch' => 'Re-match',
     'rematch_no_candidates' => 'Re-match complete: no company matches found',
     'rematch_found' => 'Re-match complete: :count candidate(s) found',
+    'rematch_auto_validated' => 'Re-match complete: :count candidate(s) found — auto-validated',
     'local_file_not_found' => 'Local file no longer exists — cannot re-match',
     'proposals_queued_for_processing' => 'Proposals queued for processing (count: :count)',
     'process_selected' => 'Process Selected',

@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Company;
 use App\Models\PayslipMatchingProposal;
 use App\Jobs\ProcessValidatedPayslipsJob;
+use App\Services\FeatureConfigurationService;
 use App\Services\SftpPayslipService;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -185,11 +186,27 @@ class SftpPayslipValidator extends Component
             'matched_year'             => $metadata['year']      ?? $proposal->matched_year,
         ]);
 
+        // Auto-validate if confidence meets the configured threshold
+        $autoValidated = false;
+        if ($best !== null) {
+            $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
+            if ($autoMatchConfig['enabled'] && FeatureConfigurationService::canAutoMatch($best, $autoMatchConfig)) {
+                $proposal->update([
+                    'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
+                    'is_auto_matched' => true,
+                    'matched_at'      => now(),
+                ]);
+                $autoValidated = true;
+            }
+        }
+
         $this->dispatch('alert', [
             'type'    => empty($candidates) ? 'warning' : 'success',
             'message' => empty($candidates)
                 ? __('payslips.rematch_no_candidates')
-                : __('payslips.rematch_found', ['count' => count($candidates)]),
+                : ($autoValidated
+                    ? __('payslips.rematch_auto_validated', ['count' => count($candidates)])
+                    : __('payslips.rematch_found', ['count' => count($candidates)])),
         ]);
     }
 

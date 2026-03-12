@@ -396,6 +396,7 @@ return [
     'rematch' => 'Re-correspondance',
     'rematch_no_candidates' => 'Re-correspondance terminée : aucune entreprise trouvée',
     'rematch_found' => 'Re-correspondance terminée : :count candidat(s) trouvé(s)',
+    'rematch_auto_validated' => 'Re-correspondance terminée : :count candidat(s) trouvé(s) — validé automatiquement',
     'local_file_not_found' => 'Le fichier local n\'existe plus — re-correspondance impossible',
     'proposals_queued_for_processing' => 'Propositions mises en file d\'attente pour traitement (nombre: :count)',
     'process_selected' => 'Traiter la sélection',
