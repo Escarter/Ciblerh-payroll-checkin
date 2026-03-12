@@ -74,6 +74,9 @@ class All extends BaseImportComponent
     public $selectedEmployeesForDelete = [];
     public $selectAll = false;
 
+    // Filter props
+    public string $filterCompany = '';
+
     //Update & Store Rules - using string-based validation to avoid new expressions in property
     protected array $rules = [
         'first_name' => 'required',
@@ -678,6 +681,11 @@ class All extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('employees.selected_employees_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
+    public function updatedFilterCompany()
+    {
+        $this->resetPage();
+    }
+
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
@@ -814,6 +822,11 @@ class All extends BaseImportComponent
             'admin' => null, // No additional filtering for admin
             default => $query->supervisor(),
         };
+
+        // Company filter (admin only)
+        if ($this->auth_role === 'admin' && $this->filterCompany !== '') {
+            $query->where('company_id', $this->filterCompany);
+        }
 
         return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
     }
@@ -1280,12 +1293,17 @@ class All extends BaseImportComponent
             default => 0,
         };
 
+        $companies = $this->auth_role === 'admin'
+            ? Company::orderBy('name')->get(['id', 'name'])
+            : collect();
+
         return view('livewire.portal.employees.all', [
             'employees' => $employees,
             'employees_count' => $employees_count,
             'active_employees' => $active_employees,
             'deleted_employees' => $deleted_employees,
             'banned_employees' => $banned_employees,
+            'companies' => $companies,
         ])->layout('components.layouts.dashboard');
     }
 

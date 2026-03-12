@@ -194,6 +194,22 @@
         </div>
     </div>
 
+    @hasrole('admin')
+    @if($companies->isNotEmpty())
+    <div class="row pb-3">
+        <div class="col-md-4">
+            <label for="filterCompany">{{__('companies.company')}}: </label>
+            <select wire:model.live="filterCompany" id="filterCompany" class="form-select">
+                <option value="">{{__('companies.all_companies')}}</option>
+                @foreach($companies as $company)
+                    <option value="{{ $company->id }}">{{ $company->name }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+    @endif
+    @endhasrole
+
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
     @if(auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
