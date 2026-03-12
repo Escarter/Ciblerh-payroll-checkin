@@ -161,11 +161,6 @@
 
     <div class="row pt-2 pb-3">
         <div class="col-md-3">
-            <label for="search">{{__('common.search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
-            <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
-        </div>
-        <div class="col-md-3">
             <label for="orderBy">{{__('common.order_by')}}: </label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
                 <option value="first_name">{{__('employees.first_name')}}</option>
@@ -192,12 +187,10 @@
                 <option value="25">25</option>
             </select>
         </div>
-    </div>
 
-    @hasrole('admin')
-    @if($companies->isNotEmpty())
-    <div class="row pb-3">
-        <div class="col-md-4">
+        @hasrole('admin')
+        @if($companies->isNotEmpty())
+        <div class="col-md-3">
             <label for="filterCompany">{{__('companies.company')}}: </label>
             <select wire:model.live="filterCompany" id="filterCompany" class="form-select">
                 <option value="">{{__('companies.all_companies')}}</option>
@@ -206,9 +199,17 @@
                 @endforeach
             </select>
         </div>
+        @endif
+        @endhasrole
     </div>
-    @endif
-    @endhasrole
+
+    <div class="row pb-3">
+        <div class="col-12">
+            <label for="search">{{__('common.search')}}: </label>
+            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
+            <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
+        </div>
+    </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
     @if(auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore'))
