@@ -205,7 +205,6 @@
 
     <div class="row pb-3">
         <div class="col-12">
-            <label for="search">{{__('common.search')}}: </label>
             <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
