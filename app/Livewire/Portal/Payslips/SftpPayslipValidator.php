@@ -196,6 +196,7 @@ class SftpPayslipValidator extends Component
                     'is_auto_matched' => true,
                     'matched_at'      => now(),
                 ]);
+                ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
                 $autoValidated = true;
             }
         }
