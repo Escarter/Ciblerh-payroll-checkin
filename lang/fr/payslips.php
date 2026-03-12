@@ -392,6 +392,7 @@ return [
     'match_candidates' => 'Candidats à correspondance',
     'no_matches_found' => 'Aucune correspondance trouvée',
     'proposal_validated_and_queued' => 'Proposition validée et mise en file d\'attente pour traitement',
+    'proposal_not_validated' => 'Cette proposition n\'est pas en statut validé et ne peut pas être traitée',
     'proposal_rejected' => 'Proposition rejetée avec succès',
     'rematch' => 'Re-correspondance',
     'rematch_no_candidates' => 'Re-correspondance terminée : aucune entreprise trouvée',

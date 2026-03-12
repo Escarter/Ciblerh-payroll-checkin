@@ -322,6 +322,26 @@ class SftpPayslipValidator extends Component
     }
 
     /**
+     * Process a single validated proposal
+     */
+    public function processSingle(string $proposalId): void
+    {
+        $proposal = PayslipMatchingProposal::findOrFail($proposalId);
+
+        if ($proposal->status !== PayslipMatchingProposal::STATUS_VALIDATED) {
+            $this->dispatch('alert', ['type' => 'warning', 'message' => __('payslips.proposal_not_validated')]);
+            return;
+        }
+
+        ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
+
+        $this->dispatch('alert', [
+            'type'    => 'success',
+            'message' => __('payslips.proposals_queued_for_processing', ['count' => 1]),
+        ]);
+    }
+
+    /**
      * Process multiple validated proposals
      */
     public function processSelected()

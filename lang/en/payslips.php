@@ -396,6 +396,7 @@ return [
     'match_candidates' => 'Match Candidates',
     'no_matches_found' => 'No matches found',
     'proposal_validated_and_queued' => 'Proposal validated and queued for processing',
+    'proposal_not_validated' => 'This proposal is not in validated status and cannot be processed',
     'proposal_rejected' => 'Proposal rejected successfully',
     'rematch' => 'Re-match',
     'rematch_no_candidates' => 'Re-match complete: no company matches found',
