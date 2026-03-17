@@ -368,6 +368,7 @@
                                 <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.timeline')}}</th>
                                 <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.encryption_status')}}</th>
                                 <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.email_status')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.email_delivery_status')}}</th>
                                 <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.sms_status')}}</th>
                                 <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                             </tr>
@@ -450,6 +451,19 @@
                                     <span class="badge badge-lg text-md bg-gray-400">{{__('payslips.disabled')}}</span>
                                     @else
                                     <span class="badge badge-lg text-md text-gray bg-warning">{{__('payslips.pending_status')}}</span>
+                                    @endif
+                                </td>
+                                <td class="align-middle">
+                                    @if($payslip->email_delivery_status === 'delivered')
+                                    <span class="badge badge-lg text-md bg-success" title="{{$payslip->email_delivered_at}}">{{__('payslips.delivery_delivered')}}</span>
+                                    @elseif($payslip->email_delivery_status === 'bounced')
+                                    <span class="badge badge-lg text-md bg-danger" title="{{$payslip->email_delivery_note}}">{{__('payslips.delivery_bounced')}}</span>
+                                    @elseif($payslip->email_delivery_status === 'complained')
+                                    <span class="badge badge-lg text-md bg-warning text-dark" title="{{$payslip->email_delivery_note}}">{{__('payslips.delivery_spam')}}</span>
+                                    @elseif($payslip->email_delivery_status === 'sent')
+                                    <span class="badge badge-lg text-md bg-info">{{__('payslips.delivery_sent')}}</span>
+                                    @else
+                                    <span class="badge badge-lg text-md bg-secondary">{{__('payslips.delivery_pending')}}</span>
                                     @endif
                                 </td>
                                 <td class="align-middle">
