@@ -42,13 +42,27 @@ class SendPayslip extends Mailable //implements ShouldQueue
         $file_path = Storage::disk('modified')->path($this->destination);
         $setting = Setting::first();
 
-        $email_subject = $this->user->preferred_language === 'en' ? 
-            str_replace([':month:',':year:'],[$this->month, now()->year], $setting->email_subject_en) :
-             str_replace([':month:', ':year:'], [$this->month, now()->year],$setting->email_subject_fr);
-        
-        $mail_content = $this->user->preferred_language === 'en' ?
-            str_replace([':name:', ':month:'], [$this->user->name, now()->month], $setting->email_content_en) :
-            str_replace([':name:', ':month:'], [$this->user->name, now()->month], $setting->email_content_fr);
+        $frMonths = [
+            'January' => 'Janvier', 'February' => 'Février', 'March' => 'Mars',
+            'April' => 'Avril', 'May' => 'Mai', 'June' => 'Juin',
+            'July' => 'Juillet', 'August' => 'Août', 'September' => 'Septembre',
+            'October' => 'Octobre', 'November' => 'Novembre', 'December' => 'Décembre',
+        ];
+        $monthForEmail = $this->user->preferred_language === 'en'
+            ? $this->month
+            : ($frMonths[$this->month] ?? $this->month);
+
+        $email_subject = str_replace(
+            [':month:', ':year:'],
+            [$monthForEmail, now()->year],
+            $this->user->preferred_language === 'en' ? $setting->email_subject_en : $setting->email_subject_fr
+        );
+
+        $mail_content = str_replace(
+            [':name:', ':month:'],
+            [$this->user->name, $monthForEmail],
+            $this->user->preferred_language === 'en' ? $setting->email_content_en : $setting->email_content_fr
+        );
 
         return $this->markdown('email.payslip.send',['message'=> $mail_content])
                     ->subject($email_subject)
