@@ -111,9 +111,10 @@ class EmailWebhookController extends Controller
             return;
         }
 
-        // Find payslip by recipient email and recent sends
+        // Find payslip by recipient email (primary or alternative) and recent sends
         $payslip = Payslip::whereHas('employee', function($query) use ($recipient) {
-            $query->where('email', $recipient);
+            $query->where('email', $recipient)
+                  ->orWhere('alternative_email', $recipient);
         })
         ->where('email_delivery_status', '!=', Payslip::DELIVERY_STATUS_DELIVERED)
         ->where('email_sent_at', '>', now()->subDays(7)) // Only check recent sends
@@ -173,7 +174,7 @@ class EmailWebhookController extends Controller
                 'SpamComplaint' => Payslip::DELIVERY_STATUS_COMPLAINED,
             ],
             'mailchimp' => [
-                'send'         => Payslip::DELIVERY_STATUS_DELIVERED,
+                // Mandrill has no true "delivered" event; hard/soft bounce and spam are trackable
                 'hard_bounce'  => Payslip::DELIVERY_STATUS_BOUNCED,
                 'soft_bounce'  => Payslip::DELIVERY_STATUS_BOUNCED,
                 'spam'         => Payslip::DELIVERY_STATUS_COMPLAINED,
