@@ -143,6 +143,7 @@
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.period')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.when')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('reports.email_status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.email_delivery_status')}}</th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sms_status')}}</th>
                     </tr>
                 </thead>
@@ -182,6 +183,19 @@
                             <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                             @else
                             <span class="badge badge-lg text-md text-gray bg-warning">{{__('common.pending')}}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($payslip->email_delivery_status === 'delivered')
+                            <span class="badge badge-lg text-md bg-success" title="{{$payslip->email_delivered_at}}">{{__('payslips.delivery_delivered')}}</span>
+                            @elseif($payslip->email_delivery_status === 'bounced')
+                            <span class="badge badge-lg text-md bg-danger" title="{{$payslip->email_delivery_note}}">{{__('payslips.delivery_bounced')}}</span>
+                            @elseif($payslip->email_delivery_status === 'complained')
+                            <span class="badge badge-lg text-md bg-warning text-dark" title="{{$payslip->email_delivery_note}}">{{__('payslips.delivery_spam')}}</span>
+                            @elseif($payslip->email_delivery_status === 'sent')
+                            <span class="badge badge-lg text-md bg-info">{{__('payslips.delivery_sent')}}</span>
+                            @else
+                            <span class="badge badge-lg text-md bg-secondary">{{__('payslips.delivery_pending')}}</span>
                             @endif
                         </td>
                         <td>

@@ -159,6 +159,29 @@
                                             </div>
                                         </div>
 
+                                        <!-- Email Delivery Status -->
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="status-indicator {{ $selectedPayslip->email_delivery_status === 'delivered' ? 'bg-success' : ($selectedPayslip->email_delivery_status === 'bounced' ? 'bg-danger' : ($selectedPayslip->email_delivery_status === 'complained' ? 'bg-warning' : ($selectedPayslip->email_delivery_status === 'sent' ? 'bg-info' : 'bg-secondary'))) }}"></div>
+                                                <div class="flex-grow-1">
+                                                    <strong class="text-sm">{{__('payslips.email_delivery_status')}}</strong>
+                                                    <p class="mb-0 text-sm">
+                                                        @if($selectedPayslip->email_delivery_status === 'delivered')
+                                                            <span class="badge badge-lg bg-success" title="{{$selectedPayslip->email_delivered_at}}">{{__('payslips.delivery_delivered')}}</span>
+                                                        @elseif($selectedPayslip->email_delivery_status === 'bounced')
+                                                            <span class="badge badge-lg bg-danger" title="{{$selectedPayslip->email_delivery_note}}">{{__('payslips.delivery_bounced')}}</span>
+                                                        @elseif($selectedPayslip->email_delivery_status === 'complained')
+                                                            <span class="badge badge-lg bg-warning text-dark" title="{{$selectedPayslip->email_delivery_note}}">{{__('payslips.delivery_spam')}}</span>
+                                                        @elseif($selectedPayslip->email_delivery_status === 'sent')
+                                                            <span class="badge badge-lg bg-info">{{__('payslips.delivery_sent')}}</span>
+                                                        @else
+                                                            <span class="badge badge-lg bg-secondary">{{__('payslips.delivery_pending')}}</span>
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- SMS Status -->
                                         <div class="col-md-6">
                                             <div class="d-flex align-items-center gap-2">
