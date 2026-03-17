@@ -52,6 +52,9 @@ class Index extends Component
 
     // Log
     public $log_channel;
+
+    // Mailchimp Transactional (Mandrill)
+    public $mailchimp_api_key;
     public $from_email;
     public $from_name;
     public $replyTo_email;
@@ -141,6 +144,7 @@ class Index extends Component
         $this->mailpit_host = !empty($this->setting) ? $this->setting->mailpit_host :'';
         $this->mailpit_port = !empty($this->setting) ? $this->setting->mailpit_port :'';
         $this->log_channel = !empty($this->setting) ? $this->setting->log_channel :'';
+        $this->mailchimp_api_key = !empty($this->setting) ? $this->setting->mailchimp_api_key :'';
         $this->sms_balance = !empty($this->setting) ? $this->setting->sms_balance :'';
 
         $this->sms_content_en = !empty($this->setting) ? (!empty($this->setting->sms_content_en) ? $this->setting->sms_content_en  : "Mr/Mrs :name:, your pay slip for the month of :month:-:year: has been sent to your mailbox. Please use the following password: :pdf_password: to view it.") :'';
@@ -347,6 +351,7 @@ class Index extends Component
                 'mailpit_host' => $this->mailpit_host,
                 'mailpit_port' => $this->mailpit_port,
                 'log_channel' => $this->log_channel,
+                'mailchimp_api_key' => $this->mailchimp_api_key,
                 'smtp_host' => $this->smtp_host,
                 'smtp_port' => $this->smtp_port,
                 'smtp_username' => $this->smtp_username,

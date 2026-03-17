@@ -72,6 +72,33 @@ class EmailWebhookController extends Controller
     }
 
     /**
+     * Handle Mailchimp Transactional (Mandrill) webhooks
+     */
+    public function mailchimp(Request $request)
+    {
+        if (!$this->verifyMailchimpSignature($request)) {
+            Log::warning('Mailchimp webhook signature verification failed');
+            return response()->json(['status' => 'unauthorized'], 401);
+        }
+
+        $eventsRaw = $request->input('mandrill_events', '[]');
+        $events = json_decode($eventsRaw, true) ?: [];
+
+        foreach ($events as $event) {
+            $eventType = $event['event'] ?? null;
+            $msg       = $event['msg'] ?? [];
+            $recipient = $msg['email'] ?? null;
+            $messageId = $msg['_id'] ?? null;
+
+            if ($eventType && $recipient) {
+                $this->processEmailEvent($eventType, $recipient, $messageId, 'mailchimp', $event);
+            }
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
      * Process email events from different providers
      */
     private function processEmailEvent($eventType, $recipient, $messageId = null, $provider = 'unknown', $eventData = null)
@@ -141,13 +168,52 @@ class EmailWebhookController extends Controller
                 'Complaint' => Payslip::DELIVERY_STATUS_COMPLAINED,
             ],
             'postmark' => [
-                'Delivered' => Payslip::DELIVERY_STATUS_DELIVERED,
-                'Bounced' => Payslip::DELIVERY_STATUS_BOUNCED,
+                'Delivered'    => Payslip::DELIVERY_STATUS_DELIVERED,
+                'Bounced'      => Payslip::DELIVERY_STATUS_BOUNCED,
                 'SpamComplaint' => Payslip::DELIVERY_STATUS_COMPLAINED,
+            ],
+            'mailchimp' => [
+                'send'         => Payslip::DELIVERY_STATUS_DELIVERED,
+                'hard_bounce'  => Payslip::DELIVERY_STATUS_BOUNCED,
+                'soft_bounce'  => Payslip::DELIVERY_STATUS_BOUNCED,
+                'spam'         => Payslip::DELIVERY_STATUS_COMPLAINED,
+                'reject'       => Payslip::DELIVERY_STATUS_BOUNCED,
             ],
         ];
 
         return $mappings[$provider][$eventType] ?? null;
+    }
+
+    /**
+     * Verify Mailchimp Transactional (Mandrill) webhook signature.
+     *
+     * Mandrill signs using HMAC-SHA1 where the signed string is:
+     * webhook_url + sorted POST key/value pairs concatenated.
+     */
+    private function verifyMailchimpSignature(Request $request): bool
+    {
+        $apiKey = \App\Models\Setting::value('mailchimp_api_key');
+        if (!$apiKey) {
+            return true; // Skip verification if not configured
+        }
+
+        $signature = $request->header('X-Mandrill-Signature');
+        if (!$signature) {
+            return false;
+        }
+
+        $webhookUrl  = $request->url();
+        $postParams  = $request->post();
+        ksort($postParams);
+
+        $signedString = $webhookUrl;
+        foreach ($postParams as $key => $value) {
+            $signedString .= $key . $value;
+        }
+
+        $expectedSignature = base64_encode(hash_hmac('sha1', $signedString, $apiKey, true));
+
+        return hash_equals($expectedSignature, $signature);
     }
 
     /**

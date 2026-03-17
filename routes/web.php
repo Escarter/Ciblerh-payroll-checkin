@@ -225,4 +225,5 @@ Route::prefix('webhooks/email')->group(function () {
     Route::post('mailgun', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'mailgun']);
     Route::post('ses', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'ses']);
     Route::post('postmark', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'postmark']);
+    Route::post('mailchimp', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'mailchimp']);
 });

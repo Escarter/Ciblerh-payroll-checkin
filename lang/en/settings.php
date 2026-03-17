@@ -29,6 +29,7 @@ return [
     'mailpit' => 'Mailpit',
     'log' => 'Log',
     'array' => 'Array',
+    'mailchimp_transactional' => 'Mailchimp Transactional',
 
     // Provider Categories
     'basic_smtp_provider' => 'Basic SMTP Server',
@@ -142,6 +143,18 @@ return [
     'postmark_webhook_step_1' => 'Go to Postmark dashboard → Webhooks',
     'postmark_webhook_step_2' => 'Create a new webhook for events: Delivered, Bounced, Spam Complaint',
     'postmark_webhook_step_3' => 'Paste the webhook URL above in the URL field',
+
+    // Mailchimp Transactional (Mandrill) Webhook Setup
+    'mailchimp_transactional_configuration' => 'Mailchimp Transactional Configuration',
+    'mailchimp_smtp_note' => 'Mailchimp Transactional sends via the Mandrill SMTP gateway at ',
+    'mailchimp_api_key' => 'Mailchimp Transactional API Key',
+    'mailchimp_api_key_placeholder' => 'Enter your Mailchimp Transactional API key',
+    'mailchimp_api_key_help' => 'Found in your Mailchimp Transactional (Mandrill) account under Settings → API Keys.',
+    'mailchimp_webhook_setup' => 'Mailchimp Transactional Webhook Setup',
+    'mailchimp_webhook_step_1' => 'Log in to your Mailchimp Transactional (Mandrill) account',
+    'mailchimp_webhook_step_2' => 'Go to Settings → Webhooks',
+    'mailchimp_webhook_step_3' => 'Click "Add a Webhook" and select events: Sent, Hard Bounce, Soft Bounce, Spam',
+    'mailchimp_webhook_step_4' => 'Paste the webhook URL above in the Post To URL field and save',
 
     // Provider Information
     'get_credentials' => 'Get Credentials',

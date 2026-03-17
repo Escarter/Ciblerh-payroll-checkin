@@ -192,6 +192,7 @@
                                         <label for='smtp_provider'>{{__('settings.email_provider')}}</label>
                                         <select wire:model.live='smtp_provider' id='smtp_provider' class="form-control @error('smtp_provider') is-invalid @enderror">
                                             <option value='smtp'>{{__('settings.smtp')}}</option>
+                                            <option value='mailchimp'>{{__('settings.mailchimp_transactional')}}</option>
                                             <option value='mailgun'>{{__('settings.mailgun')}}</option>
                                             <option value='ses'>{{__('settings.ses')}}</option>
                                             <option value='postmark'>{{__('settings.postmark')}}</option>
@@ -229,6 +230,22 @@
                                         <div class="form-group mb-2">
                                             <label for="smtp_encryption">{{ __('settings.smtp_encryption') }}</label>
                                             <input wire:model="smtp_encryption" id="smtp_encryption" type="text" class="form-control w-100 @error('smtp_encryption') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'" placeholder="tls/ssl">
+                                        </div>
+                                    </div>
+
+                                    <!-- Mailchimp Transactional Configuration -->
+                                    <div x-show="$wire.smtp_provider === 'mailchimp'" class="provider-config">
+                                        <hr>
+                                        <h6 class="text-primary mb-3">{{__('settings.mailchimp_transactional_configuration')}}</h6>
+                                        <div class="alert alert-info mb-3">
+                                            <i class="fas fa-info-circle"></i>
+                                            {{__('settings.mailchimp_smtp_note')}}
+                                            <strong>smtp.mandrillapp.com:587</strong>
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <label for="mailchimp_api_key">{{ __('settings.mailchimp_api_key') }}</label>
+                                            <input wire:model="mailchimp_api_key" id="mailchimp_api_key" type="password" class="form-control w-100 @error('mailchimp_api_key') is-invalid @enderror" placeholder="{{__('settings.mailchimp_api_key_placeholder')}}">
+                                            <small class="text-muted">{{__('settings.mailchimp_api_key_help')}}</small>
                                         </div>
                                     </div>
 
@@ -354,7 +371,7 @@
                                         </div>
                                     </div>
 
-                                    <div x-show="['mailgun', 'ses', 'postmark'].includes($wire.smtp_provider)" class="mt-3">
+                                    <div x-show="['mailgun', 'ses', 'postmark', 'mailchimp'].includes($wire.smtp_provider)" class="mt-3">
                                         <div class="alert alert-success">
                                             <i class="fas fa-check-circle"></i>
                                             {{__('settings.transactional_webhook_note')}}
@@ -369,7 +386,7 @@
                                     </div>
 
                                     <!-- Webhook Configuration Section -->
-                                    <div x-show="['mailgun', 'ses', 'postmark'].includes($wire.smtp_provider)" class="mt-4">
+                                    <div x-show="['mailgun', 'ses', 'postmark', 'mailchimp'].includes($wire.smtp_provider)" class="mt-4">
                                         <div class="card-title h5 pt-3">{{__('settings.webhook_configuration')}} </div>
                                         <hr>
                                         <div class="alert alert-info">
@@ -418,6 +435,16 @@
                                                 <li>{{__('settings.postmark_webhook_step_1')}}</li>
                                                 <li>{{__('settings.postmark_webhook_step_2')}}</li>
                                                 <li>{{__('settings.postmark_webhook_step_3')}}</li>
+                                            </ol>
+                                        </div>
+
+                                        <div x-show="$wire.smtp_provider === 'mailchimp'" class="mb-3">
+                                            <h6 class="text-primary">{{__('settings.mailchimp_webhook_setup')}}</h6>
+                                            <ol class="text-sm">
+                                                <li>{{__('settings.mailchimp_webhook_step_1')}}</li>
+                                                <li>{{__('settings.mailchimp_webhook_step_2')}}</li>
+                                                <li>{{__('settings.mailchimp_webhook_step_3')}}</li>
+                                                <li>{{__('settings.mailchimp_webhook_step_4')}}</li>
                                             </ol>
                                         </div>
                                     </div>

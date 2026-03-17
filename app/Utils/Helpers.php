@@ -437,15 +437,28 @@ if (!function_exists('setSavedSmtpCredentials')) {
     {
         $setting = Setting::first();
 
-        if (!empty($setting) && !empty($setting->smtp_host)) {
-            Config::set('mail.mailers.smtp.host', $setting->smtp_host);
-            Config::set('mail.mailers.smtp.port', (int) $setting->smtp_port);
-            Config::set('mail.mailers.smtp.username', $setting->smtp_username);
-            Config::set('mail.mailers.smtp.password', $setting->smtp_password);
-            Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption ?? 'tls');
+        $isMailchimp = !empty($setting) && $setting->smtp_provider === 'mailchimp';
+        $hasSmtpHost = !empty($setting) && !empty($setting->smtp_host);
+
+        if ($isMailchimp || $hasSmtpHost) {
+            if ($isMailchimp) {
+                // Mailchimp Transactional (Mandrill) — uses their SMTP gateway
+                Config::set('mail.mailers.smtp.transport', 'smtp');
+                Config::set('mail.mailers.smtp.host', 'smtp.mandrillapp.com');
+                Config::set('mail.mailers.smtp.port', 587);
+                Config::set('mail.mailers.smtp.username', $setting->from_email);
+                Config::set('mail.mailers.smtp.password', $setting->mailchimp_api_key);
+                Config::set('mail.mailers.smtp.encryption', 'tls');
+            } else {
+                Config::set('mail.mailers.smtp.host', $setting->smtp_host);
+                Config::set('mail.mailers.smtp.port', (int) $setting->smtp_port);
+                Config::set('mail.mailers.smtp.username', $setting->smtp_username);
+                Config::set('mail.mailers.smtp.password', $setting->smtp_password);
+                Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption ?? 'tls');
+                Config::set('mail.mailers.smtp.transport', !empty($setting->smtp_provider) ? $setting->smtp_provider : 'smtp');
+            }
             Config::set('mail.from.address', $setting->from_email);
             Config::set('mail.from.name', $setting->from_name);
-            Config::set('mail.mailers.smtp.transport', !empty($setting->smtp_provider) ? $setting->smtp_provider : 'smtp');
 
             // Clear MAIL_URL so .env does not override database settings.
             // When set, Laravel merges it into config and it takes precedence.
