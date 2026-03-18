@@ -383,7 +383,7 @@ class Index extends Component
 
         $this->validate(['test_email_address'=>'required|email']);
 
-        if (empty($setting) || (empty($setting->smtp_host) && empty($setting->smtp_port))) {
+        if (empty($setting) || (empty($setting->smtp_host) && empty($setting->smtp_port) && $setting->smtp_provider !== 'mailchimp')) {
             $this->showToast(__('settings.setting_for_smtp_required'), 'danger');
             return;
         }

@@ -78,6 +78,15 @@ class AppServiceProvider extends ServiceProvider
             return "<?php endif; ?>";
         });
 
+        // Register Mandrill HTTP API transport
+        Mail::extend('mandrill-api', function (array $config) {
+            return new \App\Mail\Transport\MandrillApiTransport(
+                $config['key'] ?? '',
+                $config['from_email'] ?? '',
+                $config['from_name'] ?? ''
+            );
+        });
+
         // Add failures method to Mail facade for Laravel 10 compatibility
         Mail::macro('failures', function () {
             return [];

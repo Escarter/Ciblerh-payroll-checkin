@@ -240,7 +240,6 @@
                                         <div class="alert alert-info mb-3">
                                             <i class="fas fa-info-circle"></i>
                                             {{__('settings.mailchimp_smtp_note')}}
-                                            <strong>smtp.mandrillapp.com:587</strong>
                                         </div>
                                         <div class="form-group mb-2">
                                             <label for="mailchimp_api_key">{{ __('settings.mailchimp_api_key') }}</label>

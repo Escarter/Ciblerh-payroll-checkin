@@ -146,14 +146,14 @@ return [
 
     // Mailchimp Transactional (Mandrill) Webhook Setup
     'mailchimp_transactional_configuration' => 'Mailchimp Transactional Configuration',
-    'mailchimp_smtp_note' => 'Mailchimp Transactional sends via the Mandrill SMTP gateway at ',
+    'mailchimp_smtp_note' => 'Mailchimp Transactional sends via the Mandrill HTTP API. Only your API key is required — no SMTP host or port needed.',
     'mailchimp_api_key' => 'Mailchimp Transactional API Key',
     'mailchimp_api_key_placeholder' => 'Enter your Mailchimp Transactional API key',
     'mailchimp_api_key_help' => 'Found in your Mailchimp Transactional (Mandrill) account under Settings → API Keys.',
     'mailchimp_webhook_setup' => 'Mailchimp Transactional Webhook Setup',
     'mailchimp_webhook_step_1' => 'Log in to your Mailchimp Transactional (Mandrill) account',
     'mailchimp_webhook_step_2' => 'Go to Settings → Webhooks',
-    'mailchimp_webhook_step_3' => 'Click "Add a Webhook" and select events: Sent, Hard Bounce, Soft Bounce, Spam',
+    'mailchimp_webhook_step_3' => 'Click "Add a Webhook" and select events: Hard Bounce, Soft Bounce, Spam, Reject',
     'mailchimp_webhook_step_4' => 'Paste the webhook URL above in the Post To URL field and save',
 
     // Provider Information

@@ -147,14 +147,14 @@ return [
 
     // Mailchimp Transactionnel (Mandrill) Webhook Setup
     'mailchimp_transactional_configuration' => 'Configuration Mailchimp Transactionnel',
-    'mailchimp_smtp_note' => 'Mailchimp Transactionnel envoie via la passerelle SMTP Mandrill à l\'adresse ',
+    'mailchimp_smtp_note' => 'Mailchimp Transactionnel envoie via l\'API HTTP Mandrill. Seule la clé API est requise — aucun hôte ou port SMTP nécessaire.',
     'mailchimp_api_key' => 'Clé API Mailchimp Transactionnel',
     'mailchimp_api_key_placeholder' => 'Entrez votre clé API Mailchimp Transactionnel',
     'mailchimp_api_key_help' => 'Disponible dans votre compte Mailchimp Transactionnel (Mandrill) sous Paramètres → Clés API.',
     'mailchimp_webhook_setup' => 'Configuration webhook Mailchimp Transactionnel',
     'mailchimp_webhook_step_1' => 'Connectez-vous à votre compte Mailchimp Transactionnel (Mandrill)',
     'mailchimp_webhook_step_2' => 'Allez dans Paramètres → Webhooks',
-    'mailchimp_webhook_step_3' => 'Cliquez sur "Ajouter un webhook" et sélectionnez les événements: Envoyé, Rebond dur, Rebond doux, Spam',
+    'mailchimp_webhook_step_3' => 'Cliquez sur "Ajouter un webhook" et sélectionnez les événements: Rebond dur, Rebond doux, Spam, Rejeté',
     'mailchimp_webhook_step_4' => 'Collez l\'URL webhook ci-dessus dans le champ URL et enregistrez',
 
     // Provider Information
