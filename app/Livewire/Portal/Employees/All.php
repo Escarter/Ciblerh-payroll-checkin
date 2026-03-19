@@ -391,7 +391,7 @@ class All extends BaseImportComponent
             'net_salary' => $this->net_salary,
             'salary_grade' => $this->salary_grade,
             'contract_end' => $this->contract_end,
-            'company_id' => $this->company->id,
+            'company_id' => $this->company?->id,
             'department_id' => $this->selectedDepartmentId,
             'service_id' => $this->service_id,
             'work_start_time' => $this->work_start_time,
@@ -866,13 +866,15 @@ class All extends BaseImportComponent
     {
         $employee = User::withTrashed()->findOrFail($employee_id);
 
-        $department = Department::findOrFail($employee->department_id);
+        $department = $employee->department_id ? Department::find($employee->department_id) : null;
 
         $this->isEditMode = true;
         $this->employee_id = $employee_id;
         $this->company = $employee->company;
-        $this->departments = $this->role === 'supervisor' ? Department::where('company_id', $this->company->id)->supervisor()->get() : $this->company->departments;
-        $this->services = $department->services;
+        $this->departments = $this->company
+            ? ($this->role === 'supervisor' ? Department::where('company_id', $this->company->id)->supervisor()->get() : $this->company->departments)
+            : collect([]);
+        $this->services = $department ? $department->services : collect([]);
         $this->employee = $employee;
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
