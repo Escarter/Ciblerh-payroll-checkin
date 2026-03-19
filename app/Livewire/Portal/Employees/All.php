@@ -875,6 +875,7 @@ class All extends BaseImportComponent
             ? ($this->role === 'supervisor' ? Department::where('company_id', $this->company->id)->supervisor()->get() : $this->company->departments)
             : collect([]);
         $this->services = $department ? $department->services : collect([]);
+        $this->password = null;
         $this->employee = $employee;
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
