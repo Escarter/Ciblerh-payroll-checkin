@@ -22,6 +22,7 @@ return [
     'edit' => 'Edit',
     'delete' => 'Delete',
     'Delete' => 'Delete',
+    'remove' => 'Remove',
     'deleted' => 'Trash',
     'action'=>'Action',
     'cancel' => 'Cancel',

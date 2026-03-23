@@ -24,99 +24,155 @@
                     @if ($sftp_sync_enabled)
                         <hr>
 
-                        <!-- Push Configuration -->
+                        <!-- Multi-user SFTP Configuration -->
                         <div class="mb-4">
-                            <h6 class="text-primary mb-3">{{ __('settings.sftp_push_configuration') }}</h6>
-                            <p class="text-muted small mb-3">{{ __('settings.sftp_push_configuration_help') }}</p>
-                            
-                            <!-- Push Path -->
-                            <div class="form-group mb-3">
-                                <label for="sftp_push_path">{{ __('settings.sftp_push_path') }}<span class="text-danger">*</span></label>
-                                <input wire:model="sftp_push_path" id="sftp_push_path" type="text" placeholder="storage/app/sftp-push" class="form-control w-100 @error('sftp_push_path') is-invalid @enderror" required>
-                                <small class="d-block text-muted mt-2">{{ __('settings.sftp_push_path_help') }}</small>
-                                @error('sftp_push_path')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
+                            <h6 class="text-primary mb-2">
+                                <i class="fas fa-users me-1"></i>{{ __('settings.sftp_users_title') }}
+                                <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">FileZilla / WinSCP / curl</span>
+                            </h6>
+                            <p class="text-muted small mb-3">{{ __('settings.sftp_users_help') }}</p>
 
-                            <!-- Push Credentials -->
-                            <div class="form-group mb-3">
-                                <label for="sftp_push_username">{{ __('settings.sftp_push_username') }}<span class="text-danger">*</span></label>
-                                <input wire:model="sftp_push_username" id="sftp_push_username" type="text" class="form-control w-100 @error('sftp_push_username') is-invalid @enderror" readonly>
-                                @error('sftp_push_username')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="form-group mb-3">
-                                <label for="sftp_push_password">{{ __('settings.sftp_push_password') }}<span class="text-danger">*</span></label>
-                                <div class="d-flex gap-2 align-items-center">
-                                    <div class="flex-grow-1 position-relative">
-                                        <input wire:model="sftp_push_password" id="sftp_push_password" :type="show_push_password ? 'text' : 'password'" class="form-control w-100 @error('sftp_push_password') is-invalid @enderror" readonly>
-                                    </div>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="$toggle('show_push_password')">
-                                        <i :class="show_push_password ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-                                    </button>
+                            <!-- Server host/port (used when generating OS scripts) -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-sm-7">
+                                    <label class="form-label small mb-1" for="sftp_server_host">{{ __('settings.sftp_server_host_label') }}</label>
+                                    <input wire:model="sftp_server_host" id="sftp_server_host" type="text" class="form-control form-control-sm" placeholder="portail.example.com">
                                 </div>
-                                @error('sftp_push_password')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
+                                <div class="col-sm-3">
+                                    <label class="form-label small mb-1" for="sftp_server_port">{{ __('settings.sftp_server_port_label') }}</label>
+                                    <input wire:model="sftp_server_port" id="sftp_server_port" type="number" min="1" max="65535" class="form-control form-control-sm" placeholder="22">
+                                </div>
                             </div>
 
-                            <!-- Generate/Regenerate Credentials -->
-                            <div class="form-group mb-3">
-                                <button type="button" wire:click="generateSftpPushCredentials" class="btn btn-outline-primary btn-sm" wire:loading.attr="disabled">
-                                    <i class="fas fa-key me-2" wire:loading.class="spinner-border spinner-border-sm"></i>
-                                    @if ($sftp_push_username && $sftp_push_password)
-                                        {{ __('settings.regenerate_credentials') }}
-                                    @else
-                                        {{ __('settings.generate_credentials') }}
-                                    @endif
-                                </button>
-                            </div>
+                            @if (count($sftpUsers) > 0)
+                                <!-- User table -->
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-sm table-bordered align-middle mb-0" style="font-size:0.85rem;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>{{ __('settings.sftp_user_col_username') }}</th>
+                                                <th>{{ __('settings.sftp_user_col_password') }}</th>
+                                                <th>{{ __('settings.sftp_user_col_home_dir') }}</th>
+                                                <th style="width:180px;">{{ __('common.actions') }}</th>
+                                            </tr>
+                                        </thead>
+                                        {{-- One <tbody x-data> per user so Alpine state is scoped per row --}}
+                                        @foreach ($sftpUsers as $sftpUser)
+                                        <tbody x-data="{ showScript: false, showPass: false }">
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        <code class="flex-grow-1" id="sftp-user-name-{{ $sftpUser['id'] }}">{{ $sftpUser['username'] }}</code>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary sftp-copy-btn py-0 px-1"
+                                                            data-copy-target="sftp-user-name-{{ $sftpUser['id'] }}"
+                                                            data-copy-label="{{ __('settings.copy') }}"
+                                                            data-copied-label="✓"
+                                                            title="{{ __('settings.copy') }}">
+                                                            <i class="fas fa-copy" style="font-size:0.7rem;"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-1">
+                                                        {{-- Both spans always rendered; Alpine toggles visibility client-side --}}
+                                                        <code class="flex-grow-1 text-muted" x-show="!showPass">••••••••</code>
+                                                        <code class="flex-grow-1" x-show="showPass" style="display:none;"
+                                                            id="sftp-user-pass-{{ $sftpUser['id'] }}">{{ $sftpUser['password'] }}</code>
+                                                        <button x-show="showPass" style="display:none;"
+                                                            type="button" class="btn btn-xs btn-outline-secondary sftp-copy-btn py-0 px-1"
+                                                            data-copy-target="sftp-user-pass-{{ $sftpUser['id'] }}"
+                                                            data-copy-label="{{ __('settings.copy') }}"
+                                                            data-copied-label="✓"
+                                                            title="{{ __('settings.copy') }}">
+                                                            <i class="fas fa-copy" style="font-size:0.7rem;"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary py-0 px-1"
+                                                            @click="showPass = !showPass"
+                                                            title="{{ __('settings.sftp_toggle_password') }}">
+                                                            <i class="fas" :class="showPass ? 'fa-eye-slash' : 'fa-eye'" style="font-size:0.7rem;"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted font-monospace">{{ $sftpUser['home_directory'] }}</small>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex gap-1 flex-wrap">
+                                                        {{-- Single button toggled by Alpine — no server round-trip --}}
+                                                        <button type="button"
+                                                            class="btn btn-xs py-0 px-2"
+                                                            :class="showScript ? 'btn-outline-secondary' : 'btn-outline-info'"
+                                                            @click="showScript = !showScript">
+                                                            <span x-show="!showScript"><i class="fas fa-file-code me-1"></i>{{ __('settings.sftp_show_server_script') }}</span>
+                                                            <span x-show="showScript" style="display:none;"><i class="fas fa-eye-slash me-1"></i>{{ __('settings.sftp_hide_server_script') }}</span>
+                                                        </button>
+                                                        <button type="button"
+                                                            class="btn btn-xs btn-outline-danger py-0 px-2"
+                                                            wire:click="confirmRemoveSftpUser({{ $sftpUser['id'] }})"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#DeleteModal"
+                                                            title="{{ __('common.remove') }}">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
 
-                            <!-- Generated Credentials Display (One-time) -->
-                            @if ($sftp_generated_username_display && $sftp_generated_password_display)
-                                <div class="alert alert-warning mb-0 py-3" role="alert">
-                                    <strong>{{ __('settings.sftp_credentials_generated_title') }}</strong>
-                                    <p class="mb-2 small">{{ __('settings.sftp_credentials_generated_message') }}</p>
-                                    <div class="mb-2">
-                                        <label class="form-label small mb-0">{{ __('settings.sftp_push_username') }}</label>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <code class="flex-grow-1 py-2 px-2 bg-white border rounded" id="push-generated-username">{{ $sftp_generated_username_display }}</code>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="push-generated-username" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">
-                                                {{ __('settings.copy') }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small mb-0">{{ __('settings.sftp_push_password') }}</label>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <code class="flex-grow-1 py-2 px-2 bg-white border rounded font-monospace" id="push-generated-password">{{ $sftp_generated_password_display }}</code>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="push-generated-password" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">
-                                                {{ __('settings.copy') }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <button type="button" wire:click="saveSftpPushCredentials" class="btn btn-sm btn-primary me-2">
-                                        <i class="fas fa-save me-1"></i>{{ __('settings.save_credentials') }}
-                                    </button>
-                                    <button type="button" wire:click="$set('sftp_generated_username_display', null); $set('sftp_generated_password_display', null)" class="btn btn-sm btn-outline-secondary">
-                                        {{ __('common.cancel') }}
-                                    </button>
+                                            {{-- OS Script panel — always rendered, toggled by Alpine x-show --}}
+                                            <tr class="table-warning" x-show="showScript" style="display:none;">
+                                                <td colspan="4" class="py-2 px-3">
+                                                    <strong><i class="fas fa-terminal me-1"></i>{{ __('settings.sftp_server_script_run_title') }}</strong>
+                                                    <div class="bg-dark rounded p-2 mt-1 position-relative">
+                                                        <code class="text-success d-block"
+                                                            id="sftp-script-{{ $sftpUser['id'] }}"
+                                                            style="font-size:0.75rem; white-space:pre;">{{ $sftpUser['script'] }}</code>
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-1 sftp-copy-btn"
+                                                            data-copy-target="sftp-script-{{ $sftpUser['id'] }}"
+                                                            data-copy-label="{{ __('settings.sftp_server_script_copy_btn') }}"
+                                                            data-copied-label="✓">
+                                                            {{ __('settings.sftp_server_script_copy_btn') }}
+                                                        </button>
+                                                    </div>
+                                                    <small class="d-block mt-1 text-muted">
+                                                        {!! __('settings.sftp_server_script_after', ['host' => e($sftpUser['host']), 'port' => e($sftpUser['port'])]) !!}
+                                                    </small>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        @endforeach
+                                    </table>
+                                </div>
+                            @else
+                                <div class="alert alert-light border mb-3">
+                                    <i class="fas fa-info-circle me-1 text-muted"></i>
+                                    <span class="text-muted small">{{ __('settings.sftp_users_empty') }}</span>
                                 </div>
                             @endif
 
-                            <!-- HTTP Upload Command -->
-                            <div class="mt-4">
-                                <label class="form-label fw-semibold mb-2"><i class="fas fa-terminal me-1"></i>{{ __('settings.sftp_upload_command_label') }}</label>
-                                <small class="d-block text-muted mb-2">
-                                    {{ __('settings.sftp_upload_command_help') }}
-                                </small>
+                            <!-- Add User button (max 4) -->
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <button type="button"
+                                    wire:click="addSftpUser"
+                                    class="btn btn-sm btn-outline-primary"
+                                    wire:loading.attr="disabled"
+                                    @if(count(array_filter($sftpUsers, fn($u) => $u['is_active'])) >= 4) disabled @endif>
+                                    <i class="fas fa-user-plus me-1"></i>{{ __('settings.sftp_add_user') }}
+                                </button>
+                                @if(count(array_filter($sftpUsers, fn($u) => $u['is_active'])) >= 4)
+                                    <small class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>{{ __('settings.sftp_users_max_reached') }}</small>
+                                @else
+                                    <small class="text-muted">{{ __('settings.sftp_users_max_note') }}</small>
+                                @endif
+                            </div>
 
+                            <!-- HTTP Upload Command (curl) -->
+                            <div class="mt-2 pt-3 border-top">
+                                <label class="form-label fw-semibold mb-1"><i class="fas fa-terminal me-1"></i>{{ __('settings.sftp_upload_command_label') }}</label>
+                                <small class="d-block text-muted mb-2">{{ __('settings.sftp_upload_command_help') }}</small>
                                 <div class="bg-dark rounded p-3 position-relative">
                                     <code class="text-success d-block" id="curl-upload-cmd" style="font-size: 0.82rem; word-break: break-all; white-space: pre-wrap;">curl -F "file=@/path/to/payslip.pdf" \
-     -u {{ $sftp_push_username ?: '<username>' }}:{{ $sftp_push_password ?: '<password>' }} \
+     -u &lt;username&gt;:&lt;password&gt; \
      {{ url('/api/sftp-push/upload') }}</code>
                                     <button type="button"
                                         class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 sftp-copy-btn"
@@ -126,128 +182,7 @@
                                         {{ __('settings.copy') }}
                                     </button>
                                 </div>
-                                @if (!$sftp_push_username || !$sftp_push_password)
-                                    <small class="text-warning d-block mt-2"><i class="fas fa-exclamation-triangle me-1"></i>{{ __('settings.sftp_upload_no_credentials_hint') }}</small>
-                                @else
-                                    {!! __('settings.sftp_upload_file_hint') !!}
-                                @endif
-                            </div>
-
-                            <!-- SFTP Client Access -->
-                            <div class="mt-4 pt-3 border-top">
-                                <label class="form-label fw-semibold mb-1">
-                                    <i class="fas fa-plug me-1"></i>{{ __('settings.sftp_client_access_label') }}
-                                    <span class="badge bg-secondary ms-2" style="font-size:0.7rem;">FileZilla / WinSCP / sftp</span>
-                                </label>
-                                <small class="d-block text-muted mb-3">
-                                    {{ __('settings.sftp_client_access_help') }}
-                                </small>
-
-                                @if ($sftp_os_username && $sftp_os_password)
-                                    <!-- Connection details grid -->
-                                    <div class="row g-2 mb-3">
-                                        <div class="col-sm-5">
-                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_host_label') }}</label>
-                                            <div class="d-flex gap-2">
-                                                <code class="flex-grow-1 px-2 py-1 bg-light border rounded d-block" id="sftp-host">{{ $sftp_server_host }}</code>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-host" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">{{ __('settings.copy') }}</button>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-2">
-                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_port_label') }}</label>
-                                            <code class="px-2 py-1 bg-light border rounded d-block text-center" id="sftp-port">{{ $sftp_server_port }}</code>
-                                        </div>
-                                        <div class="col-sm-5">
-                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_remote_path_label') }}</label>
-                                            <code class="px-2 py-1 bg-light border rounded d-block text-truncate" id="sftp-path" title="/incoming">/incoming</code>
-                                        </div>
-                                        <div class="col-sm-5">
-                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_username_label') }}</label>
-                                            <div class="d-flex gap-2">
-                                                <code class="flex-grow-1 px-2 py-1 bg-light border rounded d-block" id="sftp-os-user">{{ $sftp_os_username }}</code>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-os-user" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">{{ __('settings.copy') }}</button>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-5">
-                                            <label class="form-label small mb-1">{{ __('settings.sftp_client_password_label') }}</label>
-                                            <div class="d-flex gap-2">
-                                                <code class="flex-grow-1 px-2 py-1 bg-light border rounded d-block" id="sftp-os-pass">{{ $sftp_os_password }}</code>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary sftp-copy-btn" data-copy-target="sftp-os-pass" data-copy-label="{{ __('settings.copy') }}" data-copied-label="✓">{{ __('settings.copy') }}</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
-
-                                @if ($sftp_os_generated_display)
-                                    <!-- One-time server setup script -->
-                                    <div class="alert alert-warning py-3 mb-3">
-                                        <strong><i class="fas fa-exclamation-triangle me-1"></i>{{ __('settings.sftp_server_script_run_title') }}</strong>
-                                        <div class="bg-dark rounded p-3 mt-2 position-relative">
-                                            <code class="text-success d-block" id="sftp-server-script" style="font-size:0.8rem; white-space:pre;">{{ $sftp_os_generated_display['script'] }}</code>
-                                            <button type="button"
-                                                class="btn btn-sm btn-outline-light position-absolute top-0 end-0 m-2 sftp-copy-btn"
-                                                data-copy-target="sftp-server-script"
-                                                data-copy-label="{{ __('settings.sftp_server_script_copy_btn') }}"
-                                                data-copied-label="✓">
-                                                {{ __('settings.sftp_server_script_copy_btn') }}
-                                            </button>
-                                        </div>
-                                        <small class="d-block mt-2 text-muted">
-                                            {{ __('settings.sftp_server_script_desc_intro') }}
-                                            <ol class="mt-1 mb-0 ps-3">
-                                                <li>{!! __('settings.sftp_server_script_step_1', ['username' => $sftp_os_generated_display['username']]) !!}</li>
-                                                <li>{!! __('settings.sftp_server_script_step_2') !!}</li>
-                                                <li>{!! __('settings.sftp_server_script_step_3') !!}</li>
-                                                <li>{!! __('settings.sftp_server_script_step_4') !!}</li>
-                                                <li>{!! __('settings.sftp_server_script_step_5', ['username' => $sftp_os_generated_display['username']]) !!}</li>
-                                                <li>{!! __('settings.sftp_server_script_step_6') !!}</li>
-                                            </ol>
-                                            <span class="d-block mt-1">{!! __('settings.sftp_server_script_after', ['host' => e($sftp_os_generated_display['host']), 'port' => e($sftp_os_generated_display['port'])]) !!}</span>
-                                        </small>
-                                    </div>
-                                @endif
-
-                                <!-- Server host/port fields (editable) -->
-                                <div class="row g-2 mb-3">
-                                    <div class="col-sm-7">
-                                        <label class="form-label small mb-1" for="sftp_server_host">{{ __('settings.sftp_server_host_label') }}</label>
-                                        <input wire:model="sftp_server_host" id="sftp_server_host" type="text" class="form-control form-control-sm" placeholder="portail.example.com">
-                                    </div>
-                                    <div class="col-sm-3">
-                                        <label class="form-label small mb-1" for="sftp_server_port">{{ __('settings.sftp_server_port_label') }}</label>
-                                        <input wire:model="sftp_server_port" id="sftp_server_port" type="number" min="1" max="65535" class="form-control form-control-sm" placeholder="22">
-                                    </div>
-                                </div>
-
-                                <div class="d-flex flex-wrap gap-2 align-items-center">
-                                    @if ($sftp_os_username)
-                                        {{-- Existing credentials: show script without changing them --}}
-                                        <button type="button" wire:click="generateSftpOsCredentials" class="btn btn-outline-secondary btn-sm" wire:loading.attr="disabled">
-                                            <i class="fas fa-file-code me-1"></i>
-                                            {{ __('settings.sftp_show_server_script') }}
-                                        </button>
-                                        {{-- Explicit rotate: generates new username + password --}}
-                                        <button type="button" wire:click="regenerateSftpOsCredentials" class="btn btn-outline-danger btn-sm" wire:loading.attr="disabled"
-                                            data-confirm="{{ __('settings.sftp_rotate_confirm') }}"
-                                            onclick="return confirm(this.dataset.confirm)">
-                                            <i class="fas fa-sync-alt me-1"></i>
-                                            {{ __('settings.sftp_rotate_credentials') }}
-                                        </button>
-                                    @else
-                                        <button type="button" wire:click="generateSftpOsCredentials" class="btn btn-outline-primary btn-sm" wire:loading.attr="disabled">
-                                            <i class="fas fa-user-plus me-1"></i>
-                                            {{ __('settings.sftp_generate_os_user') }}
-                                        </button>
-                                    @endif
-                                </div>
-                                <small class="d-block text-muted mt-2">
-                                    @if ($sftp_os_username)
-                                        {!! __('settings.sftp_credentials_exist_help') !!}
-                                    @else
-                                        {{ __('settings.sftp_generate_os_user_help') }}
-                                    @endif
-                                    {{ __('settings.sftp_auto_pickup_note') }}
-                                </small>
+                                {!! __('settings.sftp_upload_file_hint') !!}
                             </div>
                         </div>
 

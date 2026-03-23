@@ -552,4 +552,21 @@ return [
     'day_wednesday' => 'Mer',
     'day_thursday' => 'Jeu',
     'day_friday' => 'Ven',
-    'day_saturday' => 'Sam',];
+    'day_saturday' => 'Sam',
+
+    // Multi-utilisateurs SFTP
+    'sftp_users_title' => 'Utilisateurs SFTP',
+    'sftp_users_help' => 'Ajoutez jusqu\'à 4 utilisateurs SFTP. Chaque utilisateur dispose de son propre répertoire et de ses identifiants. Les fichiers déposés dans le dossier <code>/incoming</code> de chaque utilisateur sont automatiquement récupérés par le scanner.',
+    'sftp_users_empty' => 'Aucun utilisateur SFTP configuré. Cliquez sur « Ajouter un utilisateur » pour créer votre premier utilisateur SFTP.',
+    'sftp_users_max_reached' => 'Maximum de 4 utilisateurs SFTP atteint.',
+    'sftp_users_max_note' => 'Jusqu\'à 4 utilisateurs peuvent être configurés.',
+    'sftp_add_user' => 'Ajouter un utilisateur',
+    'sftp_user_added' => 'Utilisateur SFTP ajouté. Copiez les identifiants et exécutez le script de configuration du serveur.',
+    'sftp_user_removed' => 'Utilisateur SFTP supprimé.',
+    'sftp_user_remove_confirm' => 'Supprimer cet utilisateur SFTP ? Cette action est irréversible.',
+    'sftp_user_col_username' => 'Nom d\'utilisateur',
+    'sftp_user_col_password' => 'Mot de passe',
+    'sftp_user_col_home_dir' => 'Répertoire personnel',
+    'sftp_toggle_password' => 'Afficher / masquer le mot de passe',
+    'sftp_hide_server_script' => 'Masquer le script',
+];

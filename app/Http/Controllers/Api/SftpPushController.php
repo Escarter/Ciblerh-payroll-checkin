@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ProcessSftpPushFileJob;
 use App\Models\Setting;
 use App\Models\SftpPushLog;
+use App\Models\SftpUser;
 use Illuminate\Http\Request;
 
 class SftpPushController extends Controller
@@ -13,7 +14,7 @@ class SftpPushController extends Controller
     /**
      * Upload payslip file via SFTP-like push interface
      * 
-     * Expects: HTTP Basic Auth with sftp_push_username and sftp_push_password
+     * Expects: HTTP Basic Auth — credentials are matched against configured SFTP users.
      * Method: POST /api/sftp-push/upload
      * Body: multipart/form-data with file field
      */
@@ -60,10 +61,10 @@ class SftpPushController extends Controller
             ], 401)->header('WWW-Authenticate', 'Basic realm="SFTP Push Upload"');
         }
 
-        // Verify credentials match
-        if ($providedUsername !== $setting->sftp_push_username || 
-            $providedPassword !== $setting->sftp_push_password) {
-            
+        // Authenticate against SftpUser table (multi-user) or legacy settings credentials
+        $authResult = $this->authenticateSftpUser($providedUsername, $providedPassword, $setting);
+
+        if (!$authResult) {
             \Log::warning('SFTP push upload attempt with invalid credentials', [
                 'ip' => $request->ip(),
                 'username' => $providedUsername,
@@ -75,9 +76,12 @@ class SftpPushController extends Controller
             ], 401)->header('WWW-Authenticate', 'Basic realm="SFTP Push Upload"');
         }
 
+        $pushPath     = $authResult['push_path'];
+        $incomingPath = $pushPath . '/incoming';
+
         // Validate file
         $file = $request->file('file');
-        
+
         if (!$file->isValid()) {
             \Log::warning('SFTP push upload with invalid file', [
                 'ip' => $request->ip(),
@@ -92,14 +96,13 @@ class SftpPushController extends Controller
         }
 
         // Only allow PDF files
-        if ($file->getClientOriginalExtension() !== 'pdf') {
+        if (strtolower($file->getClientOriginalExtension()) !== 'pdf') {
             \Log::warning('SFTP push upload with non-PDF file', [
                 'ip' => $request->ip(),
                 'filename' => $file->getClientOriginalName(),
                 'extension' => $file->getClientOriginalExtension(),
             ]);
 
-            // Log rejection
             SftpPushLog::create([
                 'username' => $providedUsername,
                 'filename' => $file->getClientOriginalName(),
@@ -114,12 +117,6 @@ class SftpPushController extends Controller
                 'error' => 'Only PDF files are accepted',
             ], 415);
         }
-
-        // Get push path — HTTP uploads land in incoming/ so the SFTP scan only touches that subfolder
-        $pushPath   = base_path($setting->sftp_push_path ?? 'storage/app/sftp-push');
-        $incomingPath = $pushPath . '/incoming';
-
-        // Create directory if it doesn't exist
         try {
             if (!file_exists($incomingPath)) {
                 mkdir($incomingPath, 0775, true);
@@ -208,29 +205,22 @@ class SftpPushController extends Controller
      */
     public function listPending(Request $request)
     {
-        // Verify credentials
         $setting = Setting::first();
-        $providedUsername = $request->getUser();
-        $providedPassword = $request->getPassword();
+        $authResult = $this->authenticateSftpUser(
+            $request->getUser(),
+            $request->getPassword(),
+            $setting
+        );
 
-        if (!$providedUsername || !$providedPassword ||
-            $providedUsername !== $setting->sftp_push_username || 
-            $providedPassword !== $setting->sftp_push_password) {
-            
-            return response()->json([
-                'success' => false,
-                'error' => 'Invalid credentials',
-            ], 401);
+        if (!$authResult) {
+            return response()->json(['success' => false, 'error' => 'Invalid credentials'], 401);
         }
 
         try {
-            $pushPath = base_path($setting->sftp_push_path ?? 'storage/app/sftp-push');
+            $pushPath = $authResult['push_path'];
 
             if (!file_exists($pushPath)) {
-                return response()->json([
-                    'success' => true,
-                    'files' => [],
-                ]);
+                return response()->json(['success' => true, 'files' => []]);
             }
 
             $files = array_filter(
@@ -254,10 +244,7 @@ class SftpPushController extends Controller
                 'files' => $fileDetails,
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -266,39 +253,67 @@ class SftpPushController extends Controller
      */
     public function test(Request $request)
     {
-        // Verify credentials
         $setting = Setting::first();
-        $providedUsername = $request->getUser();
-        $providedPassword = $request->getPassword();
+        $authResult = $this->authenticateSftpUser(
+            $request->getUser(),
+            $request->getPassword(),
+            $setting
+        );
 
-        if (!$providedUsername || !$providedPassword ||
-            $providedUsername !== $setting->sftp_push_username || 
-            $providedPassword !== $setting->sftp_push_password) {
-            
-            return response()->json([
-                'success' => false,
-                'error' => 'Invalid credentials',
-            ], 401);
+        if (!$authResult) {
+            return response()->json(['success' => false, 'error' => 'Invalid credentials'], 401);
         }
 
         try {
-            $pushPath = base_path($setting->sftp_push_path ?? 'storage/app/sftp-push');
+            $pushPath = $authResult['push_path'];
 
             $accessible = file_exists($pushPath) && is_readable($pushPath);
-            $writable = is_writable($pushPath);
+            $writable   = is_writable($pushPath);
 
             return response()->json([
-                'success' => $accessible && $writable,
-                'path' => $pushPath,
+                'success'    => $accessible && $writable,
+                'path'       => $pushPath,
                 'accessible' => $accessible,
-                'writable' => $writable,
-                'enabled' => $setting->sftp_sync_enabled,
+                'writable'   => $writable,
+                'enabled'    => $setting?->sftp_sync_enabled,
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-            ], 500);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Authenticate an SFTP push request.
+     *
+     * Looks up the username in the multi-user sftp_users table first.
+     * Falls back to the legacy single sftp_push_username/password in settings.
+     *
+     * Returns ['push_path' => string] on success, null on failure.
+     */
+    private function authenticateSftpUser(?string $username, ?string $password, ?Setting $setting): ?array
+    {
+        if (!$username || !$password) {
+            return null;
+        }
+
+        // Multi-user: look up in sftp_users table
+        $sftpUser = SftpUser::where('username', $username)
+            ->where('is_active', true)
+            ->first();
+
+        if ($sftpUser && $password === $sftpUser->password) {
+            return ['push_path' => $sftpUser->absoluteHomePath()];
+        }
+
+        // Legacy single-user fallback (sftp_push_username/password in settings)
+        if (
+            $setting &&
+            $username === $setting->sftp_push_username &&
+            $password === $setting->sftp_push_password
+        ) {
+            return ['push_path' => base_path($setting->sftp_push_path ?? 'storage/app/sftp-push')];
+        }
+
+        return null;
     }
 }

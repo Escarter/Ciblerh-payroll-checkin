@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Webhooks;
 use App\Http\Controllers\Controller;
 use App\Models\Payslip;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Hash;
 
 class EmailWebhookController extends Controller
 {
@@ -28,7 +28,10 @@ class EmailWebhookController extends Controller
     }
 
     /**
-     * Handle SES webhooks
+     * Handle SES webhooks (delivered via AWS SNS).
+     *
+     * SNS always sends a SubscriptionConfirmation first.
+     * We must GET the SubscribeURL it provides or deliveries will never arrive.
      */
     public function ses(Request $request)
     {
@@ -36,6 +39,24 @@ class EmailWebhookController extends Controller
 
         if ($payload && isset($payload['Type'])) {
             switch ($payload['Type']) {
+                case 'SubscriptionConfirmation':
+                    $subscribeUrl = $payload['SubscribeURL'] ?? null;
+                    if ($subscribeUrl) {
+                        try {
+                            Http::get($subscribeUrl);
+                            Log::info('SES/SNS subscription confirmed', [
+                                'topic_arn' => $payload['TopicArn'] ?? 'unknown',
+                            ]);
+                        } catch (\Throwable $e) {
+                            Log::error('SES/SNS subscription confirmation failed', [
+                                'error'         => $e->getMessage(),
+                                'subscribe_url' => $subscribeUrl,
+                                'topic_arn'     => $payload['TopicArn'] ?? 'unknown',
+                            ]);
+                        }
+                    }
+                    break;
+
                 case 'Notification':
                     $message = json_decode($payload['Message'], true);
                     $eventType = $message['eventType'] ?? null;
@@ -45,6 +66,12 @@ class EmailWebhookController extends Controller
                         $this->processEmailEvent($eventType, $recipient, null, 'ses', $message);
                     }
                     break;
+
+                case 'UnsubscribeConfirmation':
+                    Log::info('SES/SNS unsubscribe confirmation received', [
+                        'topic_arn' => $payload['TopicArn'] ?? 'unknown',
+                    ]);
+                    break;
             }
         }
 
@@ -52,20 +79,20 @@ class EmailWebhookController extends Controller
     }
 
     /**
-     * Handle Postmark webhooks
+     * Handle Postmark webhooks.
+     *
+     * Postmark sends one JSON object per request, not an array.
+     * Each object has a top-level RecordType field (e.g. "Delivery", "Bounce").
      */
     public function postmark(Request $request)
     {
-        $events = $request->all();
+        $event     = $request->all();
+        $eventType = $event['RecordType'] ?? null;
+        $recipient = $event['Recipient'] ?? null;
+        $messageId = $event['MessageID'] ?? null;
 
-        foreach ($events as $event) {
-            $eventType = $event['RecordType'] ?? null;
-            $recipient = $event['Recipient'] ?? null;
-            $messageId = $event['MessageID'] ?? null;
-
-            if ($eventType && $recipient) {
-                $this->processEmailEvent($eventType, $recipient, $messageId, 'postmark', $event);
-            }
+        if ($eventType && $recipient) {
+            $this->processEmailEvent($eventType, $recipient, $messageId, 'postmark', $event);
         }
 
         return response()->json(['status' => 'ok']);
@@ -218,24 +245,40 @@ class EmailWebhookController extends Controller
     }
 
     /**
-     * Verify Mailgun webhook signature
+     * Verify Mailgun webhook signature.
+     *
+     * Mailgun v3 webhooks embed signature data in the JSON body under the
+     * "signature" key — NOT in HTTP headers.
+     * Signing key = Mailgun Webhook Signing Key (stored in settings or env).
+     * Docs: https://documentation.mailgun.com/docs/mailgun/user-manual/webhooks/#webhook-security
      */
-    private function verifyMailgunSignature(Request $request)
+    private function verifyMailgunSignature(Request $request): bool
     {
-        $apiKey = config('services.mailgun.secret');
-        if (!$apiKey) {
+        // Prefer the key saved in settings; fall back to environment
+        $signingKey = \App\Models\Setting::value('mailgun_secret') ?: config('services.mailgun.secret');
+        if (!$signingKey) {
             return true; // Skip verification if not configured
         }
 
-        $signature = $request->header('X-Mailgun-Signature');
-        $timestamp = $request->header('X-Mailgun-Timestamp');
-        $token = $request->header('X-Mailgun-Token');
+        // All three fields live in the JSON body, not in HTTP headers
+        $timestamp = $request->input('signature.timestamp');
+        $token     = $request->input('signature.token');
+        $signature = $request->input('signature.signature');
 
-        if (!$signature || !$timestamp || !$token) {
+        if (!$timestamp || !$token || !$signature) {
+            Log::warning('Mailgun webhook missing signature fields in request body');
             return false;
         }
 
-        $expectedSignature = hash_hmac('sha256', $timestamp . $token, $apiKey);
+        // Reject requests older than 10 minutes to prevent replay attacks
+        if (abs(time() - (int) $timestamp) > 600) {
+            Log::warning('Mailgun webhook timestamp too old (possible replay)', [
+                'timestamp' => $timestamp,
+            ]);
+            return false;
+        }
+
+        $expectedSignature = hash_hmac('sha256', $timestamp . $token, $signingKey);
 
         return hash_equals($expectedSignature, $signature);
     }

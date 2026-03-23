@@ -83,6 +83,7 @@ class Index extends Component
     public $deactivation_check_time = '02:00';
 
     public $sftp_sync_enabled = false;
+    // Legacy single-user props kept for backward-compat display only (HTTP API fallback)
     public $sftp_push_username;
     public $sftp_push_password;
     public $sftp_push_path = 'storage/app/sftp-push';
@@ -94,13 +95,19 @@ class Index extends Component
     public $sftp_connection_status = false;
     public $test_sftp_message;
 
+    // Multi-user SFTP: list of SftpUser records (as plain arrays for Livewire).
+    // Each entry includes pre-generated 'script', 'host', 'port' keys for client-side Alpine display.
+    public $sftpUsers = [];
+    // Holds the id of the SFTP user pending deletion (set by confirmRemoveSftpUser, consumed by delete)
+    public $sftpUserToDelete = null;
+
     // Auto-match configuration
     public $sftp_auto_match_enabled = false;
     public $sftp_auto_match_threshold = 80;
     public $sftp_auto_match_min_strategy = 'reverse_partial_match';
     public $sftp_auto_match_notification_email = '';
 
-    // SFTP OS user (real SFTP/SSH client access)
+    // SFTP OS user (real SFTP/SSH client access) — kept for legacy single-user script display
     public $sftp_os_username;
     public $sftp_os_password;
     public $sftp_server_host;
@@ -110,7 +117,7 @@ class Index extends Component
     public $sftp_generated_username_display = null;
     public $sftp_generated_password_display = null;
     public $show_push_password = false;
-    public $sftp_os_generated_display = null; // one-time display of OS credentials + server script
+    public $sftp_os_generated_display = null; // legacy single-user OS script display
 
     public function mount() {
 
@@ -197,6 +204,9 @@ class Index extends Component
         if (empty($this->sftp_server_host)) {
             $this->sftp_server_host = request()->getHost();
         }
+
+        // Load multi-user SFTP users
+        $this->loadSftpUsers();
 
         // Check if SFTP push is already configured
         $this->checkSftpConnectionStatus();
@@ -638,13 +648,179 @@ class Index extends Component
      */
     private function checkSftpConnectionStatus()
     {
-        // Check if all required SFTP push credentials are configured
+        // Connected if multi-user table has at least one active user, OR legacy single-user is set
+        if (\App\Models\SftpUser::where('is_active', true)->exists()) {
+            $this->sftp_connection_status = true;
+            return;
+        }
+
         if (!empty($this->sftp_push_username) && !empty($this->sftp_push_password) && !empty($this->sftp_push_path)) {
             $this->sftp_connection_status = true;
         } else {
             $this->sftp_connection_status = false;
         }
     }
+
+    // ─── Multi-user SFTP management ───────────────────────────────────────────
+
+    /**
+     * Load all SFTP users from DB into the $sftpUsers array.
+     * Each entry includes pre-generated script data so the blade can render everything server-side
+     * and Alpine.js can toggle visibility purely client-side with no further round-trips.
+     */
+    private function loadSftpUsers(): void
+    {
+        $this->sftpUsers = \App\Models\SftpUser::orderBy('id')
+            ->get()
+            ->map(fn (\App\Models\SftpUser $u) => array_merge([
+                'id'             => $u->id,
+                'username'       => $u->username,
+                'password'       => $u->password,
+                'home_directory' => $u->home_directory,
+                'is_active'      => $u->is_active,
+            ], $this->generateScriptData($u)))
+            ->all();
+    }
+
+    /**
+     * Generate the OS chroot-jail setup script data for a given SftpUser.
+     * Returns ['host', 'port', 'script'] for embedding in the $sftpUsers array.
+     */
+    private function generateScriptData(\App\Models\SftpUser $user): array
+    {
+        $host               = $this->sftp_server_host ?: request()->getHost();
+        $port               = (int) ($this->sftp_server_port ?: 22);
+        $absPath            = $user->absoluteHomePath();
+        $chrootPath         = '/var/sftp/' . $user->username;
+        $incomingPath       = $absPath . '/incoming';
+        $chrootIncomingPath = $chrootPath . '/incoming';
+        $username           = $user->username;
+        $password           = $user->password;
+
+        $script = implode("\n", [
+            "# Run as root on the server (for user: {$username})",
+            "",
+            "# 1. Create OS user (SFTP-only, no shell)",
+            "useradd -M -s /usr/sbin/nologin {$username}",
+            "echo '{$username}:{$password}' | chpasswd",
+            "",
+            "# 2. Chroot jail root — must sit under /var/sftp so all ancestors are root:root.",
+            "#    sshd silently kills sessions if any ancestor is group-writable.",
+            "mkdir -p {$chrootPath}",
+            "chown root:root {$chrootPath}",
+            "chmod 755 {$chrootPath}",
+            "",
+            "# 3. incoming/ inside the chroot — SFTP user writes here",
+            "mkdir -p {$chrootIncomingPath}",
+            "chown {$username}:laravel {$chrootIncomingPath}",
+            "chmod 2775 {$chrootIncomingPath}",
+            "",
+            "# 4. Ensure the real Laravel incoming/ dir exists",
+            "mkdir -p {$incomingPath}",
+            "chown {$username}:laravel {$incomingPath}",
+            "chmod 2775 {$incomingPath}",
+            "",
+            "# 4a. Add SFTP user to laravel group so they can write to laravel-owned dirs",
+            "usermod -aG laravel {$username}",
+            "",
+            "# 5. Bind-mount the real incoming/ into the chroot so the app sees files immediately",
+            "mount --bind {$incomingPath} {$chrootIncomingPath}",
+            "",
+            "# 6. Persist the bind mount across reboots",
+            "grep -qF '{$chrootIncomingPath}' /etc/fstab || echo '{$incomingPath} {$chrootIncomingPath} none bind 0 0' >> /etc/fstab",
+            "",
+            "# 7. Ensure Subsystem uses internal-sftp (required for ChrootDirectory)",
+            "sed -i 's|^Subsystem.*sftp.*|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config",
+            "",
+            "# 8. Add Match User block (idempotent — removes any existing block first)",
+            "sed -i '/^Match User {$username}/,/^    X11Forwarding no/d' /etc/ssh/sshd_config",
+            "cat >> /etc/ssh/sshd_config << 'SSHEOF'",
+            "Match User {$username}",
+            "    ChrootDirectory {$chrootPath}",
+            "    ForceCommand internal-sftp",
+            "    PasswordAuthentication yes",
+            "    AllowTcpForwarding no",
+            "    X11Forwarding no",
+            "SSHEOF",
+            "",
+            "# 9. Validate config then reload",
+            "sshd -t && systemctl reload sshd",
+            "",
+            "# Client remote path to set in FileZilla/WinSCP: /incoming",
+        ]);
+
+        return [
+            'host'   => $host,
+            'port'   => $port,
+            'script' => $script,
+        ];
+    }
+
+    /**
+     * Generate a new SFTP user with random credentials, save to DB, refresh list.
+     * Maximum 4 active users enforced.
+     */
+    public function addSftpUser(): void
+    {
+        $activeCount = \App\Models\SftpUser::where('is_active', true)->count();
+        if ($activeCount >= 4) {
+            $this->showToast(__('settings.sftp_users_max_reached'), 'warning');
+            return;
+        }
+
+        $username = 'sftp_' . Str::lower(Str::random(8));
+        $password = Str::random(20);
+        $index    = $activeCount + 1;
+        $homeDir  = 'storage/app/sftp-push/user' . $index;
+
+        $user = \App\Models\SftpUser::create([
+            'username'       => $username,
+            'password'       => $password,
+            'home_directory' => $homeDir,
+            'is_active'      => true,
+        ]);
+
+        // Ensure incoming/ directory exists
+        @mkdir(base_path($homeDir) . '/incoming', 0775, true);
+
+        $this->loadSftpUsers();
+        $this->checkSftpConnectionStatus();
+        $this->showToast(__('settings.sftp_user_added'), 'success');
+    }
+
+    /**
+     * Remove an SFTP user (hard delete).
+     */
+    public function removeSftpUser(int $id): void
+    {
+        \App\Models\SftpUser::where('id', $id)->delete();
+        $this->loadSftpUsers();
+        $this->checkSftpConnectionStatus();
+        $this->showToast(__('settings.sftp_user_removed'), 'success');
+    }
+
+    /**
+     * Stage an SFTP user for deletion and open the confirmation modal.
+     */
+    public function confirmRemoveSftpUser(int $id): void
+    {
+        $this->sftpUserToDelete = $id;
+    }
+
+    /**
+     * Called by the shared DeleteModal confirm button.
+     * Delegates to removeSftpUser when an SFTP user delete is pending.
+     */
+    public function delete(): void
+    {
+        if ($this->sftpUserToDelete) {
+            $this->removeSftpUser($this->sftpUserToDelete);
+            $this->sftpUserToDelete = null;
+        }
+        $this->dispatch('close-modal', id: 'DeleteModal');
+    }
+
+
 
     /**
      * Generate SFTP push credentials (username + password) for receiving payslips

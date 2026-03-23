@@ -583,6 +583,8 @@
 
     @include('livewire.portal.settings.partials.email-provider-guide-modal')
 
+    @include('livewire.partials.delete-modal')
+
     @push('scripts')
     <script>
         var editor1 = new MediumEditor('.email_content_en');

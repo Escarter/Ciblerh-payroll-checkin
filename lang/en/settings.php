@@ -553,4 +553,21 @@ return [
     'day_thursday' => 'Thu',
     'day_friday' => 'Fri',
     'day_saturday' => 'Sat',
+
+    // Multi-user SFTP
+    'sftp_users_title' => 'SFTP Users',
+    'sftp_users_help' => 'Add up to 4 SFTP users. Each user gets their own directory and credentials. Files dropped in any user\'s <code>/incoming</code> folder are automatically picked up by the scanner.',
+    'sftp_users_empty' => 'No SFTP users configured yet. Click "Add User" to create your first SFTP user.',
+    'sftp_users_max_reached' => 'Maximum of 4 SFTP users reached.',
+    'sftp_users_max_note' => 'Up to 4 users can be configured.',
+    'sftp_add_user' => 'Add User',
+    'sftp_user_added' => 'SFTP user added. Copy the credentials and run the server setup script.',
+    'sftp_user_removed' => 'SFTP user removed.',
+    'sftp_user_remove_confirm' => 'Remove this SFTP user? This cannot be undone.',
+    'sftp_user_col_username' => 'Username',
+    'sftp_user_col_password' => 'Password',
+    'sftp_user_col_home_dir' => 'Home directory',
+    'sftp_toggle_password' => 'Show / hide password',
+    'sftp_hide_server_script' => 'Hide script',
 ];
+

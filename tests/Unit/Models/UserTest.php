@@ -1,13 +1,22 @@
 <?php
 
+use App\Models\Setting;
 use App\Models\User;
 use App\Models\Payslip;
-use App\Models\Company;
-use App\Models\Department;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Notification;
+use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    Role::firstOrCreate([
+        'name' => 'employee',
+        'guard_name' => 'web',
+    ]);
+});
 
 test('user has name attribute', function () {
     $user = User::factory()->create([
@@ -83,6 +92,50 @@ test('user preferred locale returns preferred language', function () {
     $user = User::factory()->create(['preferred_language' => 'fr']);
     
     expect($user->preferredLocale())->toBe('fr');
+});
+
+test('user sends custom password reset notification', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    $user->sendPasswordResetNotification('reset-token');
+
+    Notification::assertSentTo($user, ResetPasswordNotification::class);
+});
+
+test('password reset notification applies saved smtp credentials', function () {
+    Config::set('mail.default', 'smtp');
+    Config::set('mail.mailers.smtp.host', null);
+    Config::set('mail.mailers.smtp.port', null);
+    Config::set('mail.mailers.smtp.username', null);
+    Config::set('mail.mailers.smtp.password', null);
+    Config::set('mail.mailers.smtp.encryption', null);
+
+    Setting::factory()->create([
+        'smtp_host' => 'smtp.saved-settings.test',
+        'smtp_port' => 2525,
+        'smtp_username' => 'saved-user',
+        'smtp_password' => 'saved-pass',
+        'smtp_encryption' => 'ssl',
+        'from_email' => 'support@ciblerh.test',
+        'from_name' => 'CibleRH Support',
+    ]);
+
+    $user = User::factory()->create();
+
+    $notification = new ResetPasswordNotification('reset-token');
+    $mailMessage = $notification->toMail($user);
+
+    expect(Config::get('mail.default'))->toBe('smtp')
+        ->and(Config::get('mail.mailers.smtp.host'))->toBe('smtp.saved-settings.test')
+        ->and(Config::get('mail.mailers.smtp.port'))->toBe(2525)
+        ->and(Config::get('mail.mailers.smtp.username'))->toBe('saved-user')
+        ->and(Config::get('mail.mailers.smtp.password'))->toBe('saved-pass')
+        ->and(Config::get('mail.mailers.smtp.encryption'))->toBe('ssl')
+        ->and(Config::get('mail.from.address'))->toBe('support@ciblerh.test')
+        ->and(Config::get('mail.from.name'))->toBe('CibleRH Support')
+        ->and($mailMessage)->toBeInstanceOf(\Illuminate\Notifications\Messages\MailMessage::class);
 });
 
 

@@ -20,6 +20,7 @@ return [
     'edit' => 'Modifier',
     'delete' => 'Supprimer',
     'Delete' => 'Supprimer',
+    'remove' => 'Supprimer',
     'deleted' => 'Corbeille',
     'action' => 'Action',
     'cancel' => 'Annuler',

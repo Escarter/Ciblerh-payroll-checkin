@@ -433,16 +433,31 @@ if (!function_exists('countPages')) {
     }
 }
 if (!function_exists('setSavedSmtpCredentials')) {
-    function setSavedSmtpCredentials(): void
+    /**
+     * Load and apply saved SMTP settings from the database.
+     * This function is critical for password reset, test emails, and other notifications.
+     *
+     * @throws \RuntimeException If settings are configured but invalid
+     * @return bool True if settings were applied, false if none were found
+     */
+    function setSavedSmtpCredentials(): bool
     {
-        $setting = Setting::first();
+        // Fetch settings by company_id to ensure we get the right record
+        $setting = Setting::where('company_id', 1)->first();
 
-        $isMailchimp = !empty($setting) && $setting->smtp_provider === 'mailchimp';
-        $hasSmtpHost = !empty($setting) && !empty($setting->smtp_host);
+        if (empty($setting)) {
+            return false;
+        }
+
+        $isMailchimp = $setting->smtp_provider === 'mailchimp';
+        $hasSmtpHost = !empty($setting->smtp_host);
 
         if ($isMailchimp || $hasSmtpHost) {
             if ($isMailchimp) {
                 // Mailchimp Transactional (Mandrill) — use the HTTP API transport
+                if (empty($setting->mailchimp_api_key)) {
+                    throw new \RuntimeException('Mailchimp API key is not configured in settings.');
+                }
                 Config::set('mail.mailers.mandrill.key', $setting->mailchimp_api_key);
                 Config::set('mail.mailers.mandrill.from_email', $setting->from_email);
                 Config::set('mail.mailers.mandrill.from_name', $setting->from_name);
@@ -450,8 +465,15 @@ if (!function_exists('setSavedSmtpCredentials')) {
                 Config::set('mail.from.address', $setting->from_email);
                 Config::set('mail.from.name', $setting->from_name);
                 app('mail.manager')->purge('mandrill');
-                return;
+                return true;
             } else {
+                // Validate required SMTP fields before applying
+                if (empty($setting->smtp_host) || empty($setting->smtp_port)) {
+                    throw new \RuntimeException('SMTP host and port are required but not configured in settings.');
+                }
+                if (empty($setting->smtp_username) || empty($setting->smtp_password)) {
+                    throw new \RuntimeException('SMTP username and password are required but not configured in settings.');
+                }
                 Config::set('mail.mailers.smtp.host', $setting->smtp_host);
                 Config::set('mail.mailers.smtp.port', (int) $setting->smtp_port);
                 Config::set('mail.mailers.smtp.username', $setting->smtp_username);
@@ -472,7 +494,10 @@ if (!function_exists('setSavedSmtpCredentials')) {
             // Purge cached mailer so it is recreated with the updated config.
             // Otherwise Laravel uses the previously resolved mailer (from .env).
             app('mail.manager')->purge(Config::get('mail.default', 'smtp'));
+            return true;
         }
+
+        return false;
     }
 }
 
