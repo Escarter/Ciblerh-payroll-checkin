@@ -124,7 +124,33 @@ class SftpPayslipValidator extends Component
             'totalValidated' => PayslipMatchingProposal::validated()->count(),
             'totalProcessed' => PayslipMatchingProposal::processed()->count(),
             'totalRejected' => PayslipMatchingProposal::rejected()->count(),
+            'totalFailed' => PayslipMatchingProposal::failed()->count(),
         ])->layout('components.layouts.dashboard');
+    }
+
+    /**
+     * Return null when proposal is ready for processing, otherwise a translated
+     * warning message describing the blocking condition.
+     */
+    private function getProcessingBlockReason(PayslipMatchingProposal $proposal): ?string
+    {
+        if (!$proposal->matched_to_company_id) {
+            return __('payslips.processing_blocked_no_company');
+        }
+
+        if ($proposal->download_status !== 'downloaded') {
+            return __('payslips.processing_blocked_not_downloaded');
+        }
+
+        if (empty($proposal->local_file_path)) {
+            return __('payslips.processing_blocked_missing_local_path');
+        }
+
+        if (!file_exists($proposal->local_file_path)) {
+            return __('payslips.processing_blocked_local_file_missing');
+        }
+
+        return null;
     }
 
     /**
@@ -361,6 +387,14 @@ class SftpPayslipValidator extends Component
             return;
         }
 
+        if ($reason = $this->getProcessingBlockReason($proposal)) {
+            $this->dispatch('alert', [
+                'type' => 'warning',
+                'message' => __('payslips.proposal_not_ready_for_processing', ['reason' => $reason]),
+            ]);
+            return;
+        }
+
         ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
 
         $this->dispatch('alert', [
@@ -386,13 +420,25 @@ class SftpPayslipValidator extends Component
             ->where('status', PayslipMatchingProposal::STATUS_VALIDATED)
             ->get();
 
+        $queued = 0;
+        $skipped = 0;
+
         foreach ($proposals as $proposal) {
+            if ($this->getProcessingBlockReason($proposal)) {
+                $skipped++;
+                continue;
+            }
+
             ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
+            $queued++;
         }
 
         $this->dispatch('alert', [
-            'type' => 'success',
-            'message' => __('payslips.proposals_queued_for_processing', ['count' => $proposals->count()])
+            'type' => $queued > 0 ? 'success' : 'warning',
+            'message' => __('payslips.proposals_queued_with_skips', [
+                'queued' => $queued,
+                'skipped' => $skipped,
+            ]),
         ]);
 
         $this->selectedProposals = [];

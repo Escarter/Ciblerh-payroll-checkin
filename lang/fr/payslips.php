@@ -412,6 +412,12 @@ return [
     'pull_now_failed' => 'Échec de la récupération des fichiers : :error',
     'local_file_not_found' => 'Le fichier local n\'existe plus — re-correspondance impossible',
     'proposals_queued_for_processing' => 'Propositions mises en file d\'attente pour traitement (nombre: :count)',
+    'proposals_queued_with_skips' => 'Envoi au traitement terminé : :queued mis en file, :skipped ignoré(s).',
+    'proposal_not_ready_for_processing' => 'Cette proposition n\'est pas prête pour le traitement : :reason',
+    'processing_blocked_no_company' => 'aucune entreprise n\'est affectée',
+    'processing_blocked_not_downloaded' => 'le statut de téléchargement du fichier n\'est pas prêt',
+    'processing_blocked_missing_local_path' => 'le chemin du fichier local est manquant',
+    'processing_blocked_local_file_missing' => 'le fichier local n\'existe pas sur le disque',
     'process_selected' => 'Traiter la sélection',
     
     // SFTP Validator

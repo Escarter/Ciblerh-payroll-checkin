@@ -169,6 +169,7 @@
             'validated' => ['label' => __('payslips.validated'),    'color' => 'info',      'count' => $totalValidated, 'text' => 'text-dark'],
             'processed' => ['label' => __('payslips.processed'),    'color' => 'success',   'count' => $totalProcessed, 'text' => 'text-white'],
             'rejected'  => ['label' => __('payslips.rejected'),     'color' => 'danger',    'count' => $totalRejected,  'text' => 'text-white'],
+            'failed'    => ['label' => __('payslips.failed'),       'color' => 'dark',      'count' => $totalFailed,    'text' => 'text-white'],
         ] as $tabStatus => $tab)
             <button type="button"
                 class="btn {{ $filterStatus === $tabStatus ? 'btn-'.$tab['color'] : 'btn-outline-'.$tab['color'] }}"
