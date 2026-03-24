@@ -65,6 +65,7 @@ Schedule::job(new \App\Jobs\FetchSftpPayslipsJob)
 // Scan SFTP push folder - frequency configurable from settings
 $pushEvent = Schedule::command('sftp:scan-push-folder')
     ->when(fn() => isSftpSyncEnabled())
+    ->timezone(config('app.timezone', 'UTC'))
     ->withoutOverlapping();
 applySftpPushScanFrequency($pushEvent);
 

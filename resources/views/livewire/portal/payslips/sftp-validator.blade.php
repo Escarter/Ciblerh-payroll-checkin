@@ -26,6 +26,21 @@
             </h1>
             <p class="text-muted small mb-0">{{ __('payslips.sftp_validator_description') }}</p>
         </div>
+        <div>
+            <button type="button"
+                class="btn btn-sm btn-primary d-flex align-items-center gap-1"
+                wire:click="pullNow"
+                wire:loading.attr="disabled"
+                wire:target="pullNow">
+                <svg wire:loading.remove wire:target="pullNow" class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v10m0 0l-4-4m4 4l4-4M4 20h16"/>
+                </svg>
+                <svg wire:loading wire:target="pullNow" class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="animation:spin .8s linear infinite">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                </svg>
+                {{ __('payslips.pull_now') }}
+            </button>
+        </div>
     </div>
 
     {{-- ── Stats Row ────────────────────────────────────────────── --}}

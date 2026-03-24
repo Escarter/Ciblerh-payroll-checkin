@@ -128,6 +128,51 @@ class SftpPayslipValidator extends Component
     }
 
     /**
+     * Trigger an immediate scan of SFTP push incoming folders.
+     * This lets admins pull newly uploaded files without waiting for scheduler.
+     */
+    public function pullNow(): void
+    {
+        $this->authorize('manage-payslips');
+
+        try {
+            \Artisan::call('sftp:scan-push-folder');
+            $output = trim((string) \Artisan::output());
+            $lower  = mb_strtolower($output);
+
+            if (str_contains($lower, 'sftp sync is disabled')) {
+                $this->dispatch('alert', [
+                    'type' => 'warning',
+                    'message' => __('payslips.pull_now_sync_disabled'),
+                ]);
+                return;
+            }
+
+            if (preg_match('/Dispatched:\s*(\d+),\s*Skipped:\s*(\d+)/i', $output, $m)) {
+                $this->dispatch('alert', [
+                    'type' => 'success',
+                    'message' => __('payslips.pull_now_success', [
+                        'queued' => (int) $m[1],
+                        'skipped' => (int) $m[2],
+                    ]),
+                ]);
+            } else {
+                $this->dispatch('alert', [
+                    'type' => 'success',
+                    'message' => __('payslips.pull_now_done'),
+                ]);
+            }
+
+            $this->resetPage();
+        } catch (\Throwable $e) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => __('payslips.pull_now_failed', ['error' => $e->getMessage()]),
+            ]);
+        }
+    }
+
+    /**
      * Re-run company matching on an existing proposal's local file
      */
     public function rematch(string $proposalId): void

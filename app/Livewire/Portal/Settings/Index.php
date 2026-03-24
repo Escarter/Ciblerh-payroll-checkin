@@ -10,6 +10,7 @@ use App\Services\TwilioSMS;
 use App\Services\AwsSnsSMS;
 use Illuminate\Support\Facades\Mail;
 use App\Livewire\Traits\WithDataTable;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
@@ -933,6 +934,31 @@ class Index extends Component
             $this->sftp_connection_status = false;
             $this->test_sftp_message = $e->getMessage();
             $this->showToast(__('settings.test_connection_failed') . ': ' . $e->getMessage(), 'danger');
+        }
+    }
+
+    /**
+     * Manually trigger an immediate scan of all configured SFTP push incoming folders.
+     * Uses the same command as the scheduler for consistent behavior.
+     */
+    public function pullSftpFilesNow(): void
+    {
+        if (!$this->sftp_sync_enabled) {
+            $this->showToast(__('settings.sftp_scan_now_disabled'), 'warning');
+            return;
+        }
+
+        try {
+            Artisan::call('sftp:scan-push-folder');
+            $output = trim(Artisan::output());
+
+            if (!empty($output)) {
+                $this->test_sftp_message = Str::limit($output, 800);
+            }
+
+            $this->showToast(__('settings.sftp_scan_now_success'), 'success');
+        } catch (\Throwable $e) {
+            $this->showToast(__('settings.sftp_scan_now_failed') . ': ' . $e->getMessage(), 'danger');
         }
     }
 
