@@ -477,7 +477,7 @@ return [
     'sftp_server_script_step_4' => 'Remplace la ligne <code>Subsystem sftp</code> de sshd par <code>internal-sftp</code> (requis pour chroot).',
     'sftp_server_script_step_5' => 'Ajoute un bloc <code>Match User</code> restreignant <strong>:username</strong> à la prison chroot sans shell ni transfert TCP.',
     'sftp_server_script_step_6' => 'Rend le montage bind persistant dans <code>/etc/fstab</code> pour survivre aux redémarrages.',
-    'sftp_server_script_after' => 'Après exécution, connectez votre client SFTP à <code>:host::port</code> et définissez le chemin distant sur <code>/incoming</code>.',
+    'sftp_server_script_after' => 'Après exécution, connectez votre client SFTP à <code>:host::port</code>. Utilisez <code>/incoming</code> pour les dépôts ; les fichiers traités apparaîtront dans <code>/processed</code> et les échecs définitifs dans <code>/failed</code>.',
     'sftp_server_host_label' => 'Nom d’hôte / adresse IP du serveur',
     'sftp_server_port_label' => 'Port SSH',
     'sftp_show_server_script' => 'Afficher le script serveur',

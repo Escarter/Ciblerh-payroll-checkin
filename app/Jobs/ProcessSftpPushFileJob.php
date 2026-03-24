@@ -84,43 +84,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
         $bestCompany    = null;
         $bestDepartment = null;
 
-        $matchSources = $metadata['company_header_lines'] ?? [];
-        if (!empty($metadata['company_raw']) && !in_array($metadata['company_raw'], $matchSources, true)) {
-            $matchSources[] = $metadata['company_raw'];
-        }
-        // Filename stem — clean it before using it as a match source so that
-        // date tokens, pay-period keywords and month names don't pollute matching.
-        //
-        // e.g. "PERENCO_WORK_OVER_JUILLET_2025.pdf"
-        //    → strip separators   → "PERENCO WORK OVER JUILLET 2025"
-        //    → strip years        → "PERENCO WORK OVER JUILLET"
-        //    → strip month names  → "PERENCO WORK OVER"
-        //    → strip noise words  → "PERENCO WORK OVER"   ← clean company token
-        $filenameStem = pathinfo($this->originalFilename, PATHINFO_FILENAME);
-
-        // 1. Replace separators (dash, underscore, dot) with spaces
-        $filenameStem = preg_replace('/[-_.\s]+/', ' ', $filenameStem);
-
-        // 2. Remove 4-digit years (1990–2099) and standalone 1-2-digit month numbers
-        $filenameStem = preg_replace('/\b(19|20)\d{2}\b/', '', $filenameStem);
-        $filenameStem = preg_replace('/\b(0?[1-9]|1[0-2])\b/', '', $filenameStem);
-
-        // 3. Remove French and English month names (they encode the pay period, not the company)
-        $monthPattern = '/\b(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout'
-            . '|septembre|octobre|novembre|décembre|decembre'
-            . '|january|february|march|april|may|june|july|august|september|october|november|december)\b/iu';
-        $filenameStem = preg_replace($monthPattern, '', $filenameStem);
-
-        // 4. Remove common payslip noise keywords
-        $noisePattern = '/\b(bulletin|paie|fiche|salaire|payslip|salary|wage|slip|pay|bulletin_de_paie)\b/iu';
-        $filenameStem = preg_replace($noisePattern, '', $filenameStem);
-
-        // 5. Collapse whitespace
-        $filenameStem = trim(preg_replace('/\s+/', ' ', $filenameStem));
-
-        if (!empty($filenameStem)) {
-            $matchSources[] = $filenameStem;
-        }
+        $matchSources = $service->buildCompanyMatchSources($metadata, $this->originalFilename);
 
         if (!empty($matchSources)) {
             $candidates = $service->matchBestFromMultiple($matchSources);
@@ -147,6 +111,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
         $proposedMatch = [
             'company_raw'          => $metadata['company_raw'],
             'company_header_lines' => $metadata['company_header_lines'] ?? [],
+            'match_sources'        => $matchSources,
             'raw_text_preview'     => $metadata['raw_text_preview'],
             'candidates'           => $candidates,
             'best_match'           => !empty($candidates) ? $candidates[0] : null,
@@ -209,19 +174,14 @@ class ProcessSftpPushFileJob implements ShouldQueue
             }
         }
 
-        // ── Move file to processed/ subfolder so scanner skips it on future runs ──
-        $pushDir = dirname($this->absoluteFilePath);
-        $processedDir = $pushDir . '/processed';
+        // ── Move file to sibling processed/ subfolder so scanner skips it on future runs ──
+        $destPath = $this->moveFileToArchiveFolder($this->absoluteFilePath, 'processed');
 
-        if (is_dir($processedDir) && is_writable($processedDir)) {
-            $destPath = $processedDir . '/' . $basename;
-            if (@rename($this->absoluteFilePath, $destPath)) {
-                // Update proposal with new location
-                $proposal->update([
-                    'file_path'       => $destPath,
-                    'local_file_path' => $destPath,
-                ]);
-            }
+        if ($destPath) {
+            $proposal->update([
+                'file_path'       => $destPath,
+                'local_file_path' => $destPath,
+            ]);
         }
 
         \Log::info('ProcessSftpPushFileJob: Proposal created.', [
@@ -236,9 +196,12 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
+        $failedPath = $this->moveFileToArchiveFolder($this->absoluteFilePath, 'failed');
+
         \Log::error('ProcessSftpPushFileJob permanently failed.', [
-            'file'  => $this->absoluteFilePath,
-            'error' => $exception->getMessage(),
+            'file'        => $this->absoluteFilePath,
+            'moved_to'    => $failedPath,
+            'error'       => $exception->getMessage(),
         ]);
     }
 
@@ -253,5 +216,54 @@ class ProcessSftpPushFileJob implements ShouldQueue
         foreach ($emails as $email) {
             Notification::route('mail', $email)->notify(clone $notification);
         }
+    }
+
+    /**
+     * Move a file from incoming/ to a sibling archive folder like processed/ or failed/.
+     * Returns the new absolute path on success, or null if the move could not be completed.
+     */
+    private function moveFileToArchiveFolder(string $sourcePath, string $archiveFolder): ?string
+    {
+        if (!file_exists($sourcePath)) {
+            return null;
+        }
+
+        $currentDir = dirname($sourcePath);
+        $baseDir = basename($currentDir) === 'incoming'
+            ? dirname($currentDir)
+            : $currentDir;
+
+        $archiveDir = $baseDir . '/' . $archiveFolder;
+
+        if (!is_dir($archiveDir) && !@mkdir($archiveDir, 0775, true) && !is_dir($archiveDir)) {
+            \Log::warning('ProcessSftpPushFileJob: Unable to create archive directory.', [
+                'source'       => $sourcePath,
+                'archive_dir'  => $archiveDir,
+                'archive_type' => $archiveFolder,
+            ]);
+            return null;
+        }
+
+        if (!is_writable($archiveDir)) {
+            \Log::warning('ProcessSftpPushFileJob: Archive directory is not writable.', [
+                'source'       => $sourcePath,
+                'archive_dir'  => $archiveDir,
+                'archive_type' => $archiveFolder,
+            ]);
+            return null;
+        }
+
+        $destPath = $archiveDir . '/' . basename($sourcePath);
+        if (@rename($sourcePath, $destPath)) {
+            return $destPath;
+        }
+
+        \Log::warning('ProcessSftpPushFileJob: Failed to move file to archive folder.', [
+            'source'       => $sourcePath,
+            'destination'  => $destPath,
+            'archive_type' => $archiveFolder,
+        ]);
+
+        return null;
     }
 }

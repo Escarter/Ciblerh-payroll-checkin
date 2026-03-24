@@ -535,13 +535,21 @@ class SftpPayslipService
         $result['raw_text_preview'] = substr($text, 0, 500);
 
         // ── 1. Extract company name ──────────────────────────────────────────
-        // Employee-specific keywords that signal the header block has ended.
-        $stopKeywords = ['matricule', 'nom', 'cin', 'employé', 'employe', 'département', 'departement',
-                         'service', 'bulletin', 'fiche', 'salaire', 'brut', 'net', 'date'];
+        // Hard stops: employee-personal labels that definitively end the header block.
+        $hardStopKeywords = ['matricule', 'employe', 'employé', 'cin', 'departement', 'département',
+                              'brut', 'net a payer', 'net imposable'];
+
+        // Skip keywords: generic document/section labels — discard the line but keep scanning.
+        // 'bulletin', 'fiche', 'salaire', 'paie', 'date' appear between the address and the real
+        // company name on many Cameroon payslips (e.g. "BULLETIN DE PAIE" separates address from
+        // "CIBLE RH EMPLOI MISE A DISPOSITION COTCO").
+        // NOTE: only match these when the ENTIRE line is essentially just the keyword phrase
+        // (≤ 5 words) so that company names containing these words (e.g. "CIBLE RH EMPLOI...") are kept.
+        $skipKeywords = ['bulletin', 'fiche de paie', 'paie', 'date'];
 
         $lines = preg_split('/\r?\n/', $text);
         $companyCandidate   = null;
-        $companyCandidates  = [];   // collect up to 8 meaningful header lines
+        $companyCandidates  = [];   // collect up to 12 meaningful header lines
 
         foreach ($lines as $line) {
             $trimmed = trim($line);
@@ -549,22 +557,56 @@ class SftpPayslipService
                 continue;
             }
 
-            // Stop as soon as we reach an employee-specific field
             $lower = mb_strtolower($trimmed);
-            $isStop = false;
-            foreach ($stopKeywords as $kw) {
+            $wordCount = str_word_count($lower);
+
+            // Hard stop — employee-personal field reached, header section is over
+            $isHardStop = false;
+            foreach ($hardStopKeywords as $kw) {
                 if (str_contains($lower, $kw)) {
-                    $isStop = true;
+                    $isHardStop = true;
                     break;
                 }
             }
-            if ($isStop) {
+            if ($isHardStop) {
                 break;
             }
 
-            // Skip pure numbers (page numbers etc.)
+            // Skip-only — document vocabulary line with ≤ 5 words; discard but keep scanning
+            $isSkip = false;
+            if ($wordCount <= 5) {
+                foreach ($skipKeywords as $kw) {
+                    if (str_contains($lower, $kw)) {
+                        $isSkip = true;
+                        break;
+                    }
+                }
+            }
+            if ($isSkip) {
+                continue;
+            }
+
+            // Skip pure numbers (page numbers, references, counters, etc.)
             if (preg_match('/^\d+$/', $trimmed)) {
                 continue;
+            }
+
+            // Skip bare dates and short transitional payslip phrases so they don't
+            // consume the limited header slots before the real company line appears.
+            // Examples seen in extracted PDFs:
+            //   "01/07/25", "au 31/07/25", "Paiement le", "par Virement", "Période du"
+            if (preg_match('/^\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}$/', $trimmed)) {
+                continue;
+            }
+
+            if ($wordCount <= 4) {
+                if (preg_match('/^(au|du|le|par|de|la|et)\b/iu', $trimmed)) {
+                    continue;
+                }
+
+                if (preg_match('/\b(p[ée]riode|paiement|virement|brut|net)\b/iu', $trimmed)) {
+                    continue;
+                }
             }
 
             $companyCandidates[] = $trimmed;
@@ -572,10 +614,13 @@ class SftpPayslipService
                 $companyCandidate = $trimmed;   // first line kept for backward-compat
             }
 
-            if (count($companyCandidates) >= 8) {
+            if (count($companyCandidates) >= 12) {
                 break;
             }
         }
+
+        $companyCandidates = $this->prioritizeCompanyHeaderLines($companyCandidates);
+        $companyCandidate  = $companyCandidates[0] ?? $companyCandidate;
 
         $result['company_raw']          = $companyCandidate;
         $result['company_header_lines'] = $companyCandidates;
@@ -695,6 +740,54 @@ class SftpPayslipService
     }
 
     /**
+     * Build the ordered list of strings to try for company matching.
+     *
+     * This keeps queued processing and manual re-matching fully aligned.
+     *
+     * @param  array  $metadata  Output of extractPdfMetadata()
+     * @param  string $filename  Original filename or basename of the PDF
+     * @return string[]
+     */
+    public function buildCompanyMatchSources(array $metadata, string $filename): array
+    {
+        $matchSources = $metadata['company_header_lines'] ?? [];
+
+        if (!empty($metadata['company_raw']) && !in_array($metadata['company_raw'], $matchSources, true)) {
+            $matchSources[] = $metadata['company_raw'];
+        }
+
+        $filenameStem = pathinfo($filename, PATHINFO_FILENAME);
+
+        // Replace separators with spaces
+        $filenameStem = preg_replace('/[-_.\s]+/', ' ', $filenameStem);
+
+        // Remove years and standalone month numbers
+        $filenameStem = preg_replace('/\b(19|20)\d{2}\b/', '', $filenameStem);
+        $filenameStem = preg_replace('/\b(0?[1-9]|1[0-2])\b/', '', $filenameStem);
+
+        // Remove FR/EN month names
+        $monthPattern = '/\b(janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout'
+            . '|septembre|octobre|novembre|décembre|decembre'
+            . '|january|february|march|april|may|june|july|august|september|october|november|december)\b/iu';
+        $filenameStem = preg_replace($monthPattern, '', $filenameStem);
+
+        // Remove common payslip noise words
+        $noisePattern = '/\b(bulletin|paie|fiche|salaire|payslip|salary|wage|slip|pay|bulletin_de_paie)\b/iu';
+        $filenameStem = preg_replace($noisePattern, '', $filenameStem);
+
+        $filenameStem = trim(preg_replace('/\s+/', ' ', $filenameStem));
+
+        if (!empty($filenameStem)) {
+            $matchSources[] = $filenameStem;
+        }
+
+        return array_values(array_unique(array_filter(array_map(
+            static fn ($value) => is_string($value) ? trim($value) : null,
+            $matchSources
+        ))));
+    }
+
+    /**
      * Normalize a string for accent-insensitive, punctuation-tolerant, case-insensitive comparison.
      *
      * Handles (FR + EN):
@@ -747,6 +840,83 @@ class SftpPayslipService
             // English
             'the', 'and', 'for', 'its', 'are', 'was', 'not', 'has', 'but',
         ];
+    }
+
+    /**
+     * Reorder extracted header lines so employer/company-like phrases come first,
+     * while address/site/location lines sink lower.
+     *
+     * @param  string[] $lines
+     * @return string[]
+     */
+    private function prioritizeCompanyHeaderLines(array $lines): array
+    {
+        $decorated = [];
+
+        foreach ($lines as $index => $line) {
+            $norm      = self::normalize((string) $line);
+            $wordCount = max(1, count(array_filter(explode(' ', $norm))));
+            $score     = 0;
+
+            foreach ([
+                'cible rh'           => 10,
+                'mise a disposition' => 6,
+                'emploi'             => 4,
+                'cotco'              => 8,
+                'sarl'               => 6,
+                'sas'                => 5,
+                'ltd'                => 5,
+                'inc'                => 4,
+                'group'              => 4,
+                'groupe'             => 4,
+                'societe'            => 4,
+                'services'           => 3,
+                'service'            => 2,
+                'distribution'       => 4,
+                'logistique'         => 4,
+                'logistics'          => 4,
+                'industrie'          => 4,
+                'industrial'         => 4,
+            ] as $needle => $weight) {
+                if (str_contains($norm, $needle)) {
+                    $score += $weight;
+                }
+            }
+
+            foreach ([
+                'carrefour', 'ancien', 'akwa', 'douala', 'yaounde', 'bonanjo',
+                'quartier', 'avenue', 'rue', 'immeuble', 'bp', 'feu rouge',
+                'ancienne route',
+            ] as $needle) {
+                if (str_contains($norm, $needle)) {
+                    $score -= 4;
+                }
+            }
+
+            if ($wordCount >= 3 && $wordCount <= 9) {
+                $score += 3;
+            } elseif ($wordCount >= 10 && $wordCount <= 14) {
+                $score += 1;
+            } elseif ($wordCount <= 2) {
+                $score -= 2;
+            }
+
+            if (preg_match('/^\d+(?:\s+\d+)*$/', $norm)) {
+                $score -= 10;
+            }
+
+            $decorated[] = [
+                'line'  => $line,
+                'score' => $score,
+                'index' => $index,
+            ];
+        }
+
+        usort($decorated, static function (array $a, array $b): int {
+            return $b['score'] <=> $a['score'] ?: $a['index'] <=> $b['index'];
+        });
+
+        return array_values(array_map(static fn(array $item) => $item['line'], $decorated));
     }
 
     /**

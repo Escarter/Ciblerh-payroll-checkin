@@ -693,7 +693,11 @@ class Index extends Component
         $absPath            = $user->absoluteHomePath();
         $chrootPath         = '/var/sftp/' . $user->username;
         $incomingPath       = $absPath . '/incoming';
+        $processedPath      = $absPath . '/processed';
+        $failedPath         = $absPath . '/failed';
         $chrootIncomingPath = $chrootPath . '/incoming';
+        $chrootProcessedPath = $chrootPath . '/processed';
+        $chrootFailedPath    = $chrootPath . '/failed';
         $username           = $user->username;
         $password           = $user->password;
 
@@ -710,24 +714,44 @@ class Index extends Component
             "chown root:root {$chrootPath}",
             "chmod 755 {$chrootPath}",
             "",
-            "# 3. incoming/ inside the chroot — SFTP user writes here",
+            "# 3. incoming/, processed/ and failed/ inside the chroot",
+            "#    - incoming/: SFTP user uploads here",
+            "#    - processed/: app moves successfully processed files here",
+            "#    - failed/: app moves permanently failed files here",
             "mkdir -p {$chrootIncomingPath}",
+            "mkdir -p {$chrootProcessedPath}",
+            "mkdir -p {$chrootFailedPath}",
             "chown {$username}:laravel {$chrootIncomingPath}",
             "chmod 2775 {$chrootIncomingPath}",
+            "chown {$username}:laravel {$chrootProcessedPath}",
+            "chmod 2775 {$chrootProcessedPath}",
+            "chown {$username}:laravel {$chrootFailedPath}",
+            "chmod 2775 {$chrootFailedPath}",
             "",
-            "# 4. Ensure the real Laravel incoming/ dir exists",
+            "# 4. Ensure the real Laravel incoming/, processed/ and failed/ dirs exist",
             "mkdir -p {$incomingPath}",
+            "mkdir -p {$processedPath}",
+            "mkdir -p {$failedPath}",
             "chown {$username}:laravel {$incomingPath}",
             "chmod 2775 {$incomingPath}",
+            "chown {$username}:laravel {$processedPath}",
+            "chmod 2775 {$processedPath}",
+            "chown {$username}:laravel {$failedPath}",
+            "chmod 2775 {$failedPath}",
             "",
             "# 4a. Add SFTP user to laravel group so they can write to laravel-owned dirs",
             "usermod -aG laravel {$username}",
             "",
-            "# 5. Bind-mount the real incoming/ into the chroot so the app sees files immediately",
+            "# 5. Bind-mount the real Laravel folders into the chroot so the SFTP user can",
+            "#    upload to incoming/ and see processed/ / failed/ lifecycle folders",
             "mount --bind {$incomingPath} {$chrootIncomingPath}",
+            "mount --bind {$processedPath} {$chrootProcessedPath}",
+            "mount --bind {$failedPath} {$chrootFailedPath}",
             "",
             "# 6. Persist the bind mount across reboots",
             "grep -qF '{$chrootIncomingPath}' /etc/fstab || echo '{$incomingPath} {$chrootIncomingPath} none bind 0 0' >> /etc/fstab",
+            "grep -qF '{$chrootProcessedPath}' /etc/fstab || echo '{$processedPath} {$chrootProcessedPath} none bind 0 0' >> /etc/fstab",
+            "grep -qF '{$chrootFailedPath}' /etc/fstab || echo '{$failedPath} {$chrootFailedPath} none bind 0 0' >> /etc/fstab",
             "",
             "# 7. Ensure Subsystem uses internal-sftp (required for ChrootDirectory)",
             "sed -i 's|^Subsystem.*sftp.*|Subsystem sftp internal-sftp|' /etc/ssh/sshd_config",
@@ -746,7 +770,10 @@ class Index extends Component
             "# 9. Validate config then reload",
             "sshd -t && systemctl reload sshd",
             "",
-            "# Client remote path to set in FileZilla/WinSCP: /incoming",
+            "# Client remote paths inside the chroot:",
+            "#   /incoming  → upload drop folder",
+            "#   /processed → successfully processed files",
+            "#   /failed    → permanently failed files",
         ]);
 
         return [
@@ -780,8 +807,10 @@ class Index extends Component
             'is_active'      => true,
         ]);
 
-        // Ensure incoming/ directory exists
+        // Ensure the standard SFTP subdirectories exist for this user.
         @mkdir(base_path($homeDir) . '/incoming', 0775, true);
+        @mkdir(base_path($homeDir) . '/processed', 0775, true);
+        @mkdir(base_path($homeDir) . '/failed', 0775, true);
 
         $this->loadSftpUsers();
         $this->checkSftpConnectionStatus();
