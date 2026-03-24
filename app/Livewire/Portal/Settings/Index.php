@@ -92,6 +92,14 @@ class Index extends Component
     public $sftp_push_scan_frequency = 'everyFiveMinutes';
     public $sftp_push_scan_days = [];
     public $sftp_push_scan_time = '00:00';
+    public $sftp_push_archive_frequency = '';
+    public $sftp_push_archive_days = [];
+    public $sftp_push_archive_time = '00:00';
+    public $sftp_push_archive_min_age_minutes = 5;
+    public $sftp_push_archive_move_processed = true;
+    public $sftp_push_archive_move_rejected = true;
+    public $sftp_push_archive_move_failed = false;
+    public $sftp_push_archive_require_successful_process = true;
     public $sftp_matching_strategies = [];
     public $sftp_connection_status = false;
     public $test_sftp_message;
@@ -185,6 +193,26 @@ class Index extends Component
             ? explode(',', $this->setting->sftp_push_scan_days)
             : [];
         $this->sftp_push_scan_time = !empty($this->setting) ? ($this->setting->sftp_push_scan_time ?? '00:00') : '00:00';
+        $this->sftp_push_archive_frequency = !empty($this->setting) ? ($this->setting->sftp_push_archive_frequency ?? '') : '';
+        $this->sftp_push_archive_days = !empty($this->setting) && !empty($this->setting->sftp_push_archive_days)
+            ? explode(',', $this->setting->sftp_push_archive_days)
+            : [];
+        $this->sftp_push_archive_time = !empty($this->setting) ? ($this->setting->sftp_push_archive_time ?? '00:00') : '00:00';
+        $this->sftp_push_archive_min_age_minutes = !empty($this->setting)
+            ? (int) ($this->setting->sftp_push_archive_min_age_minutes ?? 5)
+            : 5;
+        $this->sftp_push_archive_move_processed = !empty($this->setting)
+            ? (bool) ($this->setting->sftp_push_archive_move_processed ?? true)
+            : true;
+        $this->sftp_push_archive_move_rejected = !empty($this->setting)
+            ? (bool) ($this->setting->sftp_push_archive_move_rejected ?? true)
+            : true;
+        $this->sftp_push_archive_move_failed = !empty($this->setting)
+            ? (bool) ($this->setting->sftp_push_archive_move_failed ?? false)
+            : false;
+        $this->sftp_push_archive_require_successful_process = !empty($this->setting)
+            ? (bool) ($this->setting->sftp_push_archive_require_successful_process ?? true)
+            : true;
         $this->sftp_matching_strategies = !empty($this->setting) && !empty($this->setting->sftp_matching_strategies) 
             ? $this->setting->sftp_matching_strategies 
             : [];
@@ -478,6 +506,14 @@ class Index extends Component
                 'sftp_push_scan_frequency' => $this->sftp_push_scan_frequency,
                 'sftp_push_scan_days' => implode(',', $this->sftp_push_scan_days ?? []),
                 'sftp_push_scan_time' => $this->sftp_push_scan_time,
+                'sftp_push_archive_frequency' => $this->sftp_push_archive_frequency ?: null,
+                'sftp_push_archive_days' => implode(',', $this->sftp_push_archive_days ?? []),
+                'sftp_push_archive_time' => $this->sftp_push_archive_time,
+                'sftp_push_archive_min_age_minutes' => max(0, (int) $this->sftp_push_archive_min_age_minutes),
+                'sftp_push_archive_move_processed' => (bool) $this->sftp_push_archive_move_processed,
+                'sftp_push_archive_move_rejected' => (bool) $this->sftp_push_archive_move_rejected,
+                'sftp_push_archive_move_failed' => (bool) $this->sftp_push_archive_move_failed,
+                'sftp_push_archive_require_successful_process' => (bool) $this->sftp_push_archive_require_successful_process,
                 'sftp_matching_strategies' => $this->sftp_matching_strategies,
                 'sftp_auto_match_enabled' => $this->sftp_auto_match_enabled,
                 'sftp_auto_match_threshold' => (int) $this->sftp_auto_match_threshold,
@@ -1014,6 +1050,14 @@ class Index extends Component
                 'sftp_push_scan_frequency' => $this->sftp_push_scan_frequency,
                 'sftp_push_scan_days' => implode(',', $this->sftp_push_scan_days ?? []),
                 'sftp_push_scan_time' => $this->sftp_push_scan_time,
+                'sftp_push_archive_frequency' => $this->sftp_push_archive_frequency ?: null,
+                'sftp_push_archive_days' => implode(',', $this->sftp_push_archive_days ?? []),
+                'sftp_push_archive_time' => $this->sftp_push_archive_time,
+                'sftp_push_archive_min_age_minutes' => max(0, (int) $this->sftp_push_archive_min_age_minutes),
+                'sftp_push_archive_move_processed' => (bool) $this->sftp_push_archive_move_processed,
+                'sftp_push_archive_move_rejected' => (bool) $this->sftp_push_archive_move_rejected,
+                'sftp_push_archive_move_failed' => (bool) $this->sftp_push_archive_move_failed,
+                'sftp_push_archive_require_successful_process' => (bool) $this->sftp_push_archive_require_successful_process,
                 'sftp_matching_strategies' => $this->sftp_matching_strategies,
             ]
         );

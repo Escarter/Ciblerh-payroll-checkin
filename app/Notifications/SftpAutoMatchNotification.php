@@ -13,7 +13,7 @@ class SftpAutoMatchNotification extends Notification
 
     /**
      * @param PayslipMatchingProposal $proposal
-     * @param string $type  'auto_validated' | 'dept_required'
+        * @param string $type  'auto_validated' | 'dept_required' | 'manual_review' | 'no_match'
      */
     public function __construct(PayslipMatchingProposal $proposal, string $type)
     {
@@ -53,6 +53,35 @@ class SftpAutoMatchNotification extends Notification
                 ->line('**Period:** ' . $period)
                 ->action('Open proposal', $link)
                 ->line('The proposal is in the Validated tab and is ready for bulk processing. Click the button above to review it directly — you will be asked to log in if not already authenticated.');
+        }
+
+        if ($this->type === 'manual_review') {
+            $link = route('portal.payslips.sftp-validator') . '?proposal=' . $this->proposal->id . '&mode=edit';
+
+            return (new MailMessage)
+                ->subject('[CibleRH] Manual review required — ' . $this->proposal->file_name)
+                ->greeting('Manual match required')
+                ->line('A payslip was matched with low confidence (below the perfect-match threshold). Please review and validate manually.')
+                ->line('**File:** ' . $this->proposal->file_name)
+                ->line('**Detected company:** ' . $companyName)
+                ->line('**Confidence:** ' . $confidence . ' (' . $strategy . ')')
+                ->line('**Period:** ' . $period)
+                ->action('Open & validate manually', $link)
+                ->line('Click the button above to open the proposal directly. You will be asked to log in if not already authenticated.');
+        }
+
+        if ($this->type === 'no_match') {
+            $link = route('portal.payslips.sftp-validator') . '?proposal=' . $this->proposal->id . '&mode=edit';
+
+            return (new MailMessage)
+                ->subject('[CibleRH] No company match found — manual assignment required')
+                ->greeting('Manual assignment required')
+                ->line('A payslip could not be matched to any company automatically.')
+                ->line('**File:** ' . $this->proposal->file_name)
+                ->line('**Extracted text:** ' . ($proposedMatch['company_raw'] ?? '—'))
+                ->line('**Period:** ' . $period)
+                ->action('Open & assign manually', $link)
+                ->line('Click the button above to assign company/department manually and continue processing.');
         }
 
         // type === 'dept_required'

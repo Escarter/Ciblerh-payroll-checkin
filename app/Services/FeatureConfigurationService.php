@@ -49,6 +49,11 @@ class FeatureConfigurationService
             'push_archive_frequency' => $config['sftp_push_archive_frequency'] ?? null,
             'push_archive_days' => $config['sftp_push_archive_days'] ?? null,
             'push_archive_time' => $config['sftp_push_archive_time'] ?? null,
+            'push_archive_min_age_minutes' => (int) ($config['sftp_push_archive_min_age_minutes'] ?? 5),
+            'push_archive_move_processed' => (bool) ($config['sftp_push_archive_move_processed'] ?? true),
+            'push_archive_move_rejected' => (bool) ($config['sftp_push_archive_move_rejected'] ?? true),
+            'push_archive_move_failed' => (bool) ($config['sftp_push_archive_move_failed'] ?? false),
+            'push_archive_require_successful_process' => (bool) ($config['sftp_push_archive_require_successful_process'] ?? true),
         ];
     }
 
@@ -152,6 +157,11 @@ class FeatureConfigurationService
                 'sftp_push_archive_frequency' => $setting->sftp_push_archive_frequency ?? null,
                 'sftp_push_archive_days' => $setting->sftp_push_archive_days ?? null,
                 'sftp_push_archive_time' => $setting->sftp_push_archive_time ?? null,
+                'sftp_push_archive_min_age_minutes' => $setting->sftp_push_archive_min_age_minutes ?? 5,
+                'sftp_push_archive_move_processed' => $setting->sftp_push_archive_move_processed ?? true,
+                'sftp_push_archive_move_rejected' => $setting->sftp_push_archive_move_rejected ?? true,
+                'sftp_push_archive_move_failed' => $setting->sftp_push_archive_move_failed ?? false,
+                'sftp_push_archive_require_successful_process' => $setting->sftp_push_archive_require_successful_process ?? true,
                 'sftp_matching_strategies' => $setting->sftp_matching_strategies ?? [],
                 'sftp_auto_match_enabled' => $setting->sftp_auto_match_enabled ?? false,
                 'sftp_auto_match_threshold' => $setting->sftp_auto_match_threshold ?? 80,

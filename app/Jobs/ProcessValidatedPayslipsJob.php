@@ -116,11 +116,9 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
 
             \Log::info("SFTP payslip {$this->proposal->file_name} queued for processing via PayslipSendingPlan. Process ID: {$sendPayslipProcess->id}");
 
-            // Update proposal to mark as processed
-            $this->proposal->update([
-                'status' => PayslipMatchingProposal::STATUS_PROCESSED,
-                'processed_at' => now(),
-            ]);
+            // IMPORTANT: Do not mark proposal as processed here.
+            // PayslipSendingPlan is asynchronous; proposal status is finalized
+            // when the downstream SendPayslipProcess completes.
 
         } catch (Throwable $e) {
             \Log::error("Error processing validated SFTP proposal {$this->proposal->id}: " . $e->getMessage(), [

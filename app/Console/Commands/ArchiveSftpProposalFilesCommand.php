@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\PayslipMatchingProposal;
 use App\Models\SendPayslipProcess;
+use App\Services\FeatureConfigurationService;
 use Illuminate\Console\Command;
 
 class ArchiveSftpProposalFilesCommand extends Command
@@ -13,11 +14,24 @@ class ArchiveSftpProposalFilesCommand extends Command
 
     public function handle(): int
     {
-        $terminalStatuses = [
-            PayslipMatchingProposal::STATUS_PROCESSED,
-            PayslipMatchingProposal::STATUS_REJECTED,
-            PayslipMatchingProposal::STATUS_FAILED,
-        ];
+        $config = FeatureConfigurationService::getSftpConfig();
+
+        $moveProcessed = (bool) ($config['push_archive_move_processed'] ?? true);
+        $moveRejected = (bool) ($config['push_archive_move_rejected'] ?? true);
+        $moveFailed = (bool) ($config['push_archive_move_failed'] ?? false);
+        $requireSuccessfulProcess = (bool) ($config['push_archive_require_successful_process'] ?? true);
+        $minAgeMinutes = max(0, (int) ($config['push_archive_min_age_minutes'] ?? 5));
+
+        $terminalStatuses = array_values(array_filter([
+            $moveProcessed ? PayslipMatchingProposal::STATUS_PROCESSED : null,
+            $moveRejected ? PayslipMatchingProposal::STATUS_REJECTED : null,
+            $moveFailed ? PayslipMatchingProposal::STATUS_FAILED : null,
+        ]));
+
+        if (empty($terminalStatuses)) {
+            $this->info('Archive rules disabled: no statuses configured for movement.');
+            return self::SUCCESS;
+        }
 
         $proposals = PayslipMatchingProposal::query()
             ->whereIn('status', $terminalStatuses)
@@ -41,6 +55,13 @@ class ArchiveSftpProposalFilesCommand extends Command
                 continue;
             }
 
+            $mtime = @filemtime($sourcePath);
+            if ($mtime && (time() - $mtime) < ($minAgeMinutes * 60)) {
+                $this->line("[skip] {$proposal->id}: file age below archive threshold ({$minAgeMinutes} min).");
+                $skipped++;
+                continue;
+            }
+
             $targetFolder = $this->targetFolderForStatus($proposal->status);
             if (!$targetFolder) {
                 $skipped++;
@@ -48,7 +69,8 @@ class ArchiveSftpProposalFilesCommand extends Command
             }
 
             if ($proposal->status === PayslipMatchingProposal::STATUS_PROCESSED
-                && !$this->canArchiveProcessedProposal($sourcePath)) {
+                && $requireSuccessfulProcess
+                && !$this->canArchiveProcessedProposal($proposal, $sourcePath)) {
                 $this->line("[skip] {$proposal->id}: waiting for payslip process completion.");
                 $skipped++;
                 continue;
@@ -76,11 +98,6 @@ class ArchiveSftpProposalFilesCommand extends Command
                 'local_file_path' => $destPath,
             ]);
 
-            // Keep downstream process references aligned with the moved path.
-            SendPayslipProcess::where('raw_file', $sourcePath)->update([
-                'raw_file' => $destPath,
-            ]);
-
             $this->line("[moved] {$proposal->id}: " . basename($sourcePath) . " -> {$targetFolder}/");
             $moved++;
         }
@@ -104,10 +121,13 @@ class ArchiveSftpProposalFilesCommand extends Command
      * Processed proposal files can be archived only after downstream
      * SendPayslipProcess reaches terminal success for this raw file path.
      */
-    private function canArchiveProcessedProposal(string $rawFilePath): bool
+    private function canArchiveProcessedProposal(PayslipMatchingProposal $proposal, string $rawFilePath): bool
     {
         $latestProcess = SendPayslipProcess::query()
             ->where('raw_file', $rawFilePath)
+            ->where('company_id', $proposal->matched_to_company_id)
+            ->where('month', $proposal->matched_month)
+            ->where('year', $proposal->matched_year)
             ->latest('id')
             ->first();
 

@@ -3,6 +3,7 @@
 namespace App\Jobs\Plan;
 
 use App\Models\Payslip;
+use App\Models\PayslipMatchingProposal;
 use App\Jobs\SplitPdfJob;
 use App\Models\Department;
 use App\Jobs\SendPayslipJob;
@@ -137,6 +138,8 @@ class PayslipSendingPlan
                         'failure_reason' => null
                     ]);
                 }
+
+                static::markRelatedSftpProposalProcessed($payslip_process);
             })
             ->catch(function ($batch, $exception) use ($payslip_process) {
                 $payslip_process->update(['batch_id' => $batch->id]);
@@ -246,5 +249,51 @@ class PayslipSendingPlan
             'status' => 'failed',
             'failure_reason' => $failure_reason,
         ]);
+
+        static::markRelatedSftpProposalFailed($payslip_process, $failure_reason);
+    }
+
+    /**
+     * Mark SFTP matching proposal as processed only when downstream process completed.
+     */
+    private static function markRelatedSftpProposalProcessed($payslip_process): void
+    {
+        PayslipMatchingProposal::query()
+            ->where('local_file_path', $payslip_process->raw_file)
+            ->where('matched_to_company_id', $payslip_process->company_id)
+            ->where('matched_month', $payslip_process->month)
+            ->where('matched_year', $payslip_process->year)
+            ->whereIn('status', [
+                PayslipMatchingProposal::STATUS_VALIDATED,
+                PayslipMatchingProposal::STATUS_PENDING,
+            ])
+            ->orderByDesc('created_at')
+            ->limit(1)
+            ->update([
+                'status' => PayslipMatchingProposal::STATUS_PROCESSED,
+                'processed_at' => now(),
+            ]);
+    }
+
+    /**
+     * Mark related SFTP proposal as failed when downstream process fails.
+     */
+    private static function markRelatedSftpProposalFailed($payslip_process, string $failureReason): void
+    {
+        PayslipMatchingProposal::query()
+            ->where('local_file_path', $payslip_process->raw_file)
+            ->where('matched_to_company_id', $payslip_process->company_id)
+            ->where('matched_month', $payslip_process->month)
+            ->where('matched_year', $payslip_process->year)
+            ->whereIn('status', [
+                PayslipMatchingProposal::STATUS_VALIDATED,
+                PayslipMatchingProposal::STATUS_PENDING,
+            ])
+            ->orderByDesc('created_at')
+            ->limit(1)
+            ->update([
+                'status' => PayslipMatchingProposal::STATUS_FAILED,
+                'rejection_reason' => $failureReason,
+            ]);
     }
 }

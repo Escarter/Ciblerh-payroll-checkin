@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Company;
 use App\Models\Department;
 use App\Models\PayslipMatchingProposal;
+use App\Jobs\ProcessValidatedPayslipsJob;
 use App\Notifications\SftpAutoMatchNotification;
 use App\Services\FeatureConfigurationService;
 use App\Services\SftpPayslipService;
@@ -160,47 +161,88 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
         $proposal = PayslipMatchingProposal::create($payload);
 
-        // ── Auto-match: validate proposal if confidence meets configured threshold ──
+        // ── Match routing ─────────────────────────────────────────────────────
+        // Business rule:
+        // - Match meeting configured auto-match threshold/strategy => automatic processing (when enabled)
+        // - No match / lower-confidence match => notify admins for manual review
         $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
+        $best = !empty($candidates) ? $candidates[0] : null;
+        $bestConfidence = (float) ($best['confidence'] ?? 0);
+        $meetsConfiguredAutoCriteria = $best !== null
+            && FeatureConfigurationService::canAutoMatch($best, $autoMatchConfig);
+        $autoMatchEnabled = (bool) ($autoMatchConfig['enabled'] ?? false);
+        $configuredThreshold = (int) ($autoMatchConfig['threshold'] ?? 80);
+        $notificationEmails = $autoMatchConfig['notification_email'] ?? '';
 
-        if ($autoMatchConfig['enabled'] && !empty($candidates)) {
-            $best = $candidates[0];
+        if ($best === null) {
+            \Log::info('ProcessSftpPushFileJob: No company match found; manual review required.', [
+                'file' => $basename,
+            ]);
 
-            if (FeatureConfigurationService::canAutoMatch($best, $autoMatchConfig)) {
-                if ($bestCompany && !$bestDepartment) {
-                    // Company matched but department is ambiguous → notify, keep pending
-                    \Log::info('ProcessSftpPushFileJob: Auto-match skipped — department ambiguous.', [
-                        'file'    => $basename,
-                        'company' => $bestCompany->name,
-                    ]);
+            $this->notifyEmailsSafely(
+                $notificationEmails,
+                new SftpAutoMatchNotification($proposal, 'no_match')
+            );
+        } elseif (!$meetsConfiguredAutoCriteria) {
+            \Log::info('ProcessSftpPushFileJob: Match below configured auto threshold; manual review required.', [
+                'file'       => $basename,
+                'confidence' => $bestConfidence,
+                'strategy'   => $best['strategy'] ?? null,
+                'threshold'  => $configuredThreshold,
+            ]);
 
-                    $this->notifyEmailsSafely(
-                        $autoMatchConfig['notification_email'] ?? '',
-                        new SftpAutoMatchNotification($proposal, 'dept_required')
-                    );
-                } else {
-                    // Auto-validate
-                    $proposal->update([
-                        'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
-                        'is_auto_matched' => true,
-                        'matched_at'      => now(),
-                    ]);
+            $this->notifyEmailsSafely(
+                $notificationEmails,
+                new SftpAutoMatchNotification($proposal, 'manual_review')
+            );
+        } elseif ($bestCompany && !$bestDepartment) {
+            // Company matched but department is ambiguous → notify, keep pending
+            \Log::info('ProcessSftpPushFileJob: Company matched at auto-threshold but department ambiguous.', [
+                'file'    => $basename,
+                'company' => $bestCompany->name,
+                'threshold' => $configuredThreshold,
+            ]);
 
-                    \Log::info('ProcessSftpPushFileJob: Proposal auto-validated.', [
-                        'file'       => $basename,
-                        'company'    => $bestCompany?->name,
-                        'confidence' => $best['confidence'],
-                        'strategy'   => $best['strategy'],
-                    ]);
+            $this->notifyEmailsSafely(
+                $notificationEmails,
+                new SftpAutoMatchNotification($proposal, 'dept_required')
+            );
+        } elseif ($meetsConfiguredAutoCriteria && $bestCompany && $bestDepartment && $autoMatchEnabled) {
+            // Auto-validate + auto-process
+            $proposal->update([
+                'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
+                'is_auto_matched' => true,
+                'matched_at'      => now(),
+            ]);
 
-                    $this->notifyEmailsSafely(
-                        $autoMatchConfig['notification_email'] ?? '',
-                        new SftpAutoMatchNotification($proposal, 'auto_validated')
-                    );
-                }
-            }
+            ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
+
+            \Log::info('ProcessSftpPushFileJob: Match met configured threshold and was auto-processed.', [
+                'file'       => $basename,
+                'company'    => $bestCompany?->name,
+                'department' => $bestDepartment?->name,
+                'confidence' => $bestConfidence,
+                'strategy'   => $best['strategy'] ?? null,
+                'threshold'  => $configuredThreshold,
+            ]);
+
+            $this->notifyEmailsSafely(
+                $notificationEmails,
+                new SftpAutoMatchNotification($proposal, 'auto_validated')
+            );
+        } else {
+            // Auto-match disabled: keep pending and notify for manual flow.
+            \Log::info('ProcessSftpPushFileJob: Match met configured threshold but auto-match is disabled; manual review required.', [
+                'file'       => $basename,
+                'confidence' => $bestConfidence,
+                'threshold'  => $configuredThreshold,
+            ]);
+
+            $this->notifyEmailsSafely(
+                $notificationEmails,
+                new SftpAutoMatchNotification($proposal, 'manual_review')
+            );
         }
-
         \Log::info('ProcessSftpPushFileJob: Proposal created.', [
             'file'                    => $basename,
             'matched_to_company'      => $bestCompany?->name,

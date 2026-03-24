@@ -253,6 +253,116 @@
 
                         <hr>
 
+                        <!-- Push Archive Configuration -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-box-archive me-1"></i>{{ __('settings.sftp_push_archive_title') }}
+                            </h6>
+                            <small class="d-block text-muted mb-3">
+                                {{ __('settings.sftp_push_archive_help') }}
+                            </small>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_frequency_label') }}</label>
+                                    <select class="form-select" wire:model.live="sftp_push_archive_frequency">
+                                        <option value="">{{ __('settings.sftp_push_archive_frequency_follow_scan') }}</option>
+                                        <optgroup label="{{ __('settings.sftp_push_scan_group_minutes') }}">
+                                            <option value="everyMinute">{{ __('settings.sftp_push_scan_every_minute') }}</option>
+                                            <option value="everyFiveMinutes">{{ __('settings.sftp_push_scan_every_5_minutes') }}</option>
+                                            <option value="everyTenMinutes">{{ __('settings.sftp_push_scan_every_10_minutes') }}</option>
+                                            <option value="everyFifteenMinutes">{{ __('settings.sftp_push_scan_every_15_minutes') }}</option>
+                                            <option value="everyThirtyMinutes">{{ __('settings.sftp_push_scan_every_30_minutes') }}</option>
+                                        </optgroup>
+                                        <optgroup label="{{ __('settings.sftp_push_scan_group_hours') }}">
+                                            <option value="hourly">{{ __('settings.sftp_push_scan_hourly') }}</option>
+                                            <option value="everyTwoHours">{{ __('settings.sftp_push_scan_every_2_hours') }}</option>
+                                            <option value="everyThreeHours">{{ __('settings.sftp_push_scan_every_3_hours') }}</option>
+                                            <option value="everyFourHours">{{ __('settings.sftp_push_scan_every_4_hours') }}</option>
+                                            <option value="everySixHours">{{ __('settings.sftp_push_scan_every_6_hours') }}</option>
+                                            <option value="everyTwelveHours">{{ __('settings.sftp_push_scan_every_12_hours') }}</option>
+                                        </optgroup>
+                                        <optgroup label="{{ __('settings.sftp_push_scan_group_schedule') }}">
+                                            <option value="daily">{{ __('settings.sftp_push_scan_daily') }}</option>
+                                            <option value="custom_days">{{ __('settings.sftp_push_scan_custom_days') }}</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+
+                                @if(in_array($sftp_push_archive_frequency, ['daily', 'custom_days']))
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_time_label') }}</label>
+                                    <input type="time" class="form-control" wire:model="sftp_push_archive_time">
+                                </div>
+                                @endif
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_min_age_label') }}</label>
+                                    <input type="number" min="0" class="form-control" wire:model="sftp_push_archive_min_age_minutes">
+                                    <small class="text-muted">{{ __('settings.sftp_push_archive_min_age_help') }}</small>
+                                </div>
+                            </div>
+
+                            @if($sftp_push_archive_frequency === 'custom_days')
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_days_label') }}</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    @foreach(['0' => __('settings.day_sunday'), '1' => __('settings.day_monday'), '2' => __('settings.day_tuesday'), '3' => __('settings.day_wednesday'), '4' => __('settings.day_thursday'), '5' => __('settings.day_friday'), '6' => __('settings.day_saturday')] as $dayNum => $dayName)
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="archive_day_{{ $dayNum }}"
+                                            value="{{ $dayNum }}"
+                                            wire:model="sftp_push_archive_days">
+                                        <label class="form-check-label" for="archive_day_{{ $dayNum }}">{{ $dayName }}</label>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" wire:model.live="sftp_push_archive_move_processed" id="archiveMoveProcessed">
+                                        <label class="form-check-label" for="archiveMoveProcessed">{{ __('settings.sftp_push_archive_move_processed_label') }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" wire:model.live="sftp_push_archive_require_successful_process" id="archiveRequireProcessSuccess">
+                                        <label class="form-check-label" for="archiveRequireProcessSuccess">{{ __('settings.sftp_push_archive_require_success_label') }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" wire:model.live="sftp_push_archive_move_rejected" id="archiveMoveRejected">
+                                        <label class="form-check-label" for="archiveMoveRejected">{{ __('settings.sftp_push_archive_move_rejected_label') }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" wire:model.live="sftp_push_archive_move_failed" id="archiveMoveFailed">
+                                        <label class="form-check-label" for="archiveMoveFailed">{{ __('settings.sftp_push_archive_move_failed_label') }}</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-light border mt-3 mb-0 py-2">
+                                <small class="text-muted d-block">
+                                    <strong>{{ __('settings.sftp_push_archive_effective_preview_label') }}</strong>
+                                    {{ $sftp_push_archive_frequency ? __('settings.sftp_push_archive_effective_preview_frequency_custom', ['frequency' => $sftp_push_archive_frequency]) : __('settings.sftp_push_archive_effective_preview_frequency_scan') }}
+                                    · {{ __('settings.sftp_push_archive_effective_preview_min_age', ['minutes' => (int) $sftp_push_archive_min_age_minutes]) }}
+                                    · {{ __('settings.sftp_push_archive_effective_preview_rules', [
+                                        'processed' => $sftp_push_archive_move_processed ? __('common.yes') : __('common.no'),
+                                        'rejected' => $sftp_push_archive_move_rejected ? __('common.yes') : __('common.no'),
+                                        'failed' => $sftp_push_archive_move_failed ? __('common.yes') : __('common.no'),
+                                        'require_success' => $sftp_push_archive_require_successful_process ? __('common.yes') : __('common.no'),
+                                    ]) }}
+                                </small>
+                            </div>
+                        </div>
+
+                        <hr>
+
                         <!-- Company Matching -->
                         <div class="mb-4">
                             <h6 class="text-primary mb-3">
