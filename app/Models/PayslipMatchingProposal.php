@@ -16,6 +16,7 @@ class PayslipMatchingProposal extends Model
         'file_path',
         'local_file_path',
         'file_name',
+        'file_fingerprint',
         'file_size',
         'file_timestamp',
         'proposed_match',

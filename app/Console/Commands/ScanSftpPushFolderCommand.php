@@ -7,9 +7,16 @@ use App\Models\PayslipMatchingProposal;
 use App\Models\Setting;
 use App\Models\SftpUser;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 
 class ScanSftpPushFolderCommand extends Command
 {
+    /**
+     * Minimum file age (seconds) before scanner considers it stable enough
+     * to process. Prevents reading half-uploaded SFTP files.
+     */
+    private const MIN_SETTLE_SECONDS = 30;
+
     protected $signature   = 'sftp:scan-push-folder {--dry-run : List files without dispatching jobs}';
     protected $description = 'Scan all SFTP user incoming folders for unprocessed PDF files and queue metadata extraction.';
 
@@ -41,7 +48,23 @@ class ScanSftpPushFolderCommand extends Command
                 continue;
             }
 
-            $files = glob($incomingPath . '/*.pdf') ?: [];
+            // Case-insensitive PDF discovery (handles .pdf, .PDF, .Pdf, etc.)
+            // while staying non-recursive inside each incoming/ root.
+            $files = [];
+            foreach (scandir($incomingPath) ?: [] as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+
+                $absolutePath = $incomingPath . '/' . $entry;
+                if (!is_file($absolutePath)) {
+                    continue;
+                }
+
+                if (preg_match('/\.pdf$/i', $entry)) {
+                    $files[] = $absolutePath;
+                }
+            }
 
             if (empty($files)) {
                 $this->info("No PDF files found for {$label}.");
@@ -53,12 +76,28 @@ class ScanSftpPushFolderCommand extends Command
             foreach ($files as $absolutePath) {
                 $basename = basename($absolutePath);
 
-                // Skip if a non-rejected proposal already exists for this filename
-                $exists = PayslipMatchingProposal::where('file_name', $basename)
+                // Skip files that are still being uploaded / recently touched.
+                $mtime = @filemtime($absolutePath);
+                if ($mtime && (time() - $mtime) < self::MIN_SETTLE_SECONDS) {
+                    $this->line("  [skip] {$basename} — file still settling.");
+                    $totalSkipped++;
+                    continue;
+                }
+
+                $fingerprint = @hash_file('sha256', $absolutePath) ?: null;
+
+                // Skip when a non-rejected/non-failed proposal already exists for
+                // the same fingerprint (preferred) or same legacy filename.
+                $exists = PayslipMatchingProposal::query()
                     ->whereNotIn('status', [
                         PayslipMatchingProposal::STATUS_REJECTED,
                         PayslipMatchingProposal::STATUS_FAILED,
                     ])
+                    ->when(
+                        $fingerprint,
+                        fn($q) => $q->where('file_fingerprint', $fingerprint),
+                        fn($q) => $q->where('file_name', $basename)
+                    )
                     ->exists();
 
                 if ($exists) {
@@ -70,9 +109,21 @@ class ScanSftpPushFolderCommand extends Command
                 if ($this->option('dry-run')) {
                     $this->line("  [dry-run] Would dispatch: {$basename}");
                 } else {
-                    ProcessSftpPushFileJob::dispatch($absolutePath, $basename);
-                    $this->line("  [queued] {$basename}");
-                    $totalDispatched++;
+                    $lockKey = 'sftp-push:dispatch:' . sha1($absolutePath . '|' . (@filesize($absolutePath) ?: 0) . '|' . ($mtime ?: 0));
+                    $lock = Cache::lock($lockKey, 15);
+
+                    if ($lock->get()) {
+                        try {
+                            ProcessSftpPushFileJob::dispatch($absolutePath, $basename, $fingerprint);
+                            $this->line("  [queued] {$basename}");
+                            $totalDispatched++;
+                        } finally {
+                            $lock->release();
+                        }
+                    } else {
+                        $this->line("  [skip] {$basename} — dispatch lock active.");
+                        $totalSkipped++;
+                    }
                 }
             }
         }

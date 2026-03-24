@@ -13,6 +13,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Throwable;
 
@@ -31,6 +32,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
     public function __construct(
         private readonly string $absoluteFilePath,
         private readonly string $originalFilename,
+        private readonly ?string $knownFingerprint = null,
     ) {
         $this->onQueue('processing');
     }
@@ -40,13 +42,31 @@ class ProcessSftpPushFileJob implements ShouldQueue
      */
     public function handle(): void
     {
+        $fingerprint = $this->knownFingerprint ?: (@hash_file('sha256', $this->absoluteFilePath) ?: null);
+        $lockKey = 'sftp-push:process:' . ($fingerprint ?: sha1($this->absoluteFilePath));
+        $lock = Cache::lock($lockKey, 180);
+
+        if (!$lock->get()) {
+            \Log::info('ProcessSftpPushFileJob: Processing lock active, skipping duplicate run.', [
+                'file' => basename($this->absoluteFilePath),
+                'fingerprint' => $fingerprint,
+            ]);
+            return;
+        }
+
+        try {
         // ── Idempotency: skip if a non-rejected proposal already exists ──────
         $basename = basename($this->absoluteFilePath);
-        $existing = PayslipMatchingProposal::where('file_name', $basename)
+        $existing = PayslipMatchingProposal::query()
             ->whereNotIn('status', [
                 PayslipMatchingProposal::STATUS_REJECTED,
                 PayslipMatchingProposal::STATUS_FAILED,
             ])
+            ->when(
+                $fingerprint,
+                fn($q) => $q->where('file_fingerprint', $fingerprint),
+                fn($q) => $q->where('file_name', $basename)
+            )
             ->first();
 
         if ($existing) {
@@ -122,6 +142,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
             'file_path'               => $this->absoluteFilePath,
             'local_file_path'         => $this->absoluteFilePath,
             'file_name'               => $basename,
+            'file_fingerprint'        => $fingerprint,
             'file_size'               => filesize($this->absoluteFilePath) ?: null,
             'file_timestamp'          => ($mtime = filemtime($this->absoluteFilePath)) ? \Carbon\Carbon::createFromTimestamp($mtime) : null,
             'proposed_match'          => $proposedMatch,
@@ -192,6 +213,9 @@ class ProcessSftpPushFileJob implements ShouldQueue
             'matched_year'            => $metadata['year'],
             'candidates_count'        => count($candidates),
         ]);
+        } finally {
+            $lock->release();
+        }
     }
 
     public function failed(Throwable $exception): void

@@ -406,6 +406,7 @@ return [
     'rematch_auto_validated' => 'Re-correspondance terminée : :count candidat(s) trouvé(s) — validé automatiquement',
     'pull_now' => 'Récupérer les fichiers maintenant',
     'pull_now_sync_disabled' => 'La synchronisation SFTP est désactivée. Activez-la dans les paramètres pour récupérer les fichiers.',
+    'pull_now_started' => 'Récupération lancée. Le scan a été mis en file d\'attente et sera exécuté sous peu.',
     'pull_now_success' => 'Récupération terminée : :queued fichier(s) mis en file, :skipped ignoré(s).',
     'pull_now_done' => 'Récupération terminée.',
     'pull_now_failed' => 'Échec de la récupération des fichiers : :error',

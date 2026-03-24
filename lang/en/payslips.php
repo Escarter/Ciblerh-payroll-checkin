@@ -410,6 +410,7 @@ return [
     'rematch_auto_validated' => 'Re-match complete: :count candidate(s) found — auto-validated',
     'pull_now' => 'Pull files now',
     'pull_now_sync_disabled' => 'SFTP sync is disabled. Enable it in settings to pull files.',
+    'pull_now_started' => 'Pull started. The scan has been queued and will run shortly.',
     'pull_now_success' => 'Pull complete: :queued file(s) queued, :skipped skipped.',
     'pull_now_done' => 'Pull complete.',
     'pull_now_failed' => 'Failed to pull files: :error',
