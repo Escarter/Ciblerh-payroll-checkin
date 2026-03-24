@@ -46,6 +46,9 @@ class FeatureConfigurationService
             'push_scan_frequency' => $config['sftp_push_scan_frequency'] ?? 'everyFiveMinutes',
             'push_scan_days' => $config['sftp_push_scan_days'] ?? '',
             'push_scan_time' => $config['sftp_push_scan_time'] ?? '00:00',
+            'push_archive_frequency' => $config['sftp_push_archive_frequency'] ?? null,
+            'push_archive_days' => $config['sftp_push_archive_days'] ?? null,
+            'push_archive_time' => $config['sftp_push_archive_time'] ?? null,
         ];
     }
 
@@ -146,6 +149,9 @@ class FeatureConfigurationService
                 'sftp_push_scan_frequency' => $setting->sftp_push_scan_frequency ?? 'everyFiveMinutes',
                 'sftp_push_scan_days' => $setting->sftp_push_scan_days ?? '',
                 'sftp_push_scan_time' => $setting->sftp_push_scan_time ?? '00:00',
+                'sftp_push_archive_frequency' => $setting->sftp_push_archive_frequency ?? null,
+                'sftp_push_archive_days' => $setting->sftp_push_archive_days ?? null,
+                'sftp_push_archive_time' => $setting->sftp_push_archive_time ?? null,
                 'sftp_matching_strategies' => $setting->sftp_matching_strategies ?? [],
                 'sftp_auto_match_enabled' => $setting->sftp_auto_match_enabled ?? false,
                 'sftp_auto_match_threshold' => $setting->sftp_auto_match_threshold ?? 80,

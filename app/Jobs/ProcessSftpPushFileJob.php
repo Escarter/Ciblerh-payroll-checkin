@@ -174,7 +174,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
                         'company' => $bestCompany->name,
                     ]);
 
-                    $this->notifyEmails(
+                    $this->notifyEmailsSafely(
                         $autoMatchConfig['notification_email'] ?? '',
                         new SftpAutoMatchNotification($proposal, 'dept_required')
                     );
@@ -193,22 +193,12 @@ class ProcessSftpPushFileJob implements ShouldQueue
                         'strategy'   => $best['strategy'],
                     ]);
 
-                    $this->notifyEmails(
+                    $this->notifyEmailsSafely(
                         $autoMatchConfig['notification_email'] ?? '',
                         new SftpAutoMatchNotification($proposal, 'auto_validated')
                     );
                 }
             }
-        }
-
-        // ── Move file to sibling processed/ subfolder so scanner skips it on future runs ──
-        $destPath = $this->moveFileToArchiveFolder($this->absoluteFilePath, 'processed');
-
-        if ($destPath) {
-            $proposal->update([
-                'file_path'       => $destPath,
-                'local_file_path' => $destPath,
-            ]);
         }
 
         \Log::info('ProcessSftpPushFileJob: Proposal created.', [
@@ -226,6 +216,14 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
+        if (!$this->shouldMoveToFailedOnPermanentError()) {
+            \Log::warning('ProcessSftpPushFileJob permanently failed, but skipping failed-folder move because an active proposal already exists.', [
+                'file'  => $this->absoluteFilePath,
+                'error' => $exception->getMessage(),
+            ]);
+            return;
+        }
+
         $failedPath = $this->moveFileToArchiveFolder($this->absoluteFilePath, 'failed');
 
         \Log::error('ProcessSftpPushFileJob permanently failed.', [
@@ -246,6 +244,40 @@ class ProcessSftpPushFileJob implements ShouldQueue
         foreach ($emails as $email) {
             Notification::route('mail', $email)->notify(clone $notification);
         }
+    }
+
+    /**
+     * Send notifications without failing the whole intake pipeline.
+     */
+    private function notifyEmailsSafely(string $emailList, \Illuminate\Notifications\Notification $notification): void
+    {
+        try {
+            $this->notifyEmails($emailList, $notification);
+        } catch (Throwable $e) {
+            \Log::warning('ProcessSftpPushFileJob: Notification delivery failed (non-fatal).', [
+                'file'  => basename($this->absoluteFilePath),
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * If proposal creation already succeeded, avoid moving source to failed/ on
+     * later non-critical failures (e.g. notification transport issues).
+     */
+    private function shouldMoveToFailedOnPermanentError(): bool
+    {
+        $basename = basename($this->absoluteFilePath);
+
+        $hasActiveProposal = PayslipMatchingProposal::query()
+            ->where('file_name', $basename)
+            ->whereNotIn('status', [
+                PayslipMatchingProposal::STATUS_REJECTED,
+                PayslipMatchingProposal::STATUS_FAILED,
+            ])
+            ->exists();
+
+        return !$hasActiveProposal;
     }
 
     /**

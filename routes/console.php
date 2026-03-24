@@ -69,6 +69,13 @@ $pushEvent = Schedule::command('sftp:scan-push-folder')
     ->withoutOverlapping();
 applySftpPushScanFrequency($pushEvent);
 
+// Archive SFTP proposal files out of incoming/ when proposals hit terminal states
+$archiveEvent = Schedule::command('sftp:archive-proposal-files')
+    ->when(fn() => isSftpSyncEnabled())
+    ->timezone(config('app.timezone', 'UTC'))
+    ->withoutOverlapping();
+applySftpPushArchiveFrequency($archiveEvent);
+
 /*
 |--------------------------------------------------------------------------
 | Schedule Helper Functions
@@ -111,6 +118,57 @@ function applySftpPushScanFrequency(\Illuminate\Console\Scheduling\Event $event)
         $freq     = $config['push_scan_frequency'] ?? 'everyFiveMinutes';
         $time     = $config['push_scan_time']      ?? '00:00';
         $daysStr  = $config['push_scan_days']      ?? '';
+
+        $simpleMethods = [
+            'everyMinute'         => 'everyMinute',
+            'everyFiveMinutes'    => 'everyFiveMinutes',
+            'everyTenMinutes'     => 'everyTenMinutes',
+            'everyFifteenMinutes' => 'everyFifteenMinutes',
+            'everyThirtyMinutes'  => 'everyThirtyMinutes',
+            'hourly'              => 'hourly',
+            'everyTwoHours'       => 'everyTwoHours',
+            'everyThreeHours'     => 'everyThreeHours',
+            'everyFourHours'      => 'everyFourHours',
+            'everySixHours'       => 'everySixHours',
+            'everyTwelveHours'    => 'everyTwelveHours',
+        ];
+
+        if (isset($simpleMethods[$freq])) {
+            $method = $simpleMethods[$freq];
+            $event->$method();
+            return;
+        }
+
+        if ($freq === 'daily') {
+            $event->dailyAt($time ?: '00:00');
+            return;
+        }
+
+        if ($freq === 'custom_days' && !empty($daysStr)) {
+            $days = array_filter(array_map('intval', explode(',', $daysStr)));
+            if (!empty($days)) {
+                $event->days($days)->at($time ?: '00:00');
+                return;
+            }
+        }
+    } catch (\Exception $e) {
+        // fall through to safe default
+    }
+
+    $event->everyFiveMinutes();
+}
+
+/**
+ * Apply the configured push-archive frequency to a schedule event.
+ * Defaults to push scan frequency when archive-specific frequency is unset.
+ */
+function applySftpPushArchiveFrequency(\Illuminate\Console\Scheduling\Event $event): void
+{
+    try {
+        $config = \App\Services\FeatureConfigurationService::getSftpConfig();
+        $freq   = $config['push_archive_frequency'] ?: ($config['push_scan_frequency'] ?? 'everyFiveMinutes');
+        $time   = $config['push_archive_time']      ?: ($config['push_scan_time'] ?? '00:00');
+        $daysStr = $config['push_archive_days']     ?: ($config['push_scan_days'] ?? '');
 
         $simpleMethods = [
             'everyMinute'         => 'everyMinute',
