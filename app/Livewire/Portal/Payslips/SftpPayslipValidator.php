@@ -5,6 +5,7 @@ namespace App\Livewire\Portal\Payslips;
 use App\Models\Department;
 use App\Models\Company;
 use App\Models\PayslipMatchingProposal;
+use App\Models\SendPayslipProcess;
 use App\Jobs\ProcessValidatedPayslipsJob;
 use App\Services\FeatureConfigurationService;
 use App\Services\SftpPayslipService;
@@ -247,13 +248,43 @@ class SftpPayslipValidator extends Component
         if ($best !== null) {
             $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
             if ($autoMatchConfig['enabled'] && FeatureConfigurationService::canAutoMatch($best, $autoMatchConfig)) {
-                $proposal->update([
-                    'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
-                    'is_auto_matched' => true,
-                    'matched_at'      => now(),
-                ]);
-                ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
-                $autoValidated = true;
+                // Guard: check if already processing to prevent concurrent runs
+                $existingProcess = SendPayslipProcess::where('sftp_proposal_id', $proposal->id)
+                    ->where('status', '!=', 'successful')
+                    ->where('status', '!=', 'failed')
+                    ->first();
+                if ($existingProcess) {
+                    $this->dispatch('showToast',
+                        message: __('payslips.proposal_already_processing'),
+                        type: 'warning'
+                    );
+                    return;
+                }
+
+                try {
+                    $proposal->update([
+                        'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
+                        'is_auto_matched' => true,
+                        'matched_at'      => now(),
+                    ]);
+                    // Use dispatchSync to prevent orphaned processing state if Livewire disconnect occurs
+                    // File was already validated in rematch(), so we're safe to proceed synchronously
+                    ProcessValidatedPayslipsJob::dispatchSync($proposal);
+                    $autoValidated = true;
+                } catch (\Throwable $e) {
+                    \Log::error('SftpPayslipValidator::rematch() - dispatchSync failed', [
+                        'proposal_id' => $proposal->id,
+                        'error'       => $e->getMessage(),
+                        'file'        => $e->getFile(),
+                        'line'        => $e->getLine(),
+                    ]);
+                    $proposal->refresh(); // Reload to show current state
+                    $this->dispatch('showToast',
+                        message: __('payslips.rematch_processing_error', ['error' => $e->getMessage()]),
+                        type: 'danger'
+                    );
+                    return;
+                }
             }
         }
 
@@ -307,6 +338,16 @@ class SftpPayslipValidator extends Component
             'status' => PayslipMatchingProposal::STATUS_VALIDATED,
         ]);
 
+        if ($reason = $this->getProcessingBlockReason($proposal)) {
+            $this->dispatch('showToast',
+                message: __('payslips.proposal_validated_file_missing', ['reason' => $reason]),
+                type: 'warning'
+            );
+            $this->resetEditForm();
+            $this->dispatch('closeModals');
+            return;
+        }
+
         // Dispatch the processing job
         ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
 
@@ -347,6 +388,7 @@ class SftpPayslipValidator extends Component
         ]);
 
         $proposal = PayslipMatchingProposal::findOrFail($this->editingProposalId);
+        $oldStatus = $proposal->status; // capture before update
 
         $proposal->update([
             'status' => PayslipMatchingProposal::STATUS_REJECTED,
@@ -361,7 +403,7 @@ class SftpPayslipValidator extends Component
             'web',
             "Proposal {$proposal->id} for file {$proposal->file_name} rejected: {$this->editingReason}",
             $proposal,
-            ['status' => PayslipMatchingProposal::STATUS_VALIDATED],
+            ['status' => $oldStatus],
             ['status' => PayslipMatchingProposal::STATUS_REJECTED, 'rejection_reason' => $this->editingReason]
         );
 
@@ -388,6 +430,12 @@ class SftpPayslipValidator extends Component
                 message: __('payslips.proposal_not_ready_for_processing', ['reason' => $reason]),
                 type: 'warning'
             );
+            return;
+        }
+
+        // Guard: don't create a duplicate SendPayslipProcess if one is already in flight
+        if ($proposal->sendPayslipProcesses()->where('status', 'processing')->exists()) {
+            $this->dispatch('showToast', message: __('payslips.proposal_already_processing'), type: 'warning');
             return;
         }
 
@@ -418,6 +466,12 @@ class SftpPayslipValidator extends Component
 
         foreach ($proposals as $proposal) {
             if ($this->getProcessingBlockReason($proposal)) {
+                $skipped++;
+                continue;
+            }
+
+            // Skip if already in-flight
+            if ($proposal->sendPayslipProcesses()->where('status', 'processing')->exists()) {
                 $skipped++;
                 continue;
             }

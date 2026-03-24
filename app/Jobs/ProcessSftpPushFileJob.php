@@ -23,7 +23,6 @@ class ProcessSftpPushFileJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
-    public $maxExceptions = 1;
     public $timeout = 120;
 
     /**
@@ -208,28 +207,46 @@ class ProcessSftpPushFileJob implements ShouldQueue
                 new SftpAutoMatchNotification($proposal, 'dept_required')
             );
         } elseif ($meetsConfiguredAutoCriteria && $bestCompany && $bestDepartment && $autoMatchEnabled) {
-            // Auto-validate + auto-process
+            // Auto-validate + auto-process synchronously so the pipeline starts immediately
             $proposal->update([
                 'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
                 'is_auto_matched' => true,
                 'matched_at'      => now(),
             ]);
 
-            ProcessValidatedPayslipsJob::dispatchSync($proposal);
+            try {
+                ProcessValidatedPayslipsJob::dispatchSync($proposal);
 
-            \Log::info('ProcessSftpPushFileJob: Match met configured threshold and was auto-processed.', [
-                'file'       => $basename,
-                'company'    => $bestCompany?->name,
-                'department' => $bestDepartment?->name,
-                'confidence' => $bestConfidence,
-                'strategy'   => $best['strategy'] ?? null,
-                'threshold'  => $configuredThreshold,
-            ]);
+                \Log::info('ProcessSftpPushFileJob: Match met configured threshold and was auto-processed.', [
+                    'file'       => $basename,
+                    'company'    => $bestCompany?->name,
+                    'department' => $bestDepartment?->name,
+                    'confidence' => $bestConfidence,
+                    'strategy'   => $best['strategy'] ?? null,
+                    'threshold'  => $configuredThreshold,
+                ]);
 
-            $this->notifyEmailsSafely(
-                $notificationEmails,
-                new SftpAutoMatchNotification($proposal, 'auto_validated')
-            );
+                $this->notifyEmailsSafely(
+                    $notificationEmails,
+                    new SftpAutoMatchNotification($proposal, 'auto_validated')
+                );
+            } catch (\Throwable $processingException) {
+                // The inner job already set the proposal to STATUS_FAILED.
+                // Don't let its exception kill the intake job — the proposal record
+                // exists and an admin needs to be alerted so they can intervene.
+                \Log::error('ProcessSftpPushFileJob: Auto-process inner job failed; notifying admin.', [
+                    'file'  => $basename,
+                    'error' => $processingException->getMessage(),
+                ]);
+
+                // Reload proposal to pick up the rejection_reason written by the inner job
+                $proposal->refresh();
+
+                $this->notifyEmailsSafely(
+                    $notificationEmails,
+                    new SftpAutoMatchNotification($proposal, 'processing_failed')
+                );
+            }
         } else {
             // Auto-match disabled: keep pending and notify for manual flow.
             \Log::info('ProcessSftpPushFileJob: Match met configured threshold but auto-match is disabled; manual review required.', [

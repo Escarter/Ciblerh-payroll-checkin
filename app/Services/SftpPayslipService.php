@@ -512,10 +512,11 @@ class SftpPayslipService
     public function extractPdfMetadata(string $absoluteFilePath): array
     {
         $result = [
-            'company_raw'       => null,
-            'month'             => null,
-            'year'              => null,
-            'raw_text_preview'  => '',
+            'company_raw'          => null,
+            'company_header_lines' => [],
+            'month'                => null,
+            'year'                 => null,
+            'raw_text_preview'     => '',
         ];
 
         try {

@@ -72,6 +72,14 @@ class PayslipMatchingProposal extends Model
     }
 
     /**
+     * All SendPayslipProcess records triggered by this SFTP proposal.
+     */
+    public function sendPayslipProcesses()
+    {
+        return $this->hasMany(\App\Models\SendPayslipProcess::class, 'sftp_proposal_id');
+    }
+
+    /**
      * Scopes
      */
     public function scopePending($query)

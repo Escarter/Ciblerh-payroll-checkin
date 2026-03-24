@@ -123,13 +123,31 @@ class ArchiveSftpProposalFilesCommand extends Command
      */
     private function canArchiveProcessedProposal(PayslipMatchingProposal $proposal, string $rawFilePath): bool
     {
-        $latestProcess = SendPayslipProcess::query()
-            ->where('raw_file', $rawFilePath)
-            ->where('company_id', $proposal->matched_to_company_id)
-            ->where('month', $proposal->matched_month)
-            ->where('year', $proposal->matched_year)
-            ->latest('id')
-            ->first();
+        $query = SendPayslipProcess::query();
+
+        // Prefer direct proposal ID lookup (available for records created after migration)
+        if (!empty($proposal->id)) {
+            $latestProcess = $query->where('sftp_proposal_id', $proposal->id)->latest('id')->first();
+
+            // Fall back to path+context matching for legacy records without sftp_proposal_id
+            if (!$latestProcess) {
+                $latestProcess = SendPayslipProcess::query()
+                    ->where('raw_file', $rawFilePath)
+                    ->where('company_id', $proposal->matched_to_company_id)
+                    ->where('month', $proposal->matched_month)
+                    ->where('year', $proposal->matched_year)
+                    ->latest('id')
+                    ->first();
+            }
+        } else {
+            $latestProcess = $query
+                ->where('raw_file', $rawFilePath)
+                ->where('company_id', $proposal->matched_to_company_id)
+                ->where('month', $proposal->matched_month)
+                ->where('year', $proposal->matched_year)
+                ->latest('id')
+                ->first();
+        }
 
         if (!$latestProcess) {
             return false;

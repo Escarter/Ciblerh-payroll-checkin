@@ -22,8 +22,8 @@ class PayslipSendingPlan
             function () use ($payslip_process) {
                 static::step2($payslip_process);
             }
-        ])->catch(function () use ($payslip_process) {
-            static::failed($payslip_process);
+        ])->catch(function (\Throwable $e) use ($payslip_process) {
+            static::failed($payslip_process, $e->getMessage());
         })->dispatch();
     }
     private static function step2($payslip_process)
@@ -102,11 +102,21 @@ class PayslipSendingPlan
 
     private static function step3($payslip_process)
     {
-        $employees = $payslip_process->department_id
-            ? Department::findOrFail($payslip_process->department_id)->employees
-            : \App\Models\User::where('company_id', $payslip_process->company_id)
-                ->whereHas('roles', fn($q) => $q->where('name', 'employee'))
-                ->get();
+        try {
+            $employees = $payslip_process->department_id
+                ? Department::withTrashed()->findOrFail($payslip_process->department_id)->employees
+                : \App\Models\User::where('company_id', $payslip_process->company_id)
+                    ->whereHas('roles', fn($q) => $q->where('name', 'employee'))
+                    ->get();
+        } catch (\Throwable $e) {
+            \Log::error('PayslipSendingPlan::step3 - Cannot load employees (department might be deleted)', [
+                'process_id' => $payslip_process->id,
+                'department_id' => $payslip_process->department_id,
+                'error' => $e->getMessage(),
+            ]);
+            static::failed($payslip_process, __('payslips.failed_to_load_employees',  ['error' => $e->getMessage()]));
+            return;
+        }
 
         $email_jobs = $employees->chunk(config('ciblerh.chunk_size'))->map(function ($employee_chunk) use ($payslip_process) {
             return new SendPayslipJob($employee_chunk, $payslip_process);
@@ -156,11 +166,20 @@ class PayslipSendingPlan
      */
     private static function reconcileUnmatchedEmployees($payslip_process)
     {
-        $allEmployees = $payslip_process->department_id
-            ? Department::findOrFail($payslip_process->department_id)->employees
-            : \App\Models\User::where('company_id', $payslip_process->company_id)
-                ->whereHas('roles', fn($q) => $q->where('name', 'employee'))
-                ->get();
+        try {
+            $allEmployees = $payslip_process->department_id
+                ? Department::withTrashed()->findOrFail($payslip_process->department_id)->employees
+                : \App\Models\User::where('company_id', $payslip_process->company_id)
+                    ->whereHas('roles', fn($q) => $q->where('name', 'employee'))
+                    ->get();
+        } catch (\Throwable $e) {
+            \Log::error('PayslipSendingPlan::reconcileUnmatchedEmployees - Cannot load employees (department might be deleted)', [
+                'process_id' => $payslip_process->id,
+                'department_id' => $payslip_process->department_id,
+                'error' => $e->getMessage(),
+            ]);
+            return;
+        }
         
         // Get all employees who already have payslip records for this month/process
         $matchedEmployeeIds = Payslip::where('send_payslip_process_id', $payslip_process->id)
@@ -258,21 +277,29 @@ class PayslipSendingPlan
      */
     private static function markRelatedSftpProposalProcessed($payslip_process): void
     {
-        PayslipMatchingProposal::query()
-            ->where('local_file_path', $payslip_process->raw_file)
-            ->where('matched_to_company_id', $payslip_process->company_id)
-            ->where('matched_month', $payslip_process->month)
-            ->where('matched_year', $payslip_process->year)
+        $query = PayslipMatchingProposal::query()
             ->whereIn('status', [
                 PayslipMatchingProposal::STATUS_VALIDATED,
                 PayslipMatchingProposal::STATUS_PENDING,
             ])
             ->orderByDesc('created_at')
-            ->limit(1)
-            ->update([
-                'status' => PayslipMatchingProposal::STATUS_PROCESSED,
-                'processed_at' => now(),
-            ]);
+            ->limit(1);
+
+        // Prefer direct ID lookup; fall back to path+context matching for legacy records
+        if (!empty($payslip_process->sftp_proposal_id)) {
+            $query->where('id', $payslip_process->sftp_proposal_id);
+        } else {
+            $query
+                ->where('local_file_path', $payslip_process->raw_file)
+                ->where('matched_to_company_id', $payslip_process->company_id)
+                ->where('matched_month', $payslip_process->month)
+                ->where('matched_year', $payslip_process->year);
+        }
+
+        $query->update([
+            'status' => PayslipMatchingProposal::STATUS_PROCESSED,
+            'processed_at' => now(),
+        ]);
     }
 
     /**
@@ -280,20 +307,28 @@ class PayslipSendingPlan
      */
     private static function markRelatedSftpProposalFailed($payslip_process, string $failureReason): void
     {
-        PayslipMatchingProposal::query()
-            ->where('local_file_path', $payslip_process->raw_file)
-            ->where('matched_to_company_id', $payslip_process->company_id)
-            ->where('matched_month', $payslip_process->month)
-            ->where('matched_year', $payslip_process->year)
+        $query = PayslipMatchingProposal::query()
             ->whereIn('status', [
                 PayslipMatchingProposal::STATUS_VALIDATED,
                 PayslipMatchingProposal::STATUS_PENDING,
             ])
             ->orderByDesc('created_at')
-            ->limit(1)
-            ->update([
-                'status' => PayslipMatchingProposal::STATUS_FAILED,
-                'rejection_reason' => $failureReason,
-            ]);
+            ->limit(1);
+
+        // Prefer direct ID lookup; fall back to path+context matching for legacy records
+        if (!empty($payslip_process->sftp_proposal_id)) {
+            $query->where('id', $payslip_process->sftp_proposal_id);
+        } else {
+            $query
+                ->where('local_file_path', $payslip_process->raw_file)
+                ->where('matched_to_company_id', $payslip_process->company_id)
+                ->where('matched_month', $payslip_process->month)
+                ->where('matched_year', $payslip_process->year);
+        }
+
+        $query->update([
+            'status' => PayslipMatchingProposal::STATUS_FAILED,
+            'rejection_reason' => $failureReason,
+        ]);
     }
 }

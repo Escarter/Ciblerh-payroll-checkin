@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\PayslipMatchingProposal;
 
 class SendPayslipProcess extends Model
 {
@@ -49,5 +50,13 @@ class SendPayslipProcess extends Model
     public function payslips()
     {
         return $this->hasMany(Payslip::class, 'send_payslip_process_id');
+    }
+
+    /**
+     * The SFTP matching proposal that triggered this delivery process (nullable for non-SFTP uploads).
+     */
+    public function sftpProposal()
+    {
+        return $this->belongsTo(PayslipMatchingProposal::class, 'sftp_proposal_id');
     }
 }

@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Support\Facades\File;
 
 class SplitPdfJob implements ShouldQueue
@@ -41,8 +40,10 @@ class SplitPdfJob implements ShouldQueue
         // $file = Storage::disk('raw')->path($this->path);
         Storage::disk('splitted')->makeDirectory($this->process->destination_directory);
 
-        if(!File::exists($this->process->raw_file)){
-            return;
+        if (!File::exists($this->process->raw_file)) {
+            throw new \RuntimeException(
+                'Raw PDF file not found on disk: ' . $this->process->raw_file
+            );
         }
         
         PdfSeparate::getOutput($this->process->raw_file, config('ciblerh.pdftsepare_path'), Storage::disk('splitted')->path($this->process->destination_directory . '/page_%d.pdf'));

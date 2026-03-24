@@ -13,7 +13,7 @@ class SftpAutoMatchNotification extends Notification
 
     /**
      * @param PayslipMatchingProposal $proposal
-        * @param string $type  'auto_validated' | 'dept_required' | 'manual_review' | 'no_match'
+     * @param string $type  'auto_validated' | 'dept_required' | 'manual_review' | 'no_match' | 'processing_failed'
      */
     public function __construct(PayslipMatchingProposal $proposal, string $type)
     {
@@ -82,6 +82,23 @@ class SftpAutoMatchNotification extends Notification
                 ->line('**Period:** ' . $period)
                 ->action('Open & assign manually', $link)
                 ->line('Click the button above to assign company/department manually and continue processing.');
+        }
+
+        if ($this->type === 'processing_failed') {
+            $link = route('portal.payslips.sftp-validator') . '?proposal=' . $this->proposal->id . '&mode=view';
+            $failureReason = $this->proposal->rejection_reason ?? 'Unknown error.';
+
+            return (new MailMessage)
+                ->subject('[CibleRH] Auto-processing failed — ' . $this->proposal->file_name)
+                ->greeting('Auto-processing failure')
+                ->line('A payslip was matched with high confidence and auto-validated, but the processing pipeline encountered an error.')
+                ->line('**File:** ' . $this->proposal->file_name)
+                ->line('**Company:** ' . $companyName)
+                ->line('**Confidence:** ' . $confidence . ' (' . $strategy . ')')
+                ->line('**Period:** ' . $period)
+                ->line('**Error:** ' . $failureReason)
+                ->action('View failed proposal', $link)
+                ->line('The proposal has been marked as failed. Click above to inspect it. You may need to re-trigger processing manually once the underlying issue is resolved.');
         }
 
         // type === 'dept_required'
