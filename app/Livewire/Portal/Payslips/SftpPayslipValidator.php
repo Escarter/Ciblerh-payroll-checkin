@@ -167,34 +167,34 @@ class SftpPayslipValidator extends Component
             $lower  = mb_strtolower($output);
 
             if (str_contains($lower, 'sftp sync is disabled')) {
-                $this->dispatch('alert', [
-                    'type' => 'warning',
-                    'message' => __('payslips.pull_now_sync_disabled'),
-                ]);
+                $this->dispatch('showToast',
+                    message: __('payslips.pull_now_sync_disabled'),
+                    type: 'warning'
+                );
                 return;
             }
 
             if (preg_match('/Dispatched:\s*(\d+),\s*Skipped:\s*(\d+)/i', $output, $m)) {
-                $this->dispatch('alert', [
-                    'type' => 'success',
-                    'message' => __('payslips.pull_now_success', [
+                $this->dispatch('showToast',
+                    message: __('payslips.pull_now_success', [
                         'queued' => (int) $m[1],
                         'skipped' => (int) $m[2],
                     ]),
-                ]);
+                    type: 'success'
+                );
             } else {
-                $this->dispatch('alert', [
-                    'type' => 'success',
-                    'message' => __('payslips.pull_now_done'),
-                ]);
+                $this->dispatch('showToast',
+                    message: __('payslips.pull_now_done'),
+                    type: 'success'
+                );
             }
 
             $this->resetPage();
         } catch (\Throwable $e) {
-            $this->dispatch('alert', [
-                'type' => 'error',
-                'message' => __('payslips.pull_now_failed', ['error' => $e->getMessage()]),
-            ]);
+            $this->dispatch('showToast',
+                message: __('payslips.pull_now_failed', ['error' => $e->getMessage()]),
+                type: 'danger'
+            );
         }
     }
 
@@ -206,7 +206,7 @@ class SftpPayslipValidator extends Component
         $proposal = PayslipMatchingProposal::findOrFail($proposalId);
 
         if (!$proposal->local_file_path || !file_exists($proposal->local_file_path)) {
-            $this->dispatch('alert', ['type' => 'error', 'message' => __('payslips.local_file_not_found')]);
+            $this->dispatch('showToast', message: __('payslips.local_file_not_found'), type: 'danger');
             return;
         }
 
@@ -255,14 +255,14 @@ class SftpPayslipValidator extends Component
             }
         }
 
-        $this->dispatch('alert', [
-            'type'    => empty($candidates) ? 'warning' : 'success',
-            'message' => empty($candidates)
+        $this->dispatch('showToast',
+            message: empty($candidates)
                 ? __('payslips.rematch_no_candidates')
                 : ($autoValidated
                     ? __('payslips.rematch_auto_validated', ['count' => count($candidates)])
                     : __('payslips.rematch_found', ['count' => count($candidates)])),
-        ]);
+            type: empty($candidates) ? 'warning' : 'success'
+        );
     }
 
     /**
@@ -308,10 +308,7 @@ class SftpPayslipValidator extends Component
         // Dispatch the processing job
         ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
 
-        $this->dispatch('alert', [
-            'type' => 'success',
-            'message' => __('payslips.proposal_validated_and_queued')
-        ]);
+        $this->dispatch('showToast', message: __('payslips.proposal_validated_and_queued'), type: 'success');
 
         $this->resetEditForm();
         $this->dispatch('closeModals');
@@ -366,10 +363,7 @@ class SftpPayslipValidator extends Component
             ['status' => PayslipMatchingProposal::STATUS_REJECTED, 'rejection_reason' => $this->editingReason]
         );
 
-        $this->dispatch('alert', [
-            'type' => 'warning',
-            'message' => __('payslips.proposal_rejected')
-        ]);
+        $this->dispatch('showToast', message: __('payslips.proposal_rejected'), type: 'warning');
 
         $this->resetEditForm();
         $this->dispatch('closeModals');
@@ -383,24 +377,24 @@ class SftpPayslipValidator extends Component
         $proposal = PayslipMatchingProposal::findOrFail($proposalId);
 
         if ($proposal->status !== PayslipMatchingProposal::STATUS_VALIDATED) {
-            $this->dispatch('alert', ['type' => 'warning', 'message' => __('payslips.proposal_not_validated')]);
+            $this->dispatch('showToast', message: __('payslips.proposal_not_validated'), type: 'warning');
             return;
         }
 
         if ($reason = $this->getProcessingBlockReason($proposal)) {
-            $this->dispatch('alert', [
-                'type' => 'warning',
-                'message' => __('payslips.proposal_not_ready_for_processing', ['reason' => $reason]),
-            ]);
+            $this->dispatch('showToast',
+                message: __('payslips.proposal_not_ready_for_processing', ['reason' => $reason]),
+                type: 'warning'
+            );
             return;
         }
 
         ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
 
-        $this->dispatch('alert', [
-            'type'    => 'success',
-            'message' => __('payslips.proposals_queued_for_processing', ['count' => 1]),
-        ]);
+        $this->dispatch('showToast',
+            message: __('payslips.proposals_queued_for_processing', ['count' => 1]),
+            type: 'success'
+        );
     }
 
     /**
@@ -409,10 +403,7 @@ class SftpPayslipValidator extends Component
     public function processSelected()
     {
         if (empty($this->selectedProposals)) {
-            $this->dispatch('alert', [
-                'type' => 'warning',
-                'message' => __('common.no_items_selected')
-            ]);
+            $this->dispatch('showToast', message: __('common.no_items_selected'), type: 'warning');
             return;
         }
 
@@ -433,13 +424,13 @@ class SftpPayslipValidator extends Component
             $queued++;
         }
 
-        $this->dispatch('alert', [
-            'type' => $queued > 0 ? 'success' : 'warning',
-            'message' => __('payslips.proposals_queued_with_skips', [
+        $this->dispatch('showToast',
+            message: __('payslips.proposals_queued_with_skips', [
                 'queued' => $queued,
                 'skipped' => $skipped,
             ]),
-        ]);
+            type: $queued > 0 ? 'success' : 'warning'
+        );
 
         $this->selectedProposals = [];
     }
