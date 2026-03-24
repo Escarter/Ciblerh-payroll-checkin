@@ -6,7 +6,6 @@ use App\Models\Department;
 use App\Models\Company;
 use App\Models\PayslipMatchingProposal;
 use App\Jobs\ProcessValidatedPayslipsJob;
-use App\Jobs\TriggerSftpPushScanJob;
 use App\Services\FeatureConfigurationService;
 use App\Services\SftpPayslipService;
 use Livewire\Component;
@@ -137,12 +136,32 @@ class SftpPayslipValidator extends Component
         $this->authorize('manage-payslips');
 
         try {
-            TriggerSftpPushScanJob::dispatch()->onQueue('processing');
+            \Artisan::call('sftp:scan-push-folder');
+            $output = trim((string) \Artisan::output());
+            $lower  = mb_strtolower($output);
 
-            $this->dispatch('alert', [
-                'type' => 'success',
-                'message' => __('payslips.pull_now_started'),
-            ]);
+            if (str_contains($lower, 'sftp sync is disabled')) {
+                $this->dispatch('alert', [
+                    'type' => 'warning',
+                    'message' => __('payslips.pull_now_sync_disabled'),
+                ]);
+                return;
+            }
+
+            if (preg_match('/Dispatched:\s*(\d+),\s*Skipped:\s*(\d+)/i', $output, $m)) {
+                $this->dispatch('alert', [
+                    'type' => 'success',
+                    'message' => __('payslips.pull_now_success', [
+                        'queued' => (int) $m[1],
+                        'skipped' => (int) $m[2],
+                    ]),
+                ]);
+            } else {
+                $this->dispatch('alert', [
+                    'type' => 'success',
+                    'message' => __('payslips.pull_now_done'),
+                ]);
+            }
 
             $this->resetPage();
         } catch (\Throwable $e) {
