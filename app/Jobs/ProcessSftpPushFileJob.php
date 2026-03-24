@@ -43,6 +43,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
     public function handle(): void
     {
         $fingerprint = $this->knownFingerprint ?: (@hash_file('sha256', $this->absoluteFilePath) ?: null);
+        $supportsFingerprint = PayslipMatchingProposal::supportsFileFingerprint();
         $lockKey = 'sftp-push:process:' . ($fingerprint ?: sha1($this->absoluteFilePath));
         $lock = Cache::lock($lockKey, 180);
 
@@ -63,7 +64,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
                 PayslipMatchingProposal::STATUS_FAILED,
             ])
             ->when(
-                $fingerprint,
+                $fingerprint && $supportsFingerprint,
                 fn($q) => $q->where('file_fingerprint', $fingerprint),
                 fn($q) => $q->where('file_name', $basename)
             )
@@ -138,11 +139,10 @@ class ProcessSftpPushFileJob implements ShouldQueue
         ];
 
         // ── Create the proposal ──────────────────────────────────────────────
-        $proposal = PayslipMatchingProposal::create([
+        $payload = [
             'file_path'               => $this->absoluteFilePath,
             'local_file_path'         => $this->absoluteFilePath,
             'file_name'               => $basename,
-            'file_fingerprint'        => $fingerprint,
             'file_size'               => filesize($this->absoluteFilePath) ?: null,
             'file_timestamp'          => ($mtime = filemtime($this->absoluteFilePath)) ? \Carbon\Carbon::createFromTimestamp($mtime) : null,
             'proposed_match'          => $proposedMatch,
@@ -152,7 +152,13 @@ class ProcessSftpPushFileJob implements ShouldQueue
             'matched_year'            => $metadata['year'],
             'download_status'         => 'downloaded',
             'status'                  => PayslipMatchingProposal::STATUS_PENDING,
-        ]);
+        ];
+
+        if ($supportsFingerprint) {
+            $payload['file_fingerprint'] = $fingerprint;
+        }
+
+        $proposal = PayslipMatchingProposal::create($payload);
 
         // ── Auto-match: validate proposal if confidence meets configured threshold ──
         $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();

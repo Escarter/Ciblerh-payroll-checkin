@@ -85,6 +85,7 @@ class ScanSftpPushFolderCommand extends Command
                 }
 
                 $fingerprint = @hash_file('sha256', $absolutePath) ?: null;
+                $supportsFingerprint = PayslipMatchingProposal::supportsFileFingerprint();
 
                 // Skip when a non-rejected/non-failed proposal already exists for
                 // the same fingerprint (preferred) or same legacy filename.
@@ -94,7 +95,7 @@ class ScanSftpPushFolderCommand extends Command
                         PayslipMatchingProposal::STATUS_FAILED,
                     ])
                     ->when(
-                        $fingerprint,
+                        $fingerprint && $supportsFingerprint,
                         fn($q) => $q->where('file_fingerprint', $fingerprint),
                         fn($q) => $q->where('file_name', $basename)
                     )

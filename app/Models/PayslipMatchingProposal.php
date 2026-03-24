@@ -5,10 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class PayslipMatchingProposal extends Model
 {
     use HasUuids, SoftDeletes;
+
+    private static ?bool $supportsFingerprintCache = null;
 
     protected $table = 'payslip_matching_proposals';
 
@@ -105,5 +109,25 @@ class PayslipMatchingProposal extends Model
         }
 
         return $this->proposed_match['candidates'][0] ?? null;
+    }
+
+    /**
+     * Whether the current database schema supports the file_fingerprint column.
+     *
+     * This allows runtime compatibility when code is deployed before migrations.
+     */
+    public static function supportsFileFingerprint(): bool
+    {
+        if (self::$supportsFingerprintCache !== null) {
+            return self::$supportsFingerprintCache;
+        }
+
+        try {
+            self::$supportsFingerprintCache = Schema::hasColumn((new self())->getTable(), 'file_fingerprint');
+        } catch (Throwable) {
+            self::$supportsFingerprintCache = false;
+        }
+
+        return self::$supportsFingerprintCache;
     }
 }
