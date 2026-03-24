@@ -66,16 +66,16 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
                 return;
             }
 
-            // File is already downloaded locally - use it directly (no SFTP connection needed)
-            $rawFilePath = $this->proposal->local_file_path;
+            // Resolve local file path (self-heals stale path after archive moves)
+            $rawFilePath = $this->proposal->resolveExistingLocalFilePath();
 
             // Verify file still exists in storage
-            if (!file_exists($rawFilePath)) {
+            if (!$rawFilePath || !file_exists($rawFilePath)) {
                 $this->proposal->update([
                     'status' => PayslipMatchingProposal::STATUS_FAILED,
-                    'rejection_reason' => 'Local file no longer exists: ' . $rawFilePath,
+                    'rejection_reason' => 'Local file no longer exists: ' . ($this->proposal->local_file_path ?? 'unknown path'),
                 ]);
-                \Log::error("File not found for proposal {$this->proposal->id}: {$rawFilePath}");
+                \Log::error("File not found for proposal {$this->proposal->id}: " . ($this->proposal->local_file_path ?? 'unknown path'));
                 return;
             }
 

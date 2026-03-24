@@ -130,4 +130,69 @@ class PayslipMatchingProposal extends Model
 
         return self::$supportsFingerprintCache;
     }
+
+    /**
+     * Resolve an existing absolute file path for this proposal.
+     *
+     * Tries current local/file paths first, then sibling lifecycle folders
+     * (incoming/processed/failed) using the proposal file name.
+     *
+     * @param bool $persist When true, persist corrected file_path/local_file_path.
+     */
+    public function resolveExistingLocalFilePath(bool $persist = true): ?string
+    {
+        $pathCandidates = array_values(array_unique(array_filter([
+            $this->local_file_path,
+            $this->file_path,
+        ])));
+
+        foreach ($pathCandidates as $candidate) {
+            if (is_string($candidate) && file_exists($candidate)) {
+                return $this->syncResolvedPath($candidate, $persist);
+            }
+        }
+
+        $fileName = $this->file_name ?: (!empty($this->local_file_path) ? basename((string) $this->local_file_path) : null);
+        if (empty($fileName)) {
+            return null;
+        }
+
+        $baseDirs = [];
+        foreach ($pathCandidates as $knownPath) {
+            if (!is_string($knownPath) || trim($knownPath) === '') {
+                continue;
+            }
+
+            $dir = dirname($knownPath);
+            $last = basename($dir);
+            $baseDirs[] = in_array($last, ['incoming', 'processed', 'failed'], true)
+                ? dirname($dir)
+                : $dir;
+        }
+
+        $baseDirs = array_values(array_unique(array_filter($baseDirs)));
+
+        foreach ($baseDirs as $baseDir) {
+            foreach (['incoming', 'processed', 'failed'] as $folder) {
+                $candidate = rtrim($baseDir, '/') . '/' . $folder . '/' . $fileName;
+                if (file_exists($candidate)) {
+                    return $this->syncResolvedPath($candidate, $persist);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function syncResolvedPath(string $resolvedPath, bool $persist): string
+    {
+        if ($persist && ($this->local_file_path !== $resolvedPath || $this->file_path !== $resolvedPath)) {
+            $this->update([
+                'local_file_path' => $resolvedPath,
+                'file_path' => $resolvedPath,
+            ]);
+        }
+
+        return $resolvedPath;
+    }
 }

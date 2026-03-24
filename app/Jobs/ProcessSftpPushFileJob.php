@@ -163,7 +163,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
         // ── Match routing ─────────────────────────────────────────────────────
         // Business rule:
-        // - Match meeting configured auto-match threshold/strategy => automatic processing (when enabled)
+        // - Use configured auto-match threshold/strategy for automatic processing
         // - No match / lower-confidence match => notify admins for manual review
         $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
         $best = !empty($candidates) ? $candidates[0] : null;
@@ -215,7 +215,7 @@ class ProcessSftpPushFileJob implements ShouldQueue
                 'matched_at'      => now(),
             ]);
 
-            ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
+            ProcessValidatedPayslipsJob::dispatchSync($proposal);
 
             \Log::info('ProcessSftpPushFileJob: Match met configured threshold and was auto-processed.', [
                 'file'       => $basename,
@@ -258,20 +258,11 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        if (!$this->shouldMoveToFailedOnPermanentError()) {
-            \Log::warning('ProcessSftpPushFileJob permanently failed, but skipping failed-folder move because an active proposal already exists.', [
-                'file'  => $this->absoluteFilePath,
-                'error' => $exception->getMessage(),
-            ]);
-            return;
-        }
-
-        $failedPath = $this->moveFileToArchiveFolder($this->absoluteFilePath, 'failed');
-
         \Log::error('ProcessSftpPushFileJob permanently failed.', [
             'file'        => $this->absoluteFilePath,
-            'moved_to'    => $failedPath,
+            'moved_to'    => null,
             'error'       => $exception->getMessage(),
+            'note'        => 'No direct file move on failure; archival is handled by sftp:archive-proposal-files according to settings.',
         ]);
     }
 
@@ -303,71 +294,4 @@ class ProcessSftpPushFileJob implements ShouldQueue
         }
     }
 
-    /**
-     * If proposal creation already succeeded, avoid moving source to failed/ on
-     * later non-critical failures (e.g. notification transport issues).
-     */
-    private function shouldMoveToFailedOnPermanentError(): bool
-    {
-        $basename = basename($this->absoluteFilePath);
-
-        $hasActiveProposal = PayslipMatchingProposal::query()
-            ->where('file_name', $basename)
-            ->whereNotIn('status', [
-                PayslipMatchingProposal::STATUS_REJECTED,
-                PayslipMatchingProposal::STATUS_FAILED,
-            ])
-            ->exists();
-
-        return !$hasActiveProposal;
-    }
-
-    /**
-     * Move a file from incoming/ to a sibling archive folder like processed/ or failed/.
-     * Returns the new absolute path on success, or null if the move could not be completed.
-     */
-    private function moveFileToArchiveFolder(string $sourcePath, string $archiveFolder): ?string
-    {
-        if (!file_exists($sourcePath)) {
-            return null;
-        }
-
-        $currentDir = dirname($sourcePath);
-        $baseDir = basename($currentDir) === 'incoming'
-            ? dirname($currentDir)
-            : $currentDir;
-
-        $archiveDir = $baseDir . '/' . $archiveFolder;
-
-        if (!is_dir($archiveDir) && !@mkdir($archiveDir, 0775, true) && !is_dir($archiveDir)) {
-            \Log::warning('ProcessSftpPushFileJob: Unable to create archive directory.', [
-                'source'       => $sourcePath,
-                'archive_dir'  => $archiveDir,
-                'archive_type' => $archiveFolder,
-            ]);
-            return null;
-        }
-
-        if (!is_writable($archiveDir)) {
-            \Log::warning('ProcessSftpPushFileJob: Archive directory is not writable.', [
-                'source'       => $sourcePath,
-                'archive_dir'  => $archiveDir,
-                'archive_type' => $archiveFolder,
-            ]);
-            return null;
-        }
-
-        $destPath = $archiveDir . '/' . basename($sourcePath);
-        if (@rename($sourcePath, $destPath)) {
-            return $destPath;
-        }
-
-        \Log::warning('ProcessSftpPushFileJob: Failed to move file to archive folder.', [
-            'source'       => $sourcePath,
-            'destination'  => $destPath,
-            'archive_type' => $archiveFolder,
-        ]);
-
-        return null;
-    }
 }

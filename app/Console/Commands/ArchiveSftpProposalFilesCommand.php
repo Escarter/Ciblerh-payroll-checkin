@@ -18,14 +18,15 @@ class ArchiveSftpProposalFilesCommand extends Command
 
         $moveProcessed = (bool) ($config['push_archive_move_processed'] ?? true);
         $moveRejected = (bool) ($config['push_archive_move_rejected'] ?? true);
-        $moveFailed = (bool) ($config['push_archive_move_failed'] ?? false);
+        // Never auto-move generic failed proposals here.
+        // Failed can be a transient/system processing outcome after validation.
+        // Business rule: only user-rejected proposals should go to /failed.
         $requireSuccessfulProcess = (bool) ($config['push_archive_require_successful_process'] ?? true);
         $minAgeMinutes = max(0, (int) ($config['push_archive_min_age_minutes'] ?? 5));
 
         $terminalStatuses = array_values(array_filter([
             $moveProcessed ? PayslipMatchingProposal::STATUS_PROCESSED : null,
             $moveRejected ? PayslipMatchingProposal::STATUS_REJECTED : null,
-            $moveFailed ? PayslipMatchingProposal::STATUS_FAILED : null,
         ]));
 
         if (empty($terminalStatuses)) {
@@ -111,8 +112,7 @@ class ArchiveSftpProposalFilesCommand extends Command
     {
         return match ($status) {
             PayslipMatchingProposal::STATUS_PROCESSED => 'processed',
-            PayslipMatchingProposal::STATUS_REJECTED,
-            PayslipMatchingProposal::STATUS_FAILED => 'failed',
+            PayslipMatchingProposal::STATUS_REJECTED => 'failed',
             default => null,
         };
     }

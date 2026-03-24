@@ -146,7 +146,8 @@ class SftpPayslipValidator extends Component
             return __('payslips.processing_blocked_missing_local_path');
         }
 
-        if (!file_exists($proposal->local_file_path)) {
+        $resolvedPath = $proposal->resolveExistingLocalFilePath();
+        if (!$resolvedPath || !file_exists($resolvedPath)) {
             return __('payslips.processing_blocked_local_file_missing');
         }
 
@@ -204,18 +205,19 @@ class SftpPayslipValidator extends Component
     public function rematch(string $proposalId): void
     {
         $proposal = PayslipMatchingProposal::findOrFail($proposalId);
+        $resolvedPath = $proposal->resolveExistingLocalFilePath();
 
-        if (!$proposal->local_file_path || !file_exists($proposal->local_file_path)) {
+        if (!$resolvedPath || !file_exists($resolvedPath)) {
             $this->dispatch('showToast', message: __('payslips.local_file_not_found'), type: 'danger');
             return;
         }
 
         $service  = new SftpPayslipService();
-        $metadata = $service->extractPdfMetadata($proposal->local_file_path);
+        $metadata = $service->extractPdfMetadata($resolvedPath);
 
         $matchSources = $service->buildCompanyMatchSources(
             $metadata,
-            $proposal->file_name ?: basename($proposal->local_file_path)
+            $proposal->file_name ?: basename($resolvedPath)
         );
 
         $candidates = !empty($matchSources)
