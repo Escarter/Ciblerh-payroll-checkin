@@ -96,4 +96,20 @@ return [
 
     // Messages de complétion d'import en arrière-plan
     'background_import_completed' => 'Import en arrière-plan terminé avec succès. :count enregistrements importés.',
+
+    // Notifications SMS
+    'bulk_sms_service_label' => 'Notifications SMS pour tout le service',
+    'bulk_sms_select_service' => 'Sélectionner un service',
+    'bulk_sms_service_help' => 'Désactiver ou activer les notifications SMS pour tous les employés d\'un service',
+    'bulk_sms_disable_action' => 'Désactiver SMS pour le service',
+    'bulk_sms_enable_action' => 'Activer SMS pour le service',
+    'bulk_sms_select_service_first' => 'Veuillez d\'abord sélectionner un service',
+    'bulk_sms_service_not_found' => 'Service non trouvé',
+    'bulk_sms_service_role_not_allowed' => 'Vous n\'avez pas la permission de gérer les notifications SMS',
+    'bulk_sms_disabled_for_service' => 'Notifications SMS désactivées pour :count employés dans :service',
+    'bulk_sms_enabled_for_service' => 'Notifications SMS activées pour :count employés dans :service',
+    'bulk_sms_disable_confirm' => 'Êtes-vous sûr de vouloir désactiver les notifications SMS?',
+    'bulk_sms_enable_confirm' => 'Êtes-vous sûr de vouloir activer les notifications SMS?',
+    'bulk_sms_disable_confirm_service_name' => 'Êtes-vous sûr de vouloir désactiver les notifications SMS pour tous les employés de :service?',
+    'bulk_sms_enable_confirm_service_name' => 'Êtes-vous sûr de vouloir activer les notifications SMS pour tous les employés de :service?',
 ];

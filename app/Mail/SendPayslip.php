@@ -18,17 +18,19 @@ class SendPayslip extends Mailable //implements ShouldQueue
     protected $user;
     protected $destination;
     protected $month;
+    protected $year;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct(User $user, string $destination, string $month)
+    public function __construct(User $user, string $destination, string $month, ?int $year = null)
     {
         $this->user = $user;
         $this->destination = $destination;
         $this->month = $month;
+        $this->year = $year ?? now()->year;
     }
 
     /**
@@ -54,7 +56,7 @@ class SendPayslip extends Mailable //implements ShouldQueue
 
         $email_subject = str_replace(
             [':month:', ':year:'],
-            [$monthForEmail, now()->year],
+            [$monthForEmail, $this->year],
             $this->user->preferred_language === 'en' ? $setting->email_subject_en : $setting->email_subject_fr
         );
 
@@ -67,7 +69,7 @@ class SendPayslip extends Mailable //implements ShouldQueue
         return $this->markdown('email.payslip.send',['message'=> $mail_content])
                     ->subject($email_subject)
                     ->attach($file_path, [
-                        'as' => $this->user->matricule.'_'.$this->month.'-'.now()->year.'.pdf',
+                        'as' => $this->user->matricule.'_'.$this->month.'-'.$this->year.'.pdf',
                         'mime' => 'application/pdf',
                     ]);
 

@@ -96,4 +96,20 @@ return [
 
     // Background import completion messages
     'background_import_completed' => 'Background import completed successfully. :count records imported.',
+
+    // SMS Notifications
+    'bulk_sms_service_label' => 'Service-wide SMS notifications',
+    'bulk_sms_select_service' => 'Select Service',
+    'bulk_sms_service_help' => 'Disable or enable SMS notifications for all employees in a service',
+    'bulk_sms_disable_action' => 'Disable SMS for service',
+    'bulk_sms_enable_action' => 'Enable SMS for service',
+    'bulk_sms_select_service_first' => 'Please select a service first',
+    'bulk_sms_service_not_found' => 'Service not found',
+    'bulk_sms_service_role_not_allowed' => 'You do not have permission to manage SMS notifications',
+    'bulk_sms_disabled_for_service' => 'SMS notifications disabled for :count employees in :service',
+    'bulk_sms_enabled_for_service' => 'SMS notifications enabled for :count employees in :service',
+    'bulk_sms_disable_confirm' => 'Are you sure you want to disable SMS notifications?',
+    'bulk_sms_enable_confirm' => 'Are you sure you want to enable SMS notifications?',
+    'bulk_sms_disable_confirm_service_name' => 'Are you sure you want to disable SMS notifications for all employees in :service?',
+    'bulk_sms_enable_confirm_service_name' => 'Are you sure you want to enable SMS notifications for all employees in :service?',
 ];

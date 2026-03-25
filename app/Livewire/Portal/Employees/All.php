@@ -76,6 +76,10 @@ class All extends BaseImportComponent
 
     // Filter props
     public string $filterCompany = '';
+    public $smsCompanyActionId = null;
+    public $pendingSmsCompanyId = null;
+    public $pendingSmsCompanyName = null;
+    public $pendingSmsCompanyEnabled = null;
 
     //Update & Store Rules - using string-based validation to avoid new expressions in property
     protected array $rules = [
@@ -254,6 +258,7 @@ class All extends BaseImportComponent
             'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ? true : false,
             'password' => bcrypt($this->password),
+            'plain_password' => $this->password,
             'pdf_password' => Str::random(10),
         ]);
 
@@ -345,6 +350,7 @@ class All extends BaseImportComponent
         if ($passwordChanged) {
             $this->employee->update([
                 'password' => bcrypt($this->password),
+                'plain_password' => $this->password,
             ]);
             
             // Send welcome email with new credentials
@@ -683,7 +689,123 @@ class All extends BaseImportComponent
 
     public function updatedFilterCompany()
     {
+        if ($this->auth_role === 'admin') {
+            $this->smsCompanyActionId = $this->filterCompany !== '' ? (int) $this->filterCompany : null;
+        }
         $this->resetPage();
+    }
+
+    protected function resolveBulkSmsCompanyId(): ?int
+    {
+        $user = auth()->user();
+
+        if ($this->auth_role === 'admin') {
+            if (!empty($this->smsCompanyActionId)) {
+                return (int) $this->smsCompanyActionId;
+            }
+
+            if (!empty($this->filterCompany)) {
+                return (int) $this->filterCompany;
+            }
+
+            return null;
+        }
+
+        if ($this->auth_role === 'manager') {
+            $managedCompanyIds = $user->managerCompanies->pluck('id')->map(fn ($id) => (int) $id);
+
+            if (!empty($this->smsCompanyActionId)) {
+                $selectedId = (int) $this->smsCompanyActionId;
+                return $managedCompanyIds->contains($selectedId) ? $selectedId : null;
+            }
+
+            return $managedCompanyIds->count() === 1 ? (int) $managedCompanyIds->first() : null;
+        }
+
+        return null;
+    }
+
+    public function confirmCompanySmsToggle(bool $enabled): void
+    {
+        if (!Gate::allows('employee-update')) {
+            abort(401);
+        }
+
+        $companyId = $this->resolveBulkSmsCompanyId();
+        if (empty($companyId)) {
+            $this->showToast(__('employees.bulk_sms_select_company_first'), 'warning');
+            return;
+        }
+
+        $company = Company::find($companyId);
+        if (!$company) {
+            $this->showToast(__('employees.bulk_sms_company_not_found'), 'danger');
+            return;
+        }
+
+        $this->pendingSmsCompanyId = (int) $companyId;
+        $this->pendingSmsCompanyName = $company->name;
+        $this->pendingSmsCompanyEnabled = $enabled;
+
+        $this->dispatch('open-modal', 'CompanySmsToggleModal');
+    }
+
+    public function executeCompanySmsToggle(): void
+    {
+        if ($this->pendingSmsCompanyEnabled === null) {
+            $this->showToast(__('employees.bulk_sms_select_company_first'), 'warning');
+            return;
+        }
+
+        if (!empty($this->pendingSmsCompanyId)) {
+            $this->smsCompanyActionId = (int) $this->pendingSmsCompanyId;
+        }
+
+        $this->bulkToggleCompanySmsNotifications((bool) $this->pendingSmsCompanyEnabled);
+
+        $this->dispatch('close-modal', id: 'CompanySmsToggleModal');
+
+        $this->pendingSmsCompanyId = null;
+        $this->pendingSmsCompanyName = null;
+        $this->pendingSmsCompanyEnabled = null;
+    }
+
+    public function bulkToggleCompanySmsNotifications(bool $enabled): void
+    {
+        if (!Gate::allows('employee-update')) {
+            abort(401);
+        }
+
+        if (!in_array($this->auth_role, ['admin', 'manager'], true)) {
+            $this->showToast(__('employees.bulk_sms_company_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $companyId = $this->resolveBulkSmsCompanyId();
+        if (empty($companyId)) {
+            $this->showToast(__('employees.bulk_sms_select_company_first'), 'warning');
+            return;
+        }
+
+        $company = Company::find($companyId);
+        if (!$company) {
+            $this->showToast(__('employees.bulk_sms_company_not_found'), 'danger');
+            return;
+        }
+
+        $targetValue = $enabled ? 1 : 0;
+
+        $affectedCount = User::query()
+            ->where('company_id', $companyId)
+            ->whereNull('deleted_at')
+            ->where('receive_sms_notifications', '!=', $targetValue)
+            ->update(['receive_sms_notifications' => $targetValue]);
+
+        $messageKey = $enabled ? 'employees.bulk_sms_enabled_for_company' : 'employees.bulk_sms_disabled_for_company';
+        $this->showToast(__($messageKey, [
+            'company' => $company->name,
+            'count' => $affectedCount,
+        ]), 'success');
     }
 
     public function switchTab($tab)
@@ -835,6 +957,7 @@ class All extends BaseImportComponent
         $employee = User::findOrFail($employee_id);
 
         $this->employee = $employee;
+        $this->password = null;
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
         $this->matricule = $employee->matricule;
@@ -1296,9 +1419,11 @@ class All extends BaseImportComponent
             default => 0,
         };
 
-        $companies = $this->auth_role === 'admin'
-            ? Company::orderBy('name')->get(['id', 'name'])
-            : collect();
+        $companies = match ($this->auth_role) {
+            'admin' => Company::orderBy('name')->get(['id', 'name']),
+            'manager' => auth()->user()->managerCompanies()->orderBy('name')->get(['companies.id', 'companies.name']),
+            default => collect(),
+        };
 
         return view('livewire.portal.employees.all', [
             'employees' => $employees,

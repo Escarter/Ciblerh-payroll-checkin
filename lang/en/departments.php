@@ -143,4 +143,20 @@ return [
 
     // Background import completion messages
     'background_import_completed' => 'Background import completed successfully. :count records imported.',
+
+    // SMS Notifications
+    'bulk_sms_department_label' => 'Department-wide SMS notifications',
+    'bulk_sms_select_department' => 'Select Department',
+    'bulk_sms_department_help' => 'Disable or enable SMS notifications for all employees in a department',
+    'bulk_sms_disable_action' => 'Disable SMS for department',
+    'bulk_sms_enable_action' => 'Enable SMS for department',
+    'bulk_sms_select_department_first' => 'Please select a department first',
+    'bulk_sms_department_not_found' => 'Department not found',
+    'bulk_sms_department_role_not_allowed' => 'You do not have permission to manage SMS notifications',
+    'bulk_sms_disabled_for_department' => 'SMS notifications disabled for :count employees in :department',
+    'bulk_sms_enabled_for_department' => 'SMS notifications enabled for :count employees in :department',
+    'bulk_sms_disable_confirm' => 'Are you sure you want to disable SMS notifications?',
+    'bulk_sms_enable_confirm' => 'Are you sure you want to enable SMS notifications?',
+    'bulk_sms_disable_confirm_department_name' => 'Are you sure you want to disable SMS notifications for all employees in :department?',
+    'bulk_sms_enable_confirm_department_name' => 'Are you sure you want to enable SMS notifications for all employees in :department?',
 ];

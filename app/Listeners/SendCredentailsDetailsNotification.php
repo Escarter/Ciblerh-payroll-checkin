@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\EmployeeCreated;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Notification;
@@ -36,9 +37,14 @@ class SendCredentailsDetailsNotification
         ]);
 
         if($validator->passes()){
-            Notification::sendNow($event->employee, new SendCredentialsNotification($event->password));
+            try {
+                Notification::sendNow($event->employee, new SendCredentialsNotification($event->password));
+            } catch (\Exception $e) {
+                Log::error('Failed to send credentials notification', [
+                    'employee_id' => $event->employee->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
-
-        return false;
     }
 }

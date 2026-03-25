@@ -44,6 +44,12 @@ class Index extends BaseImportComponent
     public $selectedDepartments = [];
     public $selectAll = false;
 
+    // SMS toggle properties
+    public $smsDepartmentActionId;
+    public $pendingSmsDepartmentId;
+    public $pendingSmsDepartmentName;
+    public $pendingSmsDepartmentEnabled;
+
     //Update & Store Rules
     protected array $rules = [
         'name' => 'required',
@@ -710,4 +716,88 @@ class Index extends BaseImportComponent
         parent::clearFields();
         $this->department_file = null;
     }
+
+    /**
+     * Confirm department SMS toggle action
+     */
+    public function confirmDepartmentSmsToggle(bool $enabled)
+    {
+        if (!Gate::allows('department-update')) {
+            $this->showToast(__('departments.bulk_sms_department_role_not_allowed'), 'danger');
+            return;
+        }
+
+        if (!$this->smsDepartmentActionId) {
+            $this->showToast(__('departments.bulk_sms_select_department_first'), 'danger');
+            return;
+        }
+
+        $department = Department::find($this->smsDepartmentActionId);
+        if (!$department) {
+            $this->showToast(__('departments.bulk_sms_department_not_found'), 'danger');
+            return;
+        }
+
+        $this->pendingSmsDepartmentId = $department->id;
+        $this->pendingSmsDepartmentName = $department->name;
+        $this->pendingSmsDepartmentEnabled = $enabled;
+        
+        $this->dispatch('open-modal', 'DepartmentSmsToggleModal');
+    }
+
+    /**
+     * Execute department SMS toggle after confirmation
+     */
+    public function executeDepartmentSmsToggle()
+    {
+        if (!Gate::allows('department-update')) {
+            $this->showToast(__('departments.bulk_sms_department_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $this->bulkToggleDepartmentSmsNotifications((bool) $this->pendingSmsDepartmentEnabled);
+        
+        $this->pendingSmsDepartmentId = null;
+        $this->pendingSmsDepartmentName = null;
+        $this->pendingSmsDepartmentEnabled = null;
+        $this->smsDepartmentActionId = null;
+        
+        $this->dispatch('close-modal', id: 'DepartmentSmsToggleModal');
+    }
+
+    /**
+     * Bulk toggle SMS notifications for all employees in a department
+     */
+    public function bulkToggleDepartmentSmsNotifications(bool $enabled)
+    {
+        if (!Gate::allows('department-update')) {
+            $this->showToast(__('departments.bulk_sms_department_role_not_allowed'), 'danger');
+            return;
+        }
+
+        if (!$this->pendingSmsDepartmentId) {
+            $this->showToast(__('departments.bulk_sms_select_department_first'), 'danger');
+            return;
+        }
+
+        $department = Department::find($this->pendingSmsDepartmentId);
+        if (!$department) {
+            $this->showToast(__('departments.bulk_sms_department_not_found'), 'danger');
+            return;
+        }
+
+        // Update all active employees in the department
+        $affectedCount = User::query()
+            ->where('department_id', $department->id)
+            ->whereNull('deleted_at')
+            ->where('receive_sms_notifications', '!=', $enabled)
+            ->update(['receive_sms_notifications' => $enabled]);
+
+        $message = $enabled 
+            ? __('departments.bulk_sms_enabled_for_department', ['department' => $department->name, 'count' => $affectedCount])
+            : __('departments.bulk_sms_disabled_for_department', ['department' => $department->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
+    }
 }
+

@@ -43,6 +43,7 @@ class RenameEncryptPdfJob implements ShouldQueue
     protected $month;
     protected $process_id;
     protected $user_id;
+        protected $year;
 
     /**
      * Create a new job instance.
@@ -60,6 +61,7 @@ class RenameEncryptPdfJob implements ShouldQueue
         $this->chunk = $chunk;
         $this->user_id = $this->process->user_id;
         $this->process_id = $process_id;
+            $this->year = $this->process->year ?? now()->year;
         $this->queue = 'pdf-processing';
     }
 
@@ -114,7 +116,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                         'phone' => !is_null($employee->professional_phone_number) ? $employee->professional_phone_number : $employee->personal_phone_number,
                         'matricule' => $employee->matricule,
                         'month' => $pay_month,
-                        'year' => now()->year,
+                            'year' => $this->year,
                     ]);
                     $created_record->update([
                         'encryption_status' => Payslip::STATUS_FAILED,
@@ -126,7 +128,7 @@ class RenameEncryptPdfJob implements ShouldQueue
 
                     preg_match("/\b" . $employee->matricule . "\b/i", $pdf_text, $matches);
 
-                    if (!empty($matches) && $matches[0] === $employee->matricule) {
+                        if (!empty($matches) && strcasecmp($matches[0], $employee->matricule) === 0) {
 
                         if (Storage::disk('splitted')->exists($file)) {
                             // CRITICAL: Use database locking to prevent race conditions
@@ -134,7 +136,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                             // Lock ensures we get the most recent record and prevent duplicate creation
                             $record_exists = Payslip::where('employee_id', $employee->id)
                                 ->where('month', $pay_month)
-                                ->where('year', now()->year)
+                                    ->where('year', $this->year)
                                 ->lockForUpdate()  // Acquire lock until transaction ends
                                 ->first();
 
@@ -217,7 +219,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                     // Use locking for safe concurrent updates
                     $payslip = Payslip::where('employee_id', $employee->id)
                         ->where('month', $pay_month)
-                        ->where('year', now()->year)
+                            ->where('year', $this->year)
                         ->lockForUpdate()
                         ->first();
                     
@@ -237,7 +239,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                     
                     Payslip::where('employee_id', $employee->id)
                         ->where('month', $pay_month)
-                        ->where('year', now()->year)
+                            ->where('year', $this->year)
                         ->update([
                             'encryption_status' => Payslip::STATUS_FAILED,
                             'failure_reason' => 'Failed to prepare page for combination'
@@ -262,7 +264,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                 // Use locking for safe concurrent updates
                 $payslip = Payslip::where('employee_id', $employee->id)
                     ->where('month', $pay_month)
-                    ->where('year', now()->year)
+                    ->where('year', $this->year)
                     ->lockForUpdate()
                     ->first();
                 
@@ -291,7 +293,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                 // Mark as failed in DB with locking
                 $payslip = Payslip::where('employee_id', $employee->id)
                     ->where('month', $pay_month)
-                    ->where('year', now()->year)
+                    ->where('year', $this->year)
                     ->lockForUpdate()
                     ->first();
                 
@@ -314,7 +316,7 @@ class RenameEncryptPdfJob implements ShouldQueue
             try {
                 $payslip = Payslip::where('employee_id', $employee->id)
                     ->where('month', $pay_month)
-                    ->where('year', now()->year)
+                    ->where('year', $this->year)
                     ->lockForUpdate()
                     ->first();
                 

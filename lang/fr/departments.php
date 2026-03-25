@@ -143,4 +143,20 @@ return [
 
     // Messages de complétion d'import en arrière-plan
     'background_import_completed' => 'Import en arrière-plan terminé avec succès. :count enregistrements importés.',
+
+    // Notifications SMS
+    'bulk_sms_department_label' => 'Notifications SMS pour tout le département',
+    'bulk_sms_select_department' => 'Sélectionner un département',
+    'bulk_sms_department_help' => 'Désactiver ou activer les notifications SMS pour tous les employés d\'un département',
+    'bulk_sms_disable_action' => 'Désactiver SMS pour le département',
+    'bulk_sms_enable_action' => 'Activer SMS pour le département',
+    'bulk_sms_select_department_first' => 'Veuillez d\'abord sélectionner un département',
+    'bulk_sms_department_not_found' => 'Département non trouvé',
+    'bulk_sms_department_role_not_allowed' => 'Vous n\'avez pas la permission de gérer les notifications SMS',
+    'bulk_sms_disabled_for_department' => 'Notifications SMS désactivées pour :count employés dans :department',
+    'bulk_sms_enabled_for_department' => 'Notifications SMS activées pour :count employés dans :department',
+    'bulk_sms_disable_confirm' => 'Êtes-vous sûr de vouloir désactiver les notifications SMS?',
+    'bulk_sms_enable_confirm' => 'Êtes-vous sûr de vouloir activer les notifications SMS?',
+    'bulk_sms_disable_confirm_department_name' => 'Êtes-vous sûr de vouloir désactiver les notifications SMS pour tous les employés de :department?',
+    'bulk_sms_enable_confirm_department_name' => 'Êtes-vous sûr de vouloir activer les notifications SMS pour tous les employés de :department?',
 ];

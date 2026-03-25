@@ -189,7 +189,7 @@ class RetryPayslipEmailJob implements ShouldQueue
         try {
             setSavedSmtpCredentials();
 
-            Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $payslip->file, $payslip->month));
+            Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $payslip->file, $payslip->month, $payslip->year));
 
             // Email accepted by mail server - delivery will be confirmed via webhooks
             $payslip->update([

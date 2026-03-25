@@ -54,6 +54,7 @@ class SendPayslipJob implements ShouldQueue
     protected $employee_chunk;
     protected $destination;
     protected $month;
+    protected $year;
     protected $process_id;
     protected $user_id;
     protected static $sms_balance_checked = false;
@@ -74,6 +75,7 @@ class SendPayslipJob implements ShouldQueue
         $this->employee_chunk = $employee_chunk;
         $this->destination = $process->destination_directory;
         $this->month = $process->month;
+        $this->year = $process->year ?? now()->year;
         $this->user_id = $process->user_id;
         $this->process_id = $process->id;
         $this->queue = 'emails';
@@ -165,7 +167,7 @@ class SendPayslipJob implements ShouldQueue
             // Early check: if there is already a successful payslip record for this employee/month/year, skip
             $existingSuccessful = Payslip::where('employee_id', $employee->id)
                 ->where('month', $this->month)
-                ->where('year', now()->year)
+                ->where('year', $this->year)
                 ->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
                 ->where('sms_sent_status', Payslip::STATUS_SUCCESSFUL)
                 ->first();
@@ -175,7 +177,7 @@ class SendPayslipJob implements ShouldQueue
                     'employee_id' => $employee->id,
                     'matricule' => $employee->matricule,
                     'month' => $this->month,
-                    'year' => now()->year
+                    'year' => $this->year
                 ]);
                 continue;
             }
@@ -183,7 +185,7 @@ class SendPayslipJob implements ShouldQueue
             // Early check: if there is a payslip record with encryption failed, mark email/SMS as skipped
             $existingFailed = Payslip::where('employee_id', $employee->id)
                 ->where('month', $this->month)
-                ->where('year', now()->year)
+                ->where('year', $this->year)
                 ->where('encryption_status', Payslip::STATUS_FAILED)
                 ->first();
             if ($existingFailed) {
@@ -206,7 +208,7 @@ class SendPayslipJob implements ShouldQueue
             }
 
             try {
-            collect($encrypted_files)->each(function ($file) use ($employee, $pay_month, $dest, $sms_balance, $sms_provider_healthy, $sms_provider_error) {
+            collect($encrypted_files)->each(function ($file) use ($employee, $pay_month, $dest, $sms_balance, $sms_provider_healthy, $sms_provider_error, &$record_exists) {
                 try {
                 if (strpos($file, $employee->matricule . '_' . $pay_month . '.pdf') !== false) {
 
@@ -215,7 +217,7 @@ class SendPayslipJob implements ShouldQueue
                     // Get existing record if any
                         $record_exists = Payslip::where('employee_id',$employee->id)
                                                 ->where('month',$this->month)
-                                                ->where('year',now()->year)
+                                                ->where('year',$this->year)
                                                 ->first();
                         
                     // Check if encryption failed or is still pending - skip email/SMS if so
@@ -278,7 +280,7 @@ class SendPayslipJob implements ShouldQueue
                                 'phone' => !is_null($employee->professional_phone_number) ? $employee->professional_phone_number : $employee->personal_phone_number,
                                 'matricule' => $employee->matricule,
                                 'month' => $pay_month,
-                                'year' => now()->year,
+                                'year' => $this->year,
                                 'encryption_status' => Payslip::STATUS_SUCCESSFUL,
                                 'email_sent_status' => Payslip::STATUS_DISABLED,
                                 'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee'),
@@ -317,7 +319,7 @@ class SendPayslipJob implements ShouldQueue
 
                         if (empty($record_exists)) {
                             // global utility function
-                            $record = createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $destination_file);
+                            $record = createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $destination_file, $this->year);
                         } else {
                             // Skip if already successfully sent (both email and SMS)
                             if ($record_exists->email_sent_status === Payslip::STATUS_SUCCESSFUL && $record_exists->sms_sent_status === Payslip::STATUS_SUCCESSFUL) {
@@ -378,7 +380,7 @@ class SendPayslipJob implements ShouldQueue
                                 try {
                                     setSavedSmtpCredentials();
 
-                                    Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination_file, $pay_month));
+                                    Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination_file, $pay_month, $this->year));
 
                                     // Email accepted by mail server - delivery will be confirmed via webhooks
                                     $record->update([

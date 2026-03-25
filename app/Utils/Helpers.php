@@ -189,7 +189,7 @@ if (!function_exists('auditLog')) {
     }
 }
 if (!function_exists('createPayslipRecord')) {
-function createPayslipRecord($employee, $month, $process_id, $user_id, $file = null)
+function createPayslipRecord($employee, $month, $process_id, $user_id, $file = null, $year = null)
     {
         return
             Payslip::create([
@@ -206,7 +206,7 @@ function createPayslipRecord($employee, $month, $process_id, $user_id, $file = n
                 'phone' => !is_null($employee->professional_phone_number) ? $employee->professional_phone_number : $employee->personal_phone_number,
                 'matricule' => $employee->matricule,
                 'month' => $month,
-                'year' => now()->year,
+                'year' => $year ?? now()->year,
                 'encryption_status' => Payslip::STATUS_SUCCESSFUL,
                 'email_sent_status' => Payslip::STATUS_PENDING,
                 'sms_sent_status' => Payslip::STATUS_PENDING,
@@ -1309,7 +1309,7 @@ if (!function_exists('resendPayslipUnified')) {
             try {
                 setSavedSmtpCredentials();
                 
-                Mail::to(cleanString($emailToUse))->send(new \App\Mail\SendPayslip($employee, $destination_file, $payslip->month));
+                Mail::to(cleanString($emailToUse))->send(new \App\Mail\SendPayslip($employee, $destination_file, $payslip->month, $payslip->year));
                 
                 // Email accepted by mail server
                 $payslip->update([

@@ -24,6 +24,7 @@ class Index extends Component
     public $companies = [];
     public $departments = [];
     public $company_id, $department_id, $month, $payslip_file;
+    public $year;
     public $job_id = null;
     public $role;
 
@@ -498,7 +499,6 @@ class Index extends Component
     {
         if (!$this->selectedProcess) {
             return [
-                'total' => 0,
                 'successful' => 0,
                 'pending' => 0,
                 'failed' => 0,
@@ -1102,6 +1102,7 @@ class Index extends Component
         $this->cachedPerformanceMetrics = null;
 
         $this->role = auth()->user()->getRoleNames()->first();
+            $this->year = now()->year;
         $this->companies = match (auth()->user()->getRoleNames()->first()) {
             'manager' => Company::manager()->orderBy('created_at', 'desc')->get(),
             'admin' => Company::orderBy('created_at', 'desc')->get(),
@@ -1188,9 +1189,11 @@ class Index extends Component
 
         $existing = SendPayslipProcess::where('department_id', $this->department_id)->where('month', $this->month)->where('year', now()->year)->first();
 
-        if (empty($existing)) {
-            $payslip_process =
-                SendPayslipProcess::create([
+            $existing = SendPayslipProcess::where('department_id', $this->department_id)->where('month', $this->month)->where('year', $this->year)->first();
+
+            if (empty($existing)) {
+                $payslip_process =
+                    SendPayslipProcess::create([
                     'user_id' => auth()->user()->id,
                     'company_id' => !empty($this->company_id) ? $this->company_id : auth()->user()->company_id,
                     'department_id' => $this->department_id,
@@ -1198,7 +1201,7 @@ class Index extends Component
                     'raw_file' => $raw_file,
                     'destination_directory' => $destination_directory,
                     'month' => $this->month,
-                    'year' => now()->year,
+                        'year' => $this->year,
                     'batch_id' => ''
                 ]);
         } else {
@@ -1229,7 +1232,7 @@ class Index extends Component
                     'user' => '<a href="/portal/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
                     'department' => '<strong>' . $choosen_department->name . '</strong>',
                     'month' => $this->month,
-                    'year' => now()->year,
+                        'year' => $this->year,
                     'history_link' => '<a href="/portal/payslips/history"> Go to Payslips details</a>'
                 ],
             ]

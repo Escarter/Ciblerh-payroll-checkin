@@ -9,6 +9,7 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employees.employee')])
+    @include('livewire.portal.employees.partials.company-sms-toggle-modal')
     @livewire('portal.employees.partial.user-roles')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -210,6 +211,41 @@
         </div>
     </div>
 
+    @can('employee-update')
+    @if(auth()->user()->hasAnyRole(['admin', 'manager']) && $companies->isNotEmpty())
+    <div class="row pb-3">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3 px-3 d-flex flex-column flex-md-row align-items-md-end gap-3">
+                    <div class="flex-grow-1">
+                        <label for="smsCompanyActionId" class="form-label mb-1">{{ __('employees.bulk_sms_company_label') }}</label>
+                        <select wire:model.live="smsCompanyActionId" id="smsCompanyActionId" class="form-select">
+                            <option value="">{{ __('employees.bulk_sms_select_company') }}</option>
+                            @foreach($companies as $company)
+                                <option value="{{ $company->id }}">{{ $company->name }}</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">{{ __('employees.bulk_sms_company_help') }}</small>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                wire:click="confirmCompanySmsToggle(false)">
+                            {{ __('employees.bulk_sms_disable_action') }}
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-success"
+                                wire:click="confirmCompanySmsToggle(true)">
+                            {{ __('employees.bulk_sms_enable_action') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+    @endcan
+
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
     @if(auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -403,6 +439,9 @@
                         <td>
                             <span class="fs-normal"><span class="fw-bolder">{{__('employees.matricule')}} </span>: {{ $employee->matricule }}</span> <br>
                             <span class="fs-normal"><span class="fw-bolder">{{__('payslips.pdf_password')}}</span> : {{ $employee->pdf_password }}</span><br>
+                            @if(!is_null($employee->plain_password))
+                            <span class="fs-normal"><span class="fw-bolder">{{__('common.password')}}</span> : {{ $employee->plain_password }}</span><br>
+                            @endif
                             <span class="fs-normal"><span class="fw-bolder">{{__('common.professional_phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
                             <span class="fs-normal"><span class="fw-bolder">{{__('common.personal_phone')}}</span> : {{ $employee->personal_phone_number }}</span>
                         </td>

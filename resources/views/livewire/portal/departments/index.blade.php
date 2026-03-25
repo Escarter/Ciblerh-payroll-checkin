@@ -169,6 +169,54 @@
     </div>
     <x-alert />
 
+    <!-- SMS Notifications Control Card -->
+    @can('department-update')
+    @if(count($departments) > 0)
+    <div class="card border-0 shadow mb-3">
+        <div class="card-body">
+            <div class="row align-items-end">
+                <div class="col-md-6">
+                    <div class="mb-md-0 mb-3">
+                        <h6 class="d-flex align-items-center mb-2">
+                            <svg class="icon icon-sm me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            {{ __('departments.bulk_sms_department_label') }}
+                        </h6>
+                        <p class="text-sm text-muted">{{ __('departments.bulk_sms_department_help') }}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <div class="flex-grow-1">
+                            <select wire:model.live="smsDepartmentActionId" class="form-select form-select-sm">
+                                <option value="">{{ __('departments.bulk_sms_select_department') }}</option>
+                                @foreach($departments as $department)
+                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button wire:click="confirmDepartmentSmsToggle(false)" class="btn btn-sm btn-danger d-inline-flex align-items-center {{ $smsDepartmentActionId ? '' : 'disabled' }}">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            {{ __('departments.bulk_sms_disable_action') }}
+                        </button>
+                        <button wire:click="confirmDepartmentSmsToggle(true)" class="btn btn-sm btn-success d-inline-flex align-items-center {{ $smsDepartmentActionId ? '' : 'disabled' }}">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            {{ __('departments.bulk_sms_enable_action') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @include('livewire.portal.departments.partials.department-sms-toggle-modal')
+    @endif
+    @endcan
+
     <div class="row pt-2 pb-3">
         <div class="col-md-4">
             <label for="search">{{__('common.search')}}: </label>

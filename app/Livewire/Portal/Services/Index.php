@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Portal\Services;
 
-use App\Models\Company;
 use App\Models\Service;
+use App\Models\User;
 use App\Livewire\BaseImportComponent;
 use App\Models\Department;
 use Illuminate\Support\Str;
@@ -40,6 +40,12 @@ class Index extends BaseImportComponent
     public $activeTab = 'active';
     public $selectedServices = [];
     public $selectAll = false;
+
+    // SMS toggle properties
+    public $smsServiceActionId;
+    public $pendingSmsServiceId;
+    public $pendingSmsServiceName;
+    public $pendingSmsServiceEnabled;
 
     //Update & Store Rules
     protected array $rules = [
@@ -491,6 +497,90 @@ class Index extends BaseImportComponent
     protected function getDepartmentId(): ?int
     {
         return $this->department ? $this->department->id : null;
+    }
+
+    /**
+     * Confirm service SMS toggle action
+     */
+    public function confirmServiceSmsToggle(bool $enabled)
+    {
+        if (!Gate::allows('service-update')) {
+            $this->showToast(__('services.bulk_sms_service_role_not_allowed'), 'danger');
+            return;
+        }
+
+        if (!$this->smsServiceActionId) {
+            $this->showToast(__('services.bulk_sms_select_service_first'), 'danger');
+            return;
+        }
+
+        $service = Service::find($this->smsServiceActionId);
+        if (!$service) {
+            $this->showToast(__('services.bulk_sms_service_not_found'), 'danger');
+            return;
+        }
+
+        $this->pendingSmsServiceId = $service->id;
+        $this->pendingSmsServiceName = $service->name;
+        $this->pendingSmsServiceEnabled = $enabled;
+        
+        $this->dispatch('open-modal', 'ServiceSmsToggleModal');
+    }
+
+    /**
+     * Execute service SMS toggle after confirmation
+     */
+    public function executeServiceSmsToggle()
+    {
+        if (!Gate::allows('service-update')) {
+            $this->showToast(__('services.bulk_sms_service_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $this->bulkToggleServiceSmsNotifications((bool) $this->pendingSmsServiceEnabled);
+        
+        $this->pendingSmsServiceId = null;
+        $this->pendingSmsServiceName = null;
+        $this->pendingSmsServiceEnabled = null;
+        $this->smsServiceActionId = null;
+        
+        $this->dispatch('close-modal', id: 'ServiceSmsToggleModal');
+    }
+
+    /**
+     * Bulk toggle SMS notifications for all employees in a service
+     */
+    public function bulkToggleServiceSmsNotifications(bool $enabled)
+    {
+        if (!Gate::allows('service-update')) {
+            $this->showToast(__('services.bulk_sms_service_role_not_allowed'), 'danger');
+            return;
+        }
+
+        if (!$this->pendingSmsServiceId) {
+            $this->showToast(__('services.bulk_sms_select_service_first'), 'danger');
+            return;
+        }
+
+        $service = Service::find($this->pendingSmsServiceId);
+        if (!$service) {
+            $this->showToast(__('services.bulk_sms_service_not_found'), 'danger');
+            return;
+        }
+
+        // Update all active employees assigned to this service (through department)
+        $affectedCount = User::query()
+            ->where('company_id', $service->company_id)
+            ->where('department_id', $service->department_id)
+            ->whereNull('deleted_at')
+            ->where('receive_sms_notifications', '!=', $enabled)
+            ->update(['receive_sms_notifications' => $enabled]);
+
+        $message = $enabled 
+            ? __('services.bulk_sms_enabled_for_service', ['service' => $service->name, 'count' => $affectedCount])
+            : __('services.bulk_sms_disabled_for_service', ['service' => $service->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
     }
 
     /**
