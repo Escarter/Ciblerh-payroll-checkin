@@ -97,22 +97,21 @@
                         </div>
                     </div>
 
-                    <div class="form-group mb-4">
-                        <div class='form-group mb-4'>
-                            <label for="year">{{__('common.year')}}</label>
-                            <select wire:model.live="year" class="form-select @error('year') is-invalid @enderror">
-                                @for($y = now()->year; $y >= now()->year - 5; $y--)
-                                    <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
-                                @endfor
-                            </select>
-                            <div>
-                                @error('year')
-                                <div class="invalid-feedback">{{$message}}</div>
-                                @enderror
-                            </div>
+                    <div class='form-group mb-4'>
+                        <label for="year">{{__('common.year')}}</label>
+                        <select wire:model.live="year" class="form-select @error('year') is-invalid @enderror">
+                            @for($y = now()->year; $y >= now()->year - 5; $y--)
+                                <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
+                            @endfor
+                        </select>
+                        <div>
+                            @error('year')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
                         </div>
+                    </div>
 
-                        <div class="form-group mb-4">
+                    <div class="form-group mb-4">
                         <label for="payslip_file" class="form-label">{{__('payslips.select_payslip')}}</label>
 
                         <div x-data="{ uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true" x-on:livewire-upload-finish="uploading = false" x-on:livewire-upload-error="uploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress">
