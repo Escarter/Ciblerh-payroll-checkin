@@ -112,4 +112,12 @@ return [
     'bulk_sms_enable_confirm' => 'Are you sure you want to enable SMS notifications?',
     'bulk_sms_disable_confirm_service_name' => 'Are you sure you want to disable SMS notifications for all employees in :service?',
     'bulk_sms_enable_confirm_service_name' => 'Are you sure you want to enable SMS notifications for all employees in :service?',
+    'bulk_email_service_help' => 'Disable or enable email notifications for all employees in a service',
+    'bulk_email_disable_action' => 'Disable email for service',
+    'bulk_email_enable_action' => 'Enable email for service',
+    'bulk_email_disabled_for_service' => 'Email notifications disabled for :count employees in :service',
+    'bulk_email_enabled_for_service' => 'Email notifications enabled for :count employees in :service',
+    'manage_notifications_action' => 'Manage notifications',
+    'manage_notifications_title' => 'Manage service notifications',
+    'manage_notifications_help' => 'Choose a service, then enable or disable SMS and email notifications for its employees.',
 ];

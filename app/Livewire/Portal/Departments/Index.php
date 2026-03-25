@@ -717,6 +717,15 @@ class Index extends BaseImportComponent
         $this->department_file = null;
     }
 
+    public function openDepartmentNotificationsModal()
+    {
+        if (!Gate::allows('department-update')) {
+            return abort(401);
+        }
+
+        $this->dispatch('open-modal', 'DepartmentSmsToggleModal');
+    }
+
     /**
      * Confirm department SMS toggle action
      */
@@ -775,12 +784,14 @@ class Index extends BaseImportComponent
             return;
         }
 
-        if (!$this->pendingSmsDepartmentId) {
+        $targetDepartmentId = $this->pendingSmsDepartmentId ?: $this->smsDepartmentActionId;
+
+        if (!$targetDepartmentId) {
             $this->showToast(__('departments.bulk_sms_select_department_first'), 'danger');
             return;
         }
 
-        $department = Department::find($this->pendingSmsDepartmentId);
+        $department = Department::find($targetDepartmentId);
         if (!$department) {
             $this->showToast(__('departments.bulk_sms_department_not_found'), 'danger');
             return;
@@ -796,6 +807,39 @@ class Index extends BaseImportComponent
         $message = $enabled 
             ? __('departments.bulk_sms_enabled_for_department', ['department' => $department->name, 'count' => $affectedCount])
             : __('departments.bulk_sms_disabled_for_department', ['department' => $department->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
+    }
+
+    public function bulkToggleDepartmentEmailNotifications(bool $enabled)
+    {
+        if (!Gate::allows('department-update')) {
+            $this->showToast(__('departments.bulk_sms_department_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $targetDepartmentId = $this->pendingSmsDepartmentId ?: $this->smsDepartmentActionId;
+
+        if (!$targetDepartmentId) {
+            $this->showToast(__('departments.bulk_sms_select_department_first'), 'danger');
+            return;
+        }
+
+        $department = Department::find($targetDepartmentId);
+        if (!$department) {
+            $this->showToast(__('departments.bulk_sms_department_not_found'), 'danger');
+            return;
+        }
+
+        $affectedCount = User::query()
+            ->where('department_id', $department->id)
+            ->whereNull('deleted_at')
+            ->where('receive_email_notifications', '!=', $enabled)
+            ->update(['receive_email_notifications' => $enabled]);
+
+        $message = $enabled
+            ? __('departments.bulk_email_enabled_for_department', ['department' => $department->name, 'count' => $affectedCount])
+            : __('departments.bulk_email_disabled_for_department', ['department' => $department->name, 'count' => $affectedCount]);
 
         $this->showToast($message, 'success');
     }

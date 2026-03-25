@@ -504,6 +504,15 @@ class Index extends BaseImportComponent
         return $this->getPreviewColumns();
     }
 
+    public function openCompanyNotificationsModal()
+    {
+        if (!Gate::allows('company-update')) {
+            return abort(401);
+        }
+
+        $this->dispatch('open-modal', 'CompanySmsToggleModal');
+    }
+
     /**
      * Confirm company SMS toggle action
      */
@@ -562,12 +571,14 @@ class Index extends BaseImportComponent
             return;
         }
 
-        if (!$this->pendingSmsCompanyId) {
+        $targetCompanyId = $this->pendingSmsCompanyId ?: $this->smsCompanyActionId;
+
+        if (!$targetCompanyId) {
             $this->showToast(__('companies.bulk_sms_select_company_first'), 'danger');
             return;
         }
 
-        $company = Company::find($this->pendingSmsCompanyId);
+        $company = Company::find($targetCompanyId);
         if (!$company) {
             $this->showToast(__('companies.bulk_sms_company_not_found'), 'danger');
             return;
@@ -583,6 +594,39 @@ class Index extends BaseImportComponent
         $message = $enabled 
             ? __('companies.bulk_sms_enabled_for_company', ['company' => $company->name, 'count' => $affectedCount])
             : __('companies.bulk_sms_disabled_for_company', ['company' => $company->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
+    }
+
+    public function bulkToggleCompanyEmailNotifications(bool $enabled)
+    {
+        if (!Gate::allows('company-update')) {
+            $this->showToast(__('companies.bulk_sms_company_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $targetCompanyId = $this->pendingSmsCompanyId ?: $this->smsCompanyActionId;
+
+        if (!$targetCompanyId) {
+            $this->showToast(__('companies.bulk_sms_select_company_first'), 'danger');
+            return;
+        }
+
+        $company = Company::find($targetCompanyId);
+        if (!$company) {
+            $this->showToast(__('companies.bulk_sms_company_not_found'), 'danger');
+            return;
+        }
+
+        $affectedCount = User::query()
+            ->where('company_id', $company->id)
+            ->whereNull('deleted_at')
+            ->where('receive_email_notifications', '!=', $enabled)
+            ->update(['receive_email_notifications' => $enabled]);
+
+        $message = $enabled
+            ? __('companies.bulk_email_enabled_for_company', ['company' => $company->name, 'count' => $affectedCount])
+            : __('companies.bulk_email_disabled_for_company', ['company' => $company->name, 'count' => $affectedCount]);
 
         $this->showToast($message, 'success');
     }

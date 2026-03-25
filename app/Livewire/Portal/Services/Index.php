@@ -499,6 +499,15 @@ class Index extends BaseImportComponent
         return $this->department ? $this->department->id : null;
     }
 
+    public function openServiceNotificationsModal()
+    {
+        if (!Gate::allows('service-update')) {
+            return abort(401);
+        }
+
+        $this->dispatch('open-modal', 'ServiceSmsToggleModal');
+    }
+
     /**
      * Confirm service SMS toggle action
      */
@@ -557,12 +566,14 @@ class Index extends BaseImportComponent
             return;
         }
 
-        if (!$this->pendingSmsServiceId) {
+        $targetServiceId = $this->pendingSmsServiceId ?: $this->smsServiceActionId;
+
+        if (!$targetServiceId) {
             $this->showToast(__('services.bulk_sms_select_service_first'), 'danger');
             return;
         }
 
-        $service = Service::find($this->pendingSmsServiceId);
+        $service = Service::find($targetServiceId);
         if (!$service) {
             $this->showToast(__('services.bulk_sms_service_not_found'), 'danger');
             return;
@@ -579,6 +590,40 @@ class Index extends BaseImportComponent
         $message = $enabled 
             ? __('services.bulk_sms_enabled_for_service', ['service' => $service->name, 'count' => $affectedCount])
             : __('services.bulk_sms_disabled_for_service', ['service' => $service->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
+    }
+
+    public function bulkToggleServiceEmailNotifications(bool $enabled)
+    {
+        if (!Gate::allows('service-update')) {
+            $this->showToast(__('services.bulk_sms_service_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $targetServiceId = $this->pendingSmsServiceId ?: $this->smsServiceActionId;
+
+        if (!$targetServiceId) {
+            $this->showToast(__('services.bulk_sms_select_service_first'), 'danger');
+            return;
+        }
+
+        $service = Service::find($targetServiceId);
+        if (!$service) {
+            $this->showToast(__('services.bulk_sms_service_not_found'), 'danger');
+            return;
+        }
+
+        $affectedCount = User::query()
+            ->where('company_id', $service->company_id)
+            ->where('department_id', $service->department_id)
+            ->whereNull('deleted_at')
+            ->where('receive_email_notifications', '!=', $enabled)
+            ->update(['receive_email_notifications' => $enabled]);
+
+        $message = $enabled
+            ? __('services.bulk_email_enabled_for_service', ['service' => $service->name, 'count' => $affectedCount])
+            : __('services.bulk_email_disabled_for_service', ['service' => $service->name, 'count' => $affectedCount]);
 
         $this->showToast($message, 'success');
     }

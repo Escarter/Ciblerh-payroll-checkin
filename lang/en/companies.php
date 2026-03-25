@@ -137,4 +137,12 @@ return [
     'bulk_sms_enable_confirm' => 'Are you sure you want to enable SMS notifications?',
     'bulk_sms_disable_confirm_company_name' => 'Are you sure you want to disable SMS notifications for all employees in :company?',
     'bulk_sms_enable_confirm_company_name' => 'Are you sure you want to enable SMS notifications for all employees in :company?',
+    'bulk_email_company_help' => 'Disable or enable email notifications for all employees in a company',
+    'bulk_email_disable_action' => 'Disable email for company',
+    'bulk_email_enable_action' => 'Enable email for company',
+    'bulk_email_disabled_for_company' => 'Email notifications disabled for :count employees in :company',
+    'bulk_email_enabled_for_company' => 'Email notifications enabled for :count employees in :company',
+    'manage_notifications_action' => 'Manage notifications',
+    'manage_notifications_title' => 'Manage company notifications',
+    'manage_notifications_help' => 'Choose a company, then enable or disable SMS and email notifications for its employees.',
 ];

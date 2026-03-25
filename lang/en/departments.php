@@ -159,4 +159,12 @@ return [
     'bulk_sms_enable_confirm' => 'Are you sure you want to enable SMS notifications?',
     'bulk_sms_disable_confirm_department_name' => 'Are you sure you want to disable SMS notifications for all employees in :department?',
     'bulk_sms_enable_confirm_department_name' => 'Are you sure you want to enable SMS notifications for all employees in :department?',
+    'bulk_email_department_help' => 'Disable or enable email notifications for all employees in a department',
+    'bulk_email_disable_action' => 'Disable email for department',
+    'bulk_email_enable_action' => 'Enable email for department',
+    'bulk_email_disabled_for_department' => 'Email notifications disabled for :count employees in :department',
+    'bulk_email_enabled_for_department' => 'Email notifications enabled for :count employees in :department',
+    'manage_notifications_action' => 'Manage notifications',
+    'manage_notifications_title' => 'Manage department notifications',
+    'manage_notifications_help' => 'Choose a department, then enable or disable SMS and email notifications for its employees.',
 ];
