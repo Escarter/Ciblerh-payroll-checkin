@@ -94,7 +94,6 @@ class All extends BaseImportComponent
         $this->initializePreview();
 
         $this->roles = auth()->user()->hasRole('admin') ? Role::orderBy('name', 'desc')->get() : Role::whereNotIn('name', ['admin'])->orderBy('name', 'desc')->get();
-        $this->password = Str::random(15);
         $this->work_start_time = Carbon::parse('08:00')->format('H:i');
         $this->work_end_time = Carbon::parse('17:30')->format('H:i');
 
