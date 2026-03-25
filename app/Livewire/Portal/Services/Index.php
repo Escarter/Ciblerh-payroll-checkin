@@ -41,11 +41,8 @@ class Index extends BaseImportComponent
     public $selectedServices = [];
     public $selectAll = false;
 
-    // SMS toggle properties
+    // Notification modal properties
     public $smsServiceActionId;
-    public $pendingSmsServiceId;
-    public $pendingSmsServiceName;
-    public $pendingSmsServiceEnabled;
 
     //Update & Store Rules
     protected array $rules = [
@@ -509,54 +506,6 @@ class Index extends BaseImportComponent
     }
 
     /**
-     * Confirm service SMS toggle action
-     */
-    public function confirmServiceSmsToggle(bool $enabled)
-    {
-        if (!Gate::allows('service-update')) {
-            $this->showToast(__('services.bulk_sms_service_role_not_allowed'), 'danger');
-            return;
-        }
-
-        if (!$this->smsServiceActionId) {
-            $this->showToast(__('services.bulk_sms_select_service_first'), 'danger');
-            return;
-        }
-
-        $service = Service::find($this->smsServiceActionId);
-        if (!$service) {
-            $this->showToast(__('services.bulk_sms_service_not_found'), 'danger');
-            return;
-        }
-
-        $this->pendingSmsServiceId = $service->id;
-        $this->pendingSmsServiceName = $service->name;
-        $this->pendingSmsServiceEnabled = $enabled;
-        
-        $this->dispatch('open-modal', 'ServiceSmsToggleModal');
-    }
-
-    /**
-     * Execute service SMS toggle after confirmation
-     */
-    public function executeServiceSmsToggle()
-    {
-        if (!Gate::allows('service-update')) {
-            $this->showToast(__('services.bulk_sms_service_role_not_allowed'), 'danger');
-            return;
-        }
-
-        $this->bulkToggleServiceSmsNotifications((bool) $this->pendingSmsServiceEnabled);
-        
-        $this->pendingSmsServiceId = null;
-        $this->pendingSmsServiceName = null;
-        $this->pendingSmsServiceEnabled = null;
-        $this->smsServiceActionId = null;
-        
-        $this->dispatch('close-modal', id: 'ServiceSmsToggleModal');
-    }
-
-    /**
      * Bulk toggle SMS notifications for all employees in a service
      */
     public function bulkToggleServiceSmsNotifications(bool $enabled)
@@ -566,7 +515,7 @@ class Index extends BaseImportComponent
             return;
         }
 
-        $targetServiceId = $this->pendingSmsServiceId ?: $this->smsServiceActionId;
+        $targetServiceId = $this->smsServiceActionId;
 
         if (!$targetServiceId) {
             $this->showToast(__('services.bulk_sms_select_service_first'), 'danger');
@@ -601,7 +550,7 @@ class Index extends BaseImportComponent
             return;
         }
 
-        $targetServiceId = $this->pendingSmsServiceId ?: $this->smsServiceActionId;
+        $targetServiceId = $this->smsServiceActionId;
 
         if (!$targetServiceId) {
             $this->showToast(__('services.bulk_sms_select_service_first'), 'danger');

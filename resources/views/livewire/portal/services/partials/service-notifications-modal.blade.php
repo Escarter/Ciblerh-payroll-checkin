@@ -31,10 +31,10 @@
                                     </div>
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap">
-                                    <button wire:click="confirmServiceSmsToggle(false)" type="button" class="btn btn-sm btn-danger {{ $smsServiceActionId ? '' : 'disabled' }}">
+                                    <button wire:click="bulkToggleServiceSmsNotifications(false)" type="button" class="btn btn-sm btn-danger {{ $smsServiceActionId ? '' : 'disabled' }}">
                                         {{ __('services.bulk_sms_disable_action') }}
                                     </button>
-                                    <button wire:click="confirmServiceSmsToggle(true)" type="button" class="btn btn-sm btn-success {{ $smsServiceActionId ? '' : 'disabled' }}">
+                                    <button wire:click="bulkToggleServiceSmsNotifications(true)" type="button" class="btn btn-sm btn-success {{ $smsServiceActionId ? '' : 'disabled' }}">
                                         {{ __('services.bulk_sms_enable_action') }}
                                     </button>
                                 </div>

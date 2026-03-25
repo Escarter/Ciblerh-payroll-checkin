@@ -31,10 +31,10 @@
                                     </div>
                                 </div>
                                 <div class="d-flex gap-2 flex-wrap">
-                                    <button wire:click="confirmDepartmentSmsToggle(false)" type="button" class="btn btn-sm btn-danger {{ $smsDepartmentActionId ? '' : 'disabled' }}">
+                                    <button wire:click="bulkToggleDepartmentSmsNotifications(false)" type="button" class="btn btn-sm btn-danger {{ $smsDepartmentActionId ? '' : 'disabled' }}">
                                         {{ __('departments.bulk_sms_disable_action') }}
                                     </button>
-                                    <button wire:click="confirmDepartmentSmsToggle(true)" type="button" class="btn btn-sm btn-success {{ $smsDepartmentActionId ? '' : 'disabled' }}">
+                                    <button wire:click="bulkToggleDepartmentSmsNotifications(true)" type="button" class="btn btn-sm btn-success {{ $smsDepartmentActionId ? '' : 'disabled' }}">
                                         {{ __('departments.bulk_sms_enable_action') }}
                                     </button>
                                 </div>

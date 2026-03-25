@@ -1,24 +1,64 @@
 <div wire:ignore.self class="modal fade" id="CompanySmsToggleModal" tabindex="-1" role="dialog" aria-labelledby="companySmsToggleModal" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-body">
                 <div class="p-3 p-lg-4">
-                    <div class="mb-4 mt-md-0 text-center">
-                        <svg class="icon icon-xxl text-danger mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <h1 class="mb-0 h2 fw-bolder">{{ __('common.are_you_sure') }}</h1>
-                        <p class="pt-2">
-                            @if($pendingSmsCompanyEnabled === true)
-                                {{ __('employees.bulk_sms_enable_confirm_company_name', ['company' => $pendingSmsCompanyName ?? __('employees.company')]) }}
-                            @else
-                                {{ __('employees.bulk_sms_disable_confirm_company_name', ['company' => $pendingSmsCompanyName ?? __('employees.company')]) }}
-                            @endif
-                        </p>
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h1 class="mb-1 h3 fw-bolder">{{ __('employees.manage_notifications_title') }}</h1>
+                            <p class="mb-0 text-muted">{{ __('employees.manage_notifications_help') }}</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('common.close') }}"></button>
                     </div>
-                    <div class="d-flex justify-content-center">
-                        <button type="button" wire:click="executeCompanySmsToggle" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{ __('common.confirm') }}</button>
-                        <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{ __('common.cancel') }}</button>
+
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12">
+                            <label class="form-label">{{ __('employees.bulk_sms_select_company') }}</label>
+                            <select wire:model.live="smsCompanyActionId" class="form-select">
+                                <option value="">{{ __('employees.bulk_sms_select_company') }}</option>
+                                @foreach($companies as $company)
+                                    <option value="{{ $company->id }}">{{ $company->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="mb-3">
+                                    <h2 class="h6 mb-1">{{ __('common.sms') }}</h2>
+                                    <p class="small text-muted mb-0">{{ __('employees.bulk_sms_company_help') }}</p>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button wire:click="bulkToggleCompanySmsNotifications(false)" type="button" class="btn btn-sm btn-danger {{ $smsCompanyActionId ? '' : 'disabled' }}">
+                                        {{ __('employees.bulk_sms_disable_action') }}
+                                    </button>
+                                    <button wire:click="bulkToggleCompanySmsNotifications(true)" type="button" class="btn btn-sm btn-success {{ $smsCompanyActionId ? '' : 'disabled' }}">
+                                        {{ __('employees.bulk_sms_enable_action') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="mb-3">
+                                    <h2 class="h6 mb-1">{{ __('common.email') }}</h2>
+                                    <p class="small text-muted mb-0">{{ __('employees.bulk_email_company_help') }}</p>
+                                </div>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button wire:click="bulkToggleCompanyEmailNotifications(false)" type="button" class="btn btn-sm btn-danger {{ $smsCompanyActionId ? '' : 'disabled' }}">
+                                        {{ __('employees.bulk_email_disable_action') }}
+                                    </button>
+                                    <button wire:click="bulkToggleCompanyEmailNotifications(true)" type="button" class="btn btn-sm btn-success {{ $smsCompanyActionId ? '' : 'disabled' }}">
+                                        {{ __('employees.bulk_email_enable_action') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="button" class="btn btn-gray-300 text-white" data-bs-dismiss="modal">{{ __('common.close') }}</button>
                     </div>
                 </div>
             </div>

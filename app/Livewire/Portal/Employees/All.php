@@ -74,12 +74,9 @@ class All extends BaseImportComponent
     public $selectedEmployeesForDelete = [];
     public $selectAll = false;
 
-    // Filter props
+    // Filter props / notification modal
     public string $filterCompany = '';
     public $smsCompanyActionId = null;
-    public $pendingSmsCompanyId = null;
-    public $pendingSmsCompanyName = null;
-    public $pendingSmsCompanyEnabled = null;
 
     //Update & Store Rules - using string-based validation to avoid new expressions in property
     protected array $rules = [
@@ -725,49 +722,13 @@ class All extends BaseImportComponent
         return null;
     }
 
-    public function confirmCompanySmsToggle(bool $enabled): void
+    public function openCompanyNotificationsModal(): void
     {
         if (!Gate::allows('employee-update')) {
             abort(401);
         }
 
-        $companyId = $this->resolveBulkSmsCompanyId();
-        if (empty($companyId)) {
-            $this->showToast(__('employees.bulk_sms_select_company_first'), 'warning');
-            return;
-        }
-
-        $company = Company::find($companyId);
-        if (!$company) {
-            $this->showToast(__('employees.bulk_sms_company_not_found'), 'danger');
-            return;
-        }
-
-        $this->pendingSmsCompanyId = (int) $companyId;
-        $this->pendingSmsCompanyName = $company->name;
-        $this->pendingSmsCompanyEnabled = $enabled;
-
         $this->dispatch('open-modal', 'CompanySmsToggleModal');
-    }
-
-    public function executeCompanySmsToggle(): void
-    {
-        if ($this->pendingSmsCompanyEnabled === null) {
-            $this->showToast(__('employees.bulk_sms_select_company_first'), 'warning');
-            return;
-        }
-
-        if (!empty($this->pendingSmsCompanyId)) {
-            $this->smsCompanyActionId = (int) $this->pendingSmsCompanyId;
-        }
-
-        $this->bulkToggleCompanySmsNotifications((bool) $this->pendingSmsCompanyEnabled);
-
-        $this->dispatch('close-modal', id: 'CompanySmsToggleModal');
-
-        $this->pendingSmsCompanyId = null;
-        $this->pendingSmsCompanyName = null;
-        $this->pendingSmsCompanyEnabled = null;
     }
 
     public function bulkToggleCompanySmsNotifications(bool $enabled): void
@@ -802,6 +763,44 @@ class All extends BaseImportComponent
             ->update(['receive_sms_notifications' => $targetValue]);
 
         $messageKey = $enabled ? 'employees.bulk_sms_enabled_for_company' : 'employees.bulk_sms_disabled_for_company';
+        $this->showToast(__($messageKey, [
+            'company' => $company->name,
+            'count' => $affectedCount,
+        ]), 'success');
+    }
+
+    public function bulkToggleCompanyEmailNotifications(bool $enabled): void
+    {
+        if (!Gate::allows('employee-update')) {
+            abort(401);
+        }
+
+        if (!in_array($this->auth_role, ['admin', 'manager'], true)) {
+            $this->showToast(__('employees.bulk_sms_company_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $companyId = $this->resolveBulkSmsCompanyId();
+        if (empty($companyId)) {
+            $this->showToast(__('employees.bulk_sms_select_company_first'), 'warning');
+            return;
+        }
+
+        $company = Company::find($companyId);
+        if (!$company) {
+            $this->showToast(__('employees.bulk_sms_company_not_found'), 'danger');
+            return;
+        }
+
+        $targetValue = $enabled ? 1 : 0;
+
+        $affectedCount = User::query()
+            ->where('company_id', $companyId)
+            ->whereNull('deleted_at')
+            ->where('receive_email_notifications', '!=', $targetValue)
+            ->update(['receive_email_notifications' => $targetValue]);
+
+        $messageKey = $enabled ? 'employees.bulk_email_enabled_for_company' : 'employees.bulk_email_disabled_for_company';
         $this->showToast(__($messageKey, [
             'company' => $company->name,
             'count' => $affectedCount,

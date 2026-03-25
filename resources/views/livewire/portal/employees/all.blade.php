@@ -73,6 +73,17 @@
                     </div>
                 </div>
                 @endcan
+
+                @can('employee-update')
+                @if(auth()->user()->hasAnyRole(['admin', 'manager']) && $companies->isNotEmpty())
+                <button type="button" wire:click="openCompanyNotificationsModal" class="btn btn-sm btn-info py-2 d-inline-flex align-items-center">
+                    <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    {{ __('employees.manage_notifications_action') }}
+                </button>
+                @endif
+                @endcan
             </div>
 
         </div>
@@ -210,41 +221,6 @@
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
     </div>
-
-    @can('employee-update')
-    @if(auth()->user()->hasAnyRole(['admin', 'manager']) && $companies->isNotEmpty())
-    <div class="row pb-3">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body py-3 px-3 d-flex flex-column flex-md-row align-items-md-end gap-3">
-                    <div class="flex-grow-1">
-                        <label for="smsCompanyActionId" class="form-label mb-1">{{ __('employees.bulk_sms_company_label') }}</label>
-                        <select wire:model.live="smsCompanyActionId" id="smsCompanyActionId" class="form-select">
-                            <option value="">{{ __('employees.bulk_sms_select_company') }}</option>
-                            @foreach($companies as $company)
-                                <option value="{{ $company->id }}">{{ $company->name }}</option>
-                            @endforeach
-                        </select>
-                        <small class="text-muted">{{ __('employees.bulk_sms_company_help') }}</small>
-                    </div>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="button"
-                                class="btn btn-sm btn-outline-danger"
-                                wire:click="confirmCompanySmsToggle(false)">
-                            {{ __('employees.bulk_sms_disable_action') }}
-                        </button>
-                        <button type="button"
-                                class="btn btn-sm btn-outline-success"
-                                wire:click="confirmCompanySmsToggle(true)">
-                            {{ __('employees.bulk_sms_enable_action') }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-    @endcan
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
     @if(auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore'))

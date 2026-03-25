@@ -48,11 +48,8 @@ class Index extends BaseImportComponent
     public $selectedCompanies = [];
     public $selectAll = false;
 
-    // SMS toggle properties
+    // Notification modal properties
     public $smsCompanyActionId;
-    public $pendingSmsCompanyId;
-    public $pendingSmsCompanyName;
-    public $pendingSmsCompanyEnabled;
 
     //Update & Store Rules
     protected array $rules = [
@@ -514,54 +511,6 @@ class Index extends BaseImportComponent
     }
 
     /**
-     * Confirm company SMS toggle action
-     */
-    public function confirmCompanySmsToggle(bool $enabled)
-    {
-        if (!Gate::allows('company-update')) {
-            $this->showToast(__('companies.bulk_sms_company_role_not_allowed'), 'danger');
-            return;
-        }
-
-        if (!$this->smsCompanyActionId) {
-            $this->showToast(__('companies.bulk_sms_select_company_first'), 'danger');
-            return;
-        }
-
-        $company = Company::find($this->smsCompanyActionId);
-        if (!$company) {
-            $this->showToast(__('companies.bulk_sms_company_not_found'), 'danger');
-            return;
-        }
-
-        $this->pendingSmsCompanyId = $company->id;
-        $this->pendingSmsCompanyName = $company->name;
-        $this->pendingSmsCompanyEnabled = $enabled;
-        
-        $this->dispatch('open-modal', 'CompanySmsToggleModal');
-    }
-
-    /**
-     * Execute company SMS toggle after confirmation
-     */
-    public function executeCompanySmsToggle()
-    {
-        if (!Gate::allows('company-update')) {
-            $this->showToast(__('companies.bulk_sms_company_role_not_allowed'), 'danger');
-            return;
-        }
-
-        $this->bulkToggleCompanySmsNotifications((bool) $this->pendingSmsCompanyEnabled);
-        
-        $this->pendingSmsCompanyId = null;
-        $this->pendingSmsCompanyName = null;
-        $this->pendingSmsCompanyEnabled = null;
-        $this->smsCompanyActionId = null;
-        
-        $this->dispatch('close-modal', id: 'CompanySmsToggleModal');
-    }
-
-    /**
      * Bulk toggle SMS notifications for all employees in a company
      */
     public function bulkToggleCompanySmsNotifications(bool $enabled)
@@ -571,7 +520,7 @@ class Index extends BaseImportComponent
             return;
         }
 
-        $targetCompanyId = $this->pendingSmsCompanyId ?: $this->smsCompanyActionId;
+        $targetCompanyId = $this->smsCompanyActionId;
 
         if (!$targetCompanyId) {
             $this->showToast(__('companies.bulk_sms_select_company_first'), 'danger');
@@ -605,7 +554,7 @@ class Index extends BaseImportComponent
             return;
         }
 
-        $targetCompanyId = $this->pendingSmsCompanyId ?: $this->smsCompanyActionId;
+        $targetCompanyId = $this->smsCompanyActionId;
 
         if (!$targetCompanyId) {
             $this->showToast(__('companies.bulk_sms_select_company_first'), 'danger');
