@@ -172,7 +172,7 @@ class ImportService
                     'company_id' => [
                         'type' => 'select',
                         'label' => __('companies.company'),
-                        'required' => false,
+                        'required' => true,
                         'options' => 'companies',
                         'description' => __('import_types.holiday_company_description')
                     ]
