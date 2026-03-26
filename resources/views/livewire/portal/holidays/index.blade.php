@@ -8,9 +8,9 @@
             </div>
             @if(Gate::allows('setting-read'))
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#ImportHolidaysModal">
+                <a href="{{ route('portal.import-wizard') }}" class="btn btn-outline-primary">
                     {{ __('holidays.bulk_import') }}
-                </button>
+                </a>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CreateHolidayModal">
                     {{ __('holidays.add_holiday') }}
                 </button>
