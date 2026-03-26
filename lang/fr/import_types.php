@@ -22,4 +22,6 @@ return [
     'services_description' => 'Importer les définitions de services et les affectations de département.',
     'leave_types_description' => 'Importer les définitions des types de congé et les politiques.',
     'supervisors_managers_description' => 'Importer les comptes utilisateurs des superviseurs et gestionnaires avec leurs rôles et permissions.',
+    'holidays_description' => 'Importer les jours fériés publics et spécifiques à l\'entreprise avec dates et descriptions.',
+    'holiday_company_description' => 'Attribuer facultativement les jours fériés à des entreprises spécifiques. Laisser vide pour les jours fériés mondiaux.',
 ];

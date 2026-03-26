@@ -7,8 +7,9 @@ use App\Models\Company;
 use Livewire\Component;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Imports\Services\AdapterRegistry;
+use App\Imports\Services\FieldMappingService;
 
 class Index extends Component
 {
@@ -162,51 +163,116 @@ class Index extends Component
 
     public function importBulk()
     {
-        if (! Gate::allows('setting-read')) {
+        if (!Gate::allows('setting-read')) {
             return abort(401);
         }
+
         $this->validate([
-            'import_file' => 'required|file|mimes:csv,txt|max:2048',
+            'import_file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120',
             'company_id' => 'nullable|exists:companies,id',
         ]);
-        $path = $this->import_file->getRealPath();
-        $rows = array_map('str_getcsv', file($path));
-        $header = array_shift($rows);
-        $created = 0;
-        $skipped = 0;
-        foreach ($rows as $row) {
-            if (count($row) < 2 || empty(trim($row[0] ?? '')) || empty(trim($row[1] ?? ''))) {
-                $skipped++;
-                continue;
+
+        try {
+            // Get the adapter for holidays
+            $adapterRegistry = app(AdapterRegistry::class);
+            $adapter = $adapterRegistry->getAdapter('holidays');
+
+            if (!$adapter) {
+                $this->dispatch('showToast',
+                    message: __('common.error_loading_import_adapter'),
+                    type: 'danger'
+                );
+                return;
             }
-            $dateStr = trim($row[0]);
-            $name = trim($row[1]);
-            $description = trim($row[2] ?? '');
-            try {
-                $date = Carbon::parse($dateStr)->format('Y-m-d');
-            } catch (\Exception $e) {
-                $skipped++;
-                continue;
+
+            // Set context (company scope for this import)
+            if ($this->company_id) {
+                $adapter->setContext(['company_id' => $this->company_id]);
             }
-            $companyId = $this->company_id ?: null;
-            $exists = Holiday::where('date', $date)
-                ->where('company_id', $companyId)
-                ->exists();
-            if ($exists) {
-                $skipped++;
-                continue;
+
+            $adapter->setUser(auth()->user());
+            $adapter->setImportMode('create_only'); // Holidays are typically created fresh
+
+            // Parse and process the file row by row
+            $filePath = $this->import_file->getRealPath();
+            $rows = array_map('str_getcsv', file($filePath));
+            $header = array_shift($rows); // Remove header row
+
+            // Auto-map headers to field definitions
+            $fieldMappingService = app(FieldMappingService::class);
+            $fieldMappings = $fieldMappingService->autoMap($header, $adapter);
+
+            $created = 0;
+            $skipped = 0;
+            $failed = 0;
+
+            foreach ($rows as $rowNumber => $values) {
+                if (count($values) < 2 || empty(trim($values[0] ?? '')) || empty(trim($values[1] ?? ''))) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Apply field mapping to transform raw row to field-keyed array
+                $mappedRow = $fieldMappingService->applyMapping($values, $fieldMappings);
+
+                // Add context
+                if ($this->company_id) {
+                    $mappedRow['company_id'] = $this->company_id;
+                }
+
+                // Validate the row
+                $rowErrors = $adapter->validateRow($mappedRow, $rowNumber + 2); // +2 for header + 1-based indexing
+                if (!empty($rowErrors)) {
+                    $failed++;
+                    continue;
+                }
+
+                // Validate relationships
+                $relationErrors = $adapter->validateRelationships($mappedRow, $rowNumber + 2);
+                if (!empty($relationErrors)) {
+                    $failed++;
+                    continue;
+                }
+
+                // Transform the row
+                $transformedData = $adapter->transformRow($mappedRow);
+                if (isset($transformedData['__error'])) {
+                    $failed++;
+                    continue;
+                }
+
+                // Create or update the record
+                $result = $adapter->createOrUpdateRecord($transformedData);
+                if ($result) {
+                    $created++;
+                } else {
+                    $skipped++;
+                }
             }
-            Holiday::create([
-                'date' => $date,
-                'name' => $name,
-                'description' => $description ?: null,
-                'company_id' => $this->company_id ?: null,
+
+            $this->import_file = null;
+            $this->dispatch('close-modal', id: 'ImportHolidaysModal');
+            
+            $message = __('holidays.bulk_import_result', ['created' => $created, 'skipped' => $skipped]);
+            if ($failed > 0) {
+                $message .= " ({$failed} " . __('common.failed') . ")";
+            }
+
+            $this->dispatch('showToast',
+                message: $message,
+                type: 'success'
+            );
+
+        } catch (\Exception $e) {
+            $this->dispatch('showToast',
+                message: __('common.error_importing_file') . ': ' . $e->getMessage(),
+                type: 'danger'
+            );
+            \Log::error('Holiday import failed', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
             ]);
-            $created++;
         }
-        $this->import_file = null;
-        $this->dispatch('close-modal', id: 'ImportHolidaysModal');
-        $this->dispatch('showToast', message: __('holidays.bulk_import_result', ['created' => $created, 'skipped' => $skipped]), type: 'success');
     }
 
     public function calendarPrevMonth()

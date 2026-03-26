@@ -44,6 +44,7 @@ class ImportJob extends Model
     const TYPE_SERVICES = 'services';
     const TYPE_LEAVE_TYPES = 'leave_types';
     const TYPE_SUP_MGR = 'sup_mgr';
+    const TYPE_HOLIDAYS = 'holidays';
 
     // Status Constants
     const STATUS_PENDING = 'pending';
@@ -81,6 +82,7 @@ class ImportJob extends Model
             self::TYPE_COMPANIES => __('common.companies'),
             self::TYPE_SERVICES => __('common.services'),
             self::TYPE_LEAVE_TYPES => __('common.leave_types'),
+            self::TYPE_HOLIDAYS => __('common.holidays'),
             default => __('import_jobs.unknown_import_type')
         };
     }

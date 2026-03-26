@@ -601,6 +601,9 @@ class ImportDataJob implements ShouldQueue
             case 'leave_types':
                 return new LeaveTypeImport($this->userId);
 
+            case 'holidays':
+                return new \App\Imports\HolidayImport($this->userId, $this->companyId);
+
             default:
                 throw new \Exception("Unknown import type: {$this->importType}");
         }

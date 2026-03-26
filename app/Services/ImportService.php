@@ -161,6 +161,22 @@ class ImportService
                 'excel_template' => 'import_supmgr.xlsx',
                 'permissions' => ['user-create'],
                 'fields' => []
+            ],
+            ImportJob::TYPE_HOLIDAYS => [
+                'label' => __('common.holidays'),
+                'description' => __('import_types.holidays_description'),
+                'template' => 'import_holidays.csv',
+                'excel_template' => 'import_holidays.xlsx',
+                'permissions' => ['holiday-create'],
+                'fields' => [
+                    'company_id' => [
+                        'type' => 'select',
+                        'label' => __('companies.company'),
+                        'required' => false,
+                        'options' => 'companies',
+                        'description' => __('import_types.holiday_company_description')
+                    ]
+                ]
             ]
         ];
     }

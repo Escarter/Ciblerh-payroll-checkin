@@ -22,4 +22,6 @@ return [
     'services_description' => 'Import service definitions and department assignments.',
     'leave_types_description' => 'Import leave type definitions and policies.',
     'supervisors_managers_description' => 'Import supervisor and manager user accounts with their roles and permissions.',
+    'holidays_description' => 'Import public holidays and company-specific holidays with dates and descriptions.',
+    'holiday_company_description' => 'Optionally assign holidays to specific companies. Leave empty for global holidays.',
 ];
