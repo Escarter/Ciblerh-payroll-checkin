@@ -923,15 +923,17 @@ class All extends BaseImportComponent
 
     public function toggleEmployeeSelection($employeeId)
     {
+        $employeeId = (int) $employeeId; // Ensure integer for consistency
+        
         if ($this->activeTab === 'deleted') {
             if (in_array($employeeId, $this->selectedEmployeesForDelete)) {
-                $this->selectedEmployeesForDelete = array_diff($this->selectedEmployeesForDelete, [$employeeId]);
+                $this->selectedEmployeesForDelete = array_values(array_diff($this->selectedEmployeesForDelete, [$employeeId]));
             } else {
                 $this->selectedEmployeesForDelete[] = $employeeId;
             }
         } else {
             if (in_array($employeeId, $this->selectedEmployees)) {
-                $this->selectedEmployees = array_diff($this->selectedEmployees, [$employeeId]);
+                $this->selectedEmployees = array_values(array_diff($this->selectedEmployees, [$employeeId]));
             } else {
                 $this->selectedEmployees[] = $employeeId;
             }
