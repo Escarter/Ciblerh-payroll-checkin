@@ -133,11 +133,16 @@ class HolidayImportAdapter extends BaseImportAdapter
             return ['__error' => 'Invalid date format'];
         }
 
+        // If company_id is provided in context, use it; otherwise use from file
+        $companyId = !empty($this->context['company_id']) 
+            ? (int) $this->context['company_id']
+            : (!empty($row['company_id']) ? (int) $row['company_id'] : null);
+
         return [
             'date' => $parsed_date,
             'name' => $this->cleanValue($row['name']),
             'description' => $this->cleanValue($row['description'] ?? null) ?? null,
-            'company_id' => !empty($row['company_id']) ? (int) $row['company_id'] : null,
+            'company_id' => $companyId,
         ];
     }
 
