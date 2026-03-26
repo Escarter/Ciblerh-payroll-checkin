@@ -856,21 +856,31 @@ class All extends BaseImportComponent
                 $query->where('company_id', $this->filterCompany);
             }
 
-            // Get all employees WITHOUT pagination
-            $this->selectedEmployees = $query->orderBy($this->orderBy, $this->orderAsc)->pluck('id')->toArray();
+            // Get all employees WITHOUT pagination - store in correct array based on active tab
+            $selectedIds = $query->orderBy($this->orderBy, $this->orderAsc)->pluck('id')->map(fn($id) => (string) $id)->toArray();
+            
+            if ($this->activeTab === 'deleted') {
+                $this->selectedEmployeesForDelete = $selectedIds;
+            } else {
+                $this->selectedEmployees = $selectedIds;
+            }
         } else {
-            $this->selectedEmployees = [];
+            if ($this->activeTab === 'deleted') {
+                $this->selectedEmployeesForDelete = [];
+            } else {
+                $this->selectedEmployees = [];
+            }
         }
     }
 
     public function selectAllVisible()
     {
-        $this->selectedEmployees = $this->getEmployees()->pluck('id')->toArray();
+        $this->selectedEmployees = $this->getEmployees()->pluck('id')->map(fn($id) => (string) $id)->toArray();
     }
 
     public function selectAllVisibleForDelete()
     {
-        $this->selectedEmployeesForDelete = $this->getEmployees()->pluck('id')->toArray();
+        $this->selectedEmployeesForDelete = $this->getEmployees()->pluck('id')->map(fn($id) => (string) $id)->toArray();
     }
 
     public function selectAllEmployees()
@@ -896,7 +906,13 @@ class All extends BaseImportComponent
             default => [],
         };
 
-        $this->selectedEmployees = $query->pluck('id')->toArray();
+        $selectedIds = $query->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        
+        if ($this->activeTab === 'deleted') {
+            $this->selectedEmployeesForDelete = $selectedIds;
+        } else {
+            $this->selectedEmployees = $selectedIds;
+        }
     }
 
     public function selectAllDeletedEmployees()
@@ -918,7 +934,7 @@ class All extends BaseImportComponent
             default => [],
         };
 
-        $this->selectedEmployeesForDelete = $query->pluck('id')->toArray();
+        $this->selectedEmployeesForDelete = $query->pluck('id')->map(fn($id) => (string) $id)->toArray();
     }
 
     public function toggleEmployeeSelection($employeeId)
