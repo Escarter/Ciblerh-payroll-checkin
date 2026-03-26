@@ -87,15 +87,17 @@ class Index extends Component
 
     public function loadStats()
     {
+        $baseQuery = auth()->user()->hasRole('admin') ? ImportJob::query() : ImportJob::forUser(auth()->id());
+        
         $this->stats = [
-            'total' => ImportJob::forUser(auth()->id())->count(),
-            'active' => ImportJob::forUser(auth()->id())->count(),
-            'trashed' => ImportJob::forUser(auth()->id())->onlyTrashed()->count(),
-            'pending' => ImportJob::forUser(auth()->id())->where('status', ImportJob::STATUS_PENDING)->count(),
-            'processing' => ImportJob::forUser(auth()->id())->where('status', ImportJob::STATUS_PROCESSING)->count(),
-            'completed' => ImportJob::forUser(auth()->id())->where('status', ImportJob::STATUS_COMPLETED)->count(),
-            'failed' => ImportJob::forUser(auth()->id())->where('status', ImportJob::STATUS_FAILED)->count(),
-            'cancelled' => ImportJob::forUser(auth()->id())->where('status', ImportJob::STATUS_CANCELLED)->count(),
+            'total' => (clone $baseQuery)->count(),
+            'active' => (clone $baseQuery)->count(),
+            'trashed' => (clone $baseQuery)->onlyTrashed()->count(),
+            'pending' => (clone $baseQuery)->where('status', ImportJob::STATUS_PENDING)->count(),
+            'processing' => (clone $baseQuery)->where('status', ImportJob::STATUS_PROCESSING)->count(),
+            'completed' => (clone $baseQuery)->where('status', ImportJob::STATUS_COMPLETED)->count(),
+            'failed' => (clone $baseQuery)->where('status', ImportJob::STATUS_FAILED)->count(),
+            'cancelled' => (clone $baseQuery)->where('status', ImportJob::STATUS_CANCELLED)->count(),
         ];
     }
 
@@ -149,7 +151,9 @@ class Index extends Component
 
     public function getJobs()
     {
-        $query = ImportJob::forUser(auth()->id())
+        $query = auth()->user()->hasRole('admin') ? ImportJob::query() : ImportJob::forUser(auth()->id());
+        
+        $query = $query
             ->when($this->importTypeFilter, function ($q) {
                 return $q->where('import_type', $this->importTypeFilter);
             })
@@ -176,7 +180,9 @@ class Index extends Component
 
     public function getTrashedJobs()
     {
-        $query = ImportJob::forUser(auth()->id())
+        $query = auth()->user()->hasRole('admin') ? ImportJob::query() : ImportJob::forUser(auth()->id());
+        
+        $query = $query
             ->onlyTrashed()
             ->when($this->importTypeFilter, function ($q) {
                 return $q->where('import_type', $this->importTypeFilter);
@@ -219,7 +225,7 @@ class Index extends Component
 
     public function getActiveJobsCountProperty()
     {
-        return ImportJob::forUser(auth()->id())->count();
+        return auth()->user()->hasRole('admin') ? ImportJob::query()->count() : ImportJob::forUser(auth()->id())->count();
     }
 
     // Completed Jobs Methods
@@ -245,7 +251,9 @@ class Index extends Component
 
     public function getCompletedJobs()
     {
-        $query = ImportJob::forUser(auth()->id())
+        $query = auth()->user()->hasRole('admin') ? ImportJob::query() : ImportJob::forUser(auth()->id());
+        
+        $query = $query
             ->whereIn('status', [ImportJob::STATUS_COMPLETED, ImportJob::STATUS_FAILED, ImportJob::STATUS_CANCELLED])
             ->with(['user', 'company', 'department'])
             ->orderBy('created_at', 'desc');
