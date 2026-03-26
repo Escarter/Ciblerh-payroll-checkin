@@ -382,7 +382,7 @@
                         <td>
                             <input type="checkbox"
                                 wire:click="toggleEmployeeSelection({{ $employee->id }})"
-                                {{ in_array($employee->id, $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees) ? 'checked' : '' }}
+                                {{ in_array((string)$employee->id, array_map('strval', $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees), true) ? 'checked' : '' }}
                                 class="form-check-input">
                         </td>
                         <td>
