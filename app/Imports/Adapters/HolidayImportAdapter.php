@@ -103,16 +103,30 @@ class HolidayImportAdapter extends BaseImportAdapter
     {
         $errors = [];
 
-        // Validate company_id if provided
-        if (!empty($row['company_id'])) {
-            $companyId = $row['company_id'];
-            
-            if (!is_numeric($companyId) || !Company::where('id', $companyId)->exists()) {
+        // If company_id is provided in context, validate that instead of what's in the file
+        // (since we're overriding file values with context anyway)
+        if (!empty($this->context['company_id'])) {
+            $contextCompanyId = $this->context['company_id'];
+            if (!is_numeric($contextCompanyId) || !Company::where('id', $contextCompanyId)->exists()) {
                 $errors[] = [
                     'field' => 'company_id',
                     'message' => __('validation.exists', ['attribute' => __('companies.company')]),
                 ];
             }
+        } elseif (!empty($row['company_id'])) {
+            // Only validate row company_id if no context is provided
+            $companyId = $row['company_id'];
+            
+            // Check if it's a numeric ID first
+            if (is_numeric($companyId)) {
+                if (!Company::where('id', $companyId)->exists()) {
+                    $errors[] = [
+                        'field' => 'company_id',
+                        'message' => __('validation.exists', ['attribute' => __('companies.company')]),
+                    ];
+                }
+            }
+            // If not numeric, it might be a company name or code - let the adapter lookup handle it
         }
 
         return $errors;
