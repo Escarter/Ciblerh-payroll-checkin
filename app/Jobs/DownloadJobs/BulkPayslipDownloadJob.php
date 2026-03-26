@@ -6,6 +6,7 @@ namespace App\Jobs\DownloadJobs;
 
 use App\Models\DownloadJob;
 use App\Models\Payslip;
+use App\Jobs\Traits\SafeFileOperations;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -17,7 +18,7 @@ use ZipArchive;
 
 class BulkPayslipDownloadJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, SafeFileOperations;
 
     /**
      * The queue connection name
@@ -95,13 +96,15 @@ class BulkPayslipDownloadJob implements ShouldQueue
             $fileExtension = $reportFormat === DownloadJob::FORMAT_PDF ? 'zip' : 'zip'; // Both create ZIP archives
             $mimeType = 'application/zip'; // Both create ZIP archives
 
-            // Update job completion
+            // Update job completion with safe file size retrieval
+            $fileSizeBytes = $this->safeGetFileSize($zipPath);
+            
             $this->downloadJob->update([
                 'status' => DownloadJob::STATUS_COMPLETED,
                 'completed_at' => now(),
                 'file_path' => $zipPath,
                 'file_name' => basename($zipPath),
-                'file_size' => Storage::disk('public')->size($zipPath),
+                'file_size' => $fileSizeBytes,
                 'mime_type' => $mimeType,
                 'processed_records' => $this->downloadJob->processed_records,
                 'failed_records' => $this->downloadJob->failed_records

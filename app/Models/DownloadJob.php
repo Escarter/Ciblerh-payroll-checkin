@@ -77,8 +77,20 @@ class DownloadJob extends Model
 
     public function getFormattedFileSizeAttribute(): ?string
     {
-        if (!$this->file_size) return null;
-        return $this->formatBytes($this->file_size);
+        if (empty($this->file_size) || $this->file_size <= 0) {
+            return null;
+        }
+        
+        try {
+            return $this->formatBytes((int) $this->file_size);
+        } catch (\Exception $e) {
+            \Log::warning('Error formatting file size', [
+                'job_id' => $this->id,
+                'file_size' => $this->file_size,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
     }
 
     public function getJobTypeDisplayAttribute(): string
