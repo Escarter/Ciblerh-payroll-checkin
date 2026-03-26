@@ -269,7 +269,9 @@ class ImportWizard extends Component
                     $this->importMode,
                     $this->autoCreateEntities,
                     $user,
-                    $importJob
+                    $importJob,
+                    null,
+                    $this->sendWelcomeEmails
                 );
 
                 $this->importResult = $result;

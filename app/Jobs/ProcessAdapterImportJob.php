@@ -101,7 +101,8 @@ class ProcessAdapterImportJob implements ShouldQueue
                     if ($importJob && $processed % 25 === 0) {
                         $importJob->update(['processed_rows' => $processed]);
                     }
-                }
+                },
+                $this->sendWelcomeEmails
             );
 
             Log::info('ProcessAdapterImportJob completed', [

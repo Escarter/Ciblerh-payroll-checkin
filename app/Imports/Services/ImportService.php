@@ -198,7 +198,8 @@ class ImportService
         bool $autoCreate = false,
         $user = null,
         ?ImportJob $importJob = null,
-        ?callable $onProgress = null
+        ?callable $onProgress = null,
+        bool $sendWelcomeEmails = false
     ): array {
         $adapter = $this->registry->freshAdapter($entitySlug);
         if (!$adapter) {
@@ -209,6 +210,11 @@ class ImportService
                 ->setAutoCreateEntities($autoCreate)
                 ->setUser($user)
                 ->setContext($context);
+        
+        // Set the sendWelcomeEmails flag if the adapter supports it
+        if (method_exists($adapter, 'setSendWelcomeEmails')) {
+            $adapter->setSendWelcomeEmails($sendWelcomeEmails);
+        }
 
         // Map all rows
         $mappedRows = [];

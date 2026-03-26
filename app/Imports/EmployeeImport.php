@@ -241,8 +241,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
 
                 // Only fire EmployeeCreated event if welcome emails should be sent
                 if ($this->sendWelcomeEmails) {
-                    $token = \App\Models\CredentialToken::createForUser($user, $row[13]);
-                    event(new EmployeeCreated($user, $token->id));
+                    event(new EmployeeCreated($user, $row[13]));
                 }
 
                 return $user;
