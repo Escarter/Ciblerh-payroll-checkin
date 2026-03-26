@@ -23,16 +23,26 @@ class SftpPayslipService
     public function __construct()
     {
         $setting = \App\Models\Setting::first();
+        
+        if (!$setting) {
+            throw new \RuntimeException('No settings found in database. Please configure application settings.');
+        }
+
+        // Validate required SFTP configuration
+        if (empty($setting->sftp_host) || empty($setting->sftp_username)) {
+            throw new \RuntimeException('SFTP configuration is incomplete. Host and username are required. Please configure SFTP settings in the admin panel.');
+        }
+
         $this->config = [
-            'host' => $setting->sftp_host ?? null,
-            'port' => $setting->sftp_port ?? 22,
-            'username' => $setting->sftp_username ?? null,
-            'password' => $setting->sftp_auth_type === 'password' ? ($setting->sftp_password ?? null) : null,
-            'privateKey' => $setting->sftp_auth_type === 'ssh_key' ? ($setting->sftp_private_key_path ?? null) : null,
-            'passphrase' => $setting->sftp_auth_type === 'ssh_key' ? ($setting->sftp_passphrase ?? null) : null,
-            'root' => $setting->sftp_root ?? '/payslips',
+            'host' => (string) $setting->sftp_host,
+            'port' => (int) ($setting->sftp_port ?? 22),
+            'username' => (string) $setting->sftp_username,
+            'password' => $setting->sftp_auth_type === 'password' ? (string) ($setting->sftp_password ?? '') : null,
+            'privateKey' => $setting->sftp_auth_type === 'ssh_key' ? (string) ($setting->sftp_private_key_path ?? '') : null,
+            'passphrase' => $setting->sftp_auth_type === 'ssh_key' ? (string) ($setting->sftp_passphrase ?? '') : null,
+            'root' => (string) ($setting->sftp_root ?? '/payslips'),
             'timeout' => 30,
-            'auth_type' => $setting->sftp_auth_type ?? 'password',
+            'auth_type' => (string) ($setting->sftp_auth_type ?? 'password'),
         ];
     }
 

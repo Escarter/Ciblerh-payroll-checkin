@@ -45,7 +45,18 @@ class FetchSftpPayslipsJob implements ShouldQueue
                 return;
             }
 
-            $sftpService = new SftpPayslipService();
+            // Validate SFTP configuration is complete
+            if (!$setting->sftp_host || !$setting->sftp_username) {
+                \Log::warning('SFTP configuration is incomplete. Please configure SFTP settings in the admin panel (host and username are required).');
+                return;
+            }
+
+            try {
+                $sftpService = new SftpPayslipService();
+            } catch (\RuntimeException $configError) {
+                \Log::warning('SFTP configuration error: ' . $configError->getMessage());
+                return;
+            }
             
             // Get matching strategies
             $strategies = $setting->sftp_matching_strategies ?? [];
