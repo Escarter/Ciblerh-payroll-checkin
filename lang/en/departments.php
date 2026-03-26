@@ -26,6 +26,7 @@ return [
     'name' => 'Name',
     'company' => 'Company',
     'supervisor' => 'Supervisor',
+    'supervisor_email' => 'Supervisor Email',
     'is_active' => 'Is Active?',
     'select_supervisor' => 'Select supervisor',
     'select_status' => 'Select status',

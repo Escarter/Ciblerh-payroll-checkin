@@ -45,4 +45,5 @@ return [
     'fri' => 'Fri',
     'sat' => 'Sat',
     'sun' => 'Sun',
+    'holidays' => 'Holidays',
 ];

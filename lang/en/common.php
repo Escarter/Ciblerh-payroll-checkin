@@ -32,6 +32,8 @@ return [
     'close' => 'Close',
     'clear' => 'Clear',
     'reset' => 'Reset',
+    'is_active' => 'Is Active',
+    'year' => 'Year',
     'reset_filters' => 'Reset Filters',
     'refresh' => 'Refresh',
     'search' => 'Search',

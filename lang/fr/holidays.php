@@ -45,4 +45,5 @@ return [
     'fri' => 'Ven',
     'sat' => 'Sam',
     'sun' => 'Dim',
+    'holidays' => 'Jours fériés',
 ];

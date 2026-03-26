@@ -30,6 +30,8 @@ return [
     'mode_update' => 'Update Only',
     'mode_update_only' => 'Update Only',
     'mode_update_desc' => 'Only update existing records. New records will be skipped.',
+    'mode_create_only_desc' => 'Only create new records. Existing records will be skipped.',
+    'mode_update_only_desc' => 'Only update existing records. New records will be skipped.',
     'mode_upsert' => 'Create or Update',
     'mode_upsert_desc' => 'Create new records and update existing ones.',
     'context_company' => 'Company Context',

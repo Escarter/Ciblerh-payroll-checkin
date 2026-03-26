@@ -241,7 +241,7 @@
             <div class="d-flex flex-column gap-4">
 
                 {{-- Context Selection --}}
-                @if($entitySlug && in_array($entitySlug, ['employees', 'departments', 'services']))
+                @if($entitySlug && in_array($entitySlug, ['employees', 'departments', 'services', 'holidays']))
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
                         <h6 class="fw-semibold mb-3">

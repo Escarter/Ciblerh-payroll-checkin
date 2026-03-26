@@ -26,6 +26,7 @@ return [
     'name' => 'Nom',
     'company' => 'Société',
     'supervisor' => 'Superviseur',
+    'supervisor_email' => 'Email du superviseur',
     'is_active' => 'Est actif?',
     'select_supervisor' => 'Sélectionner un superviseur',
     'select_status' => 'Sélectionner le statut',

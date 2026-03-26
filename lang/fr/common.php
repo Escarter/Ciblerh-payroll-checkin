@@ -30,6 +30,8 @@ return [
     'close' => 'Fermer',
     'clear' => 'Effacer',
     'reset' => 'Réinitialiser',
+    'is_active' => 'Est actif',
+    'year' => 'Année',
     'reset_filters' => 'Réinitialiser les filtres',
     'refresh' => 'Actualiser',
     'search' => 'Rechercher',

@@ -9,6 +9,9 @@ return [
 
     // Background import completion messages
     'background_import_completed' => 'Background import completed successfully. :count records imported.',
+
+    // Leave Types
+    'leave_types' => 'Leave Types',
 ];
 
 

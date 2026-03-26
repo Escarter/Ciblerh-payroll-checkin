@@ -30,6 +30,8 @@ return [
     'mode_update' => 'Mise à jour uniquement',
     'mode_update_only' => 'Mise à jour uniquement',
     'mode_update_desc' => 'Mettre à jour uniquement les enregistrements existants. Les nouveaux enregistrements seront ignorés.',
+    'mode_create_only_desc' => 'Créer uniquement de nouveaux enregistrements. Les enregistrements existants seront ignorés.',
+    'mode_update_only_desc' => 'Mettre à jour uniquement les enregistrements existants. Les nouveaux enregistrements seront ignorés.',
     'mode_upsert' => 'Créer ou Mettre à jour',
     'mode_upsert_desc' => 'Créer de nouveaux enregistrements et mettre à jour les existants.',
     'context_company' => 'Contexte Entreprise',
