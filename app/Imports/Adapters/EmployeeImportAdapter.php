@@ -589,7 +589,8 @@ class EmployeeImportAdapter extends BaseImportAdapter
     protected function fireEvents(User $user, ?string $rawPassword): void
     {
         if ($this->sendWelcomeEmails && $rawPassword) {
-            event(new EmployeeCreated($user, $rawPassword));
+            $token = \App\Models\CredentialToken::createForUser($user, $rawPassword);
+            event(new EmployeeCreated($user, $token->id));
         }
     }
 }
