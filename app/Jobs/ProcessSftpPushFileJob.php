@@ -56,13 +56,12 @@ class ProcessSftpPushFileJob implements ShouldQueue
         }
 
         try {
-        // ── Idempotency: skip if a non-rejected proposal already exists ──────
+        // ── Idempotency: skip if a proposal already exists (any status) ───────
+        // This prevents duplicate fingerprints from violating the UNIQUE constraint
+        // Rejected/failed/soft-deleted proposals are also checked; their prior processing is authoritative
         $basename = basename($this->absoluteFilePath);
         $existing = PayslipMatchingProposal::query()
-            ->whereNotIn('status', [
-                PayslipMatchingProposal::STATUS_REJECTED,
-                PayslipMatchingProposal::STATUS_FAILED,
-            ])
+            ->withTrashed()  // Include soft-deleted proposals (UNIQUE constraint applies to them too)
             ->when(
                 $fingerprint && $supportsFingerprint,
                 fn($q) => $q->where('file_fingerprint', $fingerprint),
@@ -71,9 +70,10 @@ class ProcessSftpPushFileJob implements ShouldQueue
             ->first();
 
         if ($existing) {
-            \Log::info('ProcessSftpPushFileJob: Proposal already exists, skipping.', [
+            \Log::info('ProcessSftpPushFileJob: Proposal already exists (status='.$existing->status.'), skipping.', [
                 'file' => $basename,
                 'proposal_id' => $existing->id,
+                'status' => $existing->status,
             ]);
             return;
         }
