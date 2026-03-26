@@ -817,7 +817,47 @@ class All extends BaseImportComponent
     public function toggleSelectAll()
     {
         if ($this->selectAll) {
-            $this->selectedEmployees = $this->getEmployees()->pluck('id')->toArray();
+            // Build the same query as getEmployees() but WITHOUT pagination
+            $query = User::search($this->query)->with([
+                'company:id,name',
+                'department:id,name',
+                'service:id,name',
+                'roles:id,name'
+            ])->when($this->auth_role === 'supervisor', function($query) {
+                $query->supervisor();
+            })->when($this->auth_role === 'manager', function($query) {
+                $query->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))
+                      ->whereHas('roles', function($query) {
+                          $query->whereIn('name', ['employee', 'supervisor']);
+                      })->whereDoesntHave('roles', function($query) {
+                          $query->where('name', 'admin');
+                      });
+            })->when($this->auth_role === 'admin', function($query) {
+                $query->whereHas('roles', function($query) {
+                    $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
+                });
+            })->when($this->auth_role === 'employee', function($query) {
+                $query->whereHas('roles', function($query) {
+                    $query->where('name', 'employee');
+                })->whereDoesntHave('roles', function($query) {
+                    $query->whereIn('name', ['admin', 'manager', 'supervisor']);
+                });
+            });
+
+            // Add soft delete filtering based on active tab
+            if ($this->activeTab === 'deleted') {
+                $query->withTrashed()->whereNotNull('deleted_at');
+            } else {
+                $query->whereNull('deleted_at');
+            }
+
+            // Company filter (admin only)
+            if ($this->auth_role === 'admin' && $this->filterCompany !== '') {
+                $query->where('company_id', $this->filterCompany);
+            }
+
+            // Get all employees WITHOUT pagination
+            $this->selectedEmployees = $query->orderBy($this->orderBy, $this->orderAsc)->pluck('id')->toArray();
         } else {
             $this->selectedEmployees = [];
         }

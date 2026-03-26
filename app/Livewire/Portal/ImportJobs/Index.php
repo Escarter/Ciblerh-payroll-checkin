@@ -136,8 +136,17 @@ class Index extends Component
     public function updatedSelectAll($value)
     {
         if ($value) {
-            $jobs = $this->jobs;
-            $this->selectedJobs = $jobs->items() ? collect($jobs->items())->pluck('id')->map(fn($id) => (string) $id)->toArray() : [];
+            // Get all jobs for the current tab (without pagination to select all)
+            if ($this->activeTab === 'trashed') {
+                $allJobs = auth()->user()->hasRole('admin') 
+                    ? ImportJob::onlyTrashed()->get() 
+                    : ImportJob::forUser(auth()->id())->onlyTrashed()->get();
+            } else {
+                $allJobs = auth()->user()->hasRole('admin') 
+                    ? ImportJob::get() 
+                    : ImportJob::forUser(auth()->id())->get();
+            }
+            $this->selectedJobs = $allJobs->pluck('id')->map(fn($id) => (string) $id)->toArray();
         } else {
             $this->selectedJobs = [];
         }
