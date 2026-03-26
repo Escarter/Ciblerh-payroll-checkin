@@ -3,10 +3,9 @@
 namespace App\Listeners;
 
 use App\Events\EmployeeCreated;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Models\CredentialToken;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\SendCredentialsNotification;
 
@@ -38,7 +37,11 @@ class SendCredentailsDetailsNotification
 
         if($validator->passes()){
             try {
-                Notification::sendNow($event->employee, new SendCredentialsNotification($event->password));
+                // Create credential token instead of passing plain password
+                $token = CredentialToken::createForUser($event->employee, $event->password);
+                
+                // Send notification with token ID (secure, not the actual password)
+                Notification::sendNow($event->employee, new SendCredentialsNotification($token->id));
             } catch (\Exception $e) {
                 Log::error('Failed to send credentials notification', [
                     'employee_id' => $event->employee->id,

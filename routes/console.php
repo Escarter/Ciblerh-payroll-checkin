@@ -76,6 +76,11 @@ $archiveEvent = Schedule::command('sftp:archive-proposal-files')
     ->withoutOverlapping();
 applySftpPushArchiveFrequency($archiveEvent);
 
+// Clean up expired credential tokens every hour
+Schedule::call(function () {
+    \App\Models\CredentialToken::cleanupExpired();
+})->hourly();
+
 /*
 |--------------------------------------------------------------------------
 | Schedule Helper Functions

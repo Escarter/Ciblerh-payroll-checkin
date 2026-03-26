@@ -3,25 +3,27 @@
 namespace App\Notifications;
 
 use App\Models\Setting;
+use App\Models\CredentialToken;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Lang;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class SendCredentialsNotification extends Notification  implements ShouldQueue
+class SendCredentialsNotification extends Notification implements ShouldQueue
 {
     use Queueable;
-    public $password;
+    
+    public $tokenId;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($password)
+    public function __construct($tokenId)
     {
-        $this->password = $password;
+        $this->tokenId = $tokenId;
+        $this->onQueue('emails');
     }
 
     /**
@@ -43,8 +45,21 @@ class SendCredentialsNotification extends Notification  implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        $setting = Setting::first();
+        // Fetch token and get password
+        $token = CredentialToken::find($this->tokenId);
+        
+        if (!$token || $token->user_id !== $notifiable->id) {
+            \Log::error('SendCredentialsNotification: Invalid token or user mismatch', [
+                'token_id' => $this->tokenId,
+                'user_id' => $notifiable->id,
+            ]);
+            return (new MailMessage())->view('email.credentials', ['message' => 'Error: Unable to retrieve credentials.']);
+        }
 
+        // Get password and mark token as used
+        $password = $token->getPasswordAndMarkUsed();
+        
+        $setting = Setting::first();
         setSavedSmtpCredentials();
 
         // Handle case where settings don't exist yet (during import)
@@ -52,9 +67,9 @@ class SendCredentialsNotification extends Notification  implements ShouldQueue
             $welcome_email_subject = $notifiable->preferred_language === 'en' ? "CibleRH - Login Credentials" : "CibleRH - Identifiants de connexion";
 
             $welcome_mail_content = $notifiable->preferred_language === 'en' ?
-                str_replace([':name:', ':site_url:',':username:',':password:'], [$notifiable->name, url("/login"), $notifiable->email, $this->password],
+                str_replace([':name:', ':site_url:',':username:',':password:'], [$notifiable->name, url("/login"), $notifiable->email, $password],
                     "<h3>Dear :name:,</h3> <p>Your account has been created and you can now login into the employee portal at :site_url:. Your credentials are:</p> <strong>Username: :username:</strong> <br><strong>Password: :password:</strong><p></p> <p><strong>Important:</strong> We recommend you change your password after your first login by going to your profile settings.</p> <p>In case of any difficulties, Contact your support via </p> <p>Call and text: :support_number:</p> <p>Mail: :mail_address:</p>") :
-                str_replace([':name:', ':site_url:',':username:',':password:'], [$notifiable->name, url("/login"), $notifiable->email, $this->password],
+                str_replace([':name:', ':site_url:',':username:',':password:'], [$notifiable->name, url("/login"), $notifiable->email, $password],
                     "<h2>Cher(e) :name:,</h2> <p>Votre compte a été créé et vous pouvez désormais vous connecter au portail des employés sur :site_url:. Vos identifiants sont :</p> <strong>Nom d'utilisateur : :username:</strong> <br><strong>Mot de passe : :password:</strong><p></p> <p><strong>Important :</strong> Nous vous recommandons de changer votre mot de passe après votre première connexion en allant dans les paramètres de votre profil.</p> <p>En cas de difficultés, contactez votre support via </p> <p>Appel et SMS : :support_number:</p> <p>Mail : :mail_address:</p>");
 
             // Use default from email and name if settings don't exist
@@ -67,8 +82,8 @@ class SendCredentialsNotification extends Notification  implements ShouldQueue
         $welcome_email_subject = $notifiable->preferred_language === 'en' ? $setting->welcome_email_subject_en : $setting->welcome_email_subject_fr;
 
         $welcome_mail_content = $notifiable->preferred_language === 'en' ?
-            str_replace([':name:', ':site_url:',':username:',':password:'], [$notifiable->name, url("/login"), $notifiable->email, $this->password], $setting->welcome_email_content_en) :
-            str_replace([':name:', ':site_url:',':username:',':password:'], [$notifiable->name, url("/login"), $notifiable->email, $this->password], $setting->welcome_email_content_fr);
+            str_replace([':name:', ':site_url:',':username:',':password:'], [$notifiable->name, url("/login"), $notifiable->email, $password], $setting->welcome_email_content_en) :
+            str_replace([':name:', ':site_url:',':username:',':password:'], [$notifiable->name, url("/login"), $notifiable->email, $password], $setting->welcome_email_content_fr);
 
         return (new MailMessage)
             ->from($setting->from_email, $setting->from_name)
