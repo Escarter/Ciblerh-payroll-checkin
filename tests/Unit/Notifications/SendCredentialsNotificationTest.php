@@ -61,3 +61,22 @@ test('credentials notification invalid token fallback renders safely', function 
 
     expect($html)->toContain('Error: Unable to retrieve credentials.');
 });
+
+test('credentials notification accepts legacy token string payload', function () {
+    $user = User::factory()->create([
+        'email' => 'employee3@example.com',
+        'first_name' => 'Legacy',
+        'last_name' => 'Token',
+    ]);
+
+    $token = CredentialToken::createForUser($user, 'LegacyPass#321');
+
+    // Simulate older payloads that passed token string instead of token ID
+    $mailMessage = (new SendCredentialsNotification($token->token))->toMail($user);
+
+    $html = renderMailMessage($mailMessage);
+
+    expect($html)
+        ->toContain('LegacyPass#321')
+        ->and($html)->toContain('Legacy Token');
+});

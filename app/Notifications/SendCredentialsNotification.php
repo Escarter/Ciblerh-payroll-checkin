@@ -45,15 +45,17 @@ class SendCredentialsNotification extends Notification implements ShouldQueue
      */
     public function toMail($notifiable)
     {
-        // Fetch token and get password
-        $token = CredentialToken::find($this->tokenId);
+        // Fetch token and get password (supports both numeric token IDs and legacy token strings)
+        $token = is_numeric($this->tokenId)
+            ? CredentialToken::find((int) $this->tokenId)
+            : CredentialToken::where('token', (string) $this->tokenId)->first();
         
         if (!$token || $token->user_id !== $notifiable->id) {
             \Log::error('SendCredentialsNotification: Invalid token or user mismatch', [
                 'token_id' => $this->tokenId,
                 'user_id' => $notifiable->id,
             ]);
-            return (new MailMessage())->view('email.credentials', ['content' => 'Error: Unable to retrieve credentials.']);
+            return (new MailMessage())->markdown('email.credentials', ['content' => 'Error: Unable to retrieve credentials.']);
         }
 
         // Get password and mark token as used

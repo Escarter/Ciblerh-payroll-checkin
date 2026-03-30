@@ -18,9 +18,14 @@ class UserObserver
         if ($user->roles()->count() === 0) {
             $user->assignRole('employee');
         }
+
+        $actor = auth()->user();
+        if (!$actor) {
+            return;
+        }
         
         auditLog(
-            auth()->user(),
+            $actor,
             'user_created',
             'web',
             'created_entity',

@@ -21,68 +21,6 @@ Artisan::command('inspire', function () {
 
 /*
 |--------------------------------------------------------------------------
-| Scheduled Tasks
-|--------------------------------------------------------------------------
-*/
-
-// Clean processed records
-Schedule::command('wima:clean-processed')->dailyAt('01:30');
-
-// Update leave process on last day of month
-Schedule::command('wima:leave-update-process')
-    ->lastDayOfMonth('23:50')
-    ->timezone('Africa/Douala');
-
-// Send pending advance salary reminders
-Schedule::command('advance-salary:send-pending-reminder')
-    ->dailyAt('08:00')
-    ->timezone('Africa/Douala');
-
-// Send birthday wishes
-Schedule::command('wima:wish-happy-birthday')
-    ->dailyAt('08:00')
-    ->timezone('Africa/Douala');
-
-// Process scheduled reports
-Schedule::command('reports:process-scheduled')->hourly();
-
-// Clean up expired sessions every 30 minutes
-Schedule::call(function () {
-    pruneExpiredSessions();
-})->everyThirtyMinutes();
-
-// Deactivate inactive users - scheduled based on setting time, defaults to 02:00
-Schedule::command('users:deactivate-inactive')
-    ->dailyAt(getDeactivationTime())
-    ->timezone(config('app.timezone', 'UTC'))
-    ->when(fn() => isDeactivationEnabled());
-
-// Fetch SFTP payslips - scheduled based on frequency setting
-Schedule::job(new \App\Jobs\FetchSftpPayslipsJob)
-    ->{getSftpSyncFrequency()}()
-    ->when(fn() => isSftpSyncEnabled());
-
-// Scan SFTP push folder - frequency configurable from settings
-$pushEvent = Schedule::command('sftp:scan-push-folder')
-    ->when(fn() => isSftpSyncEnabled())
-    ->timezone(config('app.timezone', 'UTC'))
-    ->withoutOverlapping();
-applySftpPushScanFrequency($pushEvent);
-
-// Archive SFTP proposal files out of incoming/ when proposals hit terminal states
-$archiveEvent = Schedule::command('sftp:archive-proposal-files')
-    ->when(fn() => isSftpSyncEnabled())
-    ->timezone(config('app.timezone', 'UTC'))
-    ->withoutOverlapping();
-applySftpPushArchiveFrequency($archiveEvent);
-
-// Clean up expired credential tokens every hour
-Schedule::call(function () {
-    \App\Models\CredentialToken::cleanupExpired();
-})->hourly();
-
-/*
-|--------------------------------------------------------------------------
 | Schedule Helper Functions
 |--------------------------------------------------------------------------
 */
@@ -311,3 +249,65 @@ if (!function_exists('pruneExpiredSessions')) {
         }
     }
 }
+
+/*
+|--------------------------------------------------------------------------
+| Scheduled Tasks
+|--------------------------------------------------------------------------
+*/
+
+// Clean processed records
+Schedule::command('wima:clean-processed')->dailyAt('01:30');
+
+// Update leave process on last day of month
+Schedule::command('wima:leave-update-process')
+    ->lastDayOfMonth('23:50')
+    ->timezone('Africa/Douala');
+
+// Send pending advance salary reminders
+Schedule::command('advance-salary:send-pending-reminder')
+    ->dailyAt('08:00')
+    ->timezone('Africa/Douala');
+
+// Send birthday wishes
+Schedule::command('wima:wish-happy-birthday')
+    ->dailyAt('08:00')
+    ->timezone('Africa/Douala');
+
+// Process scheduled reports
+Schedule::command('reports:process-scheduled')->hourly();
+
+// Clean up expired sessions every 30 minutes
+Schedule::call(function () {
+    pruneExpiredSessions();
+})->everyThirtyMinutes();
+
+// Deactivate inactive users - scheduled based on setting time, defaults to 02:00
+Schedule::command('users:deactivate-inactive')
+    ->dailyAt(getDeactivationTime())
+    ->timezone(config('app.timezone', 'UTC'))
+    ->when(fn() => isDeactivationEnabled());
+
+// Fetch SFTP payslips - scheduled based on frequency setting
+Schedule::job(new \App\Jobs\FetchSftpPayslipsJob)
+    ->{getSftpSyncFrequency()}()
+    ->when(fn() => isSftpSyncEnabled());
+
+// Scan SFTP push folder - frequency configurable from settings
+$pushEvent = Schedule::command('sftp:scan-push-folder')
+    ->when(fn() => isSftpSyncEnabled())
+    ->timezone(config('app.timezone', 'UTC'))
+    ->withoutOverlapping();
+applySftpPushScanFrequency($pushEvent);
+
+// Archive SFTP proposal files out of incoming/ when proposals hit terminal states
+$archiveEvent = Schedule::command('sftp:archive-proposal-files')
+    ->when(fn() => isSftpSyncEnabled())
+    ->timezone(config('app.timezone', 'UTC'))
+    ->withoutOverlapping();
+applySftpPushArchiveFrequency($archiveEvent);
+
+// Clean up expired credential tokens every hour
+Schedule::call(function () {
+    \App\Models\CredentialToken::cleanupExpired();
+})->hourly();
