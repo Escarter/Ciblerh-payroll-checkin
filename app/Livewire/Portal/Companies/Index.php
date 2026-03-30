@@ -7,16 +7,12 @@ use App\Models\User;
 use App\Models\Company;
 use App\Livewire\BaseImportComponent;
 use Illuminate\Support\Str;
-use Livewire\WithPagination;
-use Livewire\WithFileUploads;
 use App\Imports\CompanyImport;
 use App\Livewire\Traits\WithDataTable;
-use App\Models\SendPayslipProcess;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Computed;
 
 class Index extends BaseImportComponent
@@ -193,20 +189,21 @@ class Index extends BaseImportComponent
         }
 
         $company = Company::withTrashed()->findOrFail($companyId);
-        
-        // Check if company has related records
-        $hasRelatedRecords = $company->departments()->count() > 0 ||
-                           $company->employees()->count() > 0 ||
-                           $company->services()->count() > 0 ||
-                           $company->payslips()->count() > 0 ||
-                           $company->payslipProcess()->count() > 0;
-        
-        if ($hasRelatedRecords) {
+
+        if ($this->companyHasRelatedRecords($company)) {
             $this->showToast(__('companies.cannot_permanently_delete_company'), 'danger');
             return;
         }
-        
-        $company->forceDelete();
+
+        try {
+            DB::transaction(function () use ($company) {
+                $company->managers()->detach();
+                $company->forceDelete();
+            });
+        } catch (QueryException $e) {
+            $this->showToast(__('companies.cannot_permanently_delete_company'), 'danger');
+            return;
+        }
 
         // Clear selection after deletion
         if (in_array($companyId, $this->selectedCompanies ?? [])) {
@@ -322,18 +319,14 @@ class Index extends BaseImportComponent
         }
 
         if (!empty($this->selectedCompanies)) {
+            /** @var \Illuminate\Database\Eloquent\Collection<int, Company> $companies */
             $companies = Company::withTrashed()->whereIn('id', $this->selectedCompanies)->get();
             $companiesWithRelatedRecords = [];
             $affectedRecords = [];
             
+            /** @var Company $company */
             foreach ($companies as $company) {
-                $hasRelatedRecords = $company->departments()->count() > 0 ||
-                                   $company->employees()->count() > 0 ||
-                                   $company->services()->count() > 0 ||
-                                   $company->payslips()->count() > 0 ||
-                                   $company->payslipProcess()->count() > 0;
-                
-                if ($hasRelatedRecords) {
+                if ($this->companyHasRelatedRecords($company)) {
                     $companiesWithRelatedRecords[] = $company->name;
                 } else {
                     $affectedRecords[] = [
@@ -342,15 +335,24 @@ class Index extends BaseImportComponent
                     ];
                 }
             }
-            
+
             if (!empty($companiesWithRelatedRecords)) {
                 $companyNames = implode(', ', $companiesWithRelatedRecords);
                 $this->showToast(__('companies.cannot_permanently_delete_companies') . $companyNames, 'danger');
                 return;
             }
-            
+
+            /** @var Company $company */
             foreach ($companies as $company) {
-                $company->forceDelete();
+                try {
+                    DB::transaction(function () use ($company) {
+                        $company->managers()->detach();
+                        $company->forceDelete();
+                    });
+                } catch (QueryException $e) {
+                    $this->showToast(__('companies.cannot_permanently_delete_company'), 'danger');
+                    return;
+                }
             }
             
             if (!empty($affectedRecords)) {
@@ -378,6 +380,16 @@ class Index extends BaseImportComponent
         }
 
         $this->closeModalAndFlashMessage(__('companies.selected_companies_permanently_deleted'), 'BulkForceDeleteModal');
+    }
+
+    protected function companyHasRelatedRecords(Company $company): bool
+    {
+        return $company->departments()->withTrashed()->exists()
+            || $company->employees()->withTrashed()->exists()
+            || $company->services()->withTrashed()->exists()
+            || $company->payslips()->exists()
+            || $company->payslipProcess()->exists()
+            || $company->holidays()->exists();
     }
 
     public function switchTab($tab)
