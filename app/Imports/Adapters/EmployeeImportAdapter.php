@@ -589,7 +589,7 @@ class EmployeeImportAdapter extends BaseImportAdapter
     protected function fireEvents(User $user, ?string $rawPassword): void
     {
         if ($this->sendWelcomeEmails && $rawPassword) {
-            event(new EmployeeCreated($user, $rawPassword));
+            event(new EmployeeCreated($user, $rawPassword, $this->context['import_job_id'] ?? null));
         }
     }
 }

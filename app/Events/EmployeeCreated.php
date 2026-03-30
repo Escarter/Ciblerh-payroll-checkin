@@ -3,13 +3,10 @@
 namespace App\Events;
 
 use App\Models\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class EmployeeCreated
 {
@@ -17,15 +14,17 @@ class EmployeeCreated
 
     public $employee;
     public $password;
+    public $importJobId;
     /**
      * Create the event listener.
      *
      * @return void
      */
-    public function __construct(User $employee, $password)
+    public function __construct(User $employee, $password, ?int $importJobId = null)
     {
         $this->employee = $employee;
         $this->password = $password;
+        $this->importJobId = $importJobId;
     }
 
     /**

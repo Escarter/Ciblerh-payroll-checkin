@@ -137,4 +137,7 @@ return [
     'cancel_job' => 'Cancel Job',
     'cancel' => 'Cancel',
     'unknown_import_type' => 'Unknown Import Type',
+    'pending_welcome_emails' => 'Pending Welcome Emails',
+    'pending_welcome_emails_short' => ':count pending welcome email(s)',
+    'pending_welcome_emails_hint' => 'These credentials emails are queued or waiting to be processed.',
 ];

@@ -321,6 +321,18 @@
                             </td>
                             <td>
                                 <span class="badge badge-lg bg-{{$job->status_badge}}">{{$job->status_display}}</span>
+                                @php
+                                    $jobPendingWelcomeEmails = (int) ($pendingWelcomeEmailCounts[$job->id] ?? 0);
+                                    $tracksWelcomeEmails = $job->import_type === \App\Models\ImportJob::TYPE_EMPLOYEES
+                                        && data_get($job->import_config, 'send_welcome_emails', false);
+                                @endphp
+                                @if($tracksWelcomeEmails && $jobPendingWelcomeEmails > 0)
+                                    <div>
+                                        <small class="text-warning fw-semibold">
+                                            {{ __('import_jobs.pending_welcome_emails_short', ['count' => $jobPendingWelcomeEmails]) }}
+                                        </small>
+                                    </div>
+                                @endif
                             </td>
                             <td>
                                 @if($job->status === 'processing')

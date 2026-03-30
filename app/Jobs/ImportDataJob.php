@@ -541,7 +541,15 @@ class ImportDataJob implements ShouldQueue
                         'has_user' => !is_null($user)
                     ]);
 
-                    return new EmployeeImport($company, $department, $service, $this->autoCreateEntities, $user, $this->sendWelcomeEmails);
+                    return new EmployeeImport(
+                        $company,
+                        $department,
+                        $service,
+                        $this->autoCreateEntities,
+                        $user,
+                        $this->sendWelcomeEmails,
+                        $this->importJob?->id
+                    );
                 } else {
                     throw new \Exception('Company ID required for employee import');
                 }

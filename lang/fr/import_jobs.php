@@ -136,4 +136,7 @@ return [
     'view_details' => 'Voir les détails',
     'cancel_job' => 'Annuler la tâche',
     'unknown_import_type' => 'Type d\'importation inconnu',
+    'pending_welcome_emails' => 'E-mails de bienvenue en attente',
+    'pending_welcome_emails_short' => ':count e-mail(s) de bienvenue en attente',
+    'pending_welcome_emails_hint' => 'Ces e-mails d\'identifiants sont en file d\'attente ou en attente de traitement.',
 ];

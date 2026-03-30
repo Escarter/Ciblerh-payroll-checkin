@@ -4,19 +4,14 @@ namespace App\Imports;
 
 use App\Models\User;
 use App\Models\Company;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Illuminate\Support\Carbon;
 use App\Events\EmployeeCreated;
 use App\Models\Department;
 use App\Models\Service;
-use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
-use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
@@ -24,7 +19,6 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use App\Rules\PhoneNumber;
-use App\Rules\ValidEmail;
 
 class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValidation, SkipsOnError, SkipsOnFailure, WithChunkReading
 {
@@ -37,6 +31,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     public $autoCreateEntities = false; // Whether to auto-create missing departments/services
     public $sendWelcomeEmails = false; // Whether to send welcome emails to imported employees
     public $userId; // User ID for author_id field (kept for backward compatibility)
+    public $importJobId; // ImportJob context for welcome email tracking
 
     /**
      * @return int
@@ -55,7 +50,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     }
 
 
-    public function __construct(Company $company, Department $department = null, Service $service = null, bool $autoCreateEntities = false, $user = null, bool $sendWelcomeEmails = false)
+    public function __construct(Company $company, ?Department $department = null, ?Service $service = null, bool $autoCreateEntities = false, $user = null, bool $sendWelcomeEmails = false, ?int $importJobId = null)
     {
         $this->company = $company;
         $this->department = $department;
@@ -63,6 +58,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
         $this->user = $user; // User model instance, just like company/department/service
         $this->autoCreateEntities = $autoCreateEntities;
         $this->sendWelcomeEmails = $sendWelcomeEmails;
+        $this->importJobId = $importJobId;
         // Keep userId for backward compatibility (extract from user model if available)
         $this->userId = $user ? $user->id : ($user instanceof \App\Models\User ? $user->id : null);
         
@@ -241,7 +237,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
 
                 // Only fire EmployeeCreated event if welcome emails should be sent
                 if ($this->sendWelcomeEmails) {
-                    event(new EmployeeCreated($user, $row[13]));
+                    event(new EmployeeCreated($user, $row[13], $this->importJobId));
                 }
 
                 return $user;

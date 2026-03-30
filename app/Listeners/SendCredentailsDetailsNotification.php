@@ -38,10 +38,11 @@ class SendCredentailsDetailsNotification
         if($validator->passes()){
             try {
                 // Create credential token instead of passing plain password
-                $token = CredentialToken::createForUser($event->employee, $event->password);
+                $token = CredentialToken::createForUser($event->employee, $event->password, 24, $event->importJobId);
                 
-                // Send notification with token ID (secure, not the actual password)
-                Notification::sendNow($event->employee, new SendCredentialsNotification($token->id));
+                // Queue notification with token ID (secure, not the actual password)
+                // This avoids blocking import processing on SMTP latency.
+                Notification::send($event->employee, new SendCredentialsNotification($token->id));
             } catch (\Exception $e) {
                 Log::error('Failed to send credentials notification', [
                     'employee_id' => $event->employee->id,

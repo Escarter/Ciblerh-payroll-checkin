@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\CredentialToken;
+use App\Models\ImportJob;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\SendCredentialsNotification;
@@ -79,4 +80,22 @@ test('credentials notification accepts legacy token string payload', function ()
     expect($html)
         ->toContain('LegacyPass#321')
         ->and($html)->toContain('Legacy Token');
+});
+
+test('credential token stores import job context when provided', function () {
+    $user = User::factory()->create([
+        'email' => 'employee4@example.com',
+    ]);
+
+    $importJob = ImportJob::create([
+        'user_id' => $user->id,
+        'import_type' => ImportJob::TYPE_EMPLOYEES,
+        'file_name' => 'employees.csv',
+        'file_path' => 'imports/employees.csv',
+        'status' => ImportJob::STATUS_PROCESSING,
+    ]);
+
+    $token = CredentialToken::createForUser($user, 'ImportScoped#123', 24, $importJob->id);
+
+    expect($token->import_job_id)->toBe($importJob->id);
 });

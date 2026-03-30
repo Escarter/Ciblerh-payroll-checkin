@@ -14,6 +14,7 @@ class CredentialToken extends Model
     
     protected $fillable = [
         'user_id',
+        'import_job_id',
         'token',
         'password',
         'created_at',
@@ -36,9 +37,17 @@ class CredentialToken extends Model
     }
 
     /**
+     * Relationship to import job (nullable for non-import user creation)
+     */
+    public function importJob()
+    {
+        return $this->belongsTo(ImportJob::class);
+    }
+
+    /**
      * Create a new credential token for a user
      */
-    public static function createForUser(User $user, string $plainPassword, int $expiresInHours = 24): self
+    public static function createForUser(User $user, string $plainPassword, int $expiresInHours = 24, ?int $importJobId = null): self
     {
         // Delete any existing unexpired tokens for this user
         self::where('user_id', $user->id)
@@ -48,6 +57,7 @@ class CredentialToken extends Model
 
         return self::create([
             'user_id' => $user->id,
+            'import_job_id' => $importJobId,
             'token' => Str::random(64),
             'password' => $plainPassword,
             'created_at' => now(),

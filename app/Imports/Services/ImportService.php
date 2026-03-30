@@ -206,10 +206,15 @@ class ImportService
             throw new \InvalidArgumentException("Unknown entity: {$entitySlug}");
         }
 
+        $contextWithImportJob = $context;
+        if ($importJob) {
+            $contextWithImportJob['import_job_id'] = $importJob->id;
+        }
+
         $adapter->setImportMode($importMode)
                 ->setAutoCreateEntities($autoCreate)
                 ->setUser($user)
-                ->setContext($context);
+            ->setContext($contextWithImportJob);
         
         // Set the sendWelcomeEmails flag if the adapter supports it
         if (method_exists($adapter, 'setSendWelcomeEmails')) {

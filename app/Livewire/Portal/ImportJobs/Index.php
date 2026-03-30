@@ -3,10 +3,7 @@
 namespace App\Livewire\Portal\ImportJobs;
 
 use App\Models\ImportJob;
-use App\Models\Company;
-use App\Models\Department;
-use App\Models\User;
-use App\Models\Service;
+use App\Models\CredentialToken;
 use App\Services\ImportService;
 use App\Livewire\Traits\WithImportPreview;
 use Illuminate\Support\Facades\Gate;
@@ -49,6 +46,7 @@ class Index extends Component
     public $showCreateModal = false;
     public $showRetryModal = false;
     public $selectedJob = null;
+    public int $selectedJobPendingWelcomeEmails = 0;
     public $jobToRetry = null;
     public $job_id = null;
 
@@ -385,6 +383,7 @@ class Index extends Component
     public function viewJobDetails($jobId)
     {
         $this->selectedJob = ImportJob::findOrFail($jobId);
+        $this->selectedJobPendingWelcomeEmails = $this->getPendingWelcomeEmailsForJob($this->selectedJob);
         $this->showDetailsModal = true;
 
         // Use JavaScript to show the modal
@@ -1075,6 +1074,7 @@ class Index extends Component
     {
         $this->showDetailsModal = false;
         $this->selectedJob = null;
+        $this->selectedJobPendingWelcomeEmails = 0;
 
         // Use JavaScript to hide the modal
         $this->dispatch('hide-details-modal');
@@ -1180,16 +1180,54 @@ class Index extends Component
             $this->initializeCompletedJobsTracking();
         }
 
+        $jobs = $this->jobs;
+        $pendingWelcomeEmailCounts = $this->getPendingWelcomeEmailCountsForJobs($jobs->pluck('id')->all());
+
         return view('livewire.portal.import-jobs.index', [
-            'jobs' => $this->jobs,
+            'jobs' => $jobs,
             'availableImportTypes' => $this->getAvailableImportTypes(),
             'companies' => $this->companies,
             'departments' => $this->departments,
             'services' => $this->services,
             'activeJobsCount' => $this->activeJobsCount,
             'trashedJobsCount' => $this->trashedJobsCount,
+            'pendingWelcomeEmailCounts' => $pendingWelcomeEmailCounts,
             'maxFileSize' => $this->maxFileSize,
         ])->layout('components.layouts.dashboard');
+    }
+
+    protected function getPendingWelcomeEmailsForJob(?ImportJob $job): int
+    {
+        if (!$job || $job->import_type !== ImportJob::TYPE_EMPLOYEES) {
+            return 0;
+        }
+
+        if (!data_get($job->import_config, 'send_welcome_emails', false)) {
+            return 0;
+        }
+
+        return CredentialToken::query()
+            ->where('import_job_id', $job->id)
+            ->where('used', false)
+            ->where('expires_at', '>', now())
+            ->count();
+    }
+
+    protected function getPendingWelcomeEmailCountsForJobs(array $jobIds): array
+    {
+        if (empty($jobIds)) {
+            return [];
+        }
+
+        return CredentialToken::query()
+            ->selectRaw('import_job_id, COUNT(*) as pending_count')
+            ->whereIn('import_job_id', $jobIds)
+            ->where('used', false)
+            ->where('expires_at', '>', now())
+            ->groupBy('import_job_id')
+            ->pluck('pending_count', 'import_job_id')
+            ->map(fn ($count) => (int) $count)
+            ->toArray();
     }
 
     /**
