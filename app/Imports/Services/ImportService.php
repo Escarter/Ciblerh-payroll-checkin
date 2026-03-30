@@ -108,6 +108,7 @@ class ImportService
             throw new \InvalidArgumentException("Unknown entity: {$entitySlug}");
         }
 
+        $adapter->setAutoCreateEntities((bool) ($context['auto_create_entities'] ?? false));
         $adapter->setContext($context);
 
         $previewRows = array_slice($rawRows, 0, $limit);
@@ -162,6 +163,7 @@ class ImportService
             throw new \InvalidArgumentException("Unknown entity: {$entitySlug}");
         }
 
+        $adapter->setAutoCreateEntities((bool) ($context['auto_create_entities'] ?? false));
         $adapter->setContext($context);
 
         // Map all rows

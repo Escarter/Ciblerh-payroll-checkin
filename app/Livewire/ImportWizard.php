@@ -402,6 +402,7 @@ class ImportWizard extends Component
             'company_id' => $this->selectedCompanyId,
             'department_id' => $this->selectedDepartmentId,
             'service_id' => $this->selectedServiceId,
+            'auto_create_entities' => $this->autoCreateEntities,
         ]);
     }
 
