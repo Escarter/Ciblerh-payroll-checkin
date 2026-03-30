@@ -140,4 +140,6 @@ return [
     'pending_welcome_emails' => 'Pending Welcome Emails',
     'pending_welcome_emails_short' => ':count pending welcome email(s)',
     'pending_welcome_emails_hint' => 'These credentials emails are queued or waiting to be processed.',
+    'file_storage_failed' => 'Failed to store the uploaded file. Please try again.',
+    'file_expired' => 'The uploaded file has expired or is no longer available. Please upload the file again and try the import immediately.',
 ];

@@ -139,4 +139,6 @@ return [
     'pending_welcome_emails' => 'E-mails de bienvenue en attente',
     'pending_welcome_emails_short' => ':count e-mail(s) de bienvenue en attente',
     'pending_welcome_emails_hint' => 'Ces e-mails d\'identifiants sont en file d\'attente ou en attente de traitement.',
+    'file_storage_failed' => 'Échec du stockage du fichier téléchargé. Veuillez réessayer.',
+    'file_expired' => 'Le fichier téléchargé a expiré ou n\'est plus disponible. Veuillez télécharger le fichier à nouveau et relancer l\'importation immédiatement.',
 ];

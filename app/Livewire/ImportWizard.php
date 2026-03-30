@@ -124,14 +124,23 @@ class ImportWizard extends Component
         }
 
         try {
-            // Store file and capture the exact path for later use in executeImport()
+            // Store file to a permanent location to ensure it persists until queue processing
             $fileName = uniqid('import_') . '_' . $this->file->getClientOriginalName();
-            $filePath = $this->file->storeAs('imports', $fileName, 'local');
-            $this->storedFilePath = $filePath;
+            
+            // Get the temporary uploaded file path and copy it to permanent storage
+            $tempPath = $this->file->getRealPath();
+            $permPath = $this->file->storeAs('imports', $fileName, 'local');
+            
+            // Ensure file exists in permanent storage
+            if (!Storage::disk('local')->exists($permPath)) {
+                throw new \Exception(__('import.file_storage_failed'));
+            }
+            
+            $this->storedFilePath = $permPath;
 
             // Parse file
             $importService = app(ImportService::class);
-            $parsed = $importService->parseFile($filePath);
+            $parsed = $importService->parseFile($permPath);
 
             if (empty($parsed['headers']) || empty($parsed['rows'])) {
                 $this->dispatch('showToast', message: __('import.file_empty'), type: 'danger');
@@ -294,6 +303,13 @@ class ImportWizard extends Component
             } else {
                 // Dispatch background job for large files
                 $filePath = $resolvedFilePath;
+                
+                // Verify file still exists before queueing
+                if (!Storage::disk('local')->exists($filePath)) {
+                    $this->isImporting = false;
+                    $this->dispatch('showToast', message: __('import.file_expired'), type: 'danger');
+                    return;
+                }
 
                 ProcessAdapterImportJob::dispatch(
                     $this->entitySlug,
