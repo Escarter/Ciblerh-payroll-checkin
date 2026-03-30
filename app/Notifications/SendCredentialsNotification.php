@@ -53,7 +53,7 @@ class SendCredentialsNotification extends Notification implements ShouldQueue
                 'token_id' => $this->tokenId,
                 'user_id' => $notifiable->id,
             ]);
-            return (new MailMessage())->view('email.credentials', ['message' => 'Error: Unable to retrieve credentials.']);
+            return (new MailMessage())->view('email.credentials', ['content' => 'Error: Unable to retrieve credentials.']);
         }
 
         // Get password and mark token as used
@@ -76,7 +76,7 @@ class SendCredentialsNotification extends Notification implements ShouldQueue
             return (new MailMessage)
                 ->from('noreply@example.com', 'CibleRH')
                 ->subject($welcome_email_subject)
-                ->markdown('email.credentials',['message' => $welcome_mail_content]);
+                ->markdown('email.credentials',['content' => $welcome_mail_content]);
         }
 
         $welcome_email_subject = $notifiable->preferred_language === 'en' ? $setting->welcome_email_subject_en : $setting->welcome_email_subject_fr;
@@ -88,7 +88,7 @@ class SendCredentialsNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->from($setting->from_email, $setting->from_name)
             ->subject($welcome_email_subject)
-            ->markdown('email.credentials',['message' => $welcome_mail_content]);
+            ->markdown('email.credentials',['content' => $welcome_mail_content]);
     }
 
     /**
