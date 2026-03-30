@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\PayslipMatchingProposal;
 use App\Models\SendPayslipProcess;
+use App\Models\User;
 use App\Jobs\Plan\PayslipSendingPlan;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -96,20 +97,30 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
             ]);
 
             // Log the processing action
-            $user = auth()->user();
-            auditLog(
-                $user,
-                'sftp_payslip_processing_started',
-                'web',
-                "SFTP payslip {$this->proposal->file_name} queued for processing",
-                $sendPayslipProcess,
-                [],
-                $sendPayslipProcess->getAttributes(),
-                [
-                    'sftp_proposal_id' => $this->proposal->id,
-                    'source' => 'sftp',
-                ]
-            );
+            $user = auth()->user()
+                ?? User::find($sendPayslipProcess->user_id)
+                ?? User::role('admin')->first();
+
+            if ($user) {
+                auditLog(
+                    $user,
+                    'sftp_payslip_processing_started',
+                    'queue',
+                    "SFTP payslip {$this->proposal->file_name} queued for processing",
+                    $sendPayslipProcess,
+                    [],
+                    $sendPayslipProcess->getAttributes(),
+                    [
+                        'sftp_proposal_id' => $this->proposal->id,
+                        'source' => 'sftp',
+                    ]
+                );
+            } else {
+                \Log::warning('Skipping SFTP processing audit log: no user available', [
+                    'proposal_id' => $this->proposal->id,
+                    'process_id' => $sendPayslipProcess->id,
+                ]);
+            }
 
             // Start the full pipeline: split → rename/encrypt → finalize → send
             PayslipSendingPlan::start($sendPayslipProcess);

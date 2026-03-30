@@ -37,7 +37,7 @@ class FetchSftpPayslipsJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            $setting = Setting::first();
+            $setting = $this->resolveSftpSetting();
             
             // Check if SFTP sync is enabled
             if (!$setting || !$setting->sftp_sync_enabled) {
@@ -45,14 +45,20 @@ class FetchSftpPayslipsJob implements ShouldQueue
                 return;
             }
 
+            $sftpHost = trim((string) ($setting->sftp_host ?? ''));
+            $sftpUsername = trim((string) ($setting->sftp_username ?? ''));
+
             // Validate SFTP configuration is complete
-            if (!$setting->sftp_host || !$setting->sftp_username) {
-                \Log::warning('SFTP configuration is incomplete. Please configure SFTP settings in the admin panel (host and username are required).');
+            if ($sftpHost === '' || $sftpUsername === '') {
+                \Log::warning('SFTP configuration is incomplete. Please configure SFTP settings in the admin panel (host and username are required).', [
+                    'setting_id' => $setting->id,
+                    'company_id' => $setting->company_id,
+                ]);
                 return;
             }
 
             try {
-                $sftpService = new SftpPayslipService();
+                $sftpService = new SftpPayslipService($setting);
             } catch (\RuntimeException $configError) {
                 \Log::warning('SFTP configuration error: ' . $configError->getMessage());
                 return;
@@ -216,5 +222,32 @@ class FetchSftpPayslipsJob implements ShouldQueue
                 $admin->notify(new \App\Notifications\SftpPayslipProposalsReadyNotification($proposalCount));
             }
         }
+    }
+
+    /**
+     * Resolve the settings row used by this fetch job.
+     */
+    private function resolveSftpSetting(): ?Setting
+    {
+        $primary = Setting::query()
+            ->where('company_id', 1)
+            ->latest('id')
+            ->first();
+
+        if ($primary) {
+            return $primary;
+        }
+
+        $configured = Setting::query()
+            ->whereRaw("TRIM(COALESCE(sftp_host, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(sftp_username, '')) <> ''")
+            ->latest('id')
+            ->first();
+
+        if ($configured) {
+            return $configured;
+        }
+
+        return Setting::query()->latest('id')->first();
     }
 }

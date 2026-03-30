@@ -138,6 +138,42 @@ test('password reset notification applies saved smtp credentials', function () {
         ->and($mailMessage)->toBeInstanceOf(\Illuminate\Notifications\Messages\MailMessage::class);
 });
 
+test('user create applies default work times when missing', function () {
+    $user = User::create([
+        'first_name' => 'Ada',
+        'last_name' => 'Lovelace',
+        'email' => 'ada@example.com',
+        'matricule' => 'EMP-ADA',
+        'professional_phone_number' => '+237600000001',
+        'password' => bcrypt('secret123'),
+        'company_id' => \App\Models\Company::factory()->create()->id,
+        'department_id' => \App\Models\Department::factory()->create()->id,
+        'service_id' => \App\Models\Service::factory()->create()->id,
+    ]);
+
+    expect($user->fresh()->work_start_time)->toBe('08:00:00')
+        ->and($user->fresh()->work_end_time)->toBe('17:30:00');
+});
+
+test('user create replaces null work times with defaults', function () {
+    $user = User::create([
+        'first_name' => 'Grace',
+        'last_name' => 'Hopper',
+        'email' => 'grace@example.com',
+        'matricule' => 'EMP-GRACE',
+        'professional_phone_number' => '+237600000002',
+        'work_start_time' => null,
+        'work_end_time' => null,
+        'password' => bcrypt('secret123'),
+        'company_id' => \App\Models\Company::factory()->create()->id,
+        'department_id' => \App\Models\Department::factory()->create()->id,
+        'service_id' => \App\Models\Service::factory()->create()->id,
+    ]);
+
+    expect($user->fresh()->work_start_time)->toBe('08:00:00')
+        ->and($user->fresh()->work_end_time)->toBe('17:30:00');
+});
+
 
 
 

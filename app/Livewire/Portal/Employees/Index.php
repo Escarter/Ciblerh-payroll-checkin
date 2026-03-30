@@ -26,6 +26,9 @@ class Index extends BaseImportComponent
 {
     use WithDataTable;
 
+    private const DEFAULT_WORK_START_TIME = '08:00';
+    private const DEFAULT_WORK_END_TIME = '17:30';
+
     protected $importType = 'employees';
     protected $importPermission = 'employee-create';
 
@@ -62,8 +65,8 @@ class Index extends BaseImportComponent
     public $role_name = 'employee';
     public $selected_roles = ['employee'];
     public $status = 1;
-    public $work_start_time;
-    public $work_end_time;
+    public $work_start_time = self::DEFAULT_WORK_START_TIME;
+    public $work_end_time = self::DEFAULT_WORK_END_TIME;
     public $company;
     public $auth_role;
     public $date_of_birth;
@@ -140,8 +143,7 @@ class Index extends BaseImportComponent
             default => Role::where('name', 'employee')->orderBy('name', 'desc')->get(),
         };
         $this->password = Str::random(15);
-        $this->work_start_time = Carbon::parse('08:00')->format('H:i');
-        $this->work_end_time = Carbon::parse('17:30')->format('H:i');
+        $this->setDefaultWorkTimes();
 
         // Initialize preview functionality
         $this->initializePreview();
@@ -228,6 +230,7 @@ class Index extends BaseImportComponent
         }
         array_unshift($this->selected_roles, 'employee');
         
+        $this->setDefaultWorkTimes();
         $this->validate();
 
         $user = User::create([
@@ -273,6 +276,8 @@ class Index extends BaseImportComponent
         if (!Gate::allows('employee-update')) {
             return abort(401);
         }
+
+        $this->setDefaultWorkTimes();
         
         // Updated validation - only 5 fields are mandatory
         $this->validate([
@@ -1313,6 +1318,16 @@ class Index extends BaseImportComponent
         $this->receive_email_notifications = true;
         $this->alternative_email = null;
         $this->autoCreateEntities = false;
+        $this->setDefaultWorkTimes();
+    }
+
+    /**
+     * Ensure required work time fields are always populated.
+     */
+    private function setDefaultWorkTimes(): void
+    {
+        $this->work_start_time = $this->work_start_time ?: self::DEFAULT_WORK_START_TIME;
+        $this->work_end_time = $this->work_end_time ?: self::DEFAULT_WORK_END_TIME;
     }
     
     public function openCreateModal()

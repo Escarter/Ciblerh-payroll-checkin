@@ -25,6 +25,8 @@ class User extends Authenticatable implements HasLocalePreference
 
     const STATUS_ACTIVE = 1;
     const STATUS_BANNED = 0;
+    const DEFAULT_WORK_START_TIME = '08:00:00';
+    const DEFAULT_WORK_END_TIME = '17:30:00';
     /**
      * The attributes that are mass assignable.
      *
@@ -63,6 +65,17 @@ class User extends Authenticatable implements HasLocalePreference
         'deactivated_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            $user->applyDefaultWorkTimes();
+        });
+
+        static::updating(function (User $user) {
+            $user->applyDefaultWorkTimes();
+        });
+    }
+
     /**
      * Get the user's preferred locale.
      *
@@ -71,6 +84,17 @@ class User extends Authenticatable implements HasLocalePreference
     public function preferredLocale()
     {
         return $this->preferred_language;
+    }
+
+    public function applyDefaultWorkTimes(): void
+    {
+        if (blank($this->work_start_time)) {
+            $this->work_start_time = self::DEFAULT_WORK_START_TIME;
+        }
+
+        if (blank($this->work_end_time)) {
+            $this->work_end_time = self::DEFAULT_WORK_END_TIME;
+        }
     }
 
     protected function Matricule(): Attribute

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Department;
 use App\Models\Company;
+use App\Models\Setting;
 use Escarter\PopplerPhp\PdfToText;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\FilesystemOperationFailed;
@@ -20,30 +21,77 @@ class SftpPayslipService
      */
     private $disk = null;
 
-    public function __construct()
+    public function __construct(?Setting $setting = null)
     {
-        $setting = \App\Models\Setting::first();
+        $setting = $setting ?? $this->resolveSftpSetting();
         
         if (!$setting) {
             throw new \RuntimeException('No settings found in database. Please configure application settings.');
         }
 
+        $host = trim((string) ($setting->sftp_host ?? ''));
+        $username = trim((string) ($setting->sftp_username ?? ''));
+
         // Validate required SFTP configuration
-        if (empty($setting->sftp_host) || empty($setting->sftp_username)) {
+        if ($host === '' || $username === '') {
             throw new \RuntimeException('SFTP configuration is incomplete. Host and username are required. Please configure SFTP settings in the admin panel.');
         }
 
+        $authType = (string) ($setting->sftp_auth_type ?? 'password');
+
+        if ($authType === 'password' && trim((string) ($setting->sftp_password ?? '')) === '') {
+            throw new \RuntimeException('SFTP password authentication selected but password is missing.');
+        }
+
+        if ($authType === 'ssh_key' && trim((string) ($setting->sftp_private_key_path ?? '')) === '') {
+            throw new \RuntimeException('SFTP SSH key authentication selected but private key path is missing.');
+        }
+
+        $root = trim((string) ($setting->sftp_root ?? ''));
+
         $this->config = [
-            'host' => (string) $setting->sftp_host,
+            'host' => $host,
             'port' => (int) ($setting->sftp_port ?? 22),
-            'username' => (string) $setting->sftp_username,
-            'password' => $setting->sftp_auth_type === 'password' ? (string) ($setting->sftp_password ?? '') : null,
-            'privateKey' => $setting->sftp_auth_type === 'ssh_key' ? (string) ($setting->sftp_private_key_path ?? '') : null,
-            'passphrase' => $setting->sftp_auth_type === 'ssh_key' ? (string) ($setting->sftp_passphrase ?? '') : null,
-            'root' => (string) ($setting->sftp_root ?? '/payslips'),
+            'username' => $username,
+            'password' => $authType === 'password' ? (string) ($setting->sftp_password ?? '') : null,
+            'privateKey' => $authType === 'ssh_key' ? (string) ($setting->sftp_private_key_path ?? '') : null,
+            'passphrase' => $authType === 'ssh_key' ? (string) ($setting->sftp_passphrase ?? '') : null,
+            'root' => $root !== '' ? $root : '/payslips',
             'timeout' => 30,
-            'auth_type' => (string) ($setting->sftp_auth_type ?? 'password'),
+            'auth_type' => $authType,
         ];
+    }
+
+    /**
+     * Resolve the settings row to use for SFTP operations.
+     *
+     * Priority:
+     * 1) company_id = 1 (system/default company)
+     * 2) latest row with non-empty sftp_host + sftp_username
+     * 3) latest settings row as final fallback
+     */
+    private function resolveSftpSetting(): ?Setting
+    {
+        $primary = Setting::query()
+            ->where('company_id', 1)
+            ->latest('id')
+            ->first();
+
+        if ($primary) {
+            return $primary;
+        }
+
+        $configured = Setting::query()
+            ->whereRaw("TRIM(COALESCE(sftp_host, '')) <> ''")
+            ->whereRaw("TRIM(COALESCE(sftp_username, '')) <> ''")
+            ->latest('id')
+            ->first();
+
+        if ($configured) {
+            return $configured;
+        }
+
+        return Setting::query()->latest('id')->first();
     }
 
     /**

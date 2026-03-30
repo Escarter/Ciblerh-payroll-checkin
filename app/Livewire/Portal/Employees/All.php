@@ -26,6 +26,9 @@ class All extends BaseImportComponent
 {
     use WithDataTable;
 
+    private const DEFAULT_WORK_START_TIME = '08:00';
+    private const DEFAULT_WORK_END_TIME = '17:30';
+
     protected $importType = 'employees';
     protected $importPermission = 'employee-import';
 
@@ -94,8 +97,7 @@ class All extends BaseImportComponent
         $this->initializePreview();
 
         $this->roles = auth()->user()->hasRole('admin') ? Role::orderBy('name', 'desc')->get() : Role::whereNotIn('name', ['admin'])->orderBy('name', 'desc')->get();
-        $this->work_start_time = Carbon::parse('08:00')->format('H:i');
-        $this->work_end_time = Carbon::parse('17:30')->format('H:i');
+        $this->setDefaultWorkTimes();
 
         $this->auth_role = auth()->user()->getRoleNames()->first();
     }
@@ -185,6 +187,7 @@ class All extends BaseImportComponent
         if (!Gate::allows('employee-create')) {
             return abort(401);
         }
+        $this->setDefaultWorkTimes();
         // Updated validation - only 5 fields are mandatory
         $this->validate([
             'first_name' => 'required',
@@ -252,6 +255,8 @@ class All extends BaseImportComponent
             'personal_phone_number' => $personalPhone['formatted'] ?? null,
             'mobile_money_number' => $this->mobile_money_number,
             'date_of_birth' => $this->date_of_birth,
+            'work_start_time' => $this->work_start_time,
+            'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ? true : false,
             'password' => bcrypt($this->password),
             'plain_password' => $this->password,
@@ -271,6 +276,8 @@ class All extends BaseImportComponent
         if (!Gate::allows('employee-update')) {
             return abort(401);
         }
+
+        $this->setDefaultWorkTimes();
 
         // Updated validation - only 5 fields are mandatory
         $this->validate([
@@ -365,6 +372,7 @@ class All extends BaseImportComponent
         if (!Gate::allows('employee-update')) {
             return abort(401);
         }
+        $this->setDefaultWorkTimes();
         $this->validate();
 
         // Format phone numbers before updating
@@ -1195,6 +1203,13 @@ class All extends BaseImportComponent
         $this->receive_email_notifications = true;
         $this->alternative_email = null;
         $this->password = Str::random(15);
+        $this->setDefaultWorkTimes();
+    }
+
+    private function setDefaultWorkTimes(): void
+    {
+        $this->work_start_time = $this->work_start_time ?: self::DEFAULT_WORK_START_TIME;
+        $this->work_end_time = $this->work_end_time ?: self::DEFAULT_WORK_END_TIME;
     }
 
     /**

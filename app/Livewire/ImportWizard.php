@@ -49,6 +49,9 @@ class ImportWizard extends Component
     public int $processedRows = 0;
     public int $totalRows = 0;
 
+    // Stored immediately after upload so executeImport() uses the exact path
+    public ?string $storedFilePath = null;
+
     // ─── Available options (populated on mount) ────────────────────────
     public array $availableEntities = [];
     public array $companies = [];
@@ -121,9 +124,10 @@ class ImportWizard extends Component
         }
 
         try {
-            // Store file
+            // Store file and capture the exact path for later use in executeImport()
             $fileName = uniqid('import_') . '_' . $this->file->getClientOriginalName();
             $filePath = $this->file->storeAs('imports', $fileName, 'local');
+            $this->storedFilePath = $filePath;
 
             // Parse file
             $importService = app(ImportService::class);
@@ -234,6 +238,14 @@ class ImportWizard extends Component
         try {
             $context = $this->buildContext();
 
+            // Resolve the uploaded file path — use the value captured at upload time.
+            // Fallback: scan the imports directory if the property was somehow not set
+            // (e.g. component was re-hydrated from a stale snapshot).
+            $resolvedFilePath = $this->storedFilePath
+                ?? ('imports/' . collect(Storage::disk('local')->files('imports'))
+                    ->filter(fn ($f) => str_contains($f, $this->file->getClientOriginalName()))
+                    ->last());
+
             // Create ImportJob record
             $importJob = ImportJob::create([
                 'import_type' => $this->entitySlug,
@@ -241,7 +253,7 @@ class ImportWizard extends Component
                 'company_id' => $this->selectedCompanyId,
                 'department_id' => $this->selectedDepartmentId,
                 'file_name' => $this->file->getClientOriginalName(),
-                'file_path' => 'imports/' . collect(Storage::disk('local')->files('imports'))->last(),
+                'file_path' => $resolvedFilePath,
                 'status' => ImportJob::STATUS_PENDING,
                 'total_rows' => $this->totalRows,
                 'import_config' => [
@@ -281,7 +293,7 @@ class ImportWizard extends Component
 
             } else {
                 // Dispatch background job for large files
-                $filePath = $importJob->file_path;
+                $filePath = $resolvedFilePath;
 
                 ProcessAdapterImportJob::dispatch(
                     $this->entitySlug,
@@ -369,6 +381,7 @@ class ImportWizard extends Component
     {
         $this->currentStep = 1;
         $this->file = null;
+        $this->storedFilePath = null;
         $this->csvHeaders = [];
         $this->fieldMapping = [];
         $this->rawRows = [];
