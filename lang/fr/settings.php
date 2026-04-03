@@ -523,10 +523,11 @@ return [
     'sftp_auto_match_strategy_fuzzy' => 'Floue — toute stratégie autorisée',
     'sftp_auto_match_strategy_help' => 'Les stratégies inférieures au niveau de qualité sélectionné ne déclencheront pas la correspondance automatique.',
     'sftp_auto_match_email_label' => 'Adresses e-mail de notification',
-    'sftp_auto_match_email_help' => 'Séparez plusieurs adresses par une virgule. Un e-mail sera envoyé à tous les destinataires lors de la validation automatique d’une proposition ou lorsqu’un département ne peut pas être déduit. Chaque e-mail contient un lien direct vers la proposition — les destinataires doivent se connecter avant de pouvoir la consulter ou la traiter.',
-    // Fréquence de scan push
-    'sftp_push_scan_frequency_title' => 'Fréquence de scan',
-    'sftp_push_scan_frequency_help' => 'Contrôle la fréquence à laquelle le serveur analyse le dossier SFTP push pour détecter les nouveaux fichiers téléversés.',
+    'sftp_auto_match_email_help' => 'Séparez plusieurs adresses par une virgule. Un e-mail sera envoyé à tous les destinataires lors de la validation automatique d’une proposition ou lorsqu’un département ne peut pas être déduit. Chaque e-mail contient un lien direct vers la proposition — les destinataires doivent se connecter avant de pouvoir la consulter ou la traiter.',    
+    'sftp_match_created_notification_enabled_label' => 'Notifier lors de la création de nouvelles propositions de fiche de paie',
+        'sftp_match_created_email_label' => 'Adresses e-mail de notification de création de proposition',
+        'sftp_match_created_email_help' => 'Séparez plusieurs adresses par une virgule. Un e-mail sera envoyé à tous les destinataires chaque fois qu\'une nouvelle proposition de fiche de paie est créée à partir d\'un fichier téléchargé.',
+
     'sftp_push_scan_frequency_label' => 'Fréquence de scan',
     'sftp_push_scan_time_label' => 'À l\'heure (HH:MM)',
     'sftp_push_scan_days_label' => 'Les jours',

@@ -396,7 +396,11 @@
                         </td>
                         <td>
                             <span class="fs-normal"><span class="fw-bolder">{{__('employees.matricule')}} </span>: {{ $employee->matricule }}</span> <br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('payslips.pdf_password')}}</span> : {{ $employee->pdf_password }}</span><br>
+                            <span class="fs-normal d-inline-flex align-items-center gap-1"><span class="fw-bolder">{{__('payslips.pdf_password')}}</span> : {{ $employee->pdf_password }}
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-muted copy-pdf-pwd" data-password="{{ $employee->pdf_password }}" title="{{ __('common.copy') }}">
+                                    <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                </button>
+                            </span><br>
                             <span class="fs-normal"><span class="fw-bolder">{{__('common.professional_phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
                             <span class="fs-normal"><span class="fw-bolder">{{__('common.personal_phone')}}</span> : {{ $employee->personal_phone_number }}</span>
                         </td>

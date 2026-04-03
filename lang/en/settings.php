@@ -524,6 +524,10 @@ return [
     'sftp_auto_match_email_label' => 'Notification email addresses',
     'sftp_auto_match_email_help' => 'Separate multiple addresses with a comma. An email will be sent to all recipients when a proposal is auto-validated or when a department cannot be inferred. Each email includes a direct link to open the proposal — recipients must log in before they can review or process it.',
 
+    'sftp_match_created_notification_enabled_label' => 'Notify when new payslip proposals are created',
+    'sftp_match_created_email_label' => 'Proposal creation notification email addresses',
+    'sftp_match_created_email_help' => 'Separate multiple addresses with a comma. An email will be sent to all recipients whenever a new payslip proposal is created from an uploaded file. This can help track proposal intake and ensure no files go unreviewed.',
+
     // Push Scan Frequency
     'sftp_push_scan_frequency_title' => 'Scan Frequency',
     'sftp_push_scan_frequency_help' => 'Controls how often the server scans the SFTP push folder for newly uploaded files.',

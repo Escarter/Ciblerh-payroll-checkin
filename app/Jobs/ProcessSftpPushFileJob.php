@@ -5,8 +5,10 @@ namespace App\Jobs;
 use App\Models\Company;
 use App\Models\Department;
 use App\Models\PayslipMatchingProposal;
+use App\Models\Setting;
 use App\Jobs\ProcessValidatedPayslipsJob;
 use App\Notifications\SftpAutoMatchNotification;
+use App\Notifications\SftpProposalCreatedNotification;
 use App\Services\FeatureConfigurationService;
 use App\Services\SftpPayslipService;
 use Illuminate\Bus\Queueable;
@@ -160,6 +162,9 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
         $proposal = PayslipMatchingProposal::create($payload);
 
+        // ── Send proposal creation notification (if enabled) ──────────────────
+        $this->sendProposalCreatedNotification($proposal);
+
         // ── Match routing ─────────────────────────────────────────────────────
         // Business rule:
         // - Use configured auto-match threshold/strategy for automatic processing
@@ -281,6 +286,36 @@ class ProcessSftpPushFileJob implements ShouldQueue
             'error'       => $exception->getMessage(),
             'note'        => 'No direct file move on failure; archival is handled by sftp:archive-proposal-files according to settings.',
         ]);
+    }
+
+    /**
+     * Send notification about proposal creation if enabled in settings
+     */
+    private function sendProposalCreatedNotification(PayslipMatchingProposal $proposal): void
+    {
+        $setting = Setting::first();
+
+        if (!$setting || !$setting->sftp_match_created_notification_enabled) {
+            return;
+        }
+
+        $emailList = $setting->sftp_match_created_notification_email ?? '';
+
+        if (empty(trim($emailList))) {
+            return;
+        }
+
+        try {
+            $this->notifyEmails(
+                $emailList,
+                new SftpProposalCreatedNotification($proposal)
+            );
+        } catch (Throwable $e) {
+            \Log::warning('ProcessSftpPushFileJob: Proposal creation notification failed (non-fatal).', [
+                'proposal_id' => $proposal->id,
+                'error'       => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

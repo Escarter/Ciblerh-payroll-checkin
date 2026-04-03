@@ -116,6 +116,10 @@ class Index extends Component
     public $sftp_auto_match_min_strategy = 'reverse_partial_match';
     public $sftp_auto_match_notification_email = '';
 
+    // Proposal created notification
+    public $sftp_match_created_notification_enabled = false;
+    public $sftp_match_created_notification_email = '';
+
     // SFTP OS user (real SFTP/SSH client access) — kept for legacy single-user script display
     public $sftp_os_username;
     public $sftp_os_password;
@@ -224,6 +228,10 @@ class Index extends Component
             : 80;
         $this->sftp_auto_match_min_strategy = !empty($this->setting) ? ($this->setting->sftp_auto_match_min_strategy ?? 'reverse_partial_match') : 'reverse_partial_match';
         $this->sftp_auto_match_notification_email = !empty($this->setting) ? ($this->setting->sftp_auto_match_notification_email ?? '') : '';
+
+        // Proposal created notification
+        $this->sftp_match_created_notification_enabled = $this->setting ? (bool) $this->setting->sftp_match_created_notification_enabled : false;
+        $this->sftp_match_created_notification_email = !empty($this->setting) ? ($this->setting->sftp_match_created_notification_email ?? '') : '';
 
         // SFTP OS user
         $this->sftp_os_username = !empty($this->setting) ? ($this->setting->sftp_os_username ?? '') : '';
@@ -519,6 +527,8 @@ class Index extends Component
                 'sftp_auto_match_threshold' => (int) $this->sftp_auto_match_threshold,
                 'sftp_auto_match_min_strategy' => $this->sftp_auto_match_min_strategy,
                 'sftp_auto_match_notification_email' => $this->normalizeEmails($this->sftp_auto_match_notification_email),
+                'sftp_match_created_notification_enabled' => (bool) $this->sftp_match_created_notification_enabled,
+                'sftp_match_created_notification_email' => $this->normalizeEmails($this->sftp_match_created_notification_email),
                 'sftp_os_username' => $this->sftp_os_username ?: null,
                 'sftp_os_password' => $this->sftp_os_password ?: null,
                 'sftp_server_host' => $this->sftp_server_host ?: null,

@@ -68,7 +68,12 @@
                         </div>
                         <div class='form-group mb-2'>
                             <label for="pdf_password">{{__('employees.pdf_password')}}</label>
-                            <input wire:model.defer="pdf_password" type="text" class="form-control  @error('pdf_password') is-invalid @enderror" disabled>
+                            <div class="input-group">
+                                <input wire:model.defer="pdf_password" type="text" class="form-control @error('pdf_password') is-invalid @enderror" disabled>
+                                <button type="button" class="btn btn-outline-secondary copy-pdf-pwd" data-password="{{ $pdf_password }}" title="{{ __('common.copy') }}">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                </button>
+                            </div>
                             @error('pdf_password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

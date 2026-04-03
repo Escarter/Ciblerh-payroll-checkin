@@ -506,6 +506,27 @@
                                         class="form-control w-100"></textarea>
                                     <small class="text-muted">{{ __('settings.sftp_auto_match_email_help') }}</small>
                                 </div>
+
+                                {{-- Proposal Created Notification --}}
+                                <div class="form-check form-switch mb-3">
+                                    <input type="checkbox" wire:model="sftp_match_created_notification_enabled"
+                                        id="sftp_match_created_notification_enabled" class="form-check-input">
+                                    <label for="sftp_match_created_notification_enabled" class="form-check-label">
+                                        {{ __('settings.sftp_match_created_notification_enabled_label') }}
+                                    </label>
+                                </div>
+
+                                @if ($sftp_match_created_notification_enabled)
+                                <div class="form-group mb-3">
+                                    <label for="sftp_match_created_notification_email">{{ __('settings.sftp_match_created_email_label') }}</label>
+                                    <textarea wire:model="sftp_match_created_notification_email"
+                                        id="sftp_match_created_notification_email"
+                                        rows="3"
+                                        placeholder="admin@example.com, hr@example.com"
+                                        class="form-control w-100"></textarea>
+                                    <small class="text-muted">{{ __('settings.sftp_match_created_email_help') }}</small>
+                                </div>
+                                @endif
                             @endif
                         </div>
                     @endif

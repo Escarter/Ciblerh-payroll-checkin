@@ -486,6 +486,72 @@ class SftpPayslipValidator extends Component
     }
 
     /**
+     * Retry a failed proposal by resetting it to validated status and re-queueing for processing
+     */
+    public function retryFailedProposal(string $proposalId): void
+    {
+        $proposal = PayslipMatchingProposal::findOrFail($proposalId);
+
+        // Only failed proposals can be retried
+        if ($proposal->status !== PayslipMatchingProposal::STATUS_FAILED) {
+            $this->dispatch('showToast',
+                message: __('payslips.only_failed_proposals_can_be_retried'),
+                type: 'warning'
+            );
+            return;
+        }
+
+        // Verify the file still exists
+        $resolvedPath = $proposal->resolveExistingLocalFilePath();
+        if (!$resolvedPath || !file_exists($resolvedPath)) {
+            $this->dispatch('showToast',
+                message: __('payslips.local_file_not_found'),
+                type: 'danger'
+            );
+            return;
+        }
+
+        // Guard: check if already processing to prevent conflicts
+        if ($proposal->sendPayslipProcesses()->where('status', 'processing')->exists()) {
+            $this->dispatch('showToast',
+                message: __('payslips.proposal_already_processing'),
+                type: 'warning'
+            );
+            return;
+        }
+
+        $oldStatus = $proposal->status;
+
+        // Reset to validated status for reprocessing
+        $proposal->update([
+            'status' => PayslipMatchingProposal::STATUS_VALIDATED,
+            'rejection_reason' => null,
+        ]);
+
+        auditLog(
+            auth()->user(),
+            'sftp_proposal_retry_initiated',
+            'web',
+            "Failed proposal {$proposal->id} for file {$proposal->file_name} retried for processing",
+            $proposal,
+            ['status' => $oldStatus],
+            ['status' => PayslipMatchingProposal::STATUS_VALIDATED]
+        );
+
+        // Re-queue for processing
+        ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
+
+        $this->dispatch('showToast',
+            message: __('payslips.failed_proposal_queued_for_retry'),
+            type: 'success'
+        );
+
+        // Refresh to show the status change
+        $this->resetEditForm();
+        $this->dispatch('closeModals');
+    }
+
+    /**
      * Process multiple validated proposals
      */
     public function processSelected()
