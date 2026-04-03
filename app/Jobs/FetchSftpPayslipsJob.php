@@ -21,12 +21,16 @@ class FetchSftpPayslipsJob implements ShouldQueue
     public $maxExceptions = 1;
     public $timeout = 300;
     public $failOnTimeout = true;
+    private int $offset;
+    private bool $forceFullScan;
 
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(int $offset = 0, bool $forceFullScan = false)
     {
+        $this->offset = $offset;
+        $this->forceFullScan = $forceFullScan;
         $this->onQueue('processing');
     }
 
@@ -73,13 +77,16 @@ class FetchSftpPayslipsJob implements ShouldQueue
             }
 
             // Get last sync time for incremental fetching
-            $lastSyncTime = \Cache::get('sftp_last_sync_time', 0);
+            $lastSyncTime = $this->forceFullScan
+                ? 0
+                : \Cache::get('sftp_last_sync_time', 0);
             
             // Fetch payslips from SFTP with filtering options
             $result = $sftpService->fetchPayslipsFromSftp([
                 'extensions' => ['pdf'],          // Only PDF files
                 'maxDepth' => 5,                  // Don't search too deep
                 'lastModifiedAfter' => $lastSyncTime,  // Only new/updated files
+                'offset' => $this->offset,        // Support pagination across batches
                 'limit' => 100,                   // Batch process to avoid timeouts
             ]);
 
@@ -92,11 +99,17 @@ class FetchSftpPayslipsJob implements ShouldQueue
 
             // Handle pagination - if there are more files, queue another job
             if ($result['hasMore'] ?? false) {
-                $this->dispatch(new self())
+                $nextOffset = $this->offset + ($result['count'] ?? 0);
+
+                self::dispatch($nextOffset, $this->forceFullScan)
                     ->delay(now()->addSeconds(30))
                     ->onQueue('processing');
                     
-                \Log::info("More files available. Queuing another fetch job.");
+                \Log::info("More files available. Queuing another fetch job.", [
+                    'current_offset' => $this->offset,
+                    'next_offset' => $nextOffset,
+                    'force_full_scan' => $this->forceFullScan,
+                ]);
             }
 
             // Create organized directory for today's download
@@ -183,7 +196,9 @@ class FetchSftpPayslipsJob implements ShouldQueue
             }
 
             // Update last sync time
-            \Cache::put('sftp_last_sync_time', time(), 86400); // Cache for 24 hours
+            if (!$this->forceFullScan) {
+                \Cache::put('sftp_last_sync_time', time(), 86400); // Cache for 24 hours
+            }
 
             \Log::info("Created {$proposalCount} new payslip file proposals. Downloaded: {$downloadedCount}, Errors: {$errorsCount}");
 

@@ -194,6 +194,42 @@ if (!function_exists('isSftpSyncEnabled')) {
 }
 
 /**
+ * Check if remote SFTP fetching is actually configured.
+ *
+ * Local push-folder scanning can still be enabled without any remote host.
+ */
+if (!function_exists('isRemoteSftpFetchEnabled')) {
+    function isRemoteSftpFetchEnabled(): bool
+    {
+        try {
+            if (!isSftpSyncEnabled()) {
+                return false;
+            }
+
+            $setting = \App\Models\Setting::query()
+                ->where('company_id', 1)
+                ->latest('id')
+                ->first()
+                ?? \App\Models\Setting::query()
+                    ->whereRaw("TRIM(COALESCE(sftp_host, '')) <> ''")
+                    ->whereRaw("TRIM(COALESCE(sftp_username, '')) <> ''")
+                    ->latest('id')
+                    ->first()
+                ?? \App\Models\Setting::query()->latest('id')->first();
+
+            if (!$setting) {
+                return false;
+            }
+
+            return trim((string) ($setting->sftp_host ?? '')) !== ''
+                && trim((string) ($setting->sftp_username ?? '')) !== '';
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+}
+
+/**
  * Prune expired session files and database records
  */
 if (!function_exists('pruneExpiredSessions')) {
@@ -291,7 +327,7 @@ Schedule::command('users:deactivate-inactive')
 // Fetch SFTP payslips - scheduled based on frequency setting
 Schedule::job(new \App\Jobs\FetchSftpPayslipsJob)
     ->{getSftpSyncFrequency()}()
-    ->when(fn() => isSftpSyncEnabled());
+    ->when(fn() => isRemoteSftpFetchEnabled());
 
 // Scan SFTP push folder - frequency configurable from settings
 $pushEvent = Schedule::command('sftp:scan-push-folder')

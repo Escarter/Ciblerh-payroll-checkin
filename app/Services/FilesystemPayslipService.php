@@ -14,11 +14,37 @@ class FilesystemPayslipService
 
     public function __construct()
     {
-        $setting = \App\Models\Setting::first();
+        $setting = $this->resolveSftpSetting();
         $this->config = [
             'push_path' => $setting->sftp_push_path ?? 'storage/app/sftp-push',
             'sync_enabled' => $setting->sftp_sync_enabled ?? false,
         ];
+    }
+
+    private function resolveSftpSetting(): ?\App\Models\Setting
+    {
+        $primary = \App\Models\Setting::query()
+            ->where('company_id', 1)
+            ->latest('id')
+            ->first();
+
+        if ($primary) {
+            return $primary;
+        }
+
+        $configured = \App\Models\Setting::query()
+            ->where(function ($query) {
+                $query->whereRaw("TRIM(COALESCE(sftp_push_path, '')) <> ''")
+                    ->orWhereRaw("TRIM(COALESCE(sftp_push_username, '')) <> ''");
+            })
+            ->latest('id')
+            ->first();
+
+        if ($configured) {
+            return $configured;
+        }
+
+        return \App\Models\Setting::query()->latest('id')->first();
     }
 
     /**

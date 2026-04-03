@@ -130,7 +130,7 @@ class Index extends Component
 
     public function mount() {
 
-        $this->setting = Setting::first();
+        $this->setting = $this->resolveSftpSetting();
 
         $this->sms_provider= !empty($this->setting) ? $this->setting->sms_provider: '';
         $this->sms_provider_username = !empty($this->setting) ? $this->setting->sms_provider_username : '';
@@ -985,7 +985,7 @@ class Index extends Component
         }
 
         try {
-            Artisan::call('sftp:scan-push-folder');
+            Artisan::call('sftp:scan-push-folder', ['--sync' => true]);
             $output = trim(Artisan::output());
 
             if (!empty($output)) {
@@ -996,6 +996,32 @@ class Index extends Component
         } catch (\Throwable $e) {
             $this->showToast(__('settings.sftp_scan_now_failed') . ': ' . $e->getMessage(), 'danger');
         }
+    }
+
+    private function resolveSftpSetting(): ?Setting
+    {
+        $primary = Setting::query()
+            ->where('company_id', 1)
+            ->latest('id')
+            ->first();
+
+        if ($primary) {
+            return $primary;
+        }
+
+        $configured = Setting::query()
+            ->where(function ($query) {
+                $query->whereRaw("TRIM(COALESCE(sftp_push_path, '')) <> ''")
+                    ->orWhereRaw("TRIM(COALESCE(sftp_push_username, '')) <> ''");
+            })
+            ->latest('id')
+            ->first();
+
+        if ($configured) {
+            return $configured;
+        }
+
+        return Setting::query()->latest('id')->first();
     }
 
     /**

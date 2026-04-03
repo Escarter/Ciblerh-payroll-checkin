@@ -17,12 +17,12 @@ class ScanSftpPushFolderCommand extends Command
      */
     private const MIN_SETTLE_SECONDS = 30;
 
-    protected $signature   = 'sftp:scan-push-folder {--dry-run : List files without dispatching jobs}';
+    protected $signature   = 'sftp:scan-push-folder {--dry-run : List files without dispatching jobs} {--sync : Process files immediately instead of queueing jobs}';
     protected $description = 'Scan all SFTP user incoming folders for unprocessed PDF files and queue metadata extraction.';
 
     public function handle(): int
     {
-        $setting = Setting::first();
+        $setting = $this->resolveSftpSetting();
 
         if (!$setting || !$setting->sftp_sync_enabled) {
             $this->info('SFTP sync is disabled. Skipping scan.');
@@ -39,8 +39,8 @@ class ScanSftpPushFolderCommand extends Command
             return self::SUCCESS;
         }
 
-        $totalDispatched = 0;
-        $totalSkipped    = 0;
+        $totalHandled = 0;
+        $totalSkipped = 0;
 
         foreach ($incomingPaths as ['label' => $label, 'path' => $incomingPath]) {
             if (!is_dir($incomingPath)) {
@@ -115,9 +115,15 @@ class ScanSftpPushFolderCommand extends Command
 
                     if ($lock->get()) {
                         try {
-                            ProcessSftpPushFileJob::dispatch($absolutePath, $basename, $fingerprint);
-                            $this->line("  [queued] {$basename}");
-                            $totalDispatched++;
+                            if ($this->option('sync')) {
+                                ProcessSftpPushFileJob::dispatchSync($absolutePath, $basename, $fingerprint);
+                                $this->line("  [processed] {$basename}");
+                            } else {
+                                ProcessSftpPushFileJob::dispatch($absolutePath, $basename, $fingerprint);
+                                $this->line("  [queued] {$basename}");
+                            }
+
+                            $totalHandled++;
                         } finally {
                             $lock->release();
                         }
@@ -129,9 +135,12 @@ class ScanSftpPushFolderCommand extends Command
             }
         }
 
+        $summaryLabel = $this->option('sync') ? 'Processed' : 'Dispatched';
+
         $this->info(sprintf(
-            'Scan complete. Dispatched: %d, Skipped: %d.',
-            $totalDispatched,
+            'Scan complete. %s: %d, Skipped: %d.',
+            $summaryLabel,
+            $totalHandled,
             $totalSkipped
         ));
 
@@ -158,5 +167,34 @@ class ScanSftpPushFolderCommand extends Command
         $legacy = base_path($setting->sftp_push_path ?? 'storage/app/sftp-push') . '/incoming';
 
         return [['label' => 'default', 'path' => $legacy]];
+    }
+
+    /**
+     * Resolve the settings row used for SFTP features.
+     */
+    private function resolveSftpSetting(): ?Setting
+    {
+        $primary = Setting::query()
+            ->where('company_id', 1)
+            ->latest('id')
+            ->first();
+
+        if ($primary) {
+            return $primary;
+        }
+
+        $configured = Setting::query()
+            ->where(function ($query) {
+                $query->whereRaw("TRIM(COALESCE(sftp_host, '')) <> ''")
+                    ->orWhereRaw("TRIM(COALESCE(sftp_push_path, '')) <> ''");
+            })
+            ->latest('id')
+            ->first();
+
+        if ($configured) {
+            return $configured;
+        }
+
+        return Setting::query()->latest('id')->first();
     }
 }

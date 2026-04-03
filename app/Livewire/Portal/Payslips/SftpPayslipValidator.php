@@ -156,15 +156,15 @@ class SftpPayslipValidator extends Component
     }
 
     /**
-     * Trigger an immediate scan of SFTP push incoming folders.
-     * This lets admins pull newly uploaded files without waiting for scheduler.
+     * Trigger an immediate scan of local incoming folders and process them
+     * synchronously so new proposals appear in the validator UI right away.
      */
     public function pullNow(): void
     {
         $this->authorize('manage-payslips');
 
         try {
-            \Artisan::call('sftp:scan-push-folder');
+            \Artisan::call('sftp:scan-push-folder', ['--sync' => true]);
             $output = trim((string) \Artisan::output());
             $lower  = mb_strtolower($output);
 
@@ -176,7 +176,7 @@ class SftpPayslipValidator extends Component
                 return;
             }
 
-            if (preg_match('/Dispatched:\s*(\d+),\s*Skipped:\s*(\d+)/i', $output, $m)) {
+            if (preg_match('/(?:Processed|Dispatched):\s*(\d+),\s*Skipped:\s*(\d+)/i', $output, $m)) {
                 $this->dispatch('showToast',
                     message: __('payslips.pull_now_success', [
                         'queued' => (int) $m[1],
