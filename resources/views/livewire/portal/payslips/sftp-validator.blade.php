@@ -43,10 +43,70 @@
         </div>
     </div>
 
+    @if (!empty($lastScanOutput))
+        <div class="alert alert-light border mb-3">
+            <div class="small fw-semibold text-muted mb-1">Last scan report</div>
+            <pre class="small mb-0" style="white-space: pre-wrap; max-height: 180px; overflow-y: auto;">{{ $lastScanOutput }}</pre>
+        </div>
+    @endif
+
+    @if (!empty($lastScanStats))
+        <div class="row g-2 mb-3">
+            <div class="col-6 col-md-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-2 px-3">
+                        <div class="small text-muted">Handled</div>
+                        <div class="fw-bold text-success">{{ $lastScanStats['handled'] ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-2 px-3">
+                        <div class="small text-muted">Skipped</div>
+                        <div class="fw-bold text-warning">{{ $lastScanStats['skipped'] ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-2 px-3">
+                        <div class="small text-muted">Already indexed</div>
+                        <div class="fw-bold">{{ $lastScanStats['alreadyIndexed'] ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-2 px-3">
+                        <div class="small text-muted">Still uploading</div>
+                        <div class="fw-bold">{{ $lastScanStats['stillSettling'] ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-2 px-3">
+                        <div class="small text-muted">Locked</div>
+                        <div class="fw-bold">{{ $lastScanStats['locked'] ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-2 px-3">
+                        <div class="small text-muted">Other</div>
+                        <div class="fw-bold">{{ $lastScanStats['otherSkipped'] ?? 0 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- ── Stats Row ────────────────────────────────────────────── --}}
     <div class="row g-3 mb-4">
         {{-- Pending --}}
-        <div class="col-6 col-xl-3">
+        <div class="col-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center gap-3 py-3">
                     <div class="icon-shape icon-shape-warning rounded flex-shrink-0">
@@ -62,7 +122,7 @@
             </div>
         </div>
         {{-- Validated --}}
-        <div class="col-6 col-xl-3">
+        <div class="col-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center gap-3 py-3">
                     <div class="icon-shape icon-shape-info rounded flex-shrink-0">
@@ -78,7 +138,7 @@
             </div>
         </div>
         {{-- Processed --}}
-        <div class="col-6 col-xl-3">
+        <div class="col-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center gap-3 py-3">
                     <div class="icon-shape icon-shape-success rounded flex-shrink-0">
@@ -94,17 +154,33 @@
             </div>
         </div>
         {{-- Rejected --}}
-        <div class="col-6 col-xl-3">
+        <div class="col-6 col-xl">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center gap-3 py-3">
-                    <div class="icon-shape icon-shape-danger rounded flex-shrink-0">
+                    <div class="icon-shape icon-shape-warning rounded flex-shrink-0">
                         <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                         </svg>
                     </div>
                     <div>
                         <div class="text-muted small">{{ __('payslips.total_rejected') }}</div>
                         <div class="h4 mb-0 fw-bold">{{ numberFormat($totalRejected) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- Failed --}}
+        <div class="col-6 col-xl">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center gap-3 py-3">
+                    <div class="icon-shape icon-shape-danger rounded flex-shrink-0">
+                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-muted small">{{ __('payslips.total_failed') }}</div>
+                        <div class="h4 mb-0 fw-bold">{{ numberFormat($totalFailed) }}</div>
                     </div>
                 </div>
             </div>
@@ -168,8 +244,8 @@
             'pending'   => ['label' => __('payslips.pending'),      'color' => 'warning',   'count' => $totalPending,   'text' => 'text-dark'],
             'validated' => ['label' => __('payslips.validated'),    'color' => 'info',      'count' => $totalValidated, 'text' => 'text-dark'],
             'processed' => ['label' => __('payslips.processed'),    'color' => 'success',   'count' => $totalProcessed, 'text' => 'text-white'],
-            'rejected'  => ['label' => __('payslips.rejected'),     'color' => 'danger',    'count' => $totalRejected,  'text' => 'text-white'],
-            'failed'    => ['label' => __('payslips.failed'),       'color' => 'dark',      'count' => $totalFailed,    'text' => 'text-white'],
+            'rejected'  => ['label' => __('payslips.rejected'),     'color' => 'warning',   'count' => $totalRejected,  'text' => 'text-dark'],
+            'failed'    => ['label' => __('payslips.failed'),       'color' => 'danger',    'count' => $totalFailed,    'text' => 'text-white'],
         ] as $tabStatus => $tab)
             <button type="button"
                 class="btn {{ $filterStatus === $tabStatus ? 'btn-'.$tab['color'] : 'btn-outline-'.$tab['color'] }}"
@@ -304,10 +380,10 @@
                                         <span class="badge bg-success text-white p-2">{{ __('payslips.processed') }}</span>
                                         @break
                                     @case('rejected')
-                                        <span class="badge bg-danger text-white p-2">{{ __('payslips.rejected') }}</span>
+                                        <span class="badge bg-warning text-dark p-2">{{ __('payslips.rejected') }}</span>
                                         @break
                                     @case('failed')
-                                        <span class="badge bg-dark text-white p-2">{{ __('payslips.failed') }}</span>
+                                        <span class="badge bg-danger text-white p-2">{{ __('payslips.failed') }}</span>
                                         @break
                                 @endswitch
                             </td>
@@ -428,6 +504,31 @@
                                     @else -
                                     @endif
                                 </div>
+                            </div>
+                        </div>
+
+                        @php
+                            $currentFolder = basename(dirname((string) $viewingProposal->file_path));
+                            $moveReason = match ($viewingProposal->status) {
+                                'processed' => 'Moved to /processed because downstream payslip processing completed successfully.',
+                                'rejected' => 'Proposal was rejected by a user. File moved to /rejected folder.',
+                                'failed' => 'Processing failed. File moved to /failed folder.',
+                                'validated' => 'Validated and waiting for processing completion before archive movement.',
+                                default => 'Pending intake/validation; file typically remains in /incoming.',
+                            };
+                        @endphp
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-4">
+                                <div class="small text-muted mb-1">Current folder</div>
+                                <span class="badge bg-secondary text-white p-2">{{ $currentFolder ?: 'unknown' }}</span>
+                            </div>
+                            <div class="col-sm-8">
+                                <div class="small text-muted mb-1">Movement reason</div>
+                                <div class="small">{{ $moveReason }}</div>
+                                @if (!empty($viewingProposal->rejection_reason))
+                                    <div class="small text-danger mt-1"><strong>Details:</strong> {{ $viewingProposal->rejection_reason }}</div>
+                                @endif
                             </div>
                         </div>
 

@@ -22,6 +22,8 @@ class SftpPayslipValidator extends Component
     public $filterCompany = '';
     public $filterDepartment = '';
     public $searchFilename = '';
+    public $lastScanOutput = null;
+    public $lastScanStats = null;
 
     // Modal properties
     public $editingProposalId = null;
@@ -167,6 +169,8 @@ class SftpPayslipValidator extends Component
             \Artisan::call('sftp:scan-push-folder', ['--sync' => true]);
             $output = trim((string) \Artisan::output());
             $lower  = mb_strtolower($output);
+            $this->lastScanOutput = $output;
+            $this->lastScanStats = null;
 
             if (str_contains($lower, 'sftp sync is disabled')) {
                 $this->dispatch('showToast',
@@ -177,12 +181,46 @@ class SftpPayslipValidator extends Component
             }
 
             if (preg_match('/(?:Processed|Dispatched):\s*(\d+),\s*Skipped:\s*(\d+)/i', $output, $m)) {
+                $handled = (int) $m[1];
+                $skipped = (int) $m[2];
+
+                $alreadyExists = substr_count($lower, 'already indexed as proposal');
+                $stillSettling = substr_count($lower, 'file still settling');
+                $lockActive = substr_count($lower, 'dispatch lock active');
+                $explainedSkipped = $alreadyExists + $stillSettling + $lockActive;
+                $otherSkipped = max(0, $skipped - $explainedSkipped);
+
+                $this->lastScanStats = [
+                    'handled' => $handled,
+                    'skipped' => $skipped,
+                    'alreadyIndexed' => $alreadyExists,
+                    'stillSettling' => $stillSettling,
+                    'locked' => $lockActive,
+                    'otherSkipped' => $otherSkipped,
+                ];
+
+                $detailParts = [];
+                if ($alreadyExists > 0) {
+                    $detailParts[] = "already indexed: {$alreadyExists}";
+                }
+                if ($stillSettling > 0) {
+                    $detailParts[] = "still uploading: {$stillSettling}";
+                }
+                if ($lockActive > 0) {
+                    $detailParts[] = "locked: {$lockActive}";
+                }
+                if ($otherSkipped > 0) {
+                    $detailParts[] = "other: {$otherSkipped}";
+                }
+
+                $details = !empty($detailParts) ? (' (' . implode(', ', $detailParts) . ')') : '';
+
                 $this->dispatch('showToast',
                     message: __('payslips.pull_now_success', [
-                        'queued' => (int) $m[1],
-                        'skipped' => (int) $m[2],
-                    ]),
-                    type: 'success'
+                        'queued' => $handled,
+                        'skipped' => $skipped,
+                    ]) . $details,
+                    type: $handled > 0 ? 'success' : 'warning'
                 );
             } else {
                 $this->dispatch('showToast',

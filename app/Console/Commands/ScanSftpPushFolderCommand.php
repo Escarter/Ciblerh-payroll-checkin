@@ -89,7 +89,7 @@ class ScanSftpPushFolderCommand extends Command
 
                 // Skip when a non-rejected/non-failed proposal already exists for
                 // the same fingerprint (preferred) or same legacy filename.
-                $exists = PayslipMatchingProposal::query()
+                $existingProposal = PayslipMatchingProposal::query()
                     ->whereNotIn('status', [
                         PayslipMatchingProposal::STATUS_REJECTED,
                         PayslipMatchingProposal::STATUS_FAILED,
@@ -99,10 +99,11 @@ class ScanSftpPushFolderCommand extends Command
                         fn($q) => $q->where('file_fingerprint', $fingerprint),
                         fn($q) => $q->where('file_name', $basename)
                     )
-                    ->exists();
+                    ->select('id', 'status')
+                    ->first();
 
-                if ($exists) {
-                    $this->line("  [skip] {$basename} — proposal already exists.");
+                if ($existingProposal) {
+                    $this->line("  [skip] {$basename} — already indexed as proposal {$existingProposal->id} ({$existingProposal->status}).");
                     $totalSkipped++;
                     continue;
                 }

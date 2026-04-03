@@ -921,6 +921,12 @@ class Index extends Component
             @mkdir($pushPath, 0755, true);
         }
 
+        // Create 'incoming' subdirectory if it doesn't exist
+        $incomingDir = $pushPath . '/incoming';
+        if (!file_exists($incomingDir)) {
+            @mkdir($incomingDir, 0755, true);
+        }
+
         // Create 'processed' subdirectory if it doesn't exist
         $processedDir = $pushPath . '/processed';
         if (!file_exists($processedDir)) {

@@ -117,8 +117,8 @@ class FilesystemPayslipService
                     continue;
                 }
 
-                // Skip if path contains '/processed/' (already archived)
-                if (strpos($filePath, '/processed/') !== false) {
+                // Skip if path contains archived folders
+                if (strpos($filePath, '/processed/') !== false || strpos($filePath, '/failed/') !== false) {
                     $skipped++;
                     continue;
                 }
@@ -406,6 +406,9 @@ class FilesystemPayslipService
     {
         try {
             $pushPath = base_path($this->config['push_path']);
+            $incomingPath = $pushPath . '/incoming';
+            $processedPath = $pushPath . '/processed';
+            $failedPath = $pushPath . '/failed';
 
             // Auto-create directory if it doesn't exist
             if (!file_exists($pushPath)) {
@@ -414,6 +417,19 @@ class FilesystemPayslipService
                     return [
                         'success' => false,
                         'message' => "Failed to create push path: {$pushPath}",
+                    ];
+                }
+            }
+
+            foreach ([$incomingPath, $processedPath, $failedPath] as $directory) {
+                if (!file_exists($directory)) {
+                    @mkdir($directory, 0755, true);
+                }
+
+                if (!file_exists($directory)) {
+                    return [
+                        'success' => false,
+                        'message' => "Failed to create required directory: {$directory}",
                     ];
                 }
             }
@@ -432,6 +448,20 @@ class FilesystemPayslipService
                 ];
             }
 
+            if (!is_readable($incomingPath)) {
+                return [
+                    'success' => false,
+                    'message' => "Incoming path is not readable: {$incomingPath}",
+                ];
+            }
+
+            if (!is_writable($incomingPath)) {
+                return [
+                    'success' => false,
+                    'message' => "Incoming path is not writable: {$incomingPath}",
+                ];
+            }
+
             // Try to count files
             $result = $this->fetchPayslipsFromPath(['limit' => 1]);
             
@@ -444,8 +474,8 @@ class FilesystemPayslipService
 
             return [
                 'success' => true,
-                'message' => "Push path is accessible and writable",
-                'path' => $pushPath,
+                'message' => "Push path and incoming lifecycle folders are accessible and writable",
+                'path' => $incomingPath,
                 'file_count' => $result['processed'],
             ];
         } catch (\Exception $e) {

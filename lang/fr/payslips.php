@@ -431,6 +431,7 @@ return [
     'total_validated' => 'Total validé',
     'total_processed' => 'Total traité',
     'total_rejected' => 'Total rejeté',
+    'total_failed' => 'Total échoué',
     'unresolved' => 'Non résolu',
     'no_department' => 'Aucun département',
     'no_departments_for_company' => 'Aucun département pour cette société',
