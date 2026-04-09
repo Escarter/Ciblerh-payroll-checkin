@@ -57,6 +57,7 @@ class PayslipSendingPlan
         Bus::batch($jobs)
             ->onQueue('pdf-processing')
             ->then(function ($batch) use ($payslip_process) {
+                static::syncPayslipPeriodsToProcess($payslip_process);
                 static::reconcileUnmatchedEmployees($payslip_process);
                 $payslip_process->update(['status' => 'successful', 'percentage_completion' => $batch->progress()]);
                 // After combination batch completes, finalize encryption (for multi-page payslips)
@@ -69,6 +70,28 @@ class PayslipSendingPlan
             ->allowFailures()
             ->name('Rename, Encrypt and record payslip')
             ->dispatch();
+    }
+
+    /**
+     * Ensure all payslips created for a process inherit the process month/year.
+     *
+     * This self-heals records created through older code paths that defaulted to
+     * the current year instead of the schedule year.
+     */
+    private static function syncPayslipPeriodsToProcess($payslip_process): void
+    {
+        Payslip::query()
+            ->where('send_payslip_process_id', $payslip_process->id)
+            ->where(function ($query) use ($payslip_process) {
+                $query->where('month', '!=', $payslip_process->month)
+                    ->orWhere('year', '!=', $payslip_process->year)
+                    ->orWhereNull('month')
+                    ->orWhereNull('year');
+            })
+            ->update([
+                'month' => $payslip_process->month,
+                'year' => $payslip_process->year,
+            ]);
     }
 
     /**

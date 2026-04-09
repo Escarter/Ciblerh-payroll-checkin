@@ -254,6 +254,7 @@ return [
     'id' => 'ID',
     'title' => 'Title',
     'description' => 'Description',
+    'details' => 'Details',
     'reason' => 'Reason',
     'notes' => 'Notes',
     'comments' => 'Comments',
