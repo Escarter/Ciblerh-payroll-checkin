@@ -280,6 +280,7 @@ class User extends Authenticatable implements HasLocalePreference
                 $q->orWhere('matricule', 'like', '%' . $query . '%');
                 $q->orWhere('professional_phone_number', 'like', '%' . $query . '%');
                 $q->orWhere('personal_phone_number', 'like', '%' . $query . '%');
+                $q->orWhere('pdf_password', 'like', '%' . $query . '%');
                 $q->orWhereHas('service', function ($q) use ($query) {
                     $q->where('name', 'like', '%' . $query . '%');
                 });
