@@ -668,6 +668,7 @@ return [
 
     // Traductions communes supplémentaires
     'roles_status' => 'Statut des rôles',
+    'company' => 'Société',
     'department' => 'Département',
     'service' => 'Service',
     'note' => 'Note',

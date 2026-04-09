@@ -668,6 +668,7 @@ return [
 
     // Additional common translations
     'roles_status' => 'Roles Status',
+    'company' => 'Company',
     'department' => 'Department',
     'service' => 'Service',
     'note' => 'Note',
