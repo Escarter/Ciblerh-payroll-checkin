@@ -21,6 +21,13 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
     public $timeout = 600;
     public $failOnTimeout = true;
 
+    private const FAIL_NOT_VALIDATED = 'PV_NOT_VALIDATED';
+    private const FAIL_NO_COMPANY = 'PV_NO_COMPANY';
+    private const FAIL_NOT_DOWNLOADED = 'PV_NOT_DOWNLOADED';
+    private const FAIL_LOCAL_FILE_MISSING = 'PV_LOCAL_FILE_MISSING';
+    private const FAIL_PROCESSING_EXCEPTION = 'PV_PROCESSING_EXCEPTION';
+    private const FAIL_JOB_PERMANENT = 'PV_JOB_PERMANENT_FAILURE';
+
     private PayslipMatchingProposal $proposal;
 
     /**
@@ -42,7 +49,11 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
         try {
             // Verify proposal is in validated state
             if ($this->proposal->status !== PayslipMatchingProposal::STATUS_VALIDATED) {
-                \Log::warning("Proposal {$this->proposal->id} is not validated. Current status: {$this->proposal->status}");
+                \Log::warning("[" . self::FAIL_NOT_VALIDATED . "] Proposal {$this->proposal->id} is not validated. Current status: {$this->proposal->status}", [
+                    'failure_code' => self::FAIL_NOT_VALIDATED,
+                    'proposal_id' => $this->proposal->id,
+                    'status' => $this->proposal->status,
+                ]);
                 return;
             }
 
@@ -50,9 +61,12 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
             if (!$this->proposal->matched_to_company_id) {
                 $this->proposal->update([
                     'status' => PayslipMatchingProposal::STATUS_FAILED,
-                    'rejection_reason' => 'No company assigned to this proposal.',
+                    'rejection_reason' => $this->formatFailureReason(self::FAIL_NO_COMPANY, 'No company assigned to this proposal.'),
                 ]);
-                \Log::error("Cannot process proposal {$this->proposal->id}: No company assigned");
+                \Log::error("[" . self::FAIL_NO_COMPANY . "] Cannot process proposal {$this->proposal->id}: No company assigned", [
+                    'failure_code' => self::FAIL_NO_COMPANY,
+                    'proposal_id' => $this->proposal->id,
+                ]);
                 return;
             }
 
@@ -60,9 +74,17 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
             if ($this->proposal->download_status !== 'downloaded' || !$this->proposal->local_file_path) {
                 $this->proposal->update([
                     'status' => PayslipMatchingProposal::STATUS_FAILED,
-                    'rejection_reason' => 'File was not successfully downloaded from SFTP: ' . ($this->proposal->download_error ?? 'Unknown error'),
+                    'rejection_reason' => $this->formatFailureReason(
+                        self::FAIL_NOT_DOWNLOADED,
+                        'File was not successfully downloaded from SFTP: ' . ($this->proposal->download_error ?? 'Unknown error')
+                    ),
                 ]);
-                \Log::error("Cannot process proposal {$this->proposal->id}: File download failed");
+                \Log::error("[" . self::FAIL_NOT_DOWNLOADED . "] Cannot process proposal {$this->proposal->id}: File download failed", [
+                    'failure_code' => self::FAIL_NOT_DOWNLOADED,
+                    'proposal_id' => $this->proposal->id,
+                    'download_status' => $this->proposal->download_status,
+                    'download_error' => $this->proposal->download_error,
+                ]);
                 return;
             }
 
@@ -73,9 +95,17 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
             if (!$rawFilePath || !file_exists($rawFilePath)) {
                 $this->proposal->update([
                     'status' => PayslipMatchingProposal::STATUS_FAILED,
-                    'rejection_reason' => 'Local file no longer exists: ' . ($this->proposal->local_file_path ?? 'unknown path'),
+                    'rejection_reason' => $this->formatFailureReason(
+                        self::FAIL_LOCAL_FILE_MISSING,
+                        'Local file no longer exists: ' . ($this->proposal->local_file_path ?? 'unknown path')
+                    ),
                 ]);
-                \Log::error("File not found for proposal {$this->proposal->id}: " . ($this->proposal->local_file_path ?? 'unknown path'));
+                \Log::error("[" . self::FAIL_LOCAL_FILE_MISSING . "] File not found for proposal {$this->proposal->id}: " . ($this->proposal->local_file_path ?? 'unknown path'), [
+                    'failure_code' => self::FAIL_LOCAL_FILE_MISSING,
+                    'proposal_id' => $this->proposal->id,
+                    'local_file_path' => $this->proposal->local_file_path,
+                    'resolved_raw_file_path' => $rawFilePath,
+                ]);
                 return;
             }
 
@@ -132,7 +162,9 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
             // when the downstream SendPayslipProcess completes.
 
         } catch (Throwable $e) {
-            \Log::error("Error processing validated SFTP proposal {$this->proposal->id}: " . $e->getMessage(), [
+            \Log::error("[" . self::FAIL_PROCESSING_EXCEPTION . "] Error processing validated SFTP proposal {$this->proposal->id}: " . $e->getMessage(), [
+                'failure_code' => self::FAIL_PROCESSING_EXCEPTION,
+                'proposal_id' => $this->proposal->id,
                 'exception' => $e,
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -140,7 +172,7 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
 
             $this->proposal->update([
                 'status' => PayslipMatchingProposal::STATUS_FAILED,
-                'rejection_reason' => 'Processing error: ' . $e->getMessage(),
+                'rejection_reason' => $this->formatFailureReason(self::FAIL_PROCESSING_EXCEPTION, 'Processing error: ' . $e->getMessage()),
             ]);
 
             throw $e;
@@ -152,8 +184,15 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
      */
     public function failed(Throwable $exception): void
     {
-        \Log::error("ProcessValidatedPayslipsJob permanently failed for proposal {$this->proposal->id}: " . $exception->getMessage(), [
+        \Log::error("[" . self::FAIL_JOB_PERMANENT . "] ProcessValidatedPayslipsJob permanently failed for proposal {$this->proposal->id}: " . $exception->getMessage(), [
+            'failure_code' => self::FAIL_JOB_PERMANENT,
+            'proposal_id' => $this->proposal->id,
             'exception' => $exception,
         ]);
+    }
+
+    private function formatFailureReason(string $code, string $message): string
+    {
+        return '[' . $code . '] ' . $message;
     }
 }

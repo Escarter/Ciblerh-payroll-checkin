@@ -25,41 +25,49 @@ class SftpPayslipService
     {
         $setting = $setting ?? $this->resolveSftpSetting();
         
-        if (!$setting) {
-            throw new \RuntimeException('No settings found in database. Please configure application settings.');
-        }
-
-        $host = trim((string) ($setting->sftp_host ?? ''));
-        $username = trim((string) ($setting->sftp_username ?? ''));
-
-        // Validate required SFTP configuration
-        if ($host === '' || $username === '') {
-            throw new \RuntimeException('SFTP configuration is incomplete. Host and username are required. Please configure SFTP settings in the admin panel.');
-        }
-
-        $authType = (string) ($setting->sftp_auth_type ?? 'password');
-
-        if ($authType === 'password' && trim((string) ($setting->sftp_password ?? '')) === '') {
-            throw new \RuntimeException('SFTP password authentication selected but password is missing.');
-        }
-
-        if ($authType === 'ssh_key' && trim((string) ($setting->sftp_private_key_path ?? '')) === '') {
-            throw new \RuntimeException('SFTP SSH key authentication selected but private key path is missing.');
-        }
-
-        $root = trim((string) ($setting->sftp_root ?? ''));
+        // NOTE:
+        // This service is also used by local push processing for PDF parsing and
+        // company matching (no remote SFTP connection needed). Therefore we keep
+        // constructor initialization permissive and enforce remote SFTP validation
+        // lazily only in methods that actually perform remote I/O.
+        $host = trim((string) ($setting?->sftp_host ?? ''));
+        $username = trim((string) ($setting?->sftp_username ?? ''));
+        $authType = (string) ($setting?->sftp_auth_type ?? 'password');
+        $root = trim((string) ($setting?->sftp_root ?? ''));
 
         $this->config = [
             'host' => $host,
-            'port' => (int) ($setting->sftp_port ?? 22),
+            'port' => (int) ($setting?->sftp_port ?? 22),
             'username' => $username,
-            'password' => $authType === 'password' ? (string) ($setting->sftp_password ?? '') : null,
-            'privateKey' => $authType === 'ssh_key' ? (string) ($setting->sftp_private_key_path ?? '') : null,
-            'passphrase' => $authType === 'ssh_key' ? (string) ($setting->sftp_passphrase ?? '') : null,
+            'password' => $authType === 'password' ? (string) ($setting?->sftp_password ?? '') : null,
+            'privateKey' => $authType === 'ssh_key' ? (string) ($setting?->sftp_private_key_path ?? '') : null,
+            'passphrase' => $authType === 'ssh_key' ? (string) ($setting?->sftp_passphrase ?? '') : null,
             'root' => $root !== '' ? $root : '/payslips',
             'timeout' => 30,
             'auth_type' => $authType,
         ];
+    }
+
+    /**
+     * Validate remote SFTP configuration before attempting network operations.
+     */
+    private function ensureRemoteConfigurationIsValid(): void
+    {
+        $host = trim((string) ($this->config['host'] ?? ''));
+        $username = trim((string) ($this->config['username'] ?? ''));
+
+        if ($host === '' || $username === '') {
+            throw new \RuntimeException('SFTP configuration is incomplete. Host and username are required. Please configure SFTP settings in the admin panel.');
+        }
+
+        $authType = (string) ($this->config['auth_type'] ?? 'password');
+        if ($authType === 'password' && trim((string) ($this->config['password'] ?? '')) === '') {
+            throw new \RuntimeException('SFTP password authentication selected but password is missing.');
+        }
+
+        if ($authType === 'ssh_key' && trim((string) ($this->config['privateKey'] ?? '')) === '') {
+            throw new \RuntimeException('SFTP SSH key authentication selected but private key path is missing.');
+        }
     }
 
     /**
@@ -102,6 +110,8 @@ class SftpPayslipService
     private function getDisk()
     {
         if ($this->disk === null) {
+            $this->ensureRemoteConfigurationIsValid();
+
             $config = [
                 'host' => $this->config['host'],
                 'username' => $this->config['username'],
@@ -421,6 +431,8 @@ class SftpPayslipService
     public function downloadPayslip(string $remotePath, string $localPath): ?string
     {
         try {
+            $this->ensureRemoteConfigurationIsValid();
+
             $config = [
                 'host' => $this->config['host'],
                 'username' => $this->config['username'],
@@ -461,6 +473,8 @@ class SftpPayslipService
     public function testConnection(): array
     {
         try {
+            $this->ensureRemoteConfigurationIsValid();
+
             $config = [
                 'host' => $this->config['host'],
                 'username' => $this->config['username'],

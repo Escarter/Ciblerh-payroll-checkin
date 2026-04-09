@@ -45,7 +45,7 @@
 
     @if (!empty($lastScanOutput))
         <div class="alert alert-light border mb-3">
-            <div class="small fw-semibold text-muted mb-1">Last scan report</div>
+            <div class="small fw-semibold text-muted mb-1">{{ __('payslips.last_scan_report') }}</div>
             <pre class="small mb-0" style="white-space: pre-wrap; max-height: 180px; overflow-y: auto;">{{ $lastScanOutput }}</pre>
         </div>
     @endif
@@ -55,7 +55,7 @@
             <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body py-2 px-3">
-                        <div class="small text-muted">Handled</div>
+                        <div class="small text-muted">{{ __('payslips.scan_handled') }}</div>
                         <div class="fw-bold text-success">{{ $lastScanStats['handled'] ?? 0 }}</div>
                     </div>
                 </div>
@@ -63,7 +63,7 @@
             <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body py-2 px-3">
-                        <div class="small text-muted">Skipped</div>
+                        <div class="small text-muted">{{ __('payslips.scan_skipped') }}</div>
                         <div class="fw-bold text-warning">{{ $lastScanStats['skipped'] ?? 0 }}</div>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
             <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body py-2 px-3">
-                        <div class="small text-muted">Already indexed</div>
+                        <div class="small text-muted">{{ __('payslips.scan_already_indexed') }}</div>
                         <div class="fw-bold">{{ $lastScanStats['alreadyIndexed'] ?? 0 }}</div>
                     </div>
                 </div>
@@ -79,7 +79,7 @@
             <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body py-2 px-3">
-                        <div class="small text-muted">Still uploading</div>
+                        <div class="small text-muted">{{ __('payslips.scan_still_uploading') }}</div>
                         <div class="fw-bold">{{ $lastScanStats['stillSettling'] ?? 0 }}</div>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
             <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body py-2 px-3">
-                        <div class="small text-muted">Locked</div>
+                        <div class="small text-muted">{{ __('payslips.scan_locked') }}</div>
                         <div class="fw-bold">{{ $lastScanStats['locked'] ?? 0 }}</div>
                     </div>
                 </div>
@@ -95,7 +95,7 @@
             <div class="col-6 col-md-2">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body py-2 px-3">
-                        <div class="small text-muted">Other</div>
+                        <div class="small text-muted">{{ __('payslips.scan_other') }}</div>
                         <div class="fw-bold">{{ $lastScanStats['otherSkipped'] ?? 0 }}</div>
                     </div>
                 </div>
@@ -373,7 +373,7 @@
                                     @case('validated')
                                         <span class="badge bg-info text-dark p-2">{{ __('payslips.validated') }}</span>
                                         @if($proposal->is_auto_matched)
-                                            <span class="badge bg-primary text-white p-2 ms-1">auto</span>
+                                            <span class="badge bg-primary text-white p-2 ms-1">{{ __('payslips.auto') }}</span>
                                         @endif
                                         @break
                                     @case('processed')
@@ -510,24 +510,57 @@
                         @php
                             $currentFolder = basename(dirname((string) $viewingProposal->file_path));
                             $moveReason = match ($viewingProposal->status) {
-                                'processed' => 'Moved to /processed because downstream payslip processing completed successfully.',
-                                'rejected' => 'Proposal was rejected by a user. File moved to /rejected folder.',
-                                'failed' => 'Processing failed. File moved to /failed folder.',
-                                'validated' => 'Validated and waiting for processing completion before archive movement.',
-                                default => 'Pending intake/validation; file typically remains in /incoming.',
+                                'processed' => __('payslips.move_reason_processed'),
+                                'rejected' => __('payslips.move_reason_rejected'),
+                                'failed' => __('payslips.move_reason_failed'),
+                                'validated' => __('payslips.move_reason_validated'),
+                                default => __('payslips.move_reason_pending'),
                             };
+
+                            $failureCode = null;
+                            $failureLabel = null;
+                            $failureDetails = $viewingProposal->rejection_reason;
+                            if (!empty($failureDetails) && preg_match('/^\[([A-Z0-9_\-]+)\]\s*(.*)$/', (string) $failureDetails, $matches)) {
+                                $failureCode = $matches[1] ?? null;
+                                $failureDetails = $matches[2] ?? $failureDetails;
+                            }
+
+                            $failureCodeLabels = [
+                                'PV_NOT_VALIDATED' => __('payslips.failure_code_pv_not_validated'),
+                                'PV_NO_COMPANY' => __('payslips.failure_code_pv_no_company'),
+                                'PV_NOT_DOWNLOADED' => __('payslips.failure_code_pv_not_downloaded'),
+                                'PV_LOCAL_FILE_MISSING' => __('payslips.failure_code_pv_local_file_missing'),
+                                'PV_PROCESSING_EXCEPTION' => __('payslips.failure_code_pv_processing_exception'),
+                                'PV_JOB_PERMANENT_FAILURE' => __('payslips.failure_code_pv_job_permanent_failure'),
+                                'SP_DUPLICATE_LOCK' => __('payslips.failure_code_sp_duplicate_lock'),
+                                'SP_EXISTING_PROPOSAL' => __('payslips.failure_code_sp_existing_proposal'),
+                                'SP_LOCAL_FILE_MISSING_PRECREATE' => __('payslips.failure_code_sp_local_file_missing_precreate'),
+                                'SP_INNER_PROCESSING_FAILED' => __('payslips.failure_code_sp_inner_processing_failed'),
+                                'SP_JOB_PERMANENT_FAILURE' => __('payslips.failure_code_sp_job_permanent_failure'),
+                            ];
+
+                            if (!empty($failureCode)) {
+                                $failureLabel = $failureCodeLabels[$failureCode] ?? __('payslips.failure_code_unknown');
+                            }
                         @endphp
 
                         <div class="row g-3 mb-4">
                             <div class="col-sm-4">
-                                <div class="small text-muted mb-1">Current folder</div>
-                                <span class="badge bg-secondary text-white p-2">{{ $currentFolder ?: 'unknown' }}</span>
+                                <div class="small text-muted mb-1">{{ __('payslips.current_folder') }}</div>
+                                <span class="badge bg-secondary text-white p-2">{{ $currentFolder ?: __('payslips.unknown_folder') }}</span>
                             </div>
                             <div class="col-sm-8">
-                                <div class="small text-muted mb-1">Movement reason</div>
+                                <div class="small text-muted mb-1">{{ __('payslips.movement_reason') }}</div>
                                 <div class="small">{{ $moveReason }}</div>
                                 @if (!empty($viewingProposal->rejection_reason))
-                                    <div class="small text-danger mt-1"><strong>Details:</strong> {{ $viewingProposal->rejection_reason }}</div>
+                                    <div class="small text-danger mt-1 d-flex align-items-center gap-2 flex-wrap">
+                                        <strong>{{ __('payslips.details') }}:</strong>
+                                        @if (!empty($failureCode))
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ $failureCode }}</span>
+                                            <span class="small text-danger-emphasis">{{ $failureLabel }}</span>
+                                        @endif
+                                        <span>{{ $failureDetails }}</span>
+                                    </div>
                                 @endif
                             </div>
                         </div>

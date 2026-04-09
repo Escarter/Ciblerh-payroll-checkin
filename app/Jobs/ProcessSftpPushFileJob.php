@@ -27,6 +27,12 @@ class ProcessSftpPushFileJob implements ShouldQueue
     public $tries = 3;
     public $timeout = 120;
 
+    private const CODE_DUPLICATE_LOCK = 'SP_DUPLICATE_LOCK';
+    private const CODE_EXISTING_PROPOSAL = 'SP_EXISTING_PROPOSAL';
+    private const CODE_LOCAL_FILE_MISSING_PRECREATE = 'SP_LOCAL_FILE_MISSING_PRECREATE';
+    private const CODE_INNER_PROCESSING_FAILED = 'SP_INNER_PROCESSING_FAILED';
+    private const CODE_JOB_PERMANENT_FAILURE = 'SP_JOB_PERMANENT_FAILURE';
+
     /**
      * @param string $absoluteFilePath Absolute path to the uploaded PDF on disk
      * @param string $originalFilename Original client filename (for display / dedup)
@@ -50,7 +56,8 @@ class ProcessSftpPushFileJob implements ShouldQueue
         $lock = Cache::lock($lockKey, 180);
 
         if (!$lock->get()) {
-            \Log::info('ProcessSftpPushFileJob: Processing lock active, skipping duplicate run.', [
+            \Log::info('[' . self::CODE_DUPLICATE_LOCK . '] ProcessSftpPushFileJob: Processing lock active, skipping duplicate run.', [
+                'failure_code' => self::CODE_DUPLICATE_LOCK,
                 'file' => basename($this->absoluteFilePath),
                 'fingerprint' => $fingerprint,
             ]);
@@ -72,7 +79,8 @@ class ProcessSftpPushFileJob implements ShouldQueue
             ->first();
 
         if ($existing) {
-            \Log::info('ProcessSftpPushFileJob: Proposal already exists (status='.$existing->status.'), skipping.', [
+            \Log::info('[' . self::CODE_EXISTING_PROPOSAL . '] ProcessSftpPushFileJob: Proposal already exists (status='.$existing->status.'), skipping.', [
+                'failure_code' => self::CODE_EXISTING_PROPOSAL,
                 'file' => $basename,
                 'proposal_id' => $existing->id,
                 'status' => $existing->status,
@@ -82,7 +90,8 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
         // ── Verify file still exists ─────────────────────────────────────────
         if (!file_exists($this->absoluteFilePath)) {
-            \Log::error('ProcessSftpPushFileJob: File not found on disk.', [
+            \Log::error('[' . self::CODE_LOCAL_FILE_MISSING_PRECREATE . '] ProcessSftpPushFileJob: File not found on disk.', [
+                'failure_code' => self::CODE_LOCAL_FILE_MISSING_PRECREATE,
                 'path' => $this->absoluteFilePath,
             ]);
             return;
@@ -239,7 +248,8 @@ class ProcessSftpPushFileJob implements ShouldQueue
                 // The inner job already set the proposal to STATUS_FAILED.
                 // Don't let its exception kill the intake job — the proposal record
                 // exists and an admin needs to be alerted so they can intervene.
-                \Log::error('ProcessSftpPushFileJob: Auto-process inner job failed; notifying admin.', [
+                \Log::error('[' . self::CODE_INNER_PROCESSING_FAILED . '] ProcessSftpPushFileJob: Auto-process inner job failed; notifying admin.', [
+                    'failure_code' => self::CODE_INNER_PROCESSING_FAILED,
                     'file'  => $basename,
                     'error' => $processingException->getMessage(),
                 ]);
@@ -280,7 +290,8 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        \Log::error('ProcessSftpPushFileJob permanently failed.', [
+        \Log::error('[' . self::CODE_JOB_PERMANENT_FAILURE . '] ProcessSftpPushFileJob permanently failed.', [
+            'failure_code' => self::CODE_JOB_PERMANENT_FAILURE,
             'file'        => $this->absoluteFilePath,
             'moved_to'    => null,
             'error'       => $exception->getMessage(),
