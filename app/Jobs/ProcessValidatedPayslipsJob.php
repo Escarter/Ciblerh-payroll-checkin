@@ -15,7 +15,9 @@ use Throwable;
 
 class ProcessValidatedPayslipsJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels {
+        SerializesModels::__unserialize as restoreSerializedModels;
+    }
 
     public $tries = 1;
     public $timeout = 600;
@@ -189,6 +191,24 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
             'proposal_id' => $this->proposal->id,
             'exception' => $exception,
         ]);
+    }
+
+    /**
+     * Re-hydrate the job after unserialization.
+     * If the proposal was deleted (e.g. during an outage), silently discard the job
+     * instead of crashing with ModelNotFoundException.
+     */
+    public function __unserialize(array $data): void
+    {
+        try {
+            $this->restoreSerializedModels($data);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            \Log::warning('ProcessValidatedPayslipsJob: proposal no longer exists, discarding stale job.', [
+                'exception' => $e->getMessage(),
+            ]);
+            // Mark as deleted so handle() is never called
+            $this->delete();
+        }
     }
 
     private function formatFailureReason(string $code, string $message): string
