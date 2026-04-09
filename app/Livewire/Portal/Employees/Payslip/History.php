@@ -142,7 +142,7 @@ class History extends Component
                         try {
                             setSavedSmtpCredentials();
 
-                            Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination_file, $this->payslip->month));
+                            Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination_file, $this->payslip->month, $this->payslip->year));
 
                             // Email accepted by mail server - mark as sent (not yet delivered)
                             // The MailSentListener will update to 'delivered' when Laravel confirms the send

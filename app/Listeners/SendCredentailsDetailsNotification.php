@@ -6,7 +6,6 @@ use App\Events\EmployeeCreated;
 use App\Models\CredentialToken;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Notification;
 use App\Notifications\SendCredentialsNotification;
 
 class SendCredentailsDetailsNotification
@@ -41,8 +40,15 @@ class SendCredentailsDetailsNotification
                 $token = CredentialToken::createForUser($event->employee, $event->password, 24, $event->importJobId);
                 
                 // Queue notification with token ID (secure, not the actual password)
-                // This avoids blocking import processing on SMTP latency.
-                Notification::send($event->employee, new SendCredentialsNotification($token->id));
+                // Use sendNow() only for immediate dispatch, or queue it properly via Notification::send()
+                // Notification::send() will respect ShouldQueue if the notification implements it
+                $event->employee->notify(new SendCredentialsNotification($token->id));
+                
+                Log::info('Credentials notification queued for employee', [
+                    'employee_id' => $event->employee->id,
+                    'email' => $event->employee->email,
+                    'token_id' => $token->id,
+                ]);
             } catch (\Exception $e) {
                 Log::error('Failed to send credentials notification', [
                     'employee_id' => $event->employee->id,

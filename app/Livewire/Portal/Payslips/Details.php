@@ -486,7 +486,7 @@ class Details extends Component
             try {
                 setSavedSmtpCredentials();
 
-                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $payslip->file, $payslip->month));
+                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $payslip->file, $payslip->month, $payslip->year));
 
                 // Email accepted by mail server - delivery will be confirmed via webhooks
                 $payslip->update([
@@ -577,7 +577,7 @@ class Details extends Component
             try {
                 setSavedSmtpCredentials();
 
-                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $payslip->file, $payslip->month));
+                Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $payslip->file, $payslip->month, $payslip->year));
 
                 // Email accepted by mail server - delivery will be confirmed via webhooks
                 $payslip->update([

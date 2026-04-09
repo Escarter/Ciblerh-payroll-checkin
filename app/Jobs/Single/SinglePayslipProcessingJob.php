@@ -251,7 +251,7 @@ class SinglePayslipProcessingJob implements ShouldQueue
         }
 
         try {
-            Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination, $month));
+            Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination, $month, $record->year));
 
             // Email accepted by mail server - delivery will be confirmed via webhooks
             $record->update([

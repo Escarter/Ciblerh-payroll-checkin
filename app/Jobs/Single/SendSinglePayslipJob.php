@@ -149,7 +149,7 @@ class SendSinglePayslipJob implements ShouldQueue
         try {
             setSavedSmtpCredentials();
             
-            Mail::to(cleanString($emailToUse))->send(new SendPayslip($this->employee, $destination_file, $this->record->month));
+            Mail::to(cleanString($emailToUse))->send(new SendPayslip($this->employee, $destination_file, $this->record->month, $this->record->year));
 
             // Email accepted by mail server - delivery will be confirmed via webhooks
             $this->record->update([

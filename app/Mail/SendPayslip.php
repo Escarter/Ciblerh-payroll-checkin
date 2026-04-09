@@ -2,14 +2,13 @@
 
 namespace App\Mail;
 
+use App\Models\Payslip;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Facades\Log;
 
 class SendPayslip extends Mailable //implements ShouldQueue
 {
@@ -30,7 +29,7 @@ class SendPayslip extends Mailable //implements ShouldQueue
         $this->user = $user;
         $this->destination = $destination;
         $this->month = $month;
-        $this->year = $year ?? now()->year;
+        $this->year = $year;
     }
 
     /**
@@ -43,6 +42,7 @@ class SendPayslip extends Mailable //implements ShouldQueue
 
         $file_path = Storage::disk('modified')->path($this->destination);
         $setting = Setting::first();
+        $resolvedYear = $this->resolveYear();
 
         $frMonths = [
             'January' => 'Janvier', 'February' => 'Février', 'March' => 'Mars',
@@ -56,7 +56,7 @@ class SendPayslip extends Mailable //implements ShouldQueue
 
         $email_subject = str_replace(
             [':month:', ':year:'],
-            [$monthForEmail, $this->year],
+            [$monthForEmail, $resolvedYear],
             $this->user->preferred_language === 'en' ? $setting->email_subject_en : $setting->email_subject_fr
         );
 
@@ -69,9 +69,24 @@ class SendPayslip extends Mailable //implements ShouldQueue
         return $this->markdown('email.payslip.send',['message'=> $mail_content])
                     ->subject($email_subject)
                     ->attach($file_path, [
-                        'as' => $this->user->matricule.'_'.$this->month.'-'.$this->year.'.pdf',
+                        'as' => $this->user->matricule.'_'.$this->month.'-'.$resolvedYear.'.pdf',
                         'mime' => 'application/pdf',
                     ]);
 
+    }
+
+    private function resolveYear(): int
+    {
+        if (!empty($this->year)) {
+            return (int) $this->year;
+        }
+
+        $payslipYear = Payslip::query()
+            ->where('employee_id', $this->user->id)
+            ->where('month', $this->month)
+            ->where('file', $this->destination)
+            ->value('year');
+
+        return (int) ($payslipYear ?? now()->year);
     }
 }
