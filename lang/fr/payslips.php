@@ -473,5 +473,7 @@ return [
     'failure_code_sp_local_file_missing_precreate' => 'Fichier source introuvable avant création de la proposition',
     'failure_code_sp_inner_processing_failed' => 'Échec du job interne de traitement automatique',
     'failure_code_sp_job_permanent_failure' => 'Échec permanent du job d\'intégration',
+    'view_scan_report' => 'Voir le rapport complet',
+    'no_scan_report_available' => 'Aucun rapport de scan disponible.',
     'validate' => 'Valider',
 ];

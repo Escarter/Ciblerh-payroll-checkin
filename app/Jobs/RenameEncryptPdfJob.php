@@ -156,7 +156,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                                     if (file_exists($dest_path)) {
                                         if (empty($record_exists)) {
                                             // Create record pointing to temp unencrypted file
-                                            $record = createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $temp_unencrypted_file);
+                                            $record = createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $temp_unencrypted_file, $this->year);
                                             // Mark encryption as PENDING (will be finalized after combination)
                                             $record->update([
                                                 'encryption_status' => Payslip::STATUS_PENDING,

@@ -45,8 +45,16 @@
 
     @if (!empty($lastScanOutput))
         <div class="alert alert-light border mb-3">
-            <div class="small fw-semibold text-muted mb-1">{{ __('payslips.last_scan_report') }}</div>
-            <pre class="small mb-0" style="white-space: pre-wrap; max-height: 180px; overflow-y: auto;">{{ $lastScanOutput }}</pre>
+            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                <div class="small fw-semibold text-muted mb-0">{{ __('payslips.last_scan_report') }}</div>
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#lastScanReportModal">
+                    {{ __('payslips.view_scan_report') }}
+                </button>
+            </div>
         </div>
     @endif
 
@@ -466,6 +474,30 @@
                 {{ $proposals->links() }}
             </div>
         @endif
+    </div>
+
+    {{-- ─────────────────────────────────────────────────────────── --}}
+    {{-- Last Scan Report Modal --}}
+    {{-- ─────────────────────────────────────────────────────────── --}}
+    <div class="modal fade" id="lastScanReportModal" tabindex="-1" aria-labelledby="lastScanReportModalLabel" wire:ignore.self>
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="lastScanReportModalLabel">{{ __('payslips.last_scan_report') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!empty($lastScanOutput))
+                        <pre class="small mb-0" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;">{{ $lastScanOutput }}</pre>
+                    @else
+                        <div class="text-muted small">{{ __('payslips.no_scan_report_available') }}</div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('common.close') }}</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     {{-- ─────────────────────────────────────────────────────────── --}}

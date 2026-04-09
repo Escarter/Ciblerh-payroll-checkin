@@ -473,4 +473,6 @@ return [
     'failure_code_sp_local_file_missing_precreate' => 'Source file missing before proposal creation',
     'failure_code_sp_inner_processing_failed' => 'Auto-processing inner job failed',
     'failure_code_sp_job_permanent_failure' => 'Intake job permanently failed',
+    'view_scan_report' => 'View full report',
+    'no_scan_report_available' => 'No scan report available.',
 ];
