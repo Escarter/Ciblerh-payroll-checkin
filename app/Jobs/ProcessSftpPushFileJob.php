@@ -186,40 +186,66 @@ class ProcessSftpPushFileJob implements ShouldQueue
         $autoMatchEnabled = (bool) ($autoMatchConfig['enabled'] ?? false);
         $configuredThreshold = (int) ($autoMatchConfig['threshold'] ?? 80);
         $notificationEmails = $autoMatchConfig['notification_email'] ?? '';
+        $hasEmailConfig = !empty(trim($notificationEmails));
 
         if ($best === null) {
             \Log::info('ProcessSftpPushFileJob: No company match found; manual review required.', [
                 'file' => $basename,
+                'notification_configured' => $hasEmailConfig,
             ]);
 
-            $this->notifyEmailsSafely(
-                $notificationEmails,
-                new SftpAutoMatchNotification($proposal, 'no_match')
-            );
+            if ($hasEmailConfig) {
+                $this->notifyEmailsSafely(
+                    $notificationEmails,
+                    new SftpAutoMatchNotification($proposal, 'no_match')
+                );
+            } else {
+                \Log::warning('ProcessSftpPushFileJob: No company match but notification emails not configured.', [
+                    'file' => $basename,
+                    'proposal_id' => $proposal->id,
+                ]);
+            }
         } elseif (!$meetsConfiguredAutoCriteria) {
             \Log::info('ProcessSftpPushFileJob: Match below configured auto threshold; manual review required.', [
                 'file'       => $basename,
                 'confidence' => $bestConfidence,
                 'strategy'   => $best['strategy'] ?? null,
                 'threshold'  => $configuredThreshold,
+                'notification_configured' => $hasEmailConfig,
             ]);
 
-            $this->notifyEmailsSafely(
-                $notificationEmails,
-                new SftpAutoMatchNotification($proposal, 'manual_review')
-            );
+            if ($hasEmailConfig) {
+                $this->notifyEmailsSafely(
+                    $notificationEmails,
+                    new SftpAutoMatchNotification($proposal, 'manual_review')
+                );
+            } else {
+                \Log::warning('ProcessSftpPushFileJob: Match below threshold but notification emails not configured.', [
+                    'file' => $basename,
+                    'confidence' => $bestConfidence,
+                    'threshold' => $configuredThreshold,
+                ]);
+            }
         } elseif ($bestCompany && !$bestDepartment) {
             // Company matched but department is ambiguous → notify, keep pending
             \Log::info('ProcessSftpPushFileJob: Company matched at auto-threshold but department ambiguous.', [
                 'file'    => $basename,
                 'company' => $bestCompany->name,
                 'threshold' => $configuredThreshold,
+                'notification_configured' => $hasEmailConfig,
             ]);
 
-            $this->notifyEmailsSafely(
-                $notificationEmails,
-                new SftpAutoMatchNotification($proposal, 'dept_required')
-            );
+            if ($hasEmailConfig) {
+                $this->notifyEmailsSafely(
+                    $notificationEmails,
+                    new SftpAutoMatchNotification($proposal, 'dept_required')
+                );
+            } else {
+                \Log::warning('ProcessSftpPushFileJob: Department ambiguous but notification emails not configured.', [
+                    'file' => $basename,
+                    'company' => $bestCompany->name,
+                ]);
+            }
         } elseif ($meetsConfiguredAutoCriteria && $bestCompany && $bestDepartment && $autoMatchEnabled) {
             // Auto-validate + auto-process synchronously so the pipeline starts immediately
             $proposal->update([
@@ -238,12 +264,20 @@ class ProcessSftpPushFileJob implements ShouldQueue
                     'confidence' => $bestConfidence,
                     'strategy'   => $best['strategy'] ?? null,
                     'threshold'  => $configuredThreshold,
+                    'notification_configured' => $hasEmailConfig,
                 ]);
 
-                $this->notifyEmailsSafely(
-                    $notificationEmails,
-                    new SftpAutoMatchNotification($proposal, 'auto_validated')
-                );
+                if ($hasEmailConfig) {
+                    $this->notifyEmailsSafely(
+                        $notificationEmails,
+                        new SftpAutoMatchNotification($proposal, 'auto_validated')
+                    );
+                } else {
+                    \Log::warning('ProcessSftpPushFileJob: Auto-process successful but notification emails not configured.', [
+                        'file' => $basename,
+                        'proposal_id' => $proposal->id,
+                    ]);
+                }
             } catch (\Throwable $processingException) {
                 // The inner job already set the proposal to STATUS_FAILED.
                 // Don't let its exception kill the intake job — the proposal record
@@ -252,15 +286,23 @@ class ProcessSftpPushFileJob implements ShouldQueue
                     'failure_code' => self::CODE_INNER_PROCESSING_FAILED,
                     'file'  => $basename,
                     'error' => $processingException->getMessage(),
+                    'notification_configured' => $hasEmailConfig,
                 ]);
 
                 // Reload proposal to pick up the rejection_reason written by the inner job
                 $proposal->refresh();
 
-                $this->notifyEmailsSafely(
-                    $notificationEmails,
-                    new SftpAutoMatchNotification($proposal, 'processing_failed')
-                );
+                if ($hasEmailConfig) {
+                    $this->notifyEmailsSafely(
+                        $notificationEmails,
+                        new SftpAutoMatchNotification($proposal, 'processing_failed')
+                    );
+                } else {
+                    \Log::warning('ProcessSftpPushFileJob: Processing failed but notification emails not configured.', [
+                        'file' => $basename,
+                        'error' => $processingException->getMessage(),
+                    ]);
+                }
             }
         } else {
             // Auto-match disabled: keep pending and notify for manual flow.
@@ -268,12 +310,20 @@ class ProcessSftpPushFileJob implements ShouldQueue
                 'file'       => $basename,
                 'confidence' => $bestConfidence,
                 'threshold'  => $configuredThreshold,
+                'notification_configured' => $hasEmailConfig,
             ]);
 
-            $this->notifyEmailsSafely(
-                $notificationEmails,
-                new SftpAutoMatchNotification($proposal, 'manual_review')
-            );
+            if ($hasEmailConfig) {
+                $this->notifyEmailsSafely(
+                    $notificationEmails,
+                    new SftpAutoMatchNotification($proposal, 'manual_review')
+                );
+            } else {
+                \Log::warning('ProcessSftpPushFileJob: Auto-match disabled but notification emails not configured.', [
+                    'file' => $basename,
+                    'proposal_id' => $proposal->id,
+                ]);
+            }
         }
         \Log::info('ProcessSftpPushFileJob: Proposal created.', [
             'file'                    => $basename,
@@ -337,8 +387,29 @@ class ProcessSftpPushFileJob implements ShouldQueue
     {
         $emails = array_filter(array_map('trim', preg_split('/[\s,]+/', $emailList, -1, PREG_SPLIT_NO_EMPTY)));
 
+        if (empty($emails)) {
+            \Log::warning('ProcessSftpPushFileJob: Empty email list provided to notifyEmails', [
+                'file' => basename($this->absoluteFilePath),
+                'notification_type' => get_class($notification),
+            ]);
+            return;
+        }
+
         foreach ($emails as $email) {
-            Notification::route('mail', $email)->notify(clone $notification);
+            try {
+                Notification::route('mail', $email)->notify(clone $notification);
+                \Log::info('ProcessSftpPushFileJob: Notification email queued', [
+                    'recipient' => $email,
+                    'notification_type' => get_class($notification),
+                    'file' => basename($this->absoluteFilePath),
+                ]);
+            } catch (\Throwable $e) {
+                \Log::error('ProcessSftpPushFileJob: Failed to queue notification email', [
+                    'recipient' => $email,
+                    'error' => $e->getMessage(),
+                    'file' => basename($this->absoluteFilePath),
+                ]);
+            }
         }
     }
 

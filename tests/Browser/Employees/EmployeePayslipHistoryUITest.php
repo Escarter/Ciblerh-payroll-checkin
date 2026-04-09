@@ -31,7 +31,7 @@ test('user can search payslips in employee history', function () {
         $employee = User::factory()->create(['department_id' => $department->id]);
         $payslip = Payslip::factory()->create([
             'employee_id' => $employee->id,
-            'month' => 'January',
+            'month' => 1,  // January
         ]);
         
         $browser->visit("/portal/employees/payslip/{$employee->uuid}/history")

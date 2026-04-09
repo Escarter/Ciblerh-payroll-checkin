@@ -86,6 +86,16 @@ class Payslip extends Model
         };
     }
 
+    public function getMonthAttribute($value)
+    {
+        return normalizeMonthToEnglishName($value) ?? $value;
+    }
+
+    public function setMonthAttribute($value): void
+    {
+        $this->attributes['month'] = normalizeMonthToEnglishName($value) ?? $value;
+    }
+
     public function getNameAttribute()
     {
         return $this->first_name . " " . $this->last_name;

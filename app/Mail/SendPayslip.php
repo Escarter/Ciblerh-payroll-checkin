@@ -44,6 +44,9 @@ class SendPayslip extends Mailable //implements ShouldQueue
         $setting = Setting::first();
         $resolvedYear = $this->resolveYear();
 
+        // Convert numeric month to English month name
+        $englishMonth = getMonthName($this->month);
+
         $frMonths = [
             'January' => 'Janvier', 'February' => 'Février', 'March' => 'Mars',
             'April' => 'Avril', 'May' => 'Mai', 'June' => 'Juin',
@@ -51,8 +54,8 @@ class SendPayslip extends Mailable //implements ShouldQueue
             'October' => 'Octobre', 'November' => 'Novembre', 'December' => 'Décembre',
         ];
         $monthForEmail = $this->user->preferred_language === 'en'
-            ? $this->month
-            : ($frMonths[$this->month] ?? $this->month);
+            ? $englishMonth
+            : ($frMonths[$englishMonth] ?? $englishMonth);
 
         $email_subject = str_replace(
             [':month:', ':year:'],

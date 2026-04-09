@@ -1102,15 +1102,149 @@ if (!function_exists('findServiceByName')) {
     }
 }
 
+if (!function_exists('monthNumberToEnglishName')) {
+    /**
+     * Convert a month number (1-12) to its English month name.
+     */
+    function monthNumberToEnglishName(int|string|null $monthNumber): ?string
+    {
+        if ($monthNumber === null || $monthNumber === '') {
+            return null;
+        }
+
+        $month = (int) $monthNumber;
+
+        if ($month < 1 || $month > 12) {
+            return null;
+        }
+
+        return [
+            1 => 'January',
+            2 => 'February',
+            3 => 'March',
+            4 => 'April',
+            5 => 'May',
+            6 => 'June',
+            7 => 'July',
+            8 => 'August',
+            9 => 'September',
+            10 => 'October',
+            11 => 'November',
+            12 => 'December',
+        ][$month];
+    }
+}
+
+if (!function_exists('normalizeMonthToEnglishName')) {
+    /**
+     * Normalize numeric or textual month values to canonical English month names.
+     */
+    function normalizeMonthToEnglishName(int|string|null $month): ?string
+    {
+        if ($month === null) {
+            return null;
+        }
+
+        if (is_int($month) || ctype_digit((string) $month)) {
+            return monthNumberToEnglishName($month);
+        }
+
+        $normalized = strtolower(trim((string) $month));
+
+        $monthMap = [
+            '1' => 'January',
+            '01' => 'January',
+            'january' => 'January',
+            'janvier' => 'January',
+            '2' => 'February',
+            '02' => 'February',
+            'february' => 'February',
+            'février' => 'February',
+            'fevrier' => 'February',
+            '3' => 'March',
+            '03' => 'March',
+            'march' => 'March',
+            'mars' => 'March',
+            '4' => 'April',
+            '04' => 'April',
+            'april' => 'April',
+            'avril' => 'April',
+            '5' => 'May',
+            '05' => 'May',
+            'may' => 'May',
+            'mai' => 'May',
+            '6' => 'June',
+            '06' => 'June',
+            'june' => 'June',
+            'juin' => 'June',
+            '7' => 'July',
+            '07' => 'July',
+            'july' => 'July',
+            'juillet' => 'July',
+            '8' => 'August',
+            '08' => 'August',
+            'august' => 'August',
+            'août' => 'August',
+            'aout' => 'August',
+            '9' => 'September',
+            '09' => 'September',
+            'september' => 'September',
+            'septembre' => 'September',
+            '10' => 'October',
+            'october' => 'October',
+            'octobre' => 'October',
+            '11' => 'November',
+            'november' => 'November',
+            'novembre' => 'November',
+            '12' => 'December',
+            'december' => 'December',
+            'décembre' => 'December',
+            'decembre' => 'December',
+        ];
+
+        return $monthMap[$normalized] ?? null;
+    }
+}
+
+if (!function_exists('normalizeMonthToNumber')) {
+    /**
+     * Normalize numeric or textual month values to an integer month number.
+     */
+    function normalizeMonthToNumber(int|string|null $month): ?int
+    {
+        $normalizedName = normalizeMonthToEnglishName($month);
+
+        if ($normalizedName === null) {
+            return null;
+        }
+
+        return [
+            'January' => 1,
+            'February' => 2,
+            'March' => 3,
+            'April' => 4,
+            'May' => 5,
+            'June' => 6,
+            'July' => 7,
+            'August' => 8,
+            'September' => 9,
+            'October' => 10,
+            'November' => 11,
+            'December' => 12,
+        ][$normalizedName];
+    }
+}
+
 if (!function_exists('translateMonthName')) {
     /**
-     * Translate English month name to current locale
+     * Translate a month value to current locale.
      *
-     * @param string $englishMonth English month name (e.g., 'January')
-     * @return string Translated month name
+     * Accepts English/French month names or numeric month values.
      */
-    function translateMonthName(string $englishMonth): string
+    function translateMonthName(string|int $month): string
     {
+        $englishMonth = normalizeMonthToEnglishName($month) ?? (string) $month;
+
         $monthMap = [
             'january' => 'january',
             'february' => 'february',
@@ -1434,5 +1568,35 @@ if (!function_exists('formatBytes')) {
         }
         
         return round($bytes, $precision) . ' ' . $units[$i];
+    }
+}
+
+if (!function_exists('getMonthName')) {
+    /**
+     * Convert numeric month (1-12) to English month name
+     * Handles both numeric and string inputs
+     *
+     * @param int|string $month Month number (1-12) or month name
+     * @return string English month name or original input if invalid
+     */
+    function getMonthName($month)
+    {
+        $monthMap = [
+            1 => 'January',
+            2 => 'February',
+            3 => 'March',
+            4 => 'April',
+            5 => 'May',
+            6 => 'June',
+            7 => 'July',
+            8 => 'August',
+            9 => 'September',
+            10 => 'October',
+            11 => 'November',
+            12 => 'December',
+        ];
+
+        $monthNum = (int) $month;
+        return $monthMap[$monthNum] ?? $month;
     }
 }

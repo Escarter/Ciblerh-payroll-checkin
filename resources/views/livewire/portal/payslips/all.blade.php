@@ -251,7 +251,7 @@
                                 </div>
                                 <div class="mb-1">
                                     <span class="fw-bold text-primary">{{__('common.period')}}:</span>
-                                    <span class="ms-1">{{$job->month}} - {{$job->year}}</span>
+                                    <span class="ms-1">{{ getMonthName($job->month) }} - {{$job->year}}</span>
                                 </div>
                                 <div>
                                     <span class="fw-bold text-primary">{{__('common.date_created')}}:</span>

@@ -171,7 +171,7 @@
                             @endif
                         </td>
                         <td>
-                            <span class="fw-normal">{{$payslip->month}} - {{$payslip->year}}</span>
+                            <span class="fw-normal">{{ getMonthName($payslip->month) }} - {{$payslip->year}}</span>
                         </td>
                         <td>
                             <span class="fw-normal">{{$payslip->created_at}}</span>

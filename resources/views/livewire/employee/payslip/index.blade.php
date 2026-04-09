@@ -80,7 +80,7 @@
                                 <span class="fw-bold">{{$payslip->year}}</span>
                             </td>
                             <td>
-                                <span class="fs-normal">{{$payslip->month}}</span>
+                                <span class="fs-normal">{{ getMonthName($payslip->month) }}</span>
                             </td>
                             <td>
                                 <span class="fw-normal">{{$payslip->created_at}}</span>

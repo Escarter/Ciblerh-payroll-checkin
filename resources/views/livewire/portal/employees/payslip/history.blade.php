@@ -425,7 +425,7 @@
                                     <div class="d-flex flex-column">
                                         <div class="mb-1">
                                             <span class="fw-bold text-primary">{{__('payslips.period')}}:</span>
-                                            <span class="ms-1 fw-normal">{{$payslip->month}} - {{$payslip->year}}</span>
+                                            <span class="ms-1 fw-normal">{{ getMonthName($payslip->month) }} - {{$payslip->year}}</span>
                                         </div>
                                         <div>
                                             <span class="fw-bold text-primary">{{__('common.created')}}:</span>

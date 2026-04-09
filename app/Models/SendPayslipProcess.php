@@ -14,6 +14,16 @@ class SendPayslipProcess extends Model
     protected $guarded  = [];
 
 
+    public function getMonthAttribute($value)
+    {
+        return normalizeMonthToEnglishName($value) ?? $value;
+    }
+
+    public function setMonthAttribute($value): void
+    {
+        $this->attributes['month'] = normalizeMonthToEnglishName($value) ?? $value;
+    }
+
     public function company()
     {
         return $this->belongsTo(Company::class);

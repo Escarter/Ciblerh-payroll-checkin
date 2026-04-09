@@ -290,7 +290,7 @@
                                                 <div class="flex-grow-1">
                                                     <small class="text-muted d-block fw-medium">{{ __('common.period') }}</small>
                                                     <span class="fw-semibold text-dark">
-                                                        {{ $selectedProcess->month }} {{ $selectedProcess->year }}
+                                                        {{ getMonthName($selectedProcess->month) }} {{ $selectedProcess->year }}
                                                     </span>
                                                 </div>
                                             </div>

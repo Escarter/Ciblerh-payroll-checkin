@@ -77,18 +77,18 @@
                         <label for="month">{{__('common.month')}}</label>
                         <select wire:model.live="month" class="form-select @error('month') is-invalid @enderror">
                             <option value=''>{{__('common.--select_month--')}}</option>
-                            <option value='January'>{{__('common.january')}}</option>
-                            <option value='February'>{{__('common.february')}}</option>
-                            <option value='March'>{{__('common.march')}}</option>
-                            <option value='April'>{{__('common.april')}}</option>
-                            <option value='May'>{{__('common.may')}}</option>
-                            <option value='June'>{{__('common.june')}}</option>
-                            <option value='July'>{{__('common.july')}}</option>
-                            <option value='August'>{{__('common.august')}}</option>
-                            <option value='September'>{{__('common.september')}}</option>
-                            <option value='October'>{{__('common.october')}}</option>
-                            <option value='November'>{{__('common.november')}}</option>
-                            <option value='December'>{{__('common.december')}}</option>
+                            <option value='1'>{{__('common.january')}}</option>
+                            <option value='2'>{{__('common.february')}}</option>
+                            <option value='3'>{{__('common.march')}}</option>
+                            <option value='4'>{{__('common.april')}}</option>
+                            <option value='5'>{{__('common.may')}}</option>
+                            <option value='6'>{{__('common.june')}}</option>
+                            <option value='7'>{{__('common.july')}}</option>
+                            <option value='8'>{{__('common.august')}}</option>
+                            <option value='9'>{{__('common.september')}}</option>
+                            <option value='10'>{{__('common.october')}}</option>
+                            <option value='11'>{{__('common.november')}}</option>
+                            <option value='12'>{{__('common.december')}}</option>
                         </select>
                         <div>
                             @error('month')
@@ -300,7 +300,7 @@
                                         </div>
                                         <div class="mb-1">
                                             <span class="fw-bold text-primary">{{__('common.period')}}:</span>
-                                            <span class="ms-1">{{$job->month}} - {{$job->year}}</span>
+                                            <span class="ms-1">{{ getMonthName($job->month) }} - {{$job->year}}</span>
                                         </div>
                                         <div>
                                             <span class="fw-bold text-primary">{{__('common.date_created')}}:</span>

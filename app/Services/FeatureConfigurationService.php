@@ -83,6 +83,18 @@ class FeatureConfigurationService
 
         // Invalidate cache
         Cache::forget(self::CACHE_KEY);
+        \Log::debug('FeatureConfigurationService: Cache cleared after configuration update', ['keys_updated' => array_keys($data)]);
+    }
+
+    /**
+     * Manually refresh configuration cache (useful when settings are updated via direct query)
+     * @return array Updated configuration array
+     */
+    public static function refreshConfiguration(): array
+    {
+        Cache::forget(self::CACHE_KEY);
+        \Log::debug('FeatureConfigurationService: Cache manually refreshed');
+        return self::getConfiguration();
     }
 
     /**

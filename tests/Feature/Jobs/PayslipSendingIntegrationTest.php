@@ -25,7 +25,7 @@ test('payslip sending process creates payslip records for all employees', functi
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1, // January
         'year' => 2024,
     ]);
     
@@ -33,7 +33,7 @@ test('payslip sending process creates payslip records for all employees', functi
     Payslip::factory()->create([
         'employee_id' => $user1->id,
         'send_payslip_process_id' => $process->id,
-        'month' => 'January',
+        'month' => 1, // January
         'year' => 2024,
     ]);
     
@@ -59,7 +59,7 @@ test('payslip sending process handles multiple unmatched employees', function ()
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1, // January
         'year' => 2024,
     ]);
     
@@ -67,7 +67,7 @@ test('payslip sending process handles multiple unmatched employees', function ()
     Payslip::factory()->create([
         'employee_id' => $users->first()->id,
         'send_payslip_process_id' => $process->id,
-        'month' => 'January',
+        'month' => 1, // January
         'year' => 2024,
     ]);
     
@@ -91,7 +91,7 @@ test('payslip sending process updates failure reason with unmatched count', func
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1, // January
         'year' => 2024,
     ]);
     

@@ -28,7 +28,7 @@ class PayslipFactory extends Factory
             'email' => $this->faker->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
             'matricule' => strtoupper($this->faker->bothify('EMP####')),
-            'month' => $this->faker->month(),
+            'month' => $this->faker->numberBetween(1, 12),
             'year' => now()->year,
             'file' => 'payslips/' . $this->faker->uuid() . '.pdf',
             'encryption_status' => Payslip::STATUS_SUCCESSFUL,

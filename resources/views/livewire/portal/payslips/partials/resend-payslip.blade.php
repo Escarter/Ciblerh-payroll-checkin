@@ -46,7 +46,7 @@
                                 </div>
                                 <div class="flex-grow-1 ms-3">
                                     <h6 class="mb-0 fw-semibold">{{ $payslip->first_name }} {{ $payslip->last_name }}</h6>
-                                    <small class="text-muted">{{ $payslip->matricule }} • {{ $payslip->month }} {{ $payslip->year }}</small>
+                                    <small class="text-muted">{{ $payslip->matricule }} • {{ getMonthName($payslip->month) }} {{ $payslip->year }}</small>
                                 </div>
                             </div>
                         </div>

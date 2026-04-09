@@ -69,7 +69,7 @@
                                                 </div>
                                                 <div>
                                                     <strong class="text-sm">{{__('common.period')}}:</strong>
-                                                    <p class="mb-0 text-sm">{{ $selectedPayslip->sendProcess->month }} {{ $selectedPayslip->sendProcess->year }}</p>
+                                                    <p class="mb-0 text-sm">{{ getMonthName($selectedPayslip->sendProcess->month) }} {{ $selectedPayslip->sendProcess->year }}</p>
                                                 </div>
                                             </div>
                                         </div>

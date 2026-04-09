@@ -31,7 +31,7 @@ test('reconcile unmatched employees creates failed payslip records', function ()
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -39,7 +39,7 @@ test('reconcile unmatched employees creates failed payslip records', function ()
     Payslip::factory()->create([
         'employee_id' => $user1->id,
         'send_payslip_process_id' => $process->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -70,7 +70,7 @@ test('reconcile unmatched employees handles empty matricule', function () {
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -96,7 +96,7 @@ test('reconcile unmatched employees updates process failure reason', function ()
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -119,7 +119,7 @@ test('reconcile unmatched employees does not create duplicate records', function
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -127,7 +127,7 @@ test('reconcile unmatched employees does not create duplicate records', function
     Payslip::factory()->create([
         'employee_id' => $user->id,
         'send_payslip_process_id' => $process->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -149,7 +149,7 @@ test('reconcile unmatched employees handles department with no employees', funct
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     

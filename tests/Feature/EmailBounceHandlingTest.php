@@ -51,8 +51,8 @@ test('bounced email persists across multiple payslip attempts', function () {
         'email_bounced_at' => now()->subDays(5),
     ]);
     
-    $process1 = SendPayslipProcess::factory()->create(['month' => 'January']);
-    $process2 = SendPayslipProcess::factory()->create(['month' => 'February']);
+    $process1 = SendPayslipProcess::factory()->create(['month' => 1]); // January
+    $process2 = SendPayslipProcess::factory()->create(['month' => 2]); // February
     
     $filePath1 = $process1->destination_directory . '/' . $user->matricule . '_January.pdf';
     $filePath2 = $process2->destination_directory . '/' . $user->matricule . '_February.pdf';
