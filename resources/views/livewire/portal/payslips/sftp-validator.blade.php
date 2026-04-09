@@ -58,59 +58,6 @@
         </div>
     @endif
 
-    @if (!empty($lastScanStats))
-        <div class="row g-2 mb-3">
-            <div class="col-6 col-md-2">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body py-2 px-3">
-                        <div class="small text-muted">{{ __('payslips.scan_handled') }}</div>
-                        <div class="fw-bold text-success">{{ $lastScanStats['handled'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body py-2 px-3">
-                        <div class="small text-muted">{{ __('payslips.scan_skipped') }}</div>
-                        <div class="fw-bold text-warning">{{ $lastScanStats['skipped'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body py-2 px-3">
-                        <div class="small text-muted">{{ __('payslips.scan_already_indexed') }}</div>
-                        <div class="fw-bold">{{ $lastScanStats['alreadyIndexed'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body py-2 px-3">
-                        <div class="small text-muted">{{ __('payslips.scan_still_uploading') }}</div>
-                        <div class="fw-bold">{{ $lastScanStats['stillSettling'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body py-2 px-3">
-                        <div class="small text-muted">{{ __('payslips.scan_locked') }}</div>
-                        <div class="fw-bold">{{ $lastScanStats['locked'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body py-2 px-3">
-                        <div class="small text-muted">{{ __('payslips.scan_other') }}</div>
-                        <div class="fw-bold">{{ $lastScanStats['otherSkipped'] ?? 0 }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
     {{-- ── Stats Row ────────────────────────────────────────────── --}}
     <div class="row g-3 mb-4">
         {{-- Pending --}}
@@ -487,8 +434,88 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    @if (!empty($lastScanStats))
+                        @php
+                            $handled = (int) ($lastScanStats['handled'] ?? 0);
+                            $skipped = (int) ($lastScanStats['skipped'] ?? 0);
+                            $alreadyIndexed = (int) ($lastScanStats['alreadyIndexed'] ?? 0);
+                            $stillSettling = (int) ($lastScanStats['stillSettling'] ?? 0);
+                            $locked = (int) ($lastScanStats['locked'] ?? 0);
+                            $otherSkipped = (int) ($lastScanStats['otherSkipped'] ?? 0);
+                            $total = $handled + $skipped;
+                            $handledRate = $total > 0 ? round(($handled / $total) * 100) : 0;
+                        @endphp
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                                <h6 class="mb-0">{{ __('payslips.scan_summary') }}</h6>
+                                <span class="small text-muted">{{ __('payslips.scan_summary_hint') }}</span>
+                            </div>
+
+                            <div class="row g-2">
+                                <div class="col-6 col-md-3">
+                                    <div class="card border-0 bg-light h-100">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="small text-muted">{{ __('payslips.scan_total_files') }}</div>
+                                            <div class="fw-bold">{{ $total }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="card border-0 bg-success-subtle h-100">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="small text-muted">{{ __('payslips.scan_handled') }}</div>
+                                            <div class="fw-bold text-success">{{ $handled }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="card border-0 bg-warning-subtle h-100">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="small text-muted">{{ __('payslips.scan_skipped') }}</div>
+                                            <div class="fw-bold text-warning">{{ $skipped }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="card border-0 bg-info-subtle h-100">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="small text-muted">{{ __('payslips.scan_handled_rate') }}</div>
+                                            <div class="fw-bold text-info">{{ $handledRate }}%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <h6 class="mb-2">{{ __('payslips.scan_breakdown') }}</h6>
+                            <div class="list-group list-group-flush border rounded">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="small">{{ __('payslips.scan_already_indexed') }}</span>
+                                    <span class="badge bg-secondary">{{ $alreadyIndexed }}</span>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="small">{{ __('payslips.scan_still_uploading') }}</span>
+                                    <span class="badge bg-secondary">{{ $stillSettling }}</span>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="small">{{ __('payslips.scan_locked') }}</span>
+                                    <span class="badge bg-secondary">{{ $locked }}</span>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="small">{{ __('payslips.scan_other') }}</span>
+                                    <span class="badge bg-secondary">{{ $otherSkipped }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     @if (!empty($lastScanOutput))
-                        <pre class="small mb-0" style="white-space: pre-wrap; max-height: 60vh; overflow-y: auto;">{{ $lastScanOutput }}</pre>
+                        <div>
+                            <h6 class="mb-2">{{ __('payslips.scan_raw_output') }}</h6>
+                            <pre class="small mb-0 p-3 bg-light border rounded" style="white-space: pre-wrap; max-height: 45vh; overflow-y: auto;">{{ $lastScanOutput }}</pre>
+                        </div>
                     @else
                         <div class="text-muted small">{{ __('payslips.no_scan_report_available') }}</div>
                     @endif
