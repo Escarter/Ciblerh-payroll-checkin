@@ -120,6 +120,66 @@ class PayslipMatchingProposal extends Model
     }
 
     /**
+     * Ensure proposed_match is UTF-8 clean before JSON casting.
+     *
+     * PDF extraction can produce invalid byte sequences that break
+     * JSON encoding with "Malformed UTF-8 characters".
+     */
+    public function setProposedMatchAttribute($value): void
+    {
+        $sanitized = $this->sanitizeUtf8Recursive($value);
+
+        try {
+            $this->attributes['proposed_match'] = json_encode($sanitized, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\Throwable) {
+            // Never block proposal creation due to malformed extracted text.
+            $fallback = is_array($sanitized) ? $sanitized : ['value' => (string) $sanitized];
+            $this->attributes['proposed_match'] = json_encode($fallback, JSON_UNESCAPED_UNICODE) ?: '{}';
+        }
+    }
+
+    /**
+     * Recursively sanitize strings to valid UTF-8 for JSON encoding.
+     */
+    private function sanitizeUtf8Recursive($value)
+    {
+        if (is_array($value)) {
+            foreach ($value as $k => $v) {
+                $value[$k] = $this->sanitizeUtf8Recursive($v);
+            }
+            return $value;
+        }
+
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        // Fast path: already valid UTF-8
+        if (function_exists('mb_check_encoding') && mb_check_encoding($value, 'UTF-8')) {
+            return $value;
+        }
+
+        // Attempt to repair invalid byte sequences
+        if (function_exists('mb_convert_encoding')) {
+            $converted = @mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+            if (is_string($converted)) {
+                return $converted;
+            }
+        }
+
+        if (function_exists('iconv')) {
+            $converted = @iconv('UTF-8', 'UTF-8//IGNORE', $value);
+            if (is_string($converted)) {
+                return $converted;
+            }
+        }
+
+        // Last resort: strip non-UTF-8 bytes via regex replacement
+        $clean = @preg_replace('/[^\x09\x0A\x0D\x20-\x7E\xC2-\xF4][\x80-\xBF]*/', '', $value);
+        return is_string($clean) ? $clean : '';
+    }
+
+    /**
      * Whether the current database schema supports the file_fingerprint column.
      *
      * This allows runtime compatibility when code is deployed before migrations.
