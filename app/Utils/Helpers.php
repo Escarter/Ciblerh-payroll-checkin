@@ -7,6 +7,7 @@ use App\Services\Nexah;
 use App\Models\AuditLog;
 use App\Services\TwilioSMS;
 use App\Services\AwsSnsSMS;
+use App\Services\OrangeCameroonSMS;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 
@@ -275,6 +276,7 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                      'twilio' => new TwilioSMS($setting),
                      'nexah' =>  new Nexah($setting),
                      'aws_sns' => new AwsSnsSMS($setting),
+                     'orange_cm' => new OrangeCameroonSMS($setting),
                      default => new Nexah($setting)
                  };
              } catch (\Throwable $e) {
@@ -399,6 +401,7 @@ if (!function_exists('sendSmsBirthday')) {
                 'twilio' => new TwilioSMS($setting),
                 'nexah' =>  new Nexah($setting),
                 'aws_sns' => new AwsSnsSMS($setting),
+                'orange_cm' => new OrangeCameroonSMS($setting),
                 default => new Nexah($setting)
             };
 
@@ -1516,6 +1519,7 @@ if (!function_exists('resendPayslipUnified')) {
                                 'twilio' => new \App\Services\TwilioSMS($setting),
                                 'nexah' => new \App\Services\Nexah($setting),
                                 'aws_sns' => new \App\Services\AwsSnsSMS($setting),
+                                'orange_cm' => new \App\Services\OrangeCameroonSMS($setting),
                                 default => new \App\Services\Nexah($setting)
                             };
                             $smsBalance = $sms_client->getBalance();

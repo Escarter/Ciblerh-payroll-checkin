@@ -506,6 +506,7 @@ class Details extends Component
                             'twilio' => new TwilioSMS($setting),
                             'nexah' => new Nexah($setting),
                             'aws_sns' => new AwsSnsSMS($setting),
+                            'orange_cm' => new \App\Services\OrangeCameroonSMS($setting),
                             default => new Nexah($setting)
                         };
 
@@ -655,6 +656,7 @@ class Details extends Component
                         'twilio' => new TwilioSMS($setting),
                         'nexah' => new Nexah($setting),
                         'aws_sns' => new AwsSnsSMS($setting),
+                        'orange_cm' => new \App\Services\OrangeCameroonSMS($setting),
                         default => new Nexah($setting)
                     };
 
