@@ -170,6 +170,19 @@ return [
     'aws_sns_pricing' => 'Paiement à l\'usage, 0,00645-0,09 $/SMS selon la destination',
     'aws_sns_docs' => 'Voir la documentation AWS SNS',
 
+    // Orange Cameroon SMS Provider
+    'orange_cm_info_title' => 'Orange Cameroun - Fournisseur SMS local',
+    'orange_cm_description' => 'Orange Cameroun SMS API permet l\'envoi de SMS au Cameroun (tous opérateurs) avec authentification OAuth sécurisée.',
+    'orange_cm_step_1' => 'Créez une application sur developer.orange.com et activez SMS-CM',
+    'orange_cm_step_2' => 'Copiez votre Client ID et Client Secret depuis le tableau de bord de l\'application',
+    'orange_cm_step_3' => 'Définissez votre numéro expéditeur au format international (ex: +2376XXXXXXXX)',
+    'orange_cm_pricing' => 'Tarification par packs via Orange (FCFA selon bundle)',
+    'orange_cm_docs' => 'Voir la documentation Orange SMS-CM',
+    'orange_cm_client_id' => 'Client ID',
+    'orange_cm_client_secret' => 'Client Secret',
+    'orange_cm_sender_address' => 'Numéro expéditeur',
+    'orange_cm_sender_address_help' => 'Utilisez le format international, ex: +2376XXXXXXXX ou tel:+2376XXXXXXXX.',
+
     // SMTP Provider
     'smtp_info_title' => 'SMTP - Serveur email standard',
     'smtp_description' => 'Connectez-vous à n\'importe quel serveur SMTP incluant Gmail, Outlook, ou votre propre serveur email.',
@@ -260,6 +273,7 @@ return [
     'nexah' => 'NEXAH',
     'twilio' => 'Twilio',
     'aws_sns' => 'AWS SNS',
+    'orange_cm' => 'Orange Cameroun',
     'username_or_token' => 'Nom d\'utilisateur ou jeton',
     'password_or_secret' => 'Mot de passe ou secret',
     'senderid' => 'SenderId',

@@ -40,4 +40,15 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_SNS_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
     ],
+
+    'orange_cm' => [
+        'api_url' => env('ORANGE_CM_API_URL', 'https://api.orange.com'),
+        'token_url' => env('ORANGE_CM_TOKEN_URL', 'https://api.orange.com/oauth/v3/token'),
+        'token_method' => env('ORANGE_CM_TOKEN_METHOD', 'post'),
+        'sms_endpoint' => env('ORANGE_CM_SMS_ENDPOINT', '/smsmessaging/v1/outbound/{senderAddress}/requests'),
+        'contracts_endpoint' => env('ORANGE_CM_CONTRACTS_ENDPOINT', '/sms/admin/v1/contracts'),
+        'country' => env('ORANGE_CM_COUNTRY', 'CMR'),
+        'default_country_code' => env('ORANGE_CM_DEFAULT_COUNTRY_CODE', '237'),
+        'default_sender_address' => env('ORANGE_CM_DEFAULT_SENDER_ADDRESS', ''),
+    ],
 ];

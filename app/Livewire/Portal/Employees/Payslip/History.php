@@ -10,6 +10,7 @@ use Livewire\Component;
 use App\Mail\SendPayslip;
 use App\Services\TwilioSMS;
 use App\Services\AwsSnsSMS;
+use App\Services\OrangeCameroonSMS;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
@@ -177,6 +178,7 @@ class History extends Component
                 'twilio' => new TwilioSMS($setting),
                 'nexah' =>  new Nexah($setting),
                 'aws_sns' => new AwsSnsSMS($setting),
+                'orange_cm' => new OrangeCameroonSMS($setting),
                 default => new Nexah($setting)
             };
 

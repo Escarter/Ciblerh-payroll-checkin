@@ -8,6 +8,7 @@ use App\Services\Nexah;
 use Livewire\Component;
 use App\Services\TwilioSMS;
 use App\Services\AwsSnsSMS;
+use App\Services\OrangeCameroonSMS;
 use Illuminate\Support\Facades\Mail;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Config;
@@ -22,6 +23,7 @@ class Index extends Component
     public $nexah_username, $nexah_password, $nexah_senderid;
     public $twilio_account_sid, $twilio_auth_token, $twilio_phone_number;
     public $sns_access_key, $sns_secret_key, $sns_region, $sns_senderid;
+    public $orange_cm_client_id, $orange_cm_client_secret, $orange_cm_sender_address;
 
     public $smtp_provider;
     public $mailgun_domain;
@@ -150,6 +152,12 @@ class Index extends Component
                 $this->sns_senderid = $this->sms_provider_senderid;
                 break;
 
+            case 'orange_cm':
+                $this->orange_cm_client_id = $this->sms_provider_username;
+                $this->orange_cm_client_secret = $this->sms_provider_password;
+                $this->orange_cm_sender_address = $this->sms_provider_senderid;
+                break;
+
             default:
                 // For unknown providers, use generic fields
                 $this->nexah_username = $this->sms_provider_username;
@@ -195,6 +203,12 @@ class Index extends Component
                 $this->ses_region = $this->sns_region;
                 break;
 
+            case 'orange_cm':
+                $this->sms_provider_username = $this->orange_cm_client_id;
+                $this->sms_provider_password = $this->orange_cm_client_secret;
+                $this->sms_provider_senderid = $this->orange_cm_sender_address;
+                break;
+
             default:
                 // For unknown providers, fields should already be in generic properties
                 break;
@@ -231,6 +245,7 @@ class Index extends Component
                     'twilio' => new TwilioSMS($setting),
                     'nexah' =>  new Nexah($setting),
                     'aws_sns' => new AwsSnsSMS($setting),
+                    'orange_cm' => new OrangeCameroonSMS($setting),
                     default => new Nexah($setting)
                 };
 
@@ -238,6 +253,7 @@ class Index extends Component
                     'twilio' => ['responsecode' => 0],
                     'nexah' =>  $sms_client->getBalance(),
                     'aws_sns' => $sms_client->getBalance(),
+                    'orange_cm' => $sms_client->getBalance(),
                     default => ['responsecode' => 0]
                 };
 
@@ -330,6 +346,7 @@ class Index extends Component
                 'twilio' => new TwilioSMS($setting),
                 'nexah' =>  new Nexah($setting),
                 'aws_sns' => new AwsSnsSMS($setting),
+                'orange_cm' => new OrangeCameroonSMS($setting),
                 default => new Nexah($setting)
             };
 

@@ -65,6 +65,7 @@ class SinglePayslipProcessingJob implements ShouldQueue
                     'twilio' => new \App\Services\TwilioSMS($setting),
                     'nexah' => new \App\Services\Nexah($setting),
                     'aws_sns' => new \App\Services\AwsSnsSMS($setting),
+                     'orange_cm' => new \App\Services\OrangeCameroonSMS($setting),
                     default => new \App\Services\Nexah($setting)
                 };
 

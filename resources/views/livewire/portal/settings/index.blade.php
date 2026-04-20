@@ -20,6 +20,7 @@
                                     <option value='nexah' selected>{{__('NEXAH')}}</option>
                                     <option value='twilio'>{{__('Twilio')}}</option>
                                     <option value='aws_sns'>{{__('AWS SNS')}}</option>
+                                    <option value='orange_cm'>{{__('Orange Cameroon SMS')}}</option>
                                 </select>
                             </div>
 
@@ -97,6 +98,27 @@
                                         <label for="sns_senderid">{{ __('Sender ID (Optional)') }}</label>
                                         <input wire:model="sns_senderid" id="sns_senderid" type="text" class="form-control w-100 @error('sns_senderid') is-invalid @enderror" placeholder="Country code (e.g., 237)">
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Orange Cameroon Provider Configuration -->
+                            <div x-show="$wire.sms_provider === 'orange_cm'" class="provider-config">
+                                <hr>
+                                <h6 class="text-primary mb-3">{{__('Orange Cameroon SMS')}} {{__('settings.configuration')}}</h6>
+                                <div class='form-group row mb-2'>
+                                    <div class="col">
+                                        <label for="orange_cm_client_id">{{ __('settings.orange_cm_client_id') }}</label>
+                                        <input wire:model="orange_cm_client_id" id="orange_cm_client_id" type="text" class="form-control w-100 @error('orange_cm_client_id') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_client_id">
+                                    </div>
+                                    <div class="col">
+                                        <label for="orange_cm_client_secret">{{ __('settings.orange_cm_client_secret') }}</label>
+                                        <input wire:model="orange_cm_client_secret" id="orange_cm_client_secret" type="password" class="form-control w-100 @error('orange_cm_client_secret') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_client_secret">
+                                    </div>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label for="orange_cm_sender_address">{{ __('settings.orange_cm_sender_address') }}</label>
+                                    <input wire:model="orange_cm_sender_address" id="orange_cm_sender_address" type="text" class="form-control w-100 @error('orange_cm_sender_address') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="tel:+2376XXXXXXX">
+                                    <small class="text-muted">{{ __('settings.orange_cm_sender_address_help') }}</small>
                                 </div>
                             </div>
 
