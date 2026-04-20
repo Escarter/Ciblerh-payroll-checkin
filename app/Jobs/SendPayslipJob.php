@@ -266,8 +266,8 @@ class SendPayslipJob implements ShouldQueue
                         return;
                     }
 
-                            try {
-                                setSavedSmtpCredentials();
+                    try {
+                        setSavedSmtpCredentials();
 
                         Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination_file, $pay_month));
 
@@ -281,119 +281,115 @@ class SendPayslipJob implements ShouldQueue
                             'failure_reason' => null // Clear failure reason on success
                         ]);
 
-                                sendSmsAndUpdateRecord($employee, $pay_month, $record, $sms_balance);
+                        sendSmsAndUpdateRecord($employee, $pay_month, $record, $sms_balance);
+                        Log::info('mail-sent');
+                    } catch (\Swift_TransportException $e) {
 
-                                Log::info('mail-sent');
+                        Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
+                        Log::info('' . PHP_EOL . '');
+
+                        // Preserve existing failure reason if encryption failed, append email failure
+                        $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason))
+                            ? $record->failure_reason . ' | '
+                            : '';
+
+                        $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                        $currentRetryCount = $record->email_retry_count ?? 0;
+
+                        if ($currentRetryCount < $maxRetries) {
+                            $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
+
+                            $record->update([
+                                'email_sent_status' => Payslip::STATUS_FAILED,
+                                'email_retry_count' => $currentRetryCount + 1,
+                                'last_email_retry_at' => now(),
+                                'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
+                                    'error' => $e->getMessage(),
+                                    'retry' => $currentRetryCount + 1,
+                                    'max' => $maxRetries
+                                ])
+                            ]);
+
+                            RetryPayslipEmailJob::dispatch($record->id)
+                                ->delay(now()->addSeconds($retryDelay));
+                        } else {
+                            $record->update([
+                                'email_sent_status' => Payslip::STATUS_FAILED,
+                                'sms_sent_status' => Payslip::STATUS_FAILED,
+                                'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
+                            ]);
                         }
-                            } catch (\Swift_TransportException $e) {
+                    } catch (\Swift_RfcComplianceException $e) {
+                        Log::info('------> err Swift_Rfc:' . $e->getMessage());
+                        Log::info('' . PHP_EOL . '');
 
-                                Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
-                                Log::info('' . PHP_EOL . '');
-                            
-                            // Preserve existing failure reason if encryption failed, append email failure
-                            $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason)) 
-                                ? $record->failure_reason . ' | ' 
-                                : '';
-                            
-                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                            $currentRetryCount = $record->email_retry_count ?? 0;
-                            
-                            if ($currentRetryCount < $maxRetries) {
-                                $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
-                                
-                                $record->update([
-                                    'email_sent_status' => Payslip::STATUS_FAILED,
-                                    'email_retry_count' => $currentRetryCount + 1,
-                                    'last_email_retry_at' => now(),
-                                    'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
-                                        'error' => $e->getMessage(),
-                                        'retry' => $currentRetryCount + 1,
-                                        'max' => $maxRetries
-                                    ])
-                                ]);
-                                
-                                RetryPayslipEmailJob::dispatch($record->id)
-                                    ->delay(now()->addSeconds($retryDelay));
-                            } else {
-                                $record->update([
-                                    'email_sent_status' => Payslip::STATUS_FAILED,
-                                    'sms_sent_status' => Payslip::STATUS_FAILED,
-                                    'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
-                                ]);
-                            }
-                            }
-                            catch (\Swift_RfcComplianceException $e) {
-                                Log::info('------> err Swift_Rfc:' . $e->getMessage());
-                                Log::info('' . PHP_EOL . '');
+                        // Preserve existing failure reason if encryption failed, append email failure
+                        $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason))
+                            ? $record->failure_reason . ' | '
+                            : '';
 
-                            // Preserve existing failure reason if encryption failed, append email failure
-                            $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason)) 
-                                ? $record->failure_reason . ' | ' 
-                                : '';
+                        $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                        $currentRetryCount = $record->email_retry_count ?? 0;
 
-                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                            $currentRetryCount = $record->email_retry_count ?? 0;
-                            
-                            if ($currentRetryCount < $maxRetries) {
-                                $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
-                                
-                                $record->update([
-                                    'email_sent_status' => Payslip::STATUS_FAILED,
-                                    'email_retry_count' => $currentRetryCount + 1,
-                                    'last_email_retry_at' => now(),
-                                    'failure_reason' => $existingReason . __('payslips.email_rfc_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
-                                        'error' => $e->getMessage(),
-                                        'retry' => $currentRetryCount + 1,
-                                        'max' => $maxRetries
-                                    ])
-                                ]);
-                                
-                                RetryPayslipEmailJob::dispatch($record->id)
-                                    ->delay(now()->addSeconds($retryDelay));
-                            } else {
-                                $record->update([
-                                    'email_sent_status' => Payslip::STATUS_FAILED,
-                                    'sms_sent_status' => Payslip::STATUS_FAILED,
-                                    'failure_reason' => $existingReason . __('payslips.email_rfc_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
-                                ]);
-                            }
-                            }
-                            catch (Exception $e) {
-                                Log::info('------> err' . $e->getMessage());
-                                Log::info('' . PHP_EOL . '');
+                        if ($currentRetryCount < $maxRetries) {
+                            $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
 
-                            // Preserve existing failure reason if encryption failed, append email failure
-                            $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason)) 
-                                ? $record->failure_reason . ' | ' 
-                                : '';
+                            $record->update([
+                                'email_sent_status' => Payslip::STATUS_FAILED,
+                                'email_retry_count' => $currentRetryCount + 1,
+                                'last_email_retry_at' => now(),
+                                'failure_reason' => $existingReason . __('payslips.email_rfc_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
+                                    'error' => $e->getMessage(),
+                                    'retry' => $currentRetryCount + 1,
+                                    'max' => $maxRetries
+                                ])
+                            ]);
 
-                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                            $currentRetryCount = $record->email_retry_count ?? 0;
-                            
-                            if ($currentRetryCount < $maxRetries) {
-                                $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
-                                
-                                $record->update([
-                                    'email_sent_status' => Payslip::STATUS_FAILED,
-                                    'email_retry_count' => $currentRetryCount + 1,
-                                    'last_email_retry_at' => now(),
-                                    'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
-                                        'error' => $e->getMessage(),
-                                        'retry' => $currentRetryCount + 1,
-                                        'max' => $maxRetries
-                                    ])
-                                ]);
-                                
-                                RetryPayslipEmailJob::dispatch($record->id)
-                                    ->delay(now()->addSeconds($retryDelay));
-                            } else {
-                                $record->update([
-                                    'email_sent_status' => Payslip::STATUS_FAILED,
-                                    'sms_sent_status' => Payslip::STATUS_FAILED,
-                                    'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
-                                ]);
-                            }
-                            }
+                            RetryPayslipEmailJob::dispatch($record->id)
+                                ->delay(now()->addSeconds($retryDelay));
+                        } else {
+                            $record->update([
+                                'email_sent_status' => Payslip::STATUS_FAILED,
+                                'sms_sent_status' => Payslip::STATUS_FAILED,
+                                'failure_reason' => $existingReason . __('payslips.email_rfc_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
+                            ]);
+                        }
+                    } catch (Exception $e) {
+                        Log::info('------> err' . $e->getMessage());
+                        Log::info('' . PHP_EOL . '');
+
+                        // Preserve existing failure reason if encryption failed, append email failure
+                        $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason))
+                            ? $record->failure_reason . ' | '
+                            : '';
+
+                        $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                        $currentRetryCount = $record->email_retry_count ?? 0;
+
+                        if ($currentRetryCount < $maxRetries) {
+                            $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
+
+                            $record->update([
+                                'email_sent_status' => Payslip::STATUS_FAILED,
+                                'email_retry_count' => $currentRetryCount + 1,
+                                'last_email_retry_at' => now(),
+                                'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
+                                    'error' => $e->getMessage(),
+                                    'retry' => $currentRetryCount + 1,
+                                    'max' => $maxRetries
+                                ])
+                            ]);
+
+                            RetryPayslipEmailJob::dispatch($record->id)
+                                ->delay(now()->addSeconds($retryDelay));
+                        } else {
+                            $record->update([
+                                'email_sent_status' => Payslip::STATUS_FAILED,
+                                'sms_sent_status' => Payslip::STATUS_FAILED,
+                                'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
+                            ]);
+                        }
+                    }
                 } // End if (strpos check)
             }); // End each
         } // End foreach

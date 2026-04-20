@@ -1,26 +1,28 @@
 <?php
 
+use App\Models\Company;
+use App\Models\Department;
 use App\Models\Setting;
+use App\Models\Service;
+use App\Models\User;
 use App\Services\OrangeCameroonSMS;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Mockery\MockInterface;
-
-uses(RefreshDatabase::class);
+use Illuminate\Support\Facades\Config;
 
 beforeEach(function () {
-    config()->set('services.orange_cm.api_url', 'https://api.orange.com');
-    config()->set('services.orange_cm.token_url', 'https://api.orange.com/oauth/v3/token');
-    config()->set('services.orange_cm.sms_endpoint', '/smsmessaging/v1/outbound/{senderAddress}/requests');
-    config()->set('services.orange_cm.contracts_endpoint', '/sms/admin/v1/contracts');
-    config()->set('services.orange_cm.country', 'CMR');
-    config()->set('services.orange_cm.default_country_code', '237');
+    Config::set('services.orange_cm.api_url', 'https://api.orange.com');
+    Config::set('services.orange_cm.token_url', 'https://api.orange.com/oauth/v3/token');
+    Config::set('services.orange_cm.sms_endpoint', '/smsmessaging/v1/outbound/{senderAddress}/requests');
+    Config::set('services.orange_cm.contracts_endpoint', '/sms/admin/v1/contracts');
+    Config::set('services.orange_cm.country', 'CMR');
+    Config::set('services.orange_cm.default_country_code', '237');
 });
 
 function makeOrangeSetting(array $overrides = []): Setting
 {
-    return Setting::factory()->create(array_merge([
+    return new Setting(array_merge([
+        'company_id' => 1,
         'sms_provider' => 'orange_cm',
         'sms_provider_username' => 'client-id',
         'sms_provider_password' => 'client-secret',
