@@ -97,10 +97,43 @@ class User extends Authenticatable implements HasLocalePreference
         }
     }
 
-    protected function Matricule(): Attribute
+    /**
+     * Trim and uppercase matricule for storage and display (Unicode-aware so mixed/local casing is canonical).
+     */
+    public static function normalizeMatricule(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmed = mb_trim($value, null, 'UTF-8');
+        if ($trimmed === '') {
+            return '';
+        }
+
+        return mb_strtoupper($trimmed, 'UTF-8');
+    }
+
+    /**
+     * Whether the matricule appears as a word token in PDF-extracted text (case-insensitive, Unicode).
+     */
+    public static function matriculeTokenExistsInPdfText(string $pdfText, ?string $matricule): bool
+    {
+        $needle = self::normalizeMatricule($matricule);
+        if ($needle === null || $needle === '') {
+            return false;
+        }
+
+        $pattern = preg_quote($needle, '/');
+
+        return (bool) preg_match('/\b' . $pattern . '\b/iu', $pdfText);
+    }
+
+    protected function matricule(): Attribute
     {
         return Attribute::make(
-            get: fn (string $value) => strtoupper($value),
+            get: fn (?string $value) => static::normalizeMatricule($value),
+            set: fn (?string $value) => static::normalizeMatricule($value),
         );
     }
 

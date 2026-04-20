@@ -126,9 +126,7 @@ class RenameEncryptPdfJob implements ShouldQueue
                     ]);
                 } else {
 
-                    preg_match("/\b" . $employee->matricule . "\b/i", $pdf_text, $matches);
-
-                        if (!empty($matches) && strcasecmp($matches[0], $employee->matricule) === 0) {
+                    if (\App\Models\User::matriculeTokenExistsInPdfText($pdf_text, $employee->matricule)) {
 
                         if (Storage::disk('splitted')->exists($file)) {
                             // CRITICAL: Use database locking to prevent race conditions

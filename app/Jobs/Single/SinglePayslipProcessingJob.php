@@ -92,7 +92,7 @@ class SinglePayslipProcessingJob implements ShouldQueue
                         'failure_reason' => __('payslips.user_matricule_empty')
                     ]);
                 } else {
-                    if (strpos($pdf_text, 'Matricule ' . $this->employee->matricule) !== FALSE) {
+                    if (\App\Models\User::matriculeTokenExistsInPdfText($pdf_text, $this->employee->matricule)) {
                         if (Storage::disk('splitted')->exists($file)) {
                             // CHANGED: Store unencrypted temp file, defer encryption until after all pages combined
                             $unique_suffix = md5($this->employee->id . '_' . time());

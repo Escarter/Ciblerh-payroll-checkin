@@ -42,6 +42,25 @@ test('user matricule is uppercase', function () {
     expect($user->matricule)->toBe('EMP001');
 });
 
+test('user matricule trims whitespace on save', function () {
+    $user = User::factory()->create(['matricule' => "  emp001\t "]);
+
+    expect($user->matricule)->toBe('EMP001');
+    $user->refresh();
+    expect($user->getRawOriginal('matricule'))->toBe('EMP001');
+});
+
+test('matricule pdf token match ignores letter casing', function () {
+    expect(User::matriculeTokenExistsInPdfText('Bulletin pour emp001 validé', 'EMP001'))->toBeTrue();
+    expect(User::matriculeTokenExistsInPdfText('Bulletin pour EMP001 validé', 'emp001'))->toBeTrue();
+});
+
+test('user matricule normalizes unicode letters to uppercase', function () {
+    $user = User::factory()->create(['matricule' => 'café-01']);
+
+    expect($user->matricule)->toBe('CAFÉ-01');
+});
+
 test('user has payslips relationship', function () {
     $user = User::factory()->create();
     Payslip::factory()->count(3)->create(['employee_id' => $user->id]);
