@@ -92,6 +92,33 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Orange Cameroon Provider -->
+                    <div class="card border-success mb-3">
+                        <div class="card-body p-3">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-sim-card fa-sm"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-1">{{__('Orange Cameroon')}}</h6>
+                                    <p class="card-text small text-muted mb-2">{{__('settings.orange_cm_description')}}</p>
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">{{__('settings.pricing')}}</small>
+                                            <strong class="text-success">{{__('settings.orange_cm_pricing')}}</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted d-block">{{__('settings.documentation')}}</small>
+                                            <a href="https://developer.orange.com/apis/sms-cm" target="_blank" class="btn btn-sm btn-outline-primary">View Docs</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Getting Credentials Section -->
@@ -142,6 +169,22 @@
                                         <li>{{__('settings.aws_sns_step_1')}}</li>
                                         <li>{{__('settings.aws_sns_step_2')}}</li>
                                         <li>{{__('settings.aws_sns_step_3')}}</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#orangeCmCreds" aria-expanded="false">
+                                    {{__('Orange Cameroon')}} {{__('settings.credentials')}}
+                                </button>
+                            </h2>
+                            <div id="orangeCmCreds" class="accordion-collapse collapse" data-bs-parent="#smsCredentialsAccordion">
+                                <div class="accordion-body">
+                                    <ol class="small">
+                                        <li>{{__('settings.orange_cm_step_1')}}</li>
+                                        <li>{{__('settings.orange_cm_step_2')}}</li>
+                                        <li>{{__('settings.orange_cm_step_3')}}</li>
                                     </ol>
                                 </div>
                             </div>

@@ -14,9 +14,10 @@ use Illuminate\Support\Facades\Gate;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Setting;
-use App\Services\SMS\TwilioSMS;
-use App\Services\SMS\Nexah;
-use App\Services\SMS\AwsSnsSMS;
+use App\Services\TwilioSMS;
+use App\Services\Nexah;
+use App\Services\AwsSnsSMS;
+use App\Services\OrangeCameroonSMS;
 
 class Details extends Component
 {
@@ -119,6 +120,7 @@ class Details extends Component
                                 'twilio' => new TwilioSMS($setting),
                                 'nexah' => new Nexah($setting),
                                 'aws_sns' => new AwsSnsSMS($setting),
+                                'orange_cm' => new OrangeCameroonSMS($setting),
                                 default => new Nexah($setting)
                             };
 
@@ -317,6 +319,7 @@ class Details extends Component
                             'twilio' => new TwilioSMS($setting),
                             'nexah' => new Nexah($setting),
                             'aws_sns' => new AwsSnsSMS($setting),
+                            'orange_cm' => new OrangeCameroonSMS($setting),
                             default => new Nexah($setting)
                         };
 

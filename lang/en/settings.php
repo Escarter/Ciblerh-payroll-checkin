@@ -181,6 +181,20 @@ return [
     'aws_sns_pricing' => 'Pay-per-use, $0.00645-$0.09/SMS depending on destination',
     'aws_sns_docs' => 'View AWS SNS Documentation',
 
+    // Orange Cameroon SMS Provider
+    'orange_cm_info_title' => 'Orange Cameroon - Local Operator SMS API',
+    'orange_cm_description' => 'Orange Cameroon SMS API enables all-operator SMS delivery within Cameroon using Orange Developer credentials and prepaid SMS bundles.',
+    'orange_cm_step_1' => 'Create an app on developer.orange.com and subscribe to SMS Cameroon (sms-cm)',
+    'orange_cm_step_2' => 'Copy your Client ID and Client Secret from the Orange Developer dashboard',
+    'orange_cm_step_3' => 'Set your sender MSISDN in E.164 format (example: +2376XXXXXXXX)',
+    'orange_cm_pricing' => 'Bundle pricing in FCFA, decreasing by volume (Cameroon only)',
+    'orange_cm_docs' => 'View Orange SMS Cameroon Documentation',
+    'orange_cm_client_id' => 'Client ID',
+    'orange_cm_client_secret' => 'Client Secret',
+    'orange_cm_application_id' => 'Application ID',
+    'orange_cm_sender_address' => 'Sender Address',
+    'orange_cm_sender_address_help' => 'Use your sender MSISDN in E.164 format (for example: +2376XXXXXXXX).',
+
     // SMTP Provider
     'smtp_info_title' => 'SMTP - Standard Email Server',
     'smtp_description' => 'Connect to any SMTP server including Gmail, Outlook, or your own email server.',
@@ -271,6 +285,7 @@ return [
     'nexah' => 'NEXAH',
     'twilio' => 'Twilio',
     'aws_sns' => 'AWS SNS',
+    'orange_cm' => 'Orange Cameroon',
     'username_or_token' => 'Username or Token',
     'password_or_secret' => 'Password or secret',
     'senderid' => 'SenderId',
