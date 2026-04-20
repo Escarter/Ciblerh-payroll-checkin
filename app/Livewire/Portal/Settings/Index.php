@@ -23,7 +23,7 @@ class Index extends Component
     public $nexah_username, $nexah_password, $nexah_senderid;
     public $twilio_account_sid, $twilio_auth_token, $twilio_phone_number;
     public $sns_access_key, $sns_secret_key, $sns_region, $sns_senderid;
-    public $orange_cm_client_id, $orange_cm_client_secret, $orange_cm_sender_address;
+    public $orange_cm_application_id, $orange_cm_client_id, $orange_cm_client_secret, $orange_cm_sender_address;
 
     public $smtp_provider;
     public $mailgun_domain;
@@ -153,6 +153,7 @@ class Index extends Component
                 break;
 
             case 'orange_cm':
+                $this->orange_cm_application_id = $this->setting->sms_provider_app_id ?? '';
                 $this->orange_cm_client_id = $this->sms_provider_username;
                 $this->orange_cm_client_secret = $this->sms_provider_password;
                 $this->orange_cm_sender_address = $this->sms_provider_senderid;
@@ -204,6 +205,7 @@ class Index extends Component
                 break;
 
             case 'orange_cm':
+                $this->setting->sms_provider_app_id = $this->orange_cm_application_id;
                 $this->sms_provider_username = $this->orange_cm_client_id;
                 $this->sms_provider_password = $this->orange_cm_client_secret;
                 $this->sms_provider_senderid = $this->orange_cm_sender_address;
@@ -228,6 +230,7 @@ class Index extends Component
                 'sms_provider_username' => $this->sms_provider_username,
                 'sms_provider_password' => $this->sms_provider_password,
                 'sms_provider_senderid' => $this->sms_provider_senderid,
+                'sms_provider_app_id' => $this->sms_provider === 'orange_cm' ? $this->orange_cm_application_id : null,
                 'sms_content_en' => $this->sms_content_en,
                 'sms_content_fr' => $this->sms_content_fr,
                 'birthday_sms_message_en' => $this->birthday_sms_message_en,

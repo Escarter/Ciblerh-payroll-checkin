@@ -107,11 +107,17 @@ class OrangeCameroonSMS extends SmsProvider
     protected function authorizedRequest(string $method, string $url, array $options = []): array
     {
         $token = $this->getAccessToken();
+        $applicationId = trim((string) config('services.orange_cm.application_id', ''));
         $options['headers'] = array_merge([
             'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ], $options['headers'] ?? []);
+        if ($applicationId !== '') {
+            // Orange gateways may require app id headers depending on subscription profile.
+            $options['headers']['X-Orange-Application-ID'] = $applicationId;
+            $options['headers']['x-ibm-client-id'] = $applicationId;
+        }
         $options['timeout'] = $options['timeout'] ?? 20;
 
         return $this->request($method, $url, $options);

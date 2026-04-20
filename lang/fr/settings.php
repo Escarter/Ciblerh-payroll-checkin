@@ -179,6 +179,7 @@ return [
     'orange_cm_pricing' => 'Tarification par packs via Orange (FCFA selon bundle)',
     'orange_cm_docs' => 'Voir la documentation Orange SMS-CM',
     'orange_cm_client_id' => 'Client ID',
+    'orange_cm_application_id' => 'Application ID',
     'orange_cm_client_secret' => 'Client Secret',
     'orange_cm_sender_address' => 'Numéro expéditeur',
     'orange_cm_sender_address_help' => 'Utilisez le format international, ex: +2376XXXXXXXX ou tel:+2376XXXXXXXX.',

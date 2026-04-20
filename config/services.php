@@ -42,6 +42,7 @@ return [
     ],
 
     'orange_cm' => [
+        'application_id' => env('ORANGE_CM_APPLICATION_ID', ''),
         'api_url' => env('ORANGE_CM_API_URL', 'https://api.orange.com'),
         'token_url' => env('ORANGE_CM_TOKEN_URL', 'https://api.orange.com/oauth/v3/token'),
         'token_method' => env('ORANGE_CM_TOKEN_METHOD', 'post'),

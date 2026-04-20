@@ -191,6 +191,7 @@ return [
     'orange_cm_docs' => 'View Orange SMS Cameroon Documentation',
     'orange_cm_client_id' => 'Client ID',
     'orange_cm_client_secret' => 'Client Secret',
+    'orange_cm_application_id' => 'Application ID',
     'orange_cm_sender_address' => 'Sender Address',
     'orange_cm_sender_address_help' => 'Use your sender MSISDN in E.164 format (for example: +2376XXXXXXXX).',
 

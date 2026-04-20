@@ -107,6 +107,12 @@
                                 <h6 class="text-primary mb-3">{{__('Orange Cameroon SMS')}} {{__('settings.configuration')}}</h6>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
+                                        <label for="orange_cm_application_id">{{ __('settings.orange_cm_application_id') }}</label>
+                                        <input wire:model="orange_cm_application_id" id="orange_cm_application_id" type="text" class="form-control w-100 @error('orange_cm_application_id') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_application_id">
+                                    </div>
+                                </div>
+                                <div class='form-group row mb-2'>
+                                    <div class="col">
                                         <label for="orange_cm_client_id">{{ __('settings.orange_cm_client_id') }}</label>
                                         <input wire:model="orange_cm_client_id" id="orange_cm_client_id" type="text" class="form-control w-100 @error('orange_cm_client_id') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_client_id">
                                     </div>
