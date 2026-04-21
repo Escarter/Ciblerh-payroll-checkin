@@ -27,6 +27,11 @@ class Index extends Component
     public $sns_access_key, $sns_secret_key, $sns_region, $sns_senderid;
     public $orange_cm_application_id, $orange_cm_client_id, $orange_cm_client_secret, $orange_cm_sender_address;
 
+    /** Messaging Pro Cameroon (api.orange.cm) — separate from OAuth Client ID/Secret */
+    public $orange_cm_msp_username;
+
+    public $orange_cm_msp_password;
+
     public $smtp_provider;
     public $mailgun_domain;
     public $mailgun_secret;
@@ -66,7 +71,8 @@ class Index extends Component
     public $test_email_message;
     public $test_phone_number;
     public $test_sms_message;
-    public $sms_balance = 0;
+    /** @var int|null Null when provider does not expose a numeric balance (e.g. Orange Messaging Pro). */
+    public $sms_balance = null;
     public $sms_content_en;
     public $sms_content_fr;
     public $email_content_en ;
@@ -142,6 +148,8 @@ class Index extends Component
         $this->sms_provider_username = !empty($this->setting) ? $this->setting->sms_provider_username : '';
         $this->sms_provider_password = !empty($this->setting) ? $this->setting->sms_provider_password :'';
         $this->sms_provider_senderid = !empty($this->setting) ? $this->setting->sms_provider_senderid :'';
+        $this->orange_cm_msp_username = ! empty($this->setting) ? ($this->setting->sms_msp_username ?? '') : '';
+        $this->orange_cm_msp_password = ! empty($this->setting) ? ($this->setting->sms_msp_password ?? '') : '';
         $this->smtp_provider = !empty($this->setting) ? $this->setting->smtp_provider :'smtp';
         $this->smtp_host = !empty($this->setting) ? $this->setting->smtp_host :'';
         $this->smtp_port = !empty($this->setting) ? $this->setting->smtp_port :'';
@@ -167,7 +175,7 @@ class Index extends Component
         $this->mailpit_port = !empty($this->setting) ? $this->setting->mailpit_port :'';
         $this->log_channel = !empty($this->setting) ? $this->setting->log_channel :'';
         $this->mailchimp_api_key = !empty($this->setting) ? $this->setting->mailchimp_api_key :'';
-        $this->sms_balance = !empty($this->setting) ? $this->setting->sms_balance :'';
+        $this->sms_balance = $this->setting ? $this->setting->sms_balance : null;
 
         $this->sms_content_en = !empty($this->setting) ? (!empty($this->setting->sms_content_en) ? $this->setting->sms_content_en  : "Mr/Mrs :name:, your pay slip for the month of :month:-:year: has been sent to your mailbox. Please use the following password: :pdf_password: to view it.") :'';
         $this->sms_content_fr = !empty($this->setting) ? (!empty($this->setting->sms_content_fr) ? $this->setting->sms_content_fr : "M./Mme :name:, votre fiche de paie du mois de :month:-:year: a été envoyée dans votre boîte mail. Merci d'utiliser le mot de passe suivant : :pdf_password: pour la consulter."):'';
@@ -283,6 +291,8 @@ class Index extends Component
                 $this->orange_cm_client_id = $this->sms_provider_username;
                 $this->orange_cm_client_secret = $this->sms_provider_password;
                 $this->orange_cm_sender_address = $this->sms_provider_senderid;
+                $this->orange_cm_msp_username = $this->setting->sms_msp_username ?? '';
+                $this->orange_cm_msp_password = $this->setting->sms_msp_password ?? '';
                 break;
 
             default:
@@ -335,6 +345,8 @@ class Index extends Component
                 $this->sms_provider_username = $this->orange_cm_client_id;
                 $this->sms_provider_password = $this->orange_cm_client_secret;
                 $this->sms_provider_senderid = $this->orange_cm_sender_address;
+                $this->setting->sms_msp_username = $this->orange_cm_msp_username ?: null;
+                $this->setting->sms_msp_password = $this->orange_cm_msp_password ?: null;
                 break;
 
             default:
@@ -357,6 +369,8 @@ class Index extends Component
                 'sms_provider_password' => $this->sms_provider_password,
                 'sms_provider_senderid' => $this->sms_provider_senderid,
                 'sms_provider_app_id' => $this->sms_provider === 'orange_cm' ? $this->orange_cm_application_id : null,
+                'sms_msp_username' => $this->sms_provider === 'orange_cm' ? ($this->orange_cm_msp_username ?: null) : null,
+                'sms_msp_password' => $this->sms_provider === 'orange_cm' ? ($this->orange_cm_msp_password ?: null) : null,
                 'sms_content_en' => $this->sms_content_en,
                 'sms_content_fr' => $this->sms_content_fr,
                 'birthday_sms_message_en' => $this->birthday_sms_message_en,
@@ -386,10 +400,11 @@ class Index extends Component
                     default => ['responsecode' => 0]
                 };
 
-                $this->sms_balance = $response['responsecode'] === 1 ? $response['credit'] : 0;
+                $credit = $response['responsecode'] === 1 ? ($response['credit'] ?? null) : 0;
+                $this->sms_balance = $credit;
 
                 $setting->update([
-                      'sms_balance' => $response['responsecode'] === 1 ? $response['credit'] : 0,
+                    'sms_balance' => $response['responsecode'] === 1 ? $credit : 0,
                 ]);
                 
             }
@@ -493,7 +508,10 @@ class Index extends Component
             ]);
 
             if ($response['responsecode'] === 1) {
-                $this->showToast(__('settings.test_sms_sent_successfully'), 'success');
+                $toast = $setting->sms_provider === 'orange_cm'
+                    ? __('settings.test_sms_queued_orange_cm')
+                    : __('settings.test_sms_sent_successfully');
+                $this->showToast($toast, 'success');
             } else {
                 $errorMessage = $response['error'] ?? __('settings.test_sms_failed');
                 $this->showToast($errorMessage, 'danger');

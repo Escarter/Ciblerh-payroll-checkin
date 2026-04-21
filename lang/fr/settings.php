@@ -195,19 +195,24 @@ return [
     'aws_sns_pricing' => 'Paiement à l\'usage, 0,00645-0,09 $/SMS selon la destination',
     'aws_sns_docs' => 'Voir la documentation AWS SNS',
 
-    // Orange Cameroon SMS Provider
-    'orange_cm_info_title' => 'Orange Cameroun - Fournisseur SMS local',
-    'orange_cm_description' => 'Orange Cameroun SMS API permet l\'envoi de SMS au Cameroun (tous opérateurs) avec authentification OAuth sécurisée.',
-    'orange_cm_step_1' => 'Créez une application sur developer.orange.com et activez SMS-CM',
+    // Orange Cameroon SMS Provider (Messaging Pro — POST /api/v1/sms/simple)
+    'orange_cm_info_title' => 'Orange Cameroun — Messaging Pro',
+    'orange_cm_description' => 'Messaging Pro Cameroun envoie des SMS via l’API Orange Developer (OAuth client credentials). Campagne et projet par défaut via les variables ORANGE_CM_CAMPAIGN_TITLE et ORANGE_CM_PROJECT_NAME.',
+    'orange_cm_step_1' => 'Créez une application sur developer.orange.com et ajoutez l’API Messaging Pro Cameroon',
     'orange_cm_step_2' => 'Copiez votre Client ID et Client Secret depuis le tableau de bord de l\'application',
-    'orange_cm_step_3' => 'Définissez votre numéro expéditeur au format international (ex: +2376XXXXXXXX)',
+    'orange_cm_step_3' => 'Facultatif : MSISDN expéditeur au format international ; le routage peut être défini dans l’application Orange. L’Application ID est envoyée en x-ibm-client-id si renseignée.',
     'orange_cm_pricing' => 'Tarification par packs via Orange (FCFA selon bundle)',
-    'orange_cm_docs' => 'Voir la documentation Orange SMS-CM',
+    'orange_cm_docs' => 'Référence API Messaging Pro Cameroun',
     'orange_cm_client_id' => 'Client ID',
     'orange_cm_application_id' => 'Application ID',
     'orange_cm_client_secret' => 'Client Secret',
     'orange_cm_sender_address' => 'Numéro expéditeur',
     'orange_cm_sender_address_help' => 'Utilisez le format international, ex: +2376XXXXXXXX ou tel:+2376XXXXXXXX.',
+    'orange_cm_msp_section_intro' => 'Connexion Messaging Pro (api.orange.cm) — nécessaire pour le jeton MSP. Ce n’est pas le Client ID / secret OAuth ; utilisez l’identifiant et le mot de passe du contrat Messaging Pro.',
+    'orange_cm_msp_username' => 'Utilisateur Messaging Pro',
+    'orange_cm_msp_password' => 'Mot de passe Messaging Pro',
+    'orange_cm_msp_username_placeholder' => 'Nom de compte fourni par Orange',
+    'orange_cm_msp_password_placeholder' => 'Mot de passe Messaging Pro',
 
     // SMTP Provider
     'smtp_info_title' => 'SMTP - Serveur email standard',
@@ -322,7 +327,10 @@ return [
     'test_email_failed' => 'Échec de l\'email de test',
     'setting_for_sms_required' => 'Paramètre SMS requis!',
     'test_sms_sent_successfully' => 'SMS de test envoyé avec succès!',
+    'test_sms_queued_orange_cm' => 'Orange a accepté la demande SMS (HTTP 201). La livraison peut prendre quelques minutes ; utilisez un mobile camerounais au format international (+237…). Consultez le portail Messaging Pro Orange si le SMS n’arrive pas.',
     'test_sms_failed' => 'Échec de l\'envoi du SMS de test!',
+    'sms_balance_not_available_short' => 'N/D',
+    'sms_balance_orange_cm_help' => 'Le solde SMS restant n’est souvent pas renvoyé par l’API « contrats » pour les comptes Messaging Pro. Utilisez le portail Orange pour le volume du pack. Un chiffre n’apparaît ici que si l’API renvoie des unités.',
 
     // Email configuration keys
     'from_email' => 'Email expéditeur',

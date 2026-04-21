@@ -121,6 +121,17 @@
                                         <input wire:model="orange_cm_client_secret" id="orange_cm_client_secret" type="password" class="form-control w-100 @error('orange_cm_client_secret') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_client_secret">
                                     </div>
                                 </div>
+                                <p class="small text-muted mb-2">{{ __('settings.orange_cm_msp_section_intro') }}</p>
+                                <div class='form-group row mb-2'>
+                                    <div class="col">
+                                        <label for="orange_cm_msp_username">{{ __('settings.orange_cm_msp_username') }}</label>
+                                        <input wire:model="orange_cm_msp_username" id="orange_cm_msp_username" type="text" class="form-control w-100 @error('orange_cm_msp_username') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" autocomplete="off" placeholder="{{ __('settings.orange_cm_msp_username_placeholder') }}">
+                                    </div>
+                                    <div class="col">
+                                        <label for="orange_cm_msp_password">{{ __('settings.orange_cm_msp_password') }}</label>
+                                        <input wire:model="orange_cm_msp_password" id="orange_cm_msp_password" type="password" class="form-control w-100 @error('orange_cm_msp_password') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" autocomplete="new-password" placeholder="{{ __('settings.orange_cm_msp_password_placeholder') }}">
+                                    </div>
+                                </div>
                                 <div class="form-group mb-2">
                                     <label for="orange_cm_sender_address">{{ __('settings.orange_cm_sender_address') }}</label>
                                     <input wire:model="orange_cm_sender_address" id="orange_cm_sender_address" type="text" class="form-control w-100 @error('orange_cm_sender_address') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="tel:+2376XXXXXXX">
@@ -172,10 +183,20 @@
                     <div class="px-3 mb-3 flex-fill d-flex">
                         <div class='card card-body card-raised text-center pt-5 w-100'>
                             <p class='display-3'>
-                                {{ $sms_balance }}
+                                @if($sms_provider === 'orange_cm' && ($sms_balance === null || $sms_balance === ''))
+                                    {{ __('settings.sms_balance_not_available_short') }}
+                                @else
+                                    {{ $sms_balance ?? '—' }}
+                                @endif
                             </p>
                             <div class="card-title">{{__('settings.sms_balance')}}</div>
-                            <div class="mb-2 text-muted text-xs">{{__('settings.you_can_check_sms_details')}}.</div>
+                            <div class="mb-2 text-muted text-xs">
+                                @if($sms_provider === 'orange_cm')
+                                    {{ __('settings.sms_balance_orange_cm_help') }}
+                                @else
+                                    {{__('settings.you_can_check_sms_details')}}.
+                                @endif
+                            </div>
                         </div>
                     </div>
                     <div class="px-3 flex-fill d-flex">
