@@ -110,6 +110,60 @@ class OrangeCameroonSMS extends SmsProvider
     }
 
     /**
+     * Run an end-to-end connectivity diagnostic for Orange Messaging Pro.
+     *
+     * @return array{
+     *   oauth: array{ok: bool, error?: string},
+     *   msp: array{ok: bool, error?: string},
+     *   send?: array{ok: bool, responsecode?: int, error?: string}
+     * }
+     */
+    public function runDiagnostics(string $phone, string $message, bool $dryRun = true): array
+    {
+        $result = [
+            'oauth' => ['ok' => false],
+            'msp' => ['ok' => false],
+        ];
+
+        try {
+            $this->getAccessToken();
+            $result['oauth']['ok'] = true;
+        } catch (\Throwable $e) {
+            $result['oauth']['error'] = $e->getMessage();
+
+            return $result;
+        }
+
+        try {
+            $this->getMspToken();
+            $result['msp']['ok'] = true;
+        } catch (\Throwable $e) {
+            $result['msp']['error'] = $e->getMessage();
+
+            return $result;
+        }
+
+        if ($dryRun) {
+            return $result;
+        }
+
+        $send = $this->sendSMS([
+            'mobiles' => $phone,
+            'sms' => $message,
+        ]);
+
+        $result['send'] = [
+            'ok' => (int) ($send['responsecode'] ?? 0) === 1,
+            'responsecode' => (int) ($send['responsecode'] ?? 0),
+        ];
+        if (! empty($send['error'])) {
+            $result['send']['error'] = (string) $send['error'];
+        }
+
+        return $result;
+    }
+
+    /**
      * Get SMS balance/available units from Orange Cameroon contracts endpoint.
      */
     public function getBalance(): array

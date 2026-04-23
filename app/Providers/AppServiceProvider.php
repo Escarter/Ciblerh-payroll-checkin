@@ -13,6 +13,7 @@ use App\Models\Absence;
 use App\Models\Ticking;
 use App\Models\AdvanceSalary;
 use App\Models\Overtime;
+use App\Models\PayslipMatchingProposal;
 use DatePeriod;
 use DateInterval;
 use Illuminate\Support\Carbon;
@@ -31,6 +32,7 @@ use App\Observers\OvertimeObserver;
 use App\Observers\LeaveTypeObserver;
 use App\Observers\RoleObserver;
 use App\Observers\LeaveObserver;
+use App\Observers\PayslipMatchingProposalObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -221,6 +223,7 @@ class AppServiceProvider extends ServiceProvider
         LeaveType::observe(LeaveTypeObserver::class);
         Role::observe(RoleObserver::class);
         Leave::observe(LeaveObserver::class);
+        PayslipMatchingProposal::observe(PayslipMatchingProposalObserver::class);
     }
     
 }

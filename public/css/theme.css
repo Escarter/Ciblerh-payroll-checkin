@@ -2,6 +2,25 @@
 
 .border-warn{background: rgb(233, 239, 252);
 border: 1px dashed #384f80;}.border-prim{background: rgba(242, 244, 246, 0.4);border: 1px dashed #6B7280;}
+
+/* Native scrollbar for sidebar */
+#sidebarMenu::-webkit-scrollbar {
+    width: 8px;
+}
+
+#sidebarMenu::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+#sidebarMenu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+#sidebarMenu::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
 .side-layout-modal .modal-dialog {
     margin: 0;
     margin-left: auto;

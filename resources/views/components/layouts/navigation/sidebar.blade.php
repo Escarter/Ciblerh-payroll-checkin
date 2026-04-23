@@ -1,13 +1,5 @@
 @inject('request', 'Illuminate\Http\Request')
-<nav id="sidebarMenu" class="sidebar d-lg-block bg-primary text-white collapse" data-simplebar="init">
-    <div class="simplebar-wrapper" style="margin: 0px;">
-        <div class="simplebar-height-auto-observer-wrapper">
-            <div class="simplebar-height-auto-observer"></div>
-        </div>
-        <div class="simplebar-mask">
-            <div class="simplebar-offset" style="right: 0px; bottom: 0px;">
-                <div class="simplebar-content-wrapper" style="height: auto; overflow: auto;">
-                    <div class="simplebar-content" style="padding: 0px;">
+<nav id="sidebarMenu" class="sidebar d-lg-block bg-primary text-white collapse" style="height: 100vh; overflow-y: auto;">
                         <div class="sidebar-inner px-4 pt-3">
                             <div class="user-card d-flex d-md-none justify-content-between justify-content-md-center pb-4">
                                 @auth
