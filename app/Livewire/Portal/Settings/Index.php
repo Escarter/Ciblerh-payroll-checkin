@@ -368,7 +368,7 @@ class Index extends Component
                 'sms_provider_username' => $this->sms_provider_username,
                 'sms_provider_password' => $this->sms_provider_password,
                 'sms_provider_senderid' => $this->sms_provider_senderid,
-                'sms_provider_app_id' => $this->sms_provider === 'orange_cm' ? $this->orange_cm_application_id : null,
+                'sms_provider_app_id' => $this->sms_provider === 'orange_cm' ? ($this->setting->sms_provider_app_id ?? null) : null,
                 'sms_msp_username' => $this->sms_provider === 'orange_cm' ? ($this->orange_cm_msp_username ?: null) : null,
                 'sms_msp_password' => $this->sms_provider === 'orange_cm' ? ($this->orange_cm_msp_password ?: null) : null,
                 'sms_content_en' => $this->sms_content_en,
