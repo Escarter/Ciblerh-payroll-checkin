@@ -180,10 +180,11 @@ class OrangeCameroonSMS extends SmsProvider
 
     /**
      * Get SMS balance/available units from Orange Cameroon contracts endpoint.
+     * Note: This endpoint requires admin permissions and may return 403 for many applications.
      */
     public function getBalance(): array
     {
-        $response = ['responsecode' => 0, 'credit' => 0];
+        $response = ['responsecode' => 0, 'credit' => null, 'balance_unknown' => true];
 
         try {
             $country = trim((string) config('services.orange_cm.country', 'CMR'));
@@ -221,10 +222,21 @@ class OrangeCameroonSMS extends SmsProvider
                 $response['credit'] = $credit;
             }
         } catch (\Throwable $th) {
-            Log::error('Orange Cameroon SMS balance check failed', [
-                'error' => $th->getMessage(),
-            ]);
-            $response['error'] = $th->getMessage();
+            // Check if this is a 403 error (common - many apps don't have contracts endpoint access)
+            $errorMessage = $th->getMessage();
+            if (str_contains($errorMessage, '403 Forbidden') || str_contains($errorMessage, 'Access denied')) {
+                Log::warning('Orange SMS balance check: 403 Forbidden - contracts endpoint not accessible (common for many applications)', [
+                    'error' => $errorMessage,
+                ]);
+                $response['responsecode'] = 1; // Treat as success but with unknown balance
+                $response['balance_unknown'] = true;
+                $response['error'] = 'Balance check not available - contracts endpoint requires admin permissions';
+            } else {
+                Log::error('Orange Cameroon SMS balance check failed', [
+                    'error' => $errorMessage,
+                ]);
+                $response['error'] = $errorMessage;
+            }
         }
 
         return $response;
@@ -296,13 +308,16 @@ class OrangeCameroonSMS extends SmsProvider
         $applicationId = trim((string) ($this->applicationId ?? ''));
         
         // Debug logging to see what credentials are being used
-        Log::info('OrangeCameroonSMS: Request details', [
+        Log::error('OrangeCameroonSMS: Request details - IMMEDIATE DEBUG', [
             'method' => $method,
             'url' => $url,
             'application_id' => $applicationId,
             'application_id_empty' => $applicationId === '',
+            'application_id_length' => strlen($applicationId),
             'username_empty' => empty(trim($this->username ?? '')),
             'password_empty' => empty(trim($this->password ?? '')),
+            'username_length' => strlen(trim($this->username ?? '')),
+            'password_length' => strlen(trim($this->password ?? '')),
         ]);
         
         $options['headers'] = array_merge([
