@@ -146,6 +146,16 @@ class PayslipMatchingProposalObserver
      */
     private function notifyEmails(string $emailList, \Illuminate\Notifications\Notification $notification): void
     {
+        // Apply SMTP settings from database before sending notifications
+        try {
+            setSavedSmtpCredentials();
+        } catch (\Throwable $e) {
+            Log::error('PayslipMatchingProposalObserver: Failed to apply SMTP settings', [
+                'error' => $e->getMessage(),
+            ]);
+            return; // Don't attempt to send emails if SMTP settings failed
+        }
+
         $emails = array_filter(array_map('trim', preg_split('/[\s,]+/', $emailList, -1, PREG_SPLIT_NO_EMPTY)));
 
         foreach ($emails as $email) {
