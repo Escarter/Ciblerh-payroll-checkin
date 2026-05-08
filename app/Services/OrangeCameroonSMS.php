@@ -22,6 +22,7 @@ class OrangeCameroonSMS extends SmsProvider
     /** Messaging Pro bundle login from settings (not OAuth Client ID/Secret). */
     protected ?string $mspLoginUsername = null;
     protected ?string $mspLoginPassword = null;
+    protected ?string $applicationId = null;
 
     protected ?Client $httpClient = null;
 
@@ -30,6 +31,7 @@ class OrangeCameroonSMS extends SmsProvider
         parent::__construct($setting);
         $this->mspLoginUsername = ! empty($setting->sms_msp_username) ? (string) $setting->sms_msp_username : null;
         $this->mspLoginPassword = ! empty($setting->sms_msp_password) ? (string) $setting->sms_msp_password : null;
+        $this->applicationId = ! empty($setting->sms_provider_app_id) ? (string) $setting->sms_provider_app_id : null;
     }
 
     /**
@@ -278,14 +280,13 @@ class OrangeCameroonSMS extends SmsProvider
     protected function authorizedRequest(string $method, string $url, array $options = []): array
     {
         $token = $this->getAccessToken();
-        $applicationId = trim((string) config('services.orange_cm.application_id', ''));
+        $applicationId = trim((string) ($this->applicationId ?? ''));
         $options['headers'] = array_merge([
             'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ], $options['headers'] ?? []);
         if ($applicationId !== '') {
-            // Orange gateways may require app id headers depending on subscription profile.
             $options['headers']['X-Orange-Application-ID'] = $applicationId;
             $options['headers']['x-ibm-client-id'] = $applicationId;
         }
@@ -302,7 +303,7 @@ class OrangeCameroonSMS extends SmsProvider
         $oauthToken = $this->getAccessToken();
         $mspJwt = $this->getMspToken();
 
-        $applicationId = trim((string) config('services.orange_cm.application_id', ''));
+        $applicationId = trim((string) ($this->applicationId ?? ''));
         $options['headers'] = array_merge([
             'Authorization' => 'Bearer '.$oauthToken,
             'X-MSP-Authorization-Key' => 'Bearer '.$mspJwt,

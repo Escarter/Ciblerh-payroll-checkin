@@ -315,7 +315,7 @@ class PayslipSendingPlan
             $query
                 ->where('local_file_path', $payslip_process->raw_file)
                 ->where('matched_to_company_id', $payslip_process->company_id)
-                ->where('matched_month', $payslip_process->month)
+                ->where('matched_month', self::convertMonthToNumber($payslip_process->month))
                 ->where('matched_year', $payslip_process->year);
         }
 
@@ -323,6 +323,34 @@ class PayslipSendingPlan
             'status' => PayslipMatchingProposal::STATUS_PROCESSED,
             'processed_at' => now(),
         ]);
+    }
+
+    /**
+     * Convert month name to number for database compatibility.
+     */
+    private static function convertMonthToNumber($month): ?int
+    {
+        if ($month === null) {
+            return null;
+        }
+        
+        $monthMap = [
+            'January' => 1, 'Jan' => 1,
+            'February' => 2, 'Feb' => 2,
+            'March' => 3, 'Mar' => 3,
+            'April' => 4, 'Apr' => 4,
+            'May' => 5,
+            'June' => 6, 'Jun' => 6,
+            'July' => 7, 'Jul' => 7,
+            'August' => 8, 'Aug' => 8,
+            'September' => 9, 'Sep' => 9, 'Sept' => 9,
+            'October' => 10, 'Oct' => 10,
+            'November' => 11, 'Nov' => 11,
+            'December' => 12, 'Dec' => 12,
+        ];
+        
+        $normalized = ucfirst(strtolower(trim($month)));
+        return $monthMap[$normalized] ?? null;
     }
 
     /**
@@ -345,7 +373,7 @@ class PayslipSendingPlan
             $query
                 ->where('local_file_path', $payslip_process->raw_file)
                 ->where('matched_to_company_id', $payslip_process->company_id)
-                ->where('matched_month', $payslip_process->month)
+                ->where('matched_month', self::convertMonthToNumber($payslip_process->month))
                 ->where('matched_year', $payslip_process->year);
         }
 

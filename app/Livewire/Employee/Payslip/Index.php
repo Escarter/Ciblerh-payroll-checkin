@@ -15,6 +15,15 @@ class Index extends Component
     {
         $payslip = Payslip::findOrFail($payslip_id);
         
+        // Check if the file path is valid
+        if (empty($payslip->file)) {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => __('payslips.payslip_file_not_found')
+            ]);
+            return;
+        }
+        
         // Check if the file exists
         if (!Storage::disk('modified')->exists($payslip->file)) {
             $this->dispatch('show-toast', [
