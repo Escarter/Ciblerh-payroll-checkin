@@ -76,11 +76,22 @@ class OrangeCameroonSMS extends SmsProvider
                 (string) config('services.orange_cm.project_name', 'Payroll')
             );
 
+            // Get sender address from settings (required for delivery)
+            $senderAddress = trim($this->senderid ?? '');
+            if ($senderAddress === '') {
+                $senderAddress = trim((string) config('services.orange_cm.default_sender_address', ''));
+            }
+            
+            if ($senderAddress === '') {
+                throw new Exception('Sender address is required for Orange SMS delivery. Configure sender address in SMS settings.');
+            }
+            
             $payload = [
                 'campaignTitle' => $campaignTitle,
                 'projectName' => $projectName,
                 'messageContent' => $message,
                 'recipients' => [$recipientE164],
+                'senderAddress' => $senderAddress,
             ];
 
             $endpoint = config('services.orange_cm.sms_endpoint', '/messaging/v1/sms/simple');
