@@ -32,6 +32,19 @@ class OrangeCameroonSMS extends SmsProvider
         $this->mspLoginUsername = ! empty($setting->sms_msp_username) ? (string) $setting->sms_msp_username : null;
         $this->mspLoginPassword = ! empty($setting->sms_msp_password) ? (string) $setting->sms_msp_password : null;
         $this->applicationId = ! empty($setting->sms_provider_app_id) ? (string) $setting->sms_provider_app_id : null;
+        
+        // Debug logging to see what settings are loaded
+        Log::info('OrangeCameroonSMS: Constructor loaded settings', [
+            'sms_provider' => $setting->sms_provider ?? 'not_set',
+            'sms_provider_app_id' => $setting->sms_provider_app_id ?? 'not_set',
+            'sms_provider_app_id_empty' => empty($setting->sms_provider_app_id),
+            'sms_msp_username' => $setting->sms_msp_username ?? 'not_set',
+            'sms_msp_username_empty' => empty($setting->sms_msp_username),
+            'sms_msp_password' => $setting->sms_msp_password ?? 'not_set',
+            'sms_msp_password_empty' => empty($setting->sms_msp_password),
+            'sms_provider_username' => $setting->sms_provider_username ?? 'not_set',
+            'sms_provider_password' => $setting->sms_provider_password ?? 'not_set',
+        ]);
     }
 
     /**
@@ -281,6 +294,17 @@ class OrangeCameroonSMS extends SmsProvider
     {
         $token = $this->getAccessToken();
         $applicationId = trim((string) ($this->applicationId ?? ''));
+        
+        // Debug logging to see what credentials are being used
+        Log::info('OrangeCameroonSMS: Request details', [
+            'method' => $method,
+            'url' => $url,
+            'application_id' => $applicationId,
+            'application_id_empty' => $applicationId === '',
+            'username_empty' => empty(trim($this->username ?? '')),
+            'password_empty' => empty(trim($this->password ?? '')),
+        ]);
+        
         $options['headers'] = array_merge([
             'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json',
