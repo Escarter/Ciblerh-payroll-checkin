@@ -116,9 +116,10 @@ class FeatureConfigurationService
      * Strategy quality rank map (higher = better quality).
      */
     private const STRATEGY_RANK = [
-        'partial_match'         => 3,
-        'reverse_partial_match' => 2,
-        'fuzzy'                 => 1,
+        'partial_match'         => 4,  // Best: Company contains full raw string
+        'reverse_partial_match' => 3,  // Good: Raw contains full company name
+        'word_set_match'        => 2,  // Medium: All significant words present
+        'fuzzy'                 => 1,  // Lowest: Character-level similarity
     ];
 
     /**

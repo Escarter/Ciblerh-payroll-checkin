@@ -1025,10 +1025,24 @@ class SftpPayslipService
             // The DB company name contains the full normalized raw string.
             // e.g. raw = "perenco" → company "perenco cameroun" contains it.
             if (str_contains($compNorm, $rawNorm)) {
+                // Enhanced confidence based on how well the raw string fits
+                $rawLength = strlen($rawNorm);
+                $compLength = strlen($compNorm);
+                $ratio = $rawLength / $compLength;
+                
+                // Higher confidence for better matches
+                if ($ratio >= 0.8) {
+                    $confidence = 0.95; // Very good match
+                } elseif ($ratio >= 0.5) {
+                    $confidence = 0.92; // Good match
+                } else {
+                    $confidence = 0.90; // Acceptable match
+                }
+                
                 $candidates[] = [
                     'company_id'   => $company->id,
                     'company_name' => $company->name,
-                    'confidence'   => 0.90,
+                    'confidence'   => $confidence,
                     'strategy'     => 'partial_match',
                 ];
                 continue;
@@ -1039,10 +1053,28 @@ class SftpPayslipService
             // consecutive phrase (whole-word boundaries).
             // e.g. company "perenco work over" found inside
             //      "cible rh mise a disposition perenco work over".
-            // Confidence rewards longer (more specific) company names.
+            // Enhanced confidence calculation based on multiple factors.
             if (preg_match('/\b' . preg_quote($compNorm, '/') . '\b/u', $rawNorm)) {
                 $wordCount  = substr_count($compNorm, ' ') + 1;
-                $confidence = min(0.95, 0.82 + ($wordCount - 1) * 0.04);
+                $rawLength  = strlen($rawNorm);
+                $compLength = strlen($compNorm);
+                
+                // Base confidence from word count
+                $baseConfidence = 0.82 + ($wordCount - 1) * 0.04;
+                
+                // Bonus for good length ratio (not too short compared to raw text)
+                $ratio = $compLength / $rawLength;
+                if ($ratio >= 0.3 && $ratio <= 0.8) {
+                    $baseConfidence += 0.05; // Good length match
+                }
+                
+                // Bonus for multi-word matches in longer text
+                if ($wordCount >= 2 && $rawLength > 20) {
+                    $baseConfidence += 0.03;
+                }
+                
+                $confidence = min(0.96, $baseConfidence);
+                
                 $candidates[] = [
                     'company_id'   => $company->id,
                     'company_name' => $company->name,
@@ -1100,7 +1132,25 @@ class SftpPayslipService
                 }
                 if ($allPresent) {
                     $wordCount  = count($sigWords);
-                    $confidence = min(0.88, 0.76 + ($wordCount - 1) * 0.03);
+                    $rawLength  = strlen($rawNorm);
+                    $compLength = strlen($compNorm);
+                    
+                    // Enhanced confidence calculation
+                    $baseConfidence = 0.78 + ($wordCount - 1) * 0.04;
+                    
+                    // Bonus for good word coverage (all words present vs raw text length)
+                    $coverageBonus = min(0.08, ($compLength / $rawLength) * 0.15);
+                    $baseConfidence += $coverageBonus;
+                    
+                    // Bonus for multi-word matches
+                    if ($wordCount >= 3) {
+                        $baseConfidence += 0.04;
+                    } elseif ($wordCount >= 2) {
+                        $baseConfidence += 0.02;
+                    }
+                    
+                    $confidence = min(0.91, $baseConfidence);
+                    
                     $candidates[] = [
                         'company_id'   => $company->id,
                         'company_name' => $company->name,
@@ -1144,10 +1194,34 @@ class SftpPayslipService
             };
 
             if ($percent >= $threshold) {
+                // Enhanced fuzzy confidence calculation
+                $baseConfidence = $percent / 100;
+                
+                // Bonus for high similarity (> 75%)
+                if ($percent >= 75) {
+                    $baseConfidence += 0.05;
+                }
+                
+                // Bonus for good length ratio
+                $rawLength = strlen($rawNorm);
+                $compLength = strlen($compNorm);
+                $ratio = min($compLength, $rawLength) / max($compLength, $rawLength);
+                if ($ratio >= 0.7) {
+                    $baseConfidence += 0.03;
+                }
+                
+                // Penalty for very different lengths
+                if ($ratio < 0.3) {
+                    $baseConfidence -= 0.05;
+                }
+                
+                // Ensure confidence stays within reasonable bounds
+                $confidence = max(0.65, min(0.85, $baseConfidence));
+                
                 $candidates[] = [
                     'company_id'   => $company->id,
                     'company_name' => $company->name,
-                    'confidence'   => round($percent / 100, 2),
+                    'confidence'   => round($confidence, 2),
                     'strategy'     => 'fuzzy',
                 ];
             }
