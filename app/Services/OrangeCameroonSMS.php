@@ -627,11 +627,24 @@ class OrangeCameroonSMS extends SmsProvider
         }
 
         $summary = implode(' ', array_filter($bits));
-        Log::error('OrangeCameroonSMS HTTP failure', [
-            'method' => $method,
-            'url' => $url,
-            'summary' => $summary,
-        ]);
+        
+        // Check if this is a contracts endpoint 403 (common and expected)
+        $isContractsEndpoint = str_contains($url, '/contracts');
+        $is403Forbidden = str_contains($summary, '403 Forbidden');
+        
+        if ($isContractsEndpoint && $is403Forbidden) {
+            Log::warning('Orange SMS balance check: 403 Forbidden - contracts endpoint not accessible (common for many applications)', [
+                'method' => $method,
+                'url' => $url,
+                'summary' => $summary,
+            ]);
+        } else {
+            Log::error('OrangeCameroonSMS HTTP failure', [
+                'method' => $method,
+                'url' => $url,
+                'summary' => $summary,
+            ]);
+        }
 
         return 'Orange API HTTP failure ('.$method.' '.$url.'): '.$summary;
     }
