@@ -157,7 +157,7 @@
                             <small class="text-muted">
                                 {{__('common.user')}}: {{$audit_log->user}}<br>
                                 {{__('common.action')}}: {{$audit_log->translated_action_type}}<br>
-                                {{__('common.date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
+                                {{__('common.date')}}: {{$audit_log->created_at->isoFormat('MMM D, YYYY HH:mm')}}
                             </small>
                         </div>
                         @endif
@@ -191,7 +191,7 @@
                             <small>
                                 {{__('common.user')}}: {{$audit_log->user}}<br>
                                 {{__('common.action')}}: {{$audit_log->translated_action_type}}<br>
-                                {{__('common.date')}}: {{$audit_log->created_at->format('M d, Y H:i')}}
+                                {{__('common.date')}}: {{$audit_log->created_at->isoFormat('MMM D, YYYY HH:mm')}}
                             </small>
                         </div>
                         @endif
@@ -430,7 +430,7 @@
                                 <div class="text-dark small">{{ \Illuminate\Support\Str::limit(strip_tags($log->translated_action_perform), 50) }}</div>
                             </td>
                             <td class="px-4 py-2">
-                                <div class="text-muted small">{{ $log->created_at->format('M d, Y H:i') }}</div>
+                                <div class="text-muted small">{{ $log->created_at->isoFormat('MMM D, YYYY HH:mm') }}</div>
                             </td>
                             <td class="px-4 py-2">
                                 <div class="d-flex align-items-center justify-content-center gap-1">
@@ -573,7 +573,7 @@
                                     <div class="col-12 col-md-6">
                                         <label class="form-label small text-muted fw-medium mb-2">{{__('common.date')}}</label>
                                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                                            <span class="fw-medium text-dark">{{ $selectedLog->created_at->format('M d, Y H:i') }}</span>
+                                            <span class="fw-medium text-dark">{{ $selectedLog->created_at->isoFormat('MMM D, YYYY HH:mm') }}</span>
                                             <span class="text-muted small">({{ $selectedLog->created_at->diffForHumans() }})</span>
                                         </div>
                                     </div>
