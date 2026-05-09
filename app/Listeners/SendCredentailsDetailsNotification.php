@@ -36,17 +36,28 @@ class SendCredentailsDetailsNotification
 
         if($validator->passes()){
             try {
-                // Check if password is provided before creating credential token
-                if (empty($event->password)) {
-                    Log::warning('No password provided for employee credentials notification', [
+                // Generate password if not provided (common for file imports)
+                $password = $event->password;
+                $passwordGenerated = false;
+                
+                if (empty($password)) {
+                    $password = $this->generateSecurePassword();
+                    $passwordGenerated = true;
+                    
+                    // Update the user with the generated password
+                    $event->employee->update([
+                        'password' => bcrypt($password),
+                    ]);
+                    
+                    Log::info('Auto-generated password for employee', [
                         'employee_id' => $event->employee->id,
                         'email' => $event->employee->email,
+                        'import_job_id' => $event->importJobId,
                     ]);
-                    return;
                 }
                 
-                // Create credential token instead of passing plain password
-                $token = CredentialToken::createForUser($event->employee, $event->password, 24, $event->importJobId);
+                // Create credential token with the password
+                $token = CredentialToken::createForUser($event->employee, $password, 24, $event->importJobId);
                 
                 // Queue notification with token ID (secure, not the actual password)
                 // Use sendNow() only for immediate dispatch, or queue it properly via Notification::send()
@@ -65,5 +76,36 @@ class SendCredentailsDetailsNotification
                 ]);
             }
         }
+    }
+
+    /**
+     * Generate a secure random password for employees
+     */
+    private function generateSecurePassword(): string
+    {
+        // Generate a 12-character password with mixed case, numbers, and symbols
+        $uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        $numbers = '0123456789';
+        $symbols = '!@#$%^&*';
+        
+        $allChars = $uppercase . $lowercase . $numbers . $symbols;
+        
+        // Ensure at least one character from each category
+        $password = [
+            $uppercase[random_int(0, strlen($uppercase) - 1)],
+            $lowercase[random_int(0, strlen($lowercase) - 1)],
+            $numbers[random_int(0, strlen($numbers) - 1)],
+            $symbols[random_int(0, strlen($symbols) - 1)],
+        ];
+        
+        // Fill the rest with random characters
+        for ($i = 4; $i < 12; $i++) {
+            $password[] = $allChars[random_int(0, strlen($allChars) - 1)];
+        }
+        
+        // Shuffle and return as string
+        shuffle($password);
+        return implode('', $password);
     }
 }
