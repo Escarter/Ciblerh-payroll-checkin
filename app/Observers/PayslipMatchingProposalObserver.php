@@ -169,4 +169,108 @@ class PayslipMatchingProposalObserver
             }
         }
     }
+
+    /**
+     * Handle the PayslipMatchingProposal "updated" event.
+     *
+     * @param  \App\Models\PayslipMatchingProposal  $proposal
+     * @return void
+     */
+    public function updated(PayslipMatchingProposal $proposal)
+    {
+        // Get the dirty attributes to see what changed
+        $changes = $proposal->getDirty();
+        
+        // Only proceed if status actually changed
+        if (!isset($changes['status'])) {
+            return;
+        }
+
+        $oldStatus = $proposal->getOriginal('status');
+        $newStatus = $proposal->status;
+
+        Log::info('PayslipMatchingProposalObserver: Proposal status updated', [
+            'proposal_id' => $proposal->id,
+            'file_name' => $proposal->file_name,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+        ]);
+
+        // Send notifications for specific status changes
+        $this->sendStatusChangeNotifications($proposal, $oldStatus, $newStatus);
+    }
+
+    /**
+     * Send notifications for status changes during retry/reprocessing
+     */
+    private function sendStatusChangeNotifications(PayslipMatchingProposal $proposal, string $oldStatus, string $newStatus): void
+    {
+        $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
+        $notificationEmails = $autoMatchConfig['notification_email'] ?? '';
+        
+        if (empty(trim($notificationEmails))) {
+            Log::warning('PayslipMatchingProposalObserver: Status change notification enabled but no email configured', [
+                'proposal_id' => $proposal->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+            ]);
+            return;
+        }
+
+        // Determine notification type based on status change
+        $notificationType = $this->getNotificationTypeForStatusChange($oldStatus, $newStatus);
+        
+        if ($notificationType === null) {
+            return; // No notification needed for this status change
+        }
+
+        try {
+            $this->sendNotification($notificationEmails, $proposal, $notificationType);
+            
+            Log::info('PayslipMatchingProposalObserver: Status change notification sent', [
+                'proposal_id' => $proposal->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'notification_type' => $notificationType,
+                'emails' => $notificationEmails,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('PayslipMatchingProposalObserver: Failed to send status change notification', [
+                'proposal_id' => $proposal->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'notification_type' => $notificationType,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Determine notification type for status change
+     */
+    private function getNotificationTypeForStatusChange(string $oldStatus, string $newStatus): ?string
+    {
+        // Successful retry: pending -> processed
+        if ($oldStatus === PayslipMatchingProposal::STATUS_PENDING && $newStatus === PayslipMatchingProposal::STATUS_PROCESSED) {
+            return 'retry_success';
+        }
+
+        // Failed retry: pending -> failed
+        if ($oldStatus === PayslipMatchingProposal::STATUS_PENDING && $newStatus === PayslipMatchingProposal::STATUS_FAILED) {
+            return 'retry_failed';
+        }
+
+        // Rejected after processing: processed/validated -> rejected
+        if (in_array($oldStatus, [PayslipMatchingProposal::STATUS_PROCESSED, PayslipMatchingProposal::STATUS_VALIDATED]) && 
+            $newStatus === PayslipMatchingProposal::STATUS_REJECTED) {
+            return 'rejected_after_processing';
+        }
+
+        // Validated after pending: pending -> validated
+        if ($oldStatus === PayslipMatchingProposal::STATUS_PENDING && $newStatus === PayslipMatchingProposal::STATUS_VALIDATED) {
+            return 'validated';
+        }
+
+        return null; // No notification for other status changes
+    }
 }

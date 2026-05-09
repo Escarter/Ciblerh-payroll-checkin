@@ -101,6 +101,70 @@ class SftpAutoMatchNotification extends Notification
                 ->line('The proposal has been marked as failed. Click above to inspect it. You may need to re-trigger processing manually once the underlying issue is resolved.');
         }
 
+        if ($this->type === 'retry_success') {
+            $link = route('portal.payslips.sftp-validator') . '?proposal=' . $this->proposal->id . '&mode=view';
+
+            return (new MailMessage)
+                ->subject('[CibleRH] Retry successful — ' . $this->proposal->file_name)
+                ->greeting('Retry successful')
+                ->line('A payslip proposal that previously failed or was pending has been successfully reprocessed.')
+                ->line('**File:** ' . $this->proposal->file_name)
+                ->line('**Company:** ' . $companyName)
+                ->line('**Confidence:** ' . $confidence . ' (' . $strategy . ')')
+                ->line('**Period:** ' . $period)
+                ->action('View processed proposal', $link)
+                ->line('The proposal has been successfully processed and is ready for the next steps. Click above to view the details.');
+        }
+
+        if ($this->type === 'retry_failed') {
+            $link = route('portal.payslips.sftp-validator') . '?proposal=' . $this->proposal->id . '&mode=view';
+            $failureReason = $this->proposal->rejection_reason ?? 'Unknown error during retry.';
+
+            return (new MailMessage)
+                ->subject('[CibleRH] Retry failed — ' . $this->proposal->file_name)
+                ->greeting('Retry failed')
+                ->line('A payslip proposal retry has failed.')
+                ->line('**File:** ' . $this->proposal->file_name)
+                ->line('**Company:** ' . $companyName)
+                ->line('**Confidence:** ' . $confidence . ' (' . $strategy . ')')
+                ->line('**Period:** ' . $period)
+                ->line('**Failure Reason:** ' . $failureReason)
+                ->action('View failed proposal', $link)
+                ->line('The proposal has been marked as failed. Click above to inspect the issue and consider manual intervention.');
+        }
+
+        if ($this->type === 'rejected_after_processing') {
+            $link = route('portal.payslips.sftp-validator') . '?proposal=' . $this->proposal->id . '&mode=view';
+            $failureReason = $this->proposal->rejection_reason ?? 'Unknown rejection reason.';
+
+            return (new MailMessage)
+                ->subject('[CibleRH] Rejected after processing — ' . $this->proposal->file_name)
+                ->greeting('Proposal rejected')
+                ->line('A payslip proposal that was previously processed or validated has been rejected.')
+                ->line('**File:** ' . $this->proposal->file_name)
+                ->line('**Company:** ' . $companyName)
+                ->line('**Confidence:** ' . $confidence . ' (' . $strategy . ')')
+                ->line('**Period:** ' . $period)
+                ->line('**Rejection Reason:** ' . $failureReason)
+                ->action('View rejected proposal', $link)
+                ->line('The proposal has been rejected. Click above to review the reasons and take appropriate action.');
+        }
+
+        if ($this->type === 'validated') {
+            $link = route('portal.payslips.sftp-validator') . '?proposal=' . $this->proposal->id . '&mode=view';
+
+            return (new MailMessage)
+                ->subject('[CibleRH] Proposal validated — ' . $this->proposal->file_name)
+                ->greeting('Proposal validated')
+                ->line('A payslip proposal has been validated and is ready for processing.')
+                ->line('**File:** ' . $this->proposal->file_name)
+                ->line('**Company:** ' . $companyName)
+                ->line('**Confidence:** ' . $confidence . ' (' . $strategy . ')')
+                ->line('**Period:** ' . $period)
+                ->action('View validated proposal', $link)
+                ->line('The proposal has been validated and is in the queue for processing. Click above to view the details.');
+        }
+
         // type === 'dept_required'
         $link = route('portal.payslips.sftp-validator') . '?proposal=' . $this->proposal->id . '&mode=edit';
 
