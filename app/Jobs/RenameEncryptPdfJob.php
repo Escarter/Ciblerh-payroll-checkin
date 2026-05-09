@@ -250,8 +250,31 @@ class RenameEncryptPdfJob implements ShouldQueue
             $pdf = new Pdf([$existingFilePath, $newFilePath], ['command' => config('ciblerh.pdftk_path')]);
             $pdf->tempDir = config('ciblerh.temp_dir');
             
+            Log::info('Attempting to combine PDF files', [
+                'employee_id' => $employee->id,
+                'matricule' => $employee->matricule,
+                'existing_file' => $existingFile,
+                'existing_path' => $existingFilePath,
+                'new_file' => $newFile,
+                'new_path' => $newFilePath,
+                'output_path' => $tempCombinedFile,
+                'pdftk_command' => config('ciblerh.pdftk_path'),
+                'temp_dir' => config('ciblerh.temp_dir'),
+                'existing_exists' => file_exists($existingFilePath),
+                'new_exists' => file_exists($newFilePath),
+            ]);
+            
             // Combine the unencrypted PDFs
             $combinedResult = $pdf->saveAs($tempCombinedFile);
+            
+            // Log PDF command result
+            Log::info('PDF combination result', [
+                'employee_id' => $employee->id,
+                'matricule' => $employee->matricule,
+                'combined_result' => $combinedResult,
+                'output_exists' => file_exists($tempCombinedFile),
+                'pdf_error' => $pdf->getError() ?: 'No error',
+            ]);
             
             if ($combinedResult && file_exists($tempCombinedFile)) {
                 // Delete old temp file if different
@@ -285,7 +308,17 @@ class RenameEncryptPdfJob implements ShouldQueue
                     'employee_id' => $employee->id,
                     'matricule' => $employee->matricule,
                     'existing_file' => $existingFile,
-                    'new_file' => $newFile
+                    'existing_path' => $existingFilePath,
+                    'new_file' => $newFile,
+                    'new_path' => $newFilePath,
+                    'output_path' => $tempCombinedFile,
+                    'combined_result' => $combinedResult,
+                    'pdf_error' => $pdf->getError() ?: 'No PDF error available',
+                    'pdftk_command' => config('ciblerh.pdftk_path'),
+                    'temp_dir' => config('ciblerh.temp_dir'),
+                    'existing_exists' => file_exists($existingFilePath),
+                    'new_exists' => file_exists($newFilePath),
+                    'output_exists' => file_exists($tempCombinedFile),
                 ]);
                 
                 // Mark as failed in DB with locking
