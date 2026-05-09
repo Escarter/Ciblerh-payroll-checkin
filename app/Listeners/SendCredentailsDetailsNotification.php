@@ -36,6 +36,15 @@ class SendCredentailsDetailsNotification
 
         if($validator->passes()){
             try {
+                // Check if password is provided before creating credential token
+                if (empty($event->password)) {
+                    Log::warning('No password provided for employee credentials notification', [
+                        'employee_id' => $event->employee->id,
+                        'email' => $event->employee->email,
+                    ]);
+                    return;
+                }
+                
                 // Create credential token instead of passing plain password
                 $token = CredentialToken::createForUser($event->employee, $event->password, 24, $event->importJobId);
                 
