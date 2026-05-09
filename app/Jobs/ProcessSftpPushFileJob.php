@@ -206,11 +206,24 @@ class ProcessSftpPushFileJob implements ShouldQueue
                 ]);
             }
         } elseif (!$meetsConfiguredAutoCriteria) {
-            \Log::info('ProcessSftpPushFileJob: Match below configured auto threshold; manual review required.', [
-                'file'       => $basename,
-                'confidence' => $bestConfidence,
-                'strategy'   => $best['strategy'] ?? null,
-                'threshold'  => $configuredThreshold,
+            // Add detailed logging to show why auto-processing didn't happen
+            $candidateStrategy = $best['strategy'] ?? 'unknown';
+            $candidateRank = \App\Services\FeatureConfigurationService::getStrategyRank($candidateStrategy);
+            $minStrategy = $autoMatchConfig['min_strategy'] ?? 'fuzzy';
+            $minRank = \App\Services\FeatureConfigurationService::getStrategyRank($minStrategy);
+            $confidencePct = $bestConfidence * 100;
+            
+            \Log::info('ProcessSftpPushFileJob: Match does not meet auto-processing criteria; manual review required.', [
+                'file' => $basename,
+                'confidence_pct' => $confidencePct,
+                'confidence_threshold' => $configuredThreshold,
+                'strategy' => $candidateStrategy,
+                'strategy_rank' => $candidateRank,
+                'min_strategy' => $minStrategy,
+                'min_rank' => $minRank,
+                'auto_match_enabled' => $autoMatchEnabled,
+                'meets_confidence' => $confidencePct >= $configuredThreshold,
+                'meets_strategy' => $candidateRank >= $minRank,
                 'notification_configured' => $hasEmailConfig,
             ]);
 

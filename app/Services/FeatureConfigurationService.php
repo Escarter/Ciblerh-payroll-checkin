@@ -122,6 +122,14 @@ class FeatureConfigurationService
     ];
 
     /**
+     * Get strategy rank for logging purposes
+     */
+    public static function getStrategyRank(string $strategy): int
+    {
+        return self::STRATEGY_RANK[$strategy] ?? 0;
+    }
+
+    /**
      * Return true when the candidate's confidence and strategy both meet the
      * configured auto-match thresholds.
      *
