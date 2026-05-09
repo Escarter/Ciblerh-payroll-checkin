@@ -118,7 +118,7 @@ return [
     'date_created' => 'Date Created',
     'pending_your_validation' => 'pending your validation',
     'date_format_long' => 'l, F j, Y',
-    'date_format_short' => 'Y-m-d',
+    'date_format_short' => 'MMM D, YYYY HH:mm',
     'date_format_readable' => 'M j, Y',
     'month_year_format' => 'F - Y',
     'vs_last_month' => 'vs last month',
