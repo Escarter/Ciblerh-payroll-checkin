@@ -205,8 +205,18 @@ class PayslipMatchingProposalObserver
      */
     private function sendStatusChangeNotifications(PayslipMatchingProposal $proposal, string $oldStatus, string $newStatus): void
     {
-        $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
-        $notificationEmails = $autoMatchConfig['notification_email'] ?? '';
+        $setting = \App\Models\Setting::first();
+
+        if (!$setting || !$setting->sftp_match_created_notification_enabled) {
+            Log::info('PayslipMatchingProposalObserver: Status change notifications disabled in settings', [
+                'proposal_id' => $proposal->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+            ]);
+            return;
+        }
+
+        $notificationEmails = $setting->sftp_match_created_notification_email ?? '';
         
         if (empty(trim($notificationEmails))) {
             Log::warning('PayslipMatchingProposalObserver: Status change notification enabled but no email configured', [
