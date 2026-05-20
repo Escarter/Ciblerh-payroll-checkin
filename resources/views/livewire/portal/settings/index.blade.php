@@ -105,37 +105,38 @@
                             <div x-show="$wire.sms_provider === 'orange_cm'" class="provider-config">
                                 <hr>
                                 <h6 class="text-primary mb-3">{{__('settings.orange_cm')}} {{__('settings.configuration')}}</h6>
+                                <p class="small text-muted mb-2">{{ __('settings.orange_cm_section_intro') }}</p>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
-                                        <label for="orange_cm_application_id">{{ __('settings.orange_cm_application_id') }}</label>
-                                        <input wire:model="orange_cm_application_id" id="orange_cm_application_id" type="text" class="form-control w-100 @error('orange_cm_application_id') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_application_id">
-                                    </div>
-                                </div>
-                                <div class='form-group row mb-2'>
-                                    <div class="col">
-                                        <label for="orange_cm_client_id">{{ __('settings.orange_cm_client_id') }}</label>
-                                        <input wire:model="orange_cm_client_id" id="orange_cm_client_id" type="text" class="form-control w-100 @error('orange_cm_client_id') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_client_id">
+                                        <label for="orange_cm_login_email">{{ __('settings.orange_cm_login_email') }}</label>
+                                        <input wire:model="orange_cm_login_email" id="orange_cm_login_email" type="email" class="form-control w-100 @error('orange_cm_login_email') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" autocomplete="off" placeholder="{{ __('settings.orange_cm_login_email_placeholder') }}">
                                     </div>
                                     <div class="col">
-                                        <label for="orange_cm_client_secret">{{ __('settings.orange_cm_client_secret') }}</label>
-                                        <input wire:model="orange_cm_client_secret" id="orange_cm_client_secret" type="password" class="form-control w-100 @error('orange_cm_client_secret') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_client_secret">
-                                    </div>
-                                </div>
-                                <p class="small text-muted mb-2">{{ __('settings.orange_cm_msp_section_intro') }}</p>
-                                <div class='form-group row mb-2'>
-                                    <div class="col">
-                                        <label for="orange_cm_msp_username">{{ __('settings.orange_cm_msp_username') }}</label>
-                                        <input wire:model="orange_cm_msp_username" id="orange_cm_msp_username" type="text" class="form-control w-100 @error('orange_cm_msp_username') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" autocomplete="off" placeholder="{{ __('settings.orange_cm_msp_username_placeholder') }}">
-                                    </div>
-                                    <div class="col">
-                                        <label for="orange_cm_msp_password">{{ __('settings.orange_cm_msp_password') }}</label>
-                                        <input wire:model="orange_cm_msp_password" id="orange_cm_msp_password" type="password" class="form-control w-100 @error('orange_cm_msp_password') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" autocomplete="new-password" placeholder="{{ __('settings.orange_cm_msp_password_placeholder') }}">
+                                        <label for="orange_cm_password">{{ __('settings.orange_cm_password') }}</label>
+                                        <input wire:model="orange_cm_password" id="orange_cm_password" type="password" class="form-control w-100 @error('orange_cm_password') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" autocomplete="new-password" placeholder="{{ __('settings.orange_cm_password_placeholder') }}">
                                     </div>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label for="orange_cm_sender_address">{{ __('settings.orange_cm_sender_address') }}</label>
-                                    <input wire:model="orange_cm_sender_address" id="orange_cm_sender_address" type="text" class="form-control w-100 @error('orange_cm_sender_address') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="tel:+2376XXXXXXX">
-                                    <small class="text-muted">{{ __('settings.orange_cm_sender_address_help') }}</small>
+                                    <label for="orange_cm_sender">{{ __('settings.orange_cm_sender') }}</label>
+                                    <input wire:model="orange_cm_sender" id="orange_cm_sender" type="text" class="form-control w-100 @error('orange_cm_sender') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="{{ __('settings.orange_cm_sender_placeholder') }}">
+                                    <small class="text-muted">{{ __('settings.orange_cm_sender_help') }}</small>
+                                </div>
+                                <div class='form-group row mb-2'>
+                                    <div class="col">
+                                        <label for="orange_cm_category">{{ __('settings.orange_cm_category') }}</label>
+                                        <input wire:model="orange_cm_category" id="orange_cm_category" type="text" class="form-control w-100 @error('orange_cm_category') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="{{ __('settings.orange_cm_category_placeholder') }}">
+                                        <small class="text-muted">{{ __('settings.orange_cm_category_help') }}</small>
+                                    </div>
+                                    <div class="col">
+                                        <label for="orange_cm_country">{{ __('settings.orange_cm_country') }}</label>
+                                        <input wire:model="orange_cm_country" id="orange_cm_country" type="text" class="form-control w-100 @error('orange_cm_country') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="{{ __('settings.orange_cm_country_placeholder') }}">
+                                        <small class="text-muted">{{ __('settings.orange_cm_country_help') }}</small>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label for="orange_cm_dr_callback">{{ __('settings.orange_cm_dr_callback') }}</label>
+                                    <input wire:model="orange_cm_dr_callback" id="orange_cm_dr_callback" type="url" class="form-control w-100 @error('orange_cm_dr_callback') is-invalid @enderror" placeholder="{{ __('settings.orange_cm_dr_callback_placeholder') }}">
+                                    <small class="text-muted">{{ __('settings.orange_cm_dr_callback_help') }}</small>
                                 </div>
                             </div>
 

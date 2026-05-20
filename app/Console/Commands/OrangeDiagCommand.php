@@ -16,14 +16,14 @@ class OrangeDiagCommand extends Command
     protected $signature = 'orange:diag
                             {--phone= : E.164 phone number to send test SMS to, e.g. +2376XXXXXXXX}
                             {--message=Orange diagnostic test from CibleRH : Test SMS body}
-                            {--dry-run : Only validate OAuth and MSP auth, do not send SMS}';
+                            {--dry-run : Only validate Ngage login, do not send SMS}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Diagnose Orange Cameroon OAuth, Messaging Pro auth, and optional SMS send';
+    protected $description = 'Diagnose Orange Cameroon Business Messaging Ngage login and optional SMS send';
 
     /**
      * Execute the console command.
@@ -54,17 +54,16 @@ class OrangeDiagCommand extends Command
         $result = $client->runDiagnostics($phone, $message, $dryRun);
 
         $rows = [
-            ['OAuth token (api.orange.com)', ($result['oauth']['ok'] ?? false) ? 'OK' : 'FAILED', $result['oauth']['error'] ?? ''],
-            ['MSP auth (api.orange.cm)', ($result['msp']['ok'] ?? false) ? 'OK' : 'FAILED', $result['msp']['error'] ?? ''],
+            ['Ngage login (businessmessaging.orange.cm)', ($result['auth']['ok'] ?? false) ? 'OK' : 'FAILED', $result['auth']['error'] ?? ''],
         ];
         if (! $dryRun) {
             $send = $result['send'] ?? [];
-            $rows[] = ['Send SMS (/messaging/v1/sms/simple)', ($send['ok'] ?? false) ? 'OK' : 'FAILED', $send['error'] ?? ''];
+            $rows[] = ['Send SMS (/api/v1/sms/send)', ($send['ok'] ?? false) ? 'OK' : 'FAILED', $send['error'] ?? ''];
         }
 
         $this->table(['Step', 'Status', 'Detail'], $rows);
 
-        $hasFailure = ! ($result['oauth']['ok'] ?? false) || ! ($result['msp']['ok'] ?? false) || (! $dryRun && ! (($result['send']['ok'] ?? false)));
+        $hasFailure = ! ($result['auth']['ok'] ?? false) || (! $dryRun && ! (($result['send']['ok'] ?? false)));
         if ($hasFailure) {
             $this->warn('One or more checks failed. Review the Detail column for the failing step.');
 

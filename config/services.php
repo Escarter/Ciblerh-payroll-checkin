@@ -41,29 +41,31 @@ return [
         'region' => env('AWS_SNS_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
     ],
 
+    // Orange Cameroun — Business Messaging Ngage API (see "MODOP … Interface API SMS Orange Cameroun v1").
     'orange_cm' => [
-        'application_id' => env('ORANGE_CM_APPLICATION_ID', ''),
-        'api_url' => env('ORANGE_CM_API_URL', 'https://api.orange.com'),
-        'token_url' => env('ORANGE_CM_TOKEN_URL', 'https://api.orange.com/oauth/v3/token'),
-        'token_method' => env('ORANGE_CM_TOKEN_METHOD', 'post'),
-        // Messaging Pro Cameroon — POST …/messaging/v1/sms/simple (not /api/v1/…); see getting-started docs
-        'sms_endpoint' => env('ORANGE_CM_SMS_ENDPOINT', '/messaging/v1/sms/simple'),
-        'msp_auth_url' => env('ORANGE_CM_MSP_AUTH_URL', 'https://api.orange.cm/messaging/api/v1/authenticate'),
-        'msp_username' => env('ORANGE_CM_MSP_USERNAME'),
-        'msp_password' => env('ORANGE_CM_MSP_PASSWORD'),
-        'campaign_title' => env('ORANGE_CM_CAMPAIGN_TITLE', 'Payslip'),
-        'campaign_title_max_length' => (int) env('ORANGE_CM_CAMPAIGN_TITLE_MAX_LENGTH', 255),
-        // Messaging Pro API: projectName must be 2–8 characters (see Orange 400 validation)
-        'project_name' => env('ORANGE_CM_PROJECT_NAME', 'Payroll'),
+        // Authenticate: POST {email, password} -> {access_token}
+        'login_url' => env('ORANGE_CM_LOGIN_URL', 'https://businessmessaging.orange.cm/api/v1/accounts/users/login'),
+        // Send simple (instant) SMS — Bearer access_token
+        'send_url' => env('ORANGE_CM_SEND_URL', 'https://businessmessaging.orange.cm/api/v1/sms/send'),
+        // Send scheduled campaign SMS (not used for payslips; here for reference/completeness)
+        'schedule_url' => env('ORANGE_CM_SCHEDULE_URL', 'https://businessmessaging.orange.cm/api/v1/campaigns/sms/send'),
+        // Mandatory send body fields with sensible defaults (case-sensitive on Orange's side).
+        'category' => env('ORANGE_CM_CATEGORY', 'Promo'),
+        'country' => env('ORANGE_CM_COUNTRY', 'CM'),
+        // Optional delivery-report callback URL. When empty, the app's own webhook endpoint is used (see dr_callback_auto).
+        'dr_callback' => env('ORANGE_CM_DR_CALLBACK', ''),
+        // When no dr_callback is configured, auto-build it from APP_URL + the webhooks.orange-sms.dr route.
+        'dr_callback_auto' => filter_var(env('ORANGE_CM_DR_CALLBACK_AUTO', true), FILTER_VALIDATE_BOOL),
+        // Shared secret appended to (and verified on) the DR callback URL. Strongly recommended.
+        'dr_callback_token' => env('ORANGE_CM_DR_CALLBACK_TOKEN', ''),
         'message_max_length' => env('ORANGE_CM_MESSAGE_MAX_LENGTH', 160),
-        'contracts_endpoint' => env('ORANGE_CM_CONTRACTS_ENDPOINT', '/sms/admin/v1/contracts'),
-        'country' => env('ORANGE_CM_COUNTRY', 'CMR'),
         'default_country_code' => env('ORANGE_CM_DEFAULT_COUNTRY_CODE', '237'),
-        'default_sender_address' => env('ORANGE_CM_DEFAULT_SENDER_ADDRESS', ''),
+        // Fallback sender if none is configured in SMS settings.
+        'default_sender' => env('ORANGE_CM_DEFAULT_SENDER', ''),
+        // Token validity per the spec is 3600s (1h).
+        'token_ttl' => (int) env('ORANGE_CM_TOKEN_TTL', 3600),
         'http_user_agent' => env('ORANGE_CM_HTTP_USER_AGENT', 'CiblerhPayroll/1.0 (Laravel; Orange SMS)'),
-        // api.orange.cm can return CSP headers that break Guzzle's header-line parser; use cURL body-only there.
+        // Orange edges can return CSP headers that break Guzzle's header-line parser; use cURL body-only there.
         'use_php_curl_for_orange_cm_host' => filter_var(env('ORANGE_CM_USE_PHP_CURL_FOR_ORANGE_CM', true), FILTER_VALIDATE_BOOL),
-        // If contracts JSON has no recognizable unit fields but you still want to display 0 instead of N/A.
-        'trust_zero_balance_from_contracts_api' => filter_var(env('ORANGE_CM_TRUST_ZERO_CONTRACTS_BALANCE', false), FILTER_VALIDATE_BOOL),
     ],
 ];

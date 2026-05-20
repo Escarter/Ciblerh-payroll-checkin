@@ -28,6 +28,13 @@ class Payslip extends Model
     const DELIVERY_STATUS_BOUNCED = 'bounced';
     const DELIVERY_STATUS_COMPLAINED = 'complained';
 
+    // SMS delivery status constants (handset delivery, reported by the provider's DR callback)
+    const SMS_DELIVERY_STATUS_PENDING = 'pending';
+    const SMS_DELIVERY_STATUS_DELIVERED = 'delivered';
+    const SMS_DELIVERY_STATUS_FAILED = 'failed';
+    const SMS_DELIVERY_STATUS_EXPIRED = 'expired';
+    const SMS_DELIVERY_STATUS_REJECTED = 'rejected';
+
     protected $guarded  = [];
 
     protected $casts = [

@@ -112,7 +112,7 @@
                                         </div>
                                         <div class="col-6">
                                             <small class="text-muted d-block">{{__('settings.documentation')}}</small>
-                                            <a href="https://developer.orange.com/apis/messagingpro-cameroon/api-reference" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">{{ __('settings.orange_cm_docs') }}</a>
+                                            <a href="https://businessmessaging.orange.cm" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary">{{ __('settings.orange_cm_docs') }}</a>
                                         </div>
                                     </div>
                                 </div>

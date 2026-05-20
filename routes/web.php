@@ -227,3 +227,7 @@ Route::prefix('webhooks/email')->group(function () {
     Route::post('postmark', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'postmark']);
     Route::post('mailchimp', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'mailchimp']);
 });
+
+// Orange Cameroun SMS delivery-report (DR) callback (no auth; protected by optional shared token)
+Route::post('webhooks/orange-sms/dr', [App\Http\Controllers\Webhooks\OrangeSmsWebhookController::class, 'deliveryReport'])
+    ->name('webhooks.orange-sms.dr');

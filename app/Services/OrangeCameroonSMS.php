@@ -9,47 +9,43 @@ use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
+/**
+ * Orange Cameroun SMS via the Business Messaging Ngage API.
+ *
+ * Implements the integration described in "MODOP Business Messaging — Interface API SMS Orange Cameroun v1":
+ *  - Authenticate: POST https://businessmessaging.orange.cm/api/v1/accounts/users/login  ({email, password} → {access_token})
+ *  - Send simple : POST https://businessmessaging.orange.cm/api/v1/sms/send  (Bearer access_token)
+ *
+ * The Ngage login email/password are the same credentials used on the Ngage web interface and are stored in the
+ * generic SMS settings: sms_provider_username = login email, sms_provider_password = password,
+ * sms_provider_senderid = sender (alphanumeric or short code registered with Orange).
+ */
 class OrangeCameroonSMS extends SmsProvider
 {
+    /** Bearer access token from the Ngage login endpoint. */
     protected ?string $accessToken = null;
     protected ?Carbon $accessTokenExpiresAt = null;
 
-    /** JWT from Messaging Pro authenticate (api.orange.cm); required for X-MSP-Authorization-Key on send. */
-    protected ?string $mspToken = null;
-    protected ?Carbon $mspTokenExpiresAt = null;
-
-    /** Messaging Pro bundle login from settings (not OAuth Client ID/Secret). */
-    protected ?string $mspLoginUsername = null;
-    protected ?string $mspLoginPassword = null;
-    protected ?string $applicationId = null;
-
     protected ?Client $httpClient = null;
+
+    /** Per-company send options (fall back to config/env when not set in settings). */
+    protected ?string $category = null;
+    protected ?string $country = null;
+    protected ?string $drCallback = null;
 
     public function __construct(Setting $setting)
     {
         parent::__construct($setting);
-        $this->mspLoginUsername = ! empty($setting->sms_msp_username) ? (string) $setting->sms_msp_username : null;
-        $this->mspLoginPassword = ! empty($setting->sms_msp_password) ? (string) $setting->sms_msp_password : null;
-        $this->applicationId = ! empty($setting->sms_provider_app_id) ? (string) $setting->sms_provider_app_id : null;
-        
-        // Debug logging to see what settings are loaded
-        Log::info('OrangeCameroonSMS: Constructor loaded settings', [
-            'sms_provider' => $setting->sms_provider ?? 'not_set',
-            'sms_provider_app_id' => $setting->sms_provider_app_id ?? 'not_set',
-            'sms_provider_app_id_empty' => empty($setting->sms_provider_app_id),
-            'sms_msp_username' => $setting->sms_msp_username ?? 'not_set',
-            'sms_msp_username_empty' => empty($setting->sms_msp_username),
-            'sms_msp_password' => $setting->sms_msp_password ?? 'not_set',
-            'sms_msp_password_empty' => empty($setting->sms_msp_password),
-            'sms_provider_username' => $setting->sms_provider_username ?? 'not_set',
-            'sms_provider_password' => $setting->sms_provider_password ?? 'not_set',
-        ]);
+        $this->category = ! empty($setting->sms_orange_category) ? trim((string) $setting->sms_orange_category) : null;
+        $this->country = ! empty($setting->sms_orange_country) ? trim((string) $setting->sms_orange_country) : null;
+        $this->drCallback = ! empty($setting->sms_orange_dr_callback) ? trim((string) $setting->sms_orange_dr_callback) : null;
     }
 
     /**
-     * Send SMS via Orange [Messaging Pro Cameroon](https://developer.orange.com/apis/messagingpro-cameroon/getting-started) —
-     * POST `/messaging/v1/sms/simple` with OAuth Bearer + `X-MSP-Authorization-Key: Bearer <MSP token>`.
+     * Send a simple (instant) SMS — POST /api/v1/sms/send with the mandatory, case-sensitive body fields:
+     * msg, recipient, sender, category, clientTxnId, country, drCallback.
      */
     public function sendSMS(array $data): array
     {
@@ -67,60 +63,66 @@ class OrangeCameroonSMS extends SmsProvider
                 $message = mb_substr($message, 0, $maxLen);
             }
 
-            $recipientE164 = $this->toE164String((string) ($data['mobiles'] ?? ''));
+            $recipient = $this->toMsisdn((string) ($data['mobiles'] ?? ''));
 
-            $campaignTitle = $this->normalizeMessagingProCampaignTitle(
-                (string) config('services.orange_cm.campaign_title', 'Payslip')
-            );
-            $projectName = $this->normalizeMessagingProProjectName(
-                (string) config('services.orange_cm.project_name', 'Payroll')
-            );
+            $sender = trim($this->senderid ?? '');
+            if ($sender === '') {
+                $sender = trim((string) config('services.orange_cm.default_sender', ''));
+            }
+            if ($sender === '') {
+                throw new Exception('Sender is required for Orange SMS delivery. Configure the sender in SMS settings.');
+            }
 
-            // Get sender address from settings (required for delivery)
-            $senderAddress = trim($this->senderid ?? '');
-            if ($senderAddress === '') {
-                $senderAddress = trim((string) config('services.orange_cm.default_sender_address', ''));
-            }
-            
-            if ($senderAddress === '') {
-                throw new Exception('Sender address is required for Orange SMS delivery. Configure sender address in SMS settings.');
-            }
-            
+            $category = $this->category ?? (string) config('services.orange_cm.category', 'Promo');
+            $country = $this->country ?? (string) config('services.orange_cm.country', 'CM');
+
             $payload = [
-                'campaignTitle' => $campaignTitle,
-                'projectName' => $projectName,
-                'messageContent' => $message,
-                'recipients' => [$recipientE164],
-                'senderAddress' => $senderAddress,
+                'msg' => $message,
+                'recipient' => $recipient,
+                'sender' => $sender,
+                'category' => $category,
+                'clientTxnId' => $this->generateClientTxnId($data),
+                'country' => $country,
             ];
 
-            $endpoint = config('services.orange_cm.sms_endpoint', '/messaging/v1/sms/simple');
+            $drCallback = trim($this->drCallback ?? (string) config('services.orange_cm.dr_callback', ''));
+            if ($drCallback === '') {
+                $drCallback = $this->defaultDrCallbackUrl();
+            }
+            if ($drCallback !== '') {
+                $payload['drCallback'] = $drCallback;
+            }
 
-            $result = $this->authorizedMessagingProRequest('post', $this->buildUrl($endpoint), [
-                'json' => $payload,
-            ]);
+            $endpoint = (string) config('services.orange_cm.send_url', 'https://businessmessaging.orange.cm/api/v1/sms/send');
+
+            $result = $this->authorizedRequest('post', $endpoint, ['json' => $payload]);
 
             $status = (int) ($result['status'] ?? 0);
-            if ($status !== 201) {
-                $detail = $result['body']['message'] ?? $result['raw_body'] ?? '';
+            $body = is_array($result['body'] ?? null) ? $result['body'] : [];
+
+            // Per the spec, success is 200/201/202 with statusCode 0 ("SUCCESS").
+            if (! in_array($status, [200, 201, 202], true)) {
+                $detail = $body['statusMsg'] ?? $body['message'] ?? $result['raw_body'] ?? '';
                 throw new Exception(
-                    'Orange Messaging Pro SMS request failed with status '.$status.($detail !== '' ? ': '.$detail : '')
+                    'Orange Ngage SMS request failed with status '.$status.($detail !== '' ? ': '.$detail : '')
                 );
             }
 
-            $body = is_array($result['body'] ?? null) ? $result['body'] : [];
-            Log::info('Orange Messaging Pro SMS API accepted request (201); delivery to handset is asynchronous.', [
-                'recipient' => $recipientE164,
-                'response_keys' => array_keys($body),
-            ]);
-
-            if ($this->messagingProSendResponseIndicatesFailure($body)) {
+            if ($this->sendResponseIndicatesFailure($body)) {
                 $response['responsecode'] = 0;
-                $response['error'] = $body['message'] ?? $body['description'] ?? 'Orange Messaging Pro reported a failure for one or more recipients.';
+                $response['error'] = $body['statusMsg'] ?? $body['message'] ?? 'Orange Ngage reported a failure for this request.';
                 $response['body'] = $body;
 
                 return $response;
             }
+
+            Log::info('Orange Ngage SMS accepted.', [
+                'recipient' => $recipient,
+                'http_status' => $status,
+                'txn_id' => $body['txnId'] ?? null,
+                'campaign_id' => $body['campaignId'] ?? null,
+                'status_msg' => $body['statusMsg'] ?? null,
+            ]);
 
             $response['responsecode'] = 1;
             $response['body'] = $body;
@@ -136,35 +138,19 @@ class OrangeCameroonSMS extends SmsProvider
     }
 
     /**
-     * Run an end-to-end connectivity diagnostic for Orange Messaging Pro.
+     * Connectivity diagnostic: confirm login works, then optionally send a test SMS.
      *
-     * @return array{
-     *   oauth: array{ok: bool, error?: string},
-     *   msp: array{ok: bool, error?: string},
-     *   send?: array{ok: bool, responsecode?: int, error?: string}
-     * }
+     * @return array{auth: array{ok: bool, error?: string}, send?: array{ok: bool, responsecode?: int, error?: string}}
      */
     public function runDiagnostics(string $phone, string $message, bool $dryRun = true): array
     {
-        $result = [
-            'oauth' => ['ok' => false],
-            'msp' => ['ok' => false],
-        ];
+        $result = ['auth' => ['ok' => false]];
 
         try {
             $this->getAccessToken();
-            $result['oauth']['ok'] = true;
+            $result['auth']['ok'] = true;
         } catch (\Throwable $e) {
-            $result['oauth']['error'] = $e->getMessage();
-
-            return $result;
-        }
-
-        try {
-            $this->getMspToken();
-            $result['msp']['ok'] = true;
-        } catch (\Throwable $e) {
-            $result['msp']['error'] = $e->getMessage();
+            $result['auth']['error'] = $e->getMessage();
 
             return $result;
         }
@@ -173,11 +159,7 @@ class OrangeCameroonSMS extends SmsProvider
             return $result;
         }
 
-        $send = $this->sendSMS([
-            'mobiles' => $phone,
-            'sms' => $message,
-        ]);
-
+        $send = $this->sendSMS(['mobiles' => $phone, 'sms' => $message]);
         $result['send'] = [
             'ok' => (int) ($send['responsecode'] ?? 0) === 1,
             'responsecode' => (int) ($send['responsecode'] ?? 0),
@@ -190,254 +172,60 @@ class OrangeCameroonSMS extends SmsProvider
     }
 
     /**
-     * Get SMS balance/available units from Orange Cameroon contracts endpoint.
-     * Note: This endpoint requires admin permissions and may return 403 for many applications.
+     * The Ngage API spec does not expose a balance/credit endpoint. Report success with an unknown balance so the
+     * UI shows "N/A" rather than a misleading zero; bundle volume is visible on the Ngage web interface.
      */
     public function getBalance(): array
     {
-        $response = ['responsecode' => 0, 'credit' => null, 'balance_unknown' => true];
-
-        try {
-            $country = trim((string) config('services.orange_cm.country', 'CMR'));
-            $query = $country !== '' ? ['country' => $country] : [];
-
-            $result = $this->authorizedRequest(
-                'get',
-                $this->buildUrl(config('services.orange_cm.contracts_endpoint', '/sms/admin/v1/contracts')),
-                ['query' => $query]
-            );
-
-            if (($result['status'] ?? 0) !== 200) {
-                throw new Exception('Orange SMS balance request failed with status ' . ($result['status'] ?? 'unknown'));
-            }
-
-            $rawBody = $result['body'] ?? [];
-            $credit = $this->extractAvailableUnits($rawBody);
-            if ($credit === 0) {
-                $credit = $this->extractAlternateBalanceFigures($rawBody);
-            }
-
-            $response['responsecode'] = 1;
-
-            // Only show N/A when the payload has no recognizable SMS unit fields anywhere (e.g. empty `[]`,
-            // or Messaging Pro–only account shapes). If Orange returns `availableUnits` (etc.) with value 0,
-            // that is a real zero balance, not "unknown".
-            $hasUnitFields = $this->jsonTreeContainsRecognizedSmsUnitKey($rawBody);
-            if ($credit === 0 && ! $hasUnitFields && ! config('services.orange_cm.trust_zero_balance_from_contracts_api', false)) {
-                $response['credit'] = null;
-                $response['balance_unknown'] = true;
-                Log::info('Orange SMS balance: contracts JSON had no recognizable unit fields; balance unavailable in app (check Orange developer portal).', [
-                    'top_level_keys' => is_array($rawBody) ? array_slice(array_keys($rawBody), 0, 12) : [],
-                ]);
-            } else {
-                $response['credit'] = $credit;
-            }
-        } catch (\Throwable $th) {
-            // Check if this is a 403 error (common - many apps don't have contracts endpoint access)
-            $errorMessage = $th->getMessage();
-            if (str_contains($errorMessage, '403 Forbidden') || str_contains($errorMessage, 'Access denied')) {
-                Log::warning('Orange SMS balance check: 403 Forbidden - contracts endpoint not accessible (common for many applications)', [
-                    'error' => $errorMessage,
-                ]);
-                $response['responsecode'] = 1; // Treat as success but with unknown balance
-                $response['balance_unknown'] = true;
-                $response['error'] = 'Balance check not available - contracts endpoint requires admin permissions';
-            } else {
-                Log::error('Orange Cameroon SMS balance check failed', [
-                    'error' => $errorMessage,
-                ]);
-                $response['error'] = $errorMessage;
-            }
-        }
-
-        return $response;
+        return [
+            'responsecode' => 1,
+            'credit' => null,
+            'balance_unknown' => true,
+        ];
     }
 
     /**
-     * True if JSON has explicit per-recipient or aggregate failure hints.
+     * True if the JSON response carries an explicit failure signal (non-zero statusCode, or a failure statusMsg).
      */
-    protected function messagingProSendResponseIndicatesFailure(array $body): bool
+    protected function sendResponseIndicatesFailure(array $body): bool
     {
         if ($body === []) {
             return false;
         }
 
-        if (! empty($body['code']) && is_numeric($body['code']) && (int) $body['code'] >= 400) {
+        if (array_key_exists('statusCode', $body) && is_numeric($body['statusCode']) && (int) $body['statusCode'] !== 0) {
             return true;
         }
 
-        $failed = $body['failedCount'] ?? $body['failureCount'] ?? $body['nbFailed'] ?? null;
-        if ($failed !== null && (int) $failed > 0) {
+        $statusMsg = strtolower((string) ($body['statusMsg'] ?? ''));
+        if ($statusMsg !== '' && (str_contains($statusMsg, 'fail') || str_contains($statusMsg, 'error') || str_contains($statusMsg, 'reject'))) {
             return true;
-        }
-
-        foreach (['list', 'recipients', 'recipientList', 'messages'] as $key) {
-            if (! isset($body[$key]) || ! is_array($body[$key])) {
-                continue;
-            }
-            foreach ($body[$key] as $row) {
-                if (! is_array($row)) {
-                    continue;
-                }
-                $st = strtolower((string) ($row['status'] ?? $row['deliveryStatus'] ?? $row['state'] ?? $row['result'] ?? ''));
-                if ($st !== '' && (str_contains($st, 'fail') || str_contains($st, 'reject') || str_contains($st, 'error'))) {
-                    return true;
-                }
-            }
         }
 
         return false;
     }
 
     /**
-     * Other possible numeric keys in Orange contract/balance JSON.
+     * Attach the Bearer access token and JSON headers, then perform the request.
      */
-    protected function extractAlternateBalanceFigures(mixed $node): int
-    {
-        if (! is_array($node)) {
-            return 0;
-        }
-
-        $keys = [
-            'remainingSms', 'remainingUnits', 'totalAvailableUnits', 'smsBalance', 'balance',
-            'availableQuantity', 'credit', 'newAvailableUnits', 'oldAvailableUnits',
-        ];
-        $sum = 0;
-        foreach ($node as $key => $value) {
-            if (is_string($key) && in_array($key, $keys, true) && is_numeric($value)) {
-                $sum += (int) $value;
-            }
-            $sum += $this->extractAlternateBalanceFigures($value);
-        }
-
-        return $sum;
-    }
-
     protected function authorizedRequest(string $method, string $url, array $options = []): array
     {
         $token = $this->getAccessToken();
-        $applicationId = trim((string) ($this->applicationId ?? ''));
-        
-        // Debug logging to see what credentials are being used
-        Log::error('OrangeCameroonSMS: Request details - IMMEDIATE DEBUG', [
-            'method' => $method,
-            'url' => $url,
-            'application_id' => $applicationId,
-            'application_id_empty' => $applicationId === '',
-            'application_id_length' => strlen($applicationId),
-            'username_empty' => empty(trim($this->username ?? '')),
-            'password_empty' => empty(trim($this->password ?? '')),
-            'username_length' => strlen(trim($this->username ?? '')),
-            'password_length' => strlen(trim($this->password ?? '')),
-        ]);
-        
+
         $options['headers'] = array_merge([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
             'Accept' => 'application/json',
             'Content-Type' => 'application/json',
         ], $options['headers'] ?? []);
-        if ($applicationId !== '') {
-            $options['headers']['X-Orange-Application-ID'] = $applicationId;
-            $options['headers']['x-ibm-client-id'] = $applicationId;
-        }
         $options['timeout'] = $options['timeout'] ?? 20;
 
         return $this->request($method, $url, $options);
     }
 
     /**
-     * Messaging Pro send endpoint: OAuth (Developer app) + MSP token (bundle login) per Orange getting-started curl.
+     * Obtain (and cache) the Ngage Bearer token via POST /api/v1/accounts/users/login.
+     * Token validity is 3600s (1h) per the spec; we refresh slightly early.
      */
-    protected function authorizedMessagingProRequest(string $method, string $url, array $options): array
-    {
-        $oauthToken = $this->getAccessToken();
-        $mspJwt = $this->getMspToken();
-
-        $applicationId = trim((string) ($this->applicationId ?? ''));
-        $options['headers'] = array_merge([
-            'Authorization' => 'Bearer '.$oauthToken,
-            'X-MSP-Authorization-Key' => 'Bearer '.$mspJwt,
-            'Accept' => 'application/json',
-            'Content-Type' => 'application/json',
-        ], $options['headers'] ?? []);
-        if ($applicationId !== '') {
-            $options['headers']['X-Orange-Application-ID'] = $applicationId;
-            $options['headers']['x-ibm-client-id'] = $applicationId;
-        }
-        $options['timeout'] = $options['timeout'] ?? 20;
-
-        return $this->request($method, $url, $options);
-    }
-
-    /**
-     * Token from POST api.orange.cm/messaging/api/v1/authenticate (Messaging Pro username/password).
-     */
-    protected function getMspToken(): string
-    {
-        if (
-            $this->mspToken !== null
-            && $this->mspTokenExpiresAt !== null
-            && now()->lessThan($this->mspTokenExpiresAt)
-        ) {
-            return $this->mspToken;
-        }
-
-        // Priority: DB settings → env → OAuth fields (only if no dedicated MSP login).
-        $user = trim((string) ($this->mspLoginUsername ?? ''));
-        $pass = (string) ($this->mspLoginPassword ?? '');
-        if ($user === '') {
-            $user = trim((string) (config('services.orange_cm.msp_username') ?? ''));
-        }
-        if ($pass === '') {
-            $pass = trim((string) (config('services.orange_cm.msp_password') ?? ''));
-        }
-        if ($user === '') {
-            $user = trim($this->username);
-        }
-        if ($pass === '') {
-            $pass = trim($this->password);
-        }
-        if ($user === '' || $pass === '') {
-            throw new Exception('Messaging Pro login is required: enter Messaging Pro username and password in SMS settings (or set ORANGE_CM_MSP_USERNAME / ORANGE_CM_MSP_PASSWORD in .env). These are separate from the OAuth Client ID and Client secret.');
-        }
-
-        $authUrl = (string) config('services.orange_cm.msp_auth_url', 'https://api.orange.cm/messaging/api/v1/authenticate');
-        $result = $this->request('post', $authUrl, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ],
-            'json' => [
-                'username' => $user,
-                'password' => $pass,
-            ],
-            'timeout' => 20,
-        ]);
-
-        if (($result['status'] ?? 0) !== 200) {
-            throw new Exception('Messaging Pro authentication failed (api.orange.cm): '.($result['raw_body'] ?? ''));
-        }
-
-        $token = $result['body']['token'] ?? null;
-        if (empty($token) || ! is_string($token)) {
-            throw new Exception('Messaging Pro authenticate response did not include a token');
-        }
-
-        $ttlSeconds = 3000;
-        $parts = explode('.', $token);
-        if (count($parts) === 3) {
-            $payload = json_decode((string) base64_decode((string) strtr($parts[1], '-_', '+/'), true), true);
-            if (is_array($payload) && isset($payload['exp'])) {
-                $ttlSeconds = max((int) $payload['exp'] - time() - 120, 120);
-            }
-        }
-
-        $this->mspToken = $token;
-        $this->mspTokenExpiresAt = now()->addSeconds($ttlSeconds);
-
-        return $token;
-    }
-
     protected function getAccessToken(): string
     {
         if (
@@ -448,33 +236,37 @@ class OrangeCameroonSMS extends SmsProvider
             return $this->accessToken;
         }
 
-        if (trim($this->username) === '' || trim($this->password) === '') {
-            throw new Exception('Orange Cameroon credentials are required');
+        $email = trim((string) ($this->username ?? ''));
+        $password = (string) ($this->password ?? '');
+        if ($email === '' || $password === '') {
+            throw new Exception('Orange Cameroon (Ngage) login email and password are required.');
         }
 
-        $result = $this->request(config('services.orange_cm.token_method', 'post'), config('services.orange_cm.token_url', 'https://api.orange.com/oauth/v3/token'), [
+        $loginUrl = (string) config('services.orange_cm.login_url', 'https://businessmessaging.orange.cm/api/v1/accounts/users/login');
+
+        $result = $this->request('post', $loginUrl, [
             'headers' => [
-                'Authorization' => 'Basic ' . base64_encode($this->username . ':' . $this->password),
-                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ],
-            'form_params' => [
-                'grant_type' => 'client_credentials',
+            'json' => [
+                'email' => $email,
+                'password' => $password,
             ],
             'timeout' => 20,
         ]);
 
         if (($result['status'] ?? 0) !== 200) {
-            throw new Exception('Unable to authenticate with Orange Cameroon API');
+            throw new Exception('Orange Ngage authentication failed (HTTP '.($result['status'] ?? 'unknown').'): '.($result['raw_body'] ?? ''));
         }
 
         $token = $result['body']['access_token'] ?? null;
-        if (empty($token)) {
-            throw new Exception('Orange Cameroon API did not return an access token');
+        if (empty($token) || ! is_string($token)) {
+            throw new Exception('Orange Ngage login response did not include an access_token.');
         }
 
-        $expiresIn = (int) ($result['body']['expires_in'] ?? 3600);
-        $ttl = max($expiresIn - 60, 60);
+        // Spec: token validity 3600s. Refresh 60s early to avoid edge-of-expiry failures.
+        $ttl = max((int) config('services.orange_cm.token_ttl', 3600) - 60, 60);
         $this->accessToken = $token;
         $this->accessTokenExpiresAt = now()->addSeconds($ttl);
 
@@ -506,11 +298,9 @@ class OrangeCameroonSMS extends SmsProvider
     }
 
     /**
-     * Guzzle builds PSR-7 headers with {@see \GuzzleHttp\Utils::headersFromLines} using the first ":" only.
-     * Content-Security-Policy (and similar) values contain ":" / ";" — malformed or folded lines from
-     * api.orange.cm can yield a line with no name, so the CSP directive is mistaken for a header *name*
-     * ("script-src ... is not valid header name"). cURL with CURLOPT_HEADER false returns only the body;
-     * HTTP status comes from curl_getinfo, so we never parse those headers.
+     * Some Orange edges return responses that confuse Guzzle's PSR-7 header-line parser (a CSP directive folded into
+     * a line with no name is mistaken for a header *name*). cURL with CURLOPT_HEADER false returns only the body, and
+     * the status comes from curl_getinfo, so those headers are never parsed.
      */
     protected function shouldUsePhpCurlWithoutResponseHeaders(string $url): bool
     {
@@ -524,7 +314,7 @@ class OrangeCameroonSMS extends SmsProvider
             return false;
         }
 
-        return parse_url($url, PHP_URL_HOST) === 'api.orange.cm';
+        return parse_url($url, PHP_URL_HOST) === 'businessmessaging.orange.cm';
     }
 
     /**
@@ -597,7 +387,7 @@ class OrangeCameroonSMS extends SmsProvider
 
         if ($rawBody === false) {
             Log::error('OrangeCameroonSMS cURL failure', ['url' => $url, 'curl_errno' => $errno, 'curl_error' => $error]);
-            throw new Exception('Orange api.orange.cm cURL error: '.$error.' ('.$errno.')');
+            throw new Exception('Orange businessmessaging.orange.cm cURL error: '.$error.' ('.$errno.')');
         }
 
         $decodedBody = json_decode((string) $rawBody, true);
@@ -627,32 +417,18 @@ class OrangeCameroonSMS extends SmsProvider
         }
 
         $summary = implode(' ', array_filter($bits));
-        
-        // Check if this is a contracts endpoint 403 (common and expected)
-        $isContractsEndpoint = str_contains($url, '/contracts');
-        $is403Forbidden = str_contains($summary, '403 Forbidden');
-        
-        if ($isContractsEndpoint && $is403Forbidden) {
-            Log::warning('Orange SMS balance check: 403 Forbidden - contracts endpoint not accessible (common for many applications)', [
-                'method' => $method,
-                'url' => $url,
-                'summary' => $summary,
-            ]);
-        } else {
-            Log::error('OrangeCameroonSMS HTTP failure', [
-                'method' => $method,
-                'url' => $url,
-                'summary' => $summary,
-            ]);
-        }
+
+        Log::error('OrangeCameroonSMS HTTP failure', [
+            'method' => $method,
+            'url' => $url,
+            'summary' => $summary,
+        ]);
 
         return 'Orange API HTTP failure ('.$method.' '.$url.'): '.$summary;
     }
 
     /**
-     * api.orange.cm (and some Orange edges) can return responses that confuse Guzzle/PSR-7 when using
-     * HTTP/2 or odd header folding — e.g. a CSP directive line parsed as a header *name*
-     * ("script-src ... is not valid header name"). Forcing HTTP/1.1 + cURL HTTP version avoids that.
+     * Force HTTP/1.1 and a User-Agent; some Orange edges break Guzzle/PSR-7 on HTTP/2 or odd header folding.
      */
     protected function mergeDefaultTransportOptions(string $url, array $options): array
     {
@@ -690,60 +466,46 @@ class OrangeCameroonSMS extends SmsProvider
     }
 
     /**
-     * Orange Messaging Pro rejects invalid lengths; API returns 400 if rules are not met.
+     * Build this app's own delivery-report callback URL (APP_URL + the webhooks.orange-sms.dr route),
+     * appending the shared token when one is configured. Used when no explicit drCallback is set, so DR
+     * processing works out of the box. Returns '' if disabled or the route cannot be resolved.
      */
-    protected function normalizeMessagingProProjectName(string $value): string
+    protected function defaultDrCallbackUrl(): string
     {
-        $min = 2;
-        $max = 8;
-        $fallback = 'Payroll';
-        $value = trim($value);
-        if (mb_strlen($value) > $max) {
-            $value = mb_substr($value, 0, $max);
-        }
-        if (mb_strlen($value) < $min) {
-            $value = $fallback;
+        if (config('services.orange_cm.dr_callback_auto', true) !== true) {
+            return '';
         }
 
-        return $value;
+        try {
+            $url = route('webhooks.orange-sms.dr');
+        } catch (\Throwable $e) {
+            return '';
+        }
+
+        $token = trim((string) config('services.orange_cm.dr_callback_token', ''));
+        if ($token !== '') {
+            $url .= (str_contains($url, '?') ? '&' : '?').'token='.urlencode($token);
+        }
+
+        return $url;
     }
 
     /**
-     * campaignTitle limits are looser than projectName; keep a safe upper bound.
+     * A unique client transaction id for idempotency/tracing on Orange's side (returned as clientTxnId).
      */
-    protected function normalizeMessagingProCampaignTitle(string $value): string
+    protected function generateClientTxnId(array $data): string
     {
-        $max = (int) config('services.orange_cm.campaign_title_max_length', 255);
-        $value = trim($value);
-        if ($value === '') {
-            $value = 'Payslip';
-        }
-        if ($max > 0 && mb_strlen($value) > $max) {
-            $value = mb_substr($value, 0, $max);
+        if (! empty($data['client_txn_id'])) {
+            return (string) $data['client_txn_id'];
         }
 
-        return $value;
-    }
-
-    protected function buildUrl(string $path): string
-    {
-        $base = rtrim((string) config('services.orange_cm.api_url', 'https://api.orange.com'), '/');
-        $path = '/' . ltrim($path, '/');
-
-        return $base . $path;
+        return (string) Str::uuid();
     }
 
     /**
-     * E.164 international number for Messaging Pro `recipients` (e.g. +2376XXXXXXXX), without `tel:` prefix.
+     * Recipient MSISDN for the Ngage API: international, digits only, no leading "+" (e.g. 2376XXXXXXXX).
      */
-    protected function toE164String(string $value): string
-    {
-        $tel = $this->toTelAddress($value);
-
-        return substr($tel, 4);
-    }
-
-    protected function toTelAddress(string $value): string
+    protected function toMsisdn(string $value): string
     {
         $value = trim($value);
         if ($value === '') {
@@ -758,10 +520,12 @@ class OrangeCameroonSMS extends SmsProvider
         $value = preg_replace('/[^0-9+]/', '', $value);
 
         if (str_starts_with($value, '00')) {
-            $value = '+' . substr($value, 2);
+            $value = '+'.substr($value, 2);
         }
 
-        if (!str_starts_with($value, '+')) {
+        if (str_starts_with($value, '+')) {
+            $value = substr($value, 1);
+        } else {
             $value = ltrim($value, '0');
             if ($value === '') {
                 throw new Exception('Phone number cannot be all zeros');
@@ -772,78 +536,15 @@ class OrangeCameroonSMS extends SmsProvider
                 throw new Exception('Orange Cameroon default country code is invalid');
             }
 
-            if (!str_starts_with($value, $defaultCountryCode)) {
-                $value = $defaultCountryCode . $value;
+            if (! str_starts_with($value, $defaultCountryCode)) {
+                $value = $defaultCountryCode.$value;
             }
-
-            $value = '+' . $value;
         }
 
-        if (!preg_match('/^\+\d{8,15}$/', $value)) {
+        if (! preg_match('/^\d{8,15}$/', $value)) {
             throw new Exception('Invalid phone number format for Orange Cameroon API');
         }
 
-        return 'tel:' . $value;
-    }
-
-    /**
-     * Keys Orange uses in `/sms/admin/v1/contracts` and related payloads (see Orange SMS getting-started).
-     */
-    protected function smsUnitFieldNames(): array
-    {
-        return [
-            'availableUnits',
-            'newAvailableUnits',
-            'oldAvailableUnits',
-            'remainingUnits',
-        ];
-    }
-
-    /**
-     * True if any recognized SMS unit counter appears with a numeric value (including 0).
-     */
-    protected function jsonTreeContainsRecognizedSmsUnitKey(mixed $node, int $depth = 0): bool
-    {
-        if ($depth > 40 || ! is_array($node)) {
-            return false;
-        }
-
-        $direct = array_merge($this->smsUnitFieldNames(), [
-            'remainingSms', 'totalAvailableUnits', 'smsBalance', 'balance',
-            'availableQuantity', 'credit',
-        ]);
-
-        foreach ($node as $key => $value) {
-            if (is_string($key) && in_array($key, $direct, true) && is_numeric($value)) {
-                return true;
-            }
-            if (is_array($value) && $this->jsonTreeContainsRecognizedSmsUnitKey($value, $depth + 1)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    protected function extractAvailableUnits(mixed $node): int
-    {
-        if (! is_array($node)) {
-            return 0;
-        }
-
-        $sum = 0;
-        $unitKeys = $this->smsUnitFieldNames();
-
-        foreach ($node as $key => $value) {
-            if (is_string($key) && in_array($key, $unitKeys, true) && is_numeric($value)) {
-                $sum += (int) $value;
-
-                continue;
-            }
-
-            $sum += $this->extractAvailableUnits($value);
-        }
-
-        return $sum;
+        return $value;
     }
 }

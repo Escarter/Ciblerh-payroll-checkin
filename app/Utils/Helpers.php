@@ -312,7 +312,18 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 ]);
 
                 if ($response['responsecode'] === 1) {
-                    $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
+                    // Capture the provider's transaction ids (Orange echoes txnId/clientTxnId) so a later
+                    // delivery-report callback can be correlated back to this payslip.
+                    $txnId = data_get($response, 'body.txnId');
+                    $clientTxnId = data_get($response, 'body.clientTxnId');
+                    $record->update(array_filter([
+                        'sms_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                        'sms_txn_id' => $txnId,
+                        'sms_client_txn_id' => $clientTxnId,
+                        'sms_sent_at' => now(),
+                        // Only mark "pending delivery" when we have an id to receive a DR against.
+                        'sms_delivery_status' => $txnId || $clientTxnId ? Payslip::SMS_DELIVERY_STATUS_PENDING : null,
+                    ], fn ($value) => $value !== null));
                 } else {
                     // Check if failure is due to insufficient balance
                     $failureReason = __('payslips.failed_sending_sms');

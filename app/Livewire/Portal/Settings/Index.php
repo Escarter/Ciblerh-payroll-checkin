@@ -25,12 +25,11 @@ class Index extends Component
     public $nexah_username, $nexah_password, $nexah_senderid;
     public $twilio_account_sid, $twilio_auth_token, $twilio_phone_number;
     public $sns_access_key, $sns_secret_key, $sns_region, $sns_senderid;
-    public $orange_cm_application_id, $orange_cm_client_id, $orange_cm_client_secret, $orange_cm_sender_address;
+    /** Business Messaging Ngage — login email/password (same as the Ngage web interface) + sender. */
+    public $orange_cm_login_email, $orange_cm_password, $orange_cm_sender;
 
-    /** Messaging Pro Cameroon (api.orange.cm) — separate from OAuth Client ID/Secret */
-    public $orange_cm_msp_username;
-
-    public $orange_cm_msp_password;
+    /** Ngage send options: SMS category, country code, and optional delivery-report callback URL. */
+    public $orange_cm_category, $orange_cm_country, $orange_cm_dr_callback;
 
     public $smtp_provider;
     public $mailgun_domain;
@@ -148,8 +147,6 @@ class Index extends Component
         $this->sms_provider_username = !empty($this->setting) ? $this->setting->sms_provider_username : '';
         $this->sms_provider_password = !empty($this->setting) ? $this->setting->sms_provider_password :'';
         $this->sms_provider_senderid = !empty($this->setting) ? $this->setting->sms_provider_senderid :'';
-        $this->orange_cm_msp_username = ! empty($this->setting) ? ($this->setting->sms_msp_username ?? '') : '';
-        $this->orange_cm_msp_password = ! empty($this->setting) ? ($this->setting->sms_msp_password ?? '') : '';
         $this->smtp_provider = !empty($this->setting) ? $this->setting->smtp_provider :'smtp';
         $this->smtp_host = !empty($this->setting) ? $this->setting->smtp_host :'';
         $this->smtp_port = !empty($this->setting) ? $this->setting->smtp_port :'';
@@ -287,12 +284,12 @@ class Index extends Component
                 break;
 
             case 'orange_cm':
-                $this->orange_cm_application_id = $this->setting->sms_provider_app_id ?? '';
-                $this->orange_cm_client_id = $this->sms_provider_username;
-                $this->orange_cm_client_secret = $this->sms_provider_password;
-                $this->orange_cm_sender_address = $this->sms_provider_senderid;
-                $this->orange_cm_msp_username = $this->setting->sms_msp_username ?? '';
-                $this->orange_cm_msp_password = $this->setting->sms_msp_password ?? '';
+                $this->orange_cm_login_email = $this->sms_provider_username;
+                $this->orange_cm_password = $this->sms_provider_password;
+                $this->orange_cm_sender = $this->sms_provider_senderid;
+                $this->orange_cm_category = $this->setting->sms_orange_category ?? config('services.orange_cm.category', 'Promo');
+                $this->orange_cm_country = $this->setting->sms_orange_country ?? config('services.orange_cm.country', 'CM');
+                $this->orange_cm_dr_callback = $this->setting->sms_orange_dr_callback ?? '';
                 break;
 
             default:
@@ -341,12 +338,9 @@ class Index extends Component
                 break;
 
             case 'orange_cm':
-                $this->setting->sms_provider_app_id = $this->orange_cm_application_id;
-                $this->sms_provider_username = $this->orange_cm_client_id;
-                $this->sms_provider_password = $this->orange_cm_client_secret;
-                $this->sms_provider_senderid = $this->orange_cm_sender_address;
-                $this->setting->sms_msp_username = $this->orange_cm_msp_username ?: null;
-                $this->setting->sms_msp_password = $this->orange_cm_msp_password ?: null;
+                $this->sms_provider_username = $this->orange_cm_login_email;
+                $this->sms_provider_password = $this->orange_cm_password;
+                $this->sms_provider_senderid = $this->orange_cm_sender;
                 break;
 
             default:
@@ -368,9 +362,12 @@ class Index extends Component
                 'sms_provider_username' => $this->sms_provider_username,
                 'sms_provider_password' => $this->sms_provider_password,
                 'sms_provider_senderid' => $this->sms_provider_senderid,
-                'sms_provider_app_id' => $this->sms_provider === 'orange_cm' ? ($this->setting->sms_provider_app_id ?? null) : null,
-                'sms_msp_username' => $this->sms_provider === 'orange_cm' ? ($this->orange_cm_msp_username ?: null) : null,
-                'sms_msp_password' => $this->sms_provider === 'orange_cm' ? ($this->orange_cm_msp_password ?: null) : null,
+                'sms_provider_app_id' => null,
+                'sms_msp_username' => null,
+                'sms_msp_password' => null,
+                'sms_orange_category' => $this->sms_provider === 'orange_cm' ? ($this->orange_cm_category ?: null) : null,
+                'sms_orange_country' => $this->sms_provider === 'orange_cm' ? ($this->orange_cm_country ?: null) : null,
+                'sms_orange_dr_callback' => $this->sms_provider === 'orange_cm' ? ($this->orange_cm_dr_callback ?: null) : null,
                 'sms_content_en' => $this->sms_content_en,
                 'sms_content_fr' => $this->sms_content_fr,
                 'birthday_sms_message_en' => $this->birthday_sms_message_en,
