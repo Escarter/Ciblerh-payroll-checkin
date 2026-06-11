@@ -145,4 +145,8 @@ return [
     'manage_notifications_action' => 'Gérer les notifications',
     'manage_notifications_title' => 'Gérer les notifications de la société',
     'manage_notifications_help' => 'Choisissez une société, puis activez ou désactivez les notifications SMS et email pour ses employés.',
+
+    // Additional translation keys
+    'select_company_required' => 'Veuillez sélectionner une entreprise',
+    'unknown_company' => 'Entreprise inconnue',
 ];

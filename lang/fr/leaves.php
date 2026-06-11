@@ -124,4 +124,13 @@ return [
     'move_selected_leave_records_to_trash' => 'Déplacer les enregistrements de congé sélectionnés vers la corbeille',
     'restore_selected_leave_records' => 'Restaurer les enregistrements de congé sélectionnés',
     'permanently_delete_selected_leave_records' => 'Supprimer définitivement les enregistrements de congé sélectionnés',
+
+    // Additional translation keys
+    'leave_balance' => 'Solde de congé',
+    'no_leave_selected' => 'Aucun congé sélectionné',
+    'no_leave_type_selected' => 'Aucun type de congé sélectionné',
+    'remaining' => 'Restant',
+    'select_all_deleted_leaves' => 'Sélectionner tous les congés supprimés',
+    'select_all_leaves' => 'Sélectionner tous les congés',
+    'used' => 'Utilisé',
 ];

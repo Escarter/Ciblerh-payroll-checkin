@@ -142,4 +142,11 @@ return [
     'pending_welcome_emails_hint' => 'These credentials emails are queued or waiting to be processed.',
     'file_storage_failed' => 'Failed to store the uploaded file. Please try again.',
     'file_expired' => 'The uploaded file has expired or is no longer available. Please upload the file again and try the import immediately.',
+
+    // Additional translation keys
+    'danger_creating_import_job' => 'An error occurred while creating the import job',
+    'danger_retrying_job' => 'An error occurred while retrying the job',
+    'import_with_dangers_toast' => ':dangers row(s) could not be imported.',
+    'unable_to_delete_job' => 'Unable to delete the job',
+    'unable_to_restore_job' => 'Unable to restore the job',
 ];

@@ -72,4 +72,8 @@ return [
     // Email de test
     'test_email_subject' => 'Email de test Wima HR',
 
+    // Additional translation keys
+    'e-mail_address' => 'Adresse e-mail',
+    'name' => 'Nom',
+    'register' => 'S\'inscrire',
 ];

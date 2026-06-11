@@ -120,4 +120,7 @@ return [
     'manage_notifications_action' => 'Manage notifications',
     'manage_notifications_title' => 'Manage service notifications',
     'manage_notifications_help' => 'Choose a service, then enable or disable SMS and email notifications for its employees.',
+
+    // Additional translation keys
+    'select_service_for_import' => 'Select a service for the import',
 ];

@@ -124,4 +124,13 @@ return [
     'move_selected_leave_records_to_trash' => 'Move Selected Leave Records to Trash',
     'restore_selected_leave_records' => 'Restore Selected Leave Records',
     'permanently_delete_selected_leave_records' => 'Permanently Delete Selected Leave Records',
+
+    // Additional translation keys
+    'leave_balance' => 'Leave balance',
+    'no_leave_selected' => 'No leave selected',
+    'no_leave_type_selected' => 'No leave type selected',
+    'remaining' => 'Remaining',
+    'select_all_deleted_leaves' => 'Select all deleted leaves',
+    'select_all_leaves' => 'Select all leaves',
+    'used' => 'Used',
 ];

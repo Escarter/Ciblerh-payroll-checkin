@@ -481,4 +481,14 @@ return [
     'failure_code_sp_job_permanent_failure' => 'Intake job permanently failed',
     'view_scan_report' => 'View full report',
     'no_scan_report_available' => 'No scan report available.',
+
+    // Additional translation keys
+    'encryption_not_successful' => 'Encryption was not successful',
+    'no_action_taken_on_resend' => 'No action was taken on the resend',
+    'no_eligible_selected_payslips_for_email_resend' => 'No eligible selected payslips for email resend',
+    'no_eligible_selected_payslips_for_sms_resend' => 'No eligible selected payslips for SMS resend',
+    'no_failed_emails_to_resend' => 'No failed emails to resend',
+    'no_failed_sms_to_resend' => 'No failed SMS to resend',
+    'no_payslips_selected' => 'No payslips selected',
+    'view_details' => 'View details',
 ];

@@ -168,4 +168,8 @@ return [
     'manage_notifications_action' => 'Gérer les notifications',
     'manage_notifications_title' => 'Gérer les notifications du département',
     'manage_notifications_help' => 'Choisissez un département, puis activez ou désactivez les notifications SMS et email pour ses employés.',
+
+    // Additional translation keys
+    'no_department_selected' => 'Aucun département sélectionné',
+    'select_department_for_import' => 'Sélectionnez un département pour l\'importation',
 ];

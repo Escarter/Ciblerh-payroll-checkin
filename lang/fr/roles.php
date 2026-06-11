@@ -77,4 +77,15 @@ return [
     'payslips_processing_permissions' => 'Permissions de traitement des fiches de paie',
     'roles_and_audit_log_features_permissions' => 'Permissions des rôles et fonctionnalités du journal d\'audit',
     'settings' => 'Paramètres',
+
+    // Permission selection UI
+    'currently_editing' => 'Modification en cours',
+    'permissions_currently_assigned' => 'permissions actuellement attribuées',
+    'search_permissions' => 'Rechercher des permissions...',
+    'selected_permissions' => 'Permissions sélectionnées',
+    'no_permissions_selected' => 'Aucune permission sélectionnée',
+    'no_permissions_found' => 'Aucune permission trouvée',
+
+    // Additional translation keys
+    'no_role_selected' => 'Aucun rôle sélectionné',
 ];

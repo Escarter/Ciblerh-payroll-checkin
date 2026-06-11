@@ -482,4 +482,16 @@ return [
     'view_scan_report' => 'Voir le rapport complet',
     'no_scan_report_available' => 'Aucun rapport de scan disponible.',
     'validate' => 'Valider',
+    'sending' => 'Envoi en cours',
+    'bulk_resend_email' => 'Renvoyer les e-mails en masse',
+
+    // Additional translation keys
+    'encryption_not_successful' => 'Le chiffrement a échoué',
+    'no_action_taken_on_resend' => 'Aucune action n\'a été effectuée pour le renvoi',
+    'no_eligible_selected_payslips_for_email_resend' => 'Aucune fiche de paie sélectionnée éligible au renvoi par e-mail',
+    'no_eligible_selected_payslips_for_sms_resend' => 'Aucune fiche de paie sélectionnée éligible au renvoi par SMS',
+    'no_failed_emails_to_resend' => 'Aucun e-mail en échec à renvoyer',
+    'no_failed_sms_to_resend' => 'Aucun SMS en échec à renvoyer',
+    'no_payslips_selected' => 'Aucune fiche de paie sélectionnée',
+    'view_details' => 'Voir les détails',
 ];

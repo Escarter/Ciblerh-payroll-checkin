@@ -119,4 +119,20 @@ return [
     'field_too_long' => 'Le champ :field ne doit pas dépasser :max caractères.',
     'field_not_found' => 'Le :field ":value" n\'a pas été trouvé.',
     'field_already_exists' => 'Un enregistrement avec ce :field existe déjà.',
+
+    // Additional translation keys
+    'company_not_found' => 'Entreprise introuvable',
+    'company_resolution_failed' => 'Impossible de résoudre l\'entreprise',
+    'context_company_invalid' => 'Le contexte de l\'entreprise sélectionnée est invalide',
+    'department_not_found' => 'Département introuvable',
+    'department_resolution_failed' => 'Impossible de résoudre le département',
+    'department_wrong_company' => 'Le département n\'appartient pas à l\'entreprise sélectionnée',
+    'file_expired' => 'Le fichier téléchargé a expiré ou n\'est plus disponible. Veuillez télécharger le fichier à nouveau et relancer l\'importation immédiatement.',
+    'file_storage_failed' => 'Échec du stockage du fichier téléchargé. Veuillez réessayer.',
+    'invalid_phone' => 'Numéro de téléphone invalide',
+    'role_not_permitted' => 'Le rôle spécifié n\'est pas autorisé',
+    'service_not_found' => 'Service introuvable',
+    'supervisor_not_found' => 'Superviseur introuvable',
+    'supervisor_wrong_company' => 'Le superviseur n\'appartient pas à l\'entreprise sélectionnée',
+    'supervisor_wrong_role' => 'Le superviseur n\'a pas de rôle valide',
 ];

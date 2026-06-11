@@ -145,4 +145,8 @@ return [
     'manage_notifications_action' => 'Manage notifications',
     'manage_notifications_title' => 'Manage company notifications',
     'manage_notifications_help' => 'Choose a company, then enable or disable SMS and email notifications for its employees.',
+
+    // Additional translation keys
+    'select_company_required' => 'Please select a company',
+    'unknown_company' => 'Unknown company',
 ];

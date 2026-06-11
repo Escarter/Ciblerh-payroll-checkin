@@ -73,4 +73,8 @@ return [
     // Test email
     'test_email_subject' => 'Wima HR Test Email',
 
+    // Additional translation keys
+    'e-mail_address' => 'E-mail address',
+    'name' => 'Name',
+    'register' => 'Register',
 ];

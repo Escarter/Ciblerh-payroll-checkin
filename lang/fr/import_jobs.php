@@ -141,4 +141,12 @@ return [
     'pending_welcome_emails_hint' => 'Ces e-mails d\'identifiants sont en file d\'attente ou en attente de traitement.',
     'file_storage_failed' => 'Échec du stockage du fichier téléchargé. Veuillez réessayer.',
     'file_expired' => 'Le fichier téléchargé a expiré ou n\'est plus disponible. Veuillez télécharger le fichier à nouveau et relancer l\'importation immédiatement.',
+    'cancel' => 'Annuler',
+
+    // Additional translation keys
+    'danger_creating_import_job' => 'Une erreur s\'est produite lors de la création de la tâche d\'importation',
+    'danger_retrying_job' => 'Une erreur s\'est produite lors de la relance de la tâche',
+    'import_with_dangers_toast' => ':dangers ligne(s) n\'ont pas pu être importées.',
+    'unable_to_delete_job' => 'Impossible de supprimer la tâche',
+    'unable_to_restore_job' => 'Impossible de restaurer la tâche',
 ];

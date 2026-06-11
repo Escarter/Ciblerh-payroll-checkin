@@ -168,4 +168,8 @@ return [
     'manage_notifications_action' => 'Manage notifications',
     'manage_notifications_title' => 'Manage department notifications',
     'manage_notifications_help' => 'Choose a department, then enable or disable SMS and email notifications for its employees.',
+
+    // Additional translation keys
+    'no_department_selected' => 'No department selected',
+    'select_department_for_import' => 'Select a department for the import',
 ];

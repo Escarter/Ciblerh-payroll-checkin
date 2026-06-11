@@ -85,4 +85,7 @@ return [
     'selected_permissions' => 'Selected Permissions',
     'no_permissions_selected' => 'No permissions selected',
     'no_permissions_found' => 'No permissions found',
+
+    // Additional translation keys
+    'no_role_selected' => 'No role selected',
 ];

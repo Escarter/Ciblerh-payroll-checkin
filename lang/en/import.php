@@ -119,4 +119,20 @@ return [
     'field_too_long' => 'The :field field must not exceed :max characters.',
     'field_not_found' => 'The :field ":value" was not found.',
     'field_already_exists' => 'A record with this :field already exists.',
+
+    // Additional translation keys
+    'company_not_found' => 'Company not found',
+    'company_resolution_failed' => 'Could not resolve the company',
+    'context_company_invalid' => 'The selected company context is invalid',
+    'department_not_found' => 'Department not found',
+    'department_resolution_failed' => 'Could not resolve the department',
+    'department_wrong_company' => 'The department does not belong to the selected company',
+    'file_expired' => 'The uploaded file has expired or is no longer available. Please upload the file again and restart the import immediately.',
+    'file_storage_failed' => 'Failed to store the uploaded file. Please try again.',
+    'invalid_phone' => 'Invalid phone number',
+    'role_not_permitted' => 'The specified role is not permitted',
+    'service_not_found' => 'Service not found',
+    'supervisor_not_found' => 'Supervisor not found',
+    'supervisor_wrong_company' => 'The supervisor does not belong to the selected company',
+    'supervisor_wrong_role' => 'The supervisor does not have a valid role',
 ];

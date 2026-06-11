@@ -620,5 +620,11 @@ return [
     'sftp_user_col_home_dir' => 'Home directory',
     'sftp_toggle_password' => 'Show / hide password',
     'sftp_hide_server_script' => 'Hide script',
-];
 
+    // Additional translation keys
+    'configuration_saved' => 'Configuration saved',
+    'credentials_copied' => 'Credentials copied',
+    'sftp_scan_now_disabled' => 'SFTP scanning is disabled',
+    'sftp_scan_now_failed' => 'SFTP scan failed',
+    'sftp_scan_now_success' => 'SFTP scan completed successfully',
+];

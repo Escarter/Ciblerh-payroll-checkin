@@ -617,4 +617,13 @@ return [
     'sftp_user_col_home_dir' => 'Répertoire personnel',
     'sftp_toggle_password' => 'Afficher / masquer le mot de passe',
     'sftp_hide_server_script' => 'Masquer le script',
+    'sftp_push_scan_frequency_title' => 'Fréquence d\'analyse',
+    'sftp_push_scan_frequency_help' => 'Contrôle la fréquence à laquelle le serveur analyse le dossier de dépôt SFTP à la recherche de fichiers nouvellement téléchargés.',
+
+    // Additional translation keys
+    'configuration_saved' => 'Configuration enregistrée',
+    'credentials_copied' => 'Identifiants copiés',
+    'sftp_scan_now_disabled' => 'L\'analyse SFTP est désactivée',
+    'sftp_scan_now_failed' => 'Échec de l\'analyse SFTP',
+    'sftp_scan_now_success' => 'Analyse SFTP terminée avec succès',
 ];

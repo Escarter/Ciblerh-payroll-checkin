@@ -170,12 +170,9 @@ return [
     */
 
     'custom' => [
-        // 'start_time' => [
-        //     'required' => 'Le Champ "Heure de début" requis',
-        // ],
-        // 'end_time' => [
-        //     'required' => 'Le Champ "Heure de fin" requis',
-        // ],
+        'attribute-name' => [
+            'rule-name' => 'custom-message',
+        ],
     ],
 
     // Custom validation messages

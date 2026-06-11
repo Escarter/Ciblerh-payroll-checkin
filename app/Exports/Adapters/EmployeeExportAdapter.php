@@ -25,6 +25,8 @@ class EmployeeExportAdapter extends BaseExportAdapter
             ['field' => 'first_name',                 'label' => __('common.first_name'),              'default' => true],
             ['field' => 'last_name',                  'label' => __('common.last_name'),               'default' => true],
             ['field' => 'email',                      'label' => __('common.email'),                   'default' => true],
+            ['field' => 'username',                   'label' => __('common.username'),                'default' => false],
+            ['field' => 'pdf_password',               'label' => __('common.pdf_password'),            'default' => false],
             ['field' => 'professional_phone_number',  'label' => __('common.professional_phone'),      'default' => true],
             ['field' => 'personal_phone_number',      'label' => __('common.personal_phone'),          'default' => false],
             ['field' => 'position',                   'label' => __('common.position'),                'default' => true],

@@ -154,4 +154,5 @@ return [
     'on_the' => 'le',
     'copyright' => 'Copyright',
     'overtimes_recorded' => 'Heures supplémentaires enregistrées',
+    'export' => 'Exporter',
 ];

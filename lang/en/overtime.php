@@ -81,4 +81,8 @@ return [
     'employee_overtime_bulk' => 'Employee Overtime Bulk',
     'items_selected' => 'items selected',
     'select_all_overtimes' => 'Select All Overtimes',
+
+    // Additional translation keys
+    'no_overtime_selected' => 'No overtime selected',
+    'select_all_deleted_overtimes' => 'Select all deleted overtimes',
 ];
