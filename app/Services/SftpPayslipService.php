@@ -601,6 +601,13 @@ class SftpPayslipService
             return $result;
         }
 
+        // pdftotext output may contain bytes that are not valid UTF-8 (depends on the PDF's
+        // fonts/encoding and the host's poppler build). Left unsanitized, the /u regexes below
+        // and in the matching helpers either match nothing (preg_match returns false) or wipe the
+        // string (preg_replace returns null) on a single bad byte — which silently breaks company
+        // matching in some environments but not others. Normalize to valid UTF-8 up front.
+        $text = \App\Models\User::sanitizePdfTextToUtf8($text);
+
         if (empty(trim($text))) {
             return $result;
         }

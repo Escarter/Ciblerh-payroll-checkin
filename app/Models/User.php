@@ -124,9 +124,37 @@ class User extends Authenticatable implements HasLocalePreference
             return false;
         }
 
+        // pdftotext output may contain bytes that are not valid UTF-8 — this depends on the
+        // PDF's embedded fonts/encoding and the poppler build on the host, so the same payslip
+        // can extract as clean UTF-8 locally yet carry a stray byte in production. A single
+        // invalid byte makes preg_match() with the /u flag return false for the WHOLE string,
+        // which would silently report EVERY matricule as "not found" even when it is plainly
+        // present. Sanitize to valid UTF-8 first so detection is robust across environments.
+        $haystack = self::sanitizePdfTextToUtf8($pdfText);
+
         $pattern = preg_quote($needle, '/');
 
-        return (bool) preg_match('/\b' . $pattern . '\b/iu', $pdfText);
+        return (bool) preg_match('/\b' . $pattern . '\b/iu', $haystack);
+    }
+
+    /**
+     * Return a guaranteed-valid UTF-8 string by dropping any malformed byte sequences.
+     * Used before Unicode (/u) regex matching against externally-extracted text such as
+     * pdftotext output, whose byte validity varies with the source PDF and the host build.
+     */
+    public static function sanitizePdfTextToUtf8(string $text): string
+    {
+        if ($text === '' || mb_check_encoding($text, 'UTF-8')) {
+            return $text;
+        }
+
+        $previous = ini_set('mbstring.substitute_character', 'none');
+        $clean = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        if ($previous !== false) {
+            ini_set('mbstring.substitute_character', $previous);
+        }
+
+        return $clean;
     }
 
     protected function matricule(): Attribute
