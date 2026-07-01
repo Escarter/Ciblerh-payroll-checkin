@@ -6,6 +6,7 @@ use App\Models\Payslip;
 use App\Models\SendPayslipProcess;
 use App\Services\PayslipProcessLinkService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
 
 class RelinkPayslipProcessCommand extends Command
 {
@@ -60,7 +61,15 @@ class RelinkPayslipProcessCommand extends Command
         if ($orphans->isNotEmpty()) {
             $this->warn('Orphaned file rows on other processes (sample):');
             foreach ($orphans->take(5) as $row) {
-                $this->line("  employee {$row->matricule} → process #{$row->send_payslip_process_id} file=" . basename($row->file));
+                $onDisk = Storage::disk('modified')->exists($row->file) ? 'on disk' : 'MISSING on disk';
+                $this->line("  employee {$row->matricule} → process #{$row->send_payslip_process_id} file=" . basename($row->file) . " ({$onDisk})");
+            }
+
+            $missingOnDisk = $orphans->filter(
+                fn ($row) => !Storage::disk('modified')->exists($row->file)
+            )->count();
+            if ($missingOnDisk > 0) {
+                $this->error("{$missingOnDisk} orphaned row(s) reference file paths that do not exist on the modified disk.");
             }
         }
 

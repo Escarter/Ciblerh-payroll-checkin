@@ -201,6 +201,8 @@ class DiagnosePayslipPdfCommand extends Command
             $failed = true;
         }
 
+        $failed = $this->diagnoseFilesOnDiskVsDatabase($process, $employees) || $failed;
+
         $splittedDir = $process->destination_directory;
         $files = collect(Storage::disk('splitted')->allFiles($splittedDir))
             ->filter(fn (string $file) => str_ends_with(strtolower($file), '.pdf'))
@@ -293,6 +295,91 @@ class DiagnosePayslipPdfCommand extends Command
                 $this->error('More than half of the employee pool has no matricule in the PDF — true matching failure or wrong PDF.');
                 $failed = true;
             }
+        }
+
+        return $failed;
+    }
+
+    /**
+     * Verify payslip file paths in the database exist on the modified disk, and
+     * report PDFs present on disk that are not referenced by any payslip row.
+     */
+    private function diagnoseFilesOnDiskVsDatabase(SendPayslipProcess $process, Collection $employees): bool
+    {
+        $failed = false;
+        $dir = $process->destination_directory;
+
+        $this->newLine();
+        $this->info('=== Files on disk vs database ===');
+
+        $payslipsWithFile = Payslip::query()
+            ->where('send_payslip_process_id', $process->id)
+            ->whereNotNull('file')
+            ->where('file', '!=', '')
+            ->get(['id', 'matricule', 'file', 'encryption_status']);
+
+        $dbPathsExist = 0;
+        $dbPathsMissing = 0;
+        $missingSamples = [];
+
+        foreach ($payslipsWithFile as $payslip) {
+            if (Storage::disk('modified')->exists($payslip->file)) {
+                $dbPathsExist++;
+            } else {
+                $dbPathsMissing++;
+                if (count($missingSamples) < 5) {
+                    $missingSamples[] = [
+                        $payslip->matricule,
+                        basename($payslip->file),
+                        'MISSING',
+                    ];
+                }
+            }
+        }
+
+        $diskFiles = collect(Storage::disk('modified')->allFiles($dir))
+            ->filter(fn (string $file) => str_ends_with(strtolower($file), '.pdf'))
+            ->values();
+
+        $referencedPaths = $payslipsWithFile->pluck('file')
+            ->merge(
+                Payslip::query()
+                    ->whereIn('employee_id', $employees->pluck('id'))
+                    ->where('month', $process->month)
+                    ->where('year', $process->year ?? now()->year)
+                    ->whereNotNull('file')
+                    ->where('file', '!=', '')
+                    ->pluck('file')
+            )
+            ->unique()
+            ->filter()
+            ->values();
+
+        $unreferencedOnDisk = $diskFiles->filter(
+            fn (string $path) => !$referencedPaths->contains($path)
+        );
+
+        $this->table(['Metric', 'Count'], [
+            ['Payslip rows with file path (this process)', $payslipsWithFile->count()],
+            ['DB file paths that exist on modified disk', $dbPathsExist],
+            ['DB file paths MISSING on modified disk', $dbPathsMissing],
+            ['PDF files on disk in process folder', $diskFiles->count()],
+            ['Disk PDFs not referenced by any payslip row', $unreferencedOnDisk->count()],
+        ]);
+
+        if ($missingSamples !== []) {
+            $this->warn('DB paths missing on disk (sample):');
+            $this->table(['Matricule', 'Expected file', 'On disk'], $missingSamples);
+            $failed = true;
+        }
+
+        if ($unreferencedOnDisk->isNotEmpty()) {
+            $this->line('Unreferenced on disk (sample): ' . $unreferencedOnDisk->take(5)->map(fn ($p) => basename($p))->implode(', '));
+        }
+
+        if ($diskFiles->isNotEmpty() && $payslipsWithFile->isEmpty()) {
+            $this->warn('PDFs exist on disk in this folder but no payslip rows on this process reference them.');
+            $failed = true;
         }
 
         return $failed;
