@@ -542,7 +542,7 @@ return [
 
     // Auto-Match Configuration
     'sftp_auto_match_configuration' => 'Auto-Match Configuration',
-    'sftp_auto_match_configuration_help' => 'When enabled, proposals whose confidence meets the threshold will be automatically validated and appear in the Validated tab for one-click processing.',
+    'sftp_auto_match_configuration_help' => 'When enabled, proposals whose confidence meets the threshold are automatically validated and sent. Lower-confidence matches stay pending for manual validation and Process.',
     'sftp_auto_match_enable' => 'Enable auto-match',
     'sftp_auto_match_threshold_label' => 'Confidence threshold: :value%',
     'sftp_auto_match_threshold_help' => 'Matches at or above the configured threshold can be auto-processed. Lower-confidence matches stay pending for manual review and trigger admin alerts.',

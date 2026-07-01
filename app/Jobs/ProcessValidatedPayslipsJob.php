@@ -6,6 +6,8 @@ use App\Models\PayslipMatchingProposal;
 use App\Models\SendPayslipProcess;
 use App\Models\User;
 use App\Jobs\Plan\PayslipSendingPlan;
+use App\Services\PayslipProcessGuardService;
+use App\Services\PayslipProcessStartResult;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -27,6 +29,7 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
     private const FAIL_NO_COMPANY = 'PV_NO_COMPANY';
     private const FAIL_NOT_DOWNLOADED = 'PV_NOT_DOWNLOADED';
     private const FAIL_LOCAL_FILE_MISSING = 'PV_LOCAL_FILE_MISSING';
+    private const FAIL_PERIOD_ALREADY_HANDLED = 'PV_PERIOD_ALREADY_HANDLED';
     private const FAIL_PROCESSING_EXCEPTION = 'PV_PROCESSING_EXCEPTION';
     private const FAIL_JOB_PERMANENT = 'PV_JOB_PERMANENT_FAILURE';
 
@@ -113,20 +116,54 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
 
             // Create SendPayslipProcess record
             // This triggers the standard splitting/encryption/sending pipeline
-            $sendPayslipProcess = SendPayslipProcess::create([
-                'user_id' => auth()->id() ?? 1,  // System user or authenticated user
-                'department_id' => $this->proposal->matched_to_department_id ?? null,
-                'company_id' => $this->proposal->matched_to_company_id,
-                'month' => $this->proposal->matched_month,
-                'year' => $this->proposal->matched_year,
-                'raw_file' => $rawFilePath,  // Full filesystem path to local file
-                'sftp_proposal_id' => $this->proposal->id, // Direct link for reliable status callbacks
-                'destination_directory' => $this->proposal->matched_to_department_id
-                    ? "dept_{$this->proposal->matched_to_department_id}_" . date('YmdHis')
-                    : "sftp_company_{$this->proposal->matched_to_company_id}_" . date('YmdHis'),
-                'status' => 'processing',
-                'percentage_completion' => 0,
-            ]);
+            $guard = app(PayslipProcessGuardService::class);
+            $evaluation = $guard->evaluateStart(
+                $this->proposal->matched_to_department_id,
+                (int) $this->proposal->matched_to_company_id,
+                $this->proposal->matched_month,
+                (int) $this->proposal->matched_year,
+            );
+
+            if ($evaluation->action === PayslipProcessStartResult::ACTION_BLOCK) {
+                $message = $evaluation->message() ?? __('payslips.process_already_running_or_completed');
+                $this->proposal->update([
+                    'rejection_reason' => $message,
+                ]);
+                \Log::warning("[" . self::FAIL_PERIOD_ALREADY_HANDLED . "] Blocked duplicate payslip process for proposal {$this->proposal->id}", [
+                    'failure_code' => self::FAIL_PERIOD_ALREADY_HANDLED,
+                    'proposal_id' => $this->proposal->id,
+                    'existing_process_id' => $evaluation->process?->id,
+                    'message' => $message,
+                ]);
+                return;
+            }
+
+            $destinationDirectory = $this->proposal->matched_to_department_id
+                ? "dept_{$this->proposal->matched_to_department_id}_" . date('YmdHis')
+                : "sftp_company_{$this->proposal->matched_to_company_id}_" . date('YmdHis');
+
+            if ($evaluation->action === PayslipProcessStartResult::ACTION_RESUME_EXISTING) {
+                $sendPayslipProcess = $guard->prepareForResume(
+                    $evaluation->process,
+                    $rawFilePath,
+                    $destinationDirectory,
+                    auth()->id() ?? 1,
+                    $this->proposal->id,
+                );
+            } else {
+                $sendPayslipProcess = SendPayslipProcess::create([
+                    'user_id' => auth()->id() ?? 1,  // System user or authenticated user
+                    'department_id' => $this->proposal->matched_to_department_id ?? null,
+                    'company_id' => $this->proposal->matched_to_company_id,
+                    'month' => $this->proposal->matched_month,
+                    'year' => $this->proposal->matched_year,
+                    'raw_file' => $rawFilePath,  // Full filesystem path to local file
+                    'sftp_proposal_id' => $this->proposal->id, // Direct link for reliable status callbacks
+                    'destination_directory' => $destinationDirectory,
+                    'status' => 'processing',
+                    'percentage_completion' => 0,
+                ]);
+            }
 
             // Log the processing action
             $user = auth()->user()

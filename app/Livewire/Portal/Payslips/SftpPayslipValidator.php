@@ -8,6 +8,8 @@ use App\Models\PayslipMatchingProposal;
 use App\Models\SendPayslipProcess;
 use App\Jobs\ProcessValidatedPayslipsJob;
 use App\Services\FeatureConfigurationService;
+use App\Services\PayslipProcessGuardService;
+use App\Services\PayslipProcessStartResult;
 use App\Services\SftpPayslipService;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -39,6 +41,11 @@ class SftpPayslipValidator extends Component
     public function mount()
     {
         $this->authorize('manage-payslips');
+
+        $filter = request('filter');
+        if (in_array($filter, ['all', 'pending', 'validated', 'processed', 'rejected', 'failed'], true)) {
+            $this->filterStatus = $filter;
+        }
 
         // Handle deep-link from notification email: ?proposal=UUID&mode=view|edit
         $proposalId = request('proposal');
@@ -152,6 +159,30 @@ class SftpPayslipValidator extends Component
         $resolvedPath = $proposal->resolveExistingLocalFilePath();
         if (!$resolvedPath || !file_exists($resolvedPath)) {
             return __('payslips.processing_blocked_local_file_missing');
+        }
+
+        if ($periodReason = $this->getPeriodBlockReason($proposal)) {
+            return $periodReason;
+        }
+
+        return null;
+    }
+
+    private function getPeriodBlockReason(PayslipMatchingProposal $proposal): ?string
+    {
+        if (!$proposal->matched_to_company_id || !$proposal->matched_month || !$proposal->matched_year) {
+            return null;
+        }
+
+        $evaluation = app(PayslipProcessGuardService::class)->evaluateStart(
+            $proposal->matched_to_department_id,
+            (int) $proposal->matched_to_company_id,
+            $proposal->matched_month,
+            (int) $proposal->matched_year,
+        );
+
+        if ($evaluation->action === PayslipProcessStartResult::ACTION_BLOCK) {
+            return $evaluation->message();
         }
 
         return null;
@@ -286,6 +317,11 @@ class SftpPayslipValidator extends Component
         if ($best !== null) {
             $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
             if ($autoMatchConfig['enabled'] && FeatureConfigurationService::canAutoMatch($best, $autoMatchConfig)) {
+                if ($periodReason = $this->getPeriodBlockReason($proposal)) {
+                    $this->dispatch('showToast', message: $periodReason, type: 'warning');
+                    return;
+                }
+
                 // Guard: check if already processing to prevent concurrent runs
                 $existingProcess = SendPayslipProcess::where('sftp_proposal_id', $proposal->id)
                     ->where('status', '!=', 'successful')
@@ -299,24 +335,21 @@ class SftpPayslipValidator extends Component
                     return;
                 }
 
+                $proposal->update([
+                    'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
+                    'is_auto_matched' => true,
+                    'matched_at'      => now(),
+                ]);
+
                 try {
-                    $proposal->update([
-                        'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
-                        'is_auto_matched' => true,
-                        'matched_at'      => now(),
-                    ]);
-                    // Use dispatchSync to prevent orphaned processing state if Livewire disconnect occurs
-                    // File was already validated in rematch(), so we're safe to proceed synchronously
                     ProcessValidatedPayslipsJob::dispatchSync($proposal);
                     $autoValidated = true;
                 } catch (\Throwable $e) {
-                    \Log::error('SftpPayslipValidator::rematch() - dispatchSync failed', [
+                    \Log::error('SftpPayslipValidator::rematch() - auto-process failed', [
                         'proposal_id' => $proposal->id,
                         'error'       => $e->getMessage(),
-                        'file'        => $e->getFile(),
-                        'line'        => $e->getLine(),
                     ]);
-                    $proposal->refresh(); // Reload to show current state
+                    $proposal->refresh();
                     $this->dispatch('showToast',
                         message: __('payslips.rematch_processing_error', ['error' => $e->getMessage()]),
                         type: 'danger'
@@ -386,10 +419,7 @@ class SftpPayslipValidator extends Component
             return;
         }
 
-        // Dispatch the processing job
-        ProcessValidatedPayslipsJob::dispatch($proposal)->onQueue('processing');
-
-        $this->dispatch('showToast', message: __('payslips.proposal_validated_and_queued'), type: 'success');
+        $this->dispatch('showToast', message: __('payslips.proposal_validated_click_process'), type: 'success');
 
         $this->resetEditForm();
         $this->dispatch('closeModals');

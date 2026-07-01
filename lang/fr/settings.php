@@ -543,7 +543,7 @@ return [
 
     // Configuration de la correspondance automatique
     'sftp_auto_match_configuration' => 'Configuration de la correspondance automatique',
-    'sftp_auto_match_configuration_help' => 'Lorsqu’elle est activée, les propositions dont la confiance atteint le seuil sont automatiquement validées et apparaissent dans l’onglet Validées pour un traitement en un clic.',
+    'sftp_auto_match_configuration_help' => 'Lorsqu’elle est activée, les propositions dont la confiance atteint le seuil sont automatiquement validées et envoyées. Les correspondances moins fiables restent en attente pour validation manuelle et traitement.',
     'sftp_auto_match_enable' => 'Activer la correspondance automatique',
     'sftp_auto_match_threshold_label' => 'Seuil de confiance : :value %',
     'sftp_auto_match_threshold_help' => 'Les correspondances au-dessus (ou égales) du seuil configuré peuvent être traitées automatiquement. Les correspondances moins fiables restent en attente de validation manuelle et déclenchent des alertes admin.',

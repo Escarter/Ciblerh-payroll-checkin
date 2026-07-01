@@ -10,6 +10,8 @@ use App\Jobs\ProcessValidatedPayslipsJob;
 use App\Notifications\SftpAutoMatchNotification;
 use App\Notifications\SftpProposalCreatedNotification;
 use App\Services\FeatureConfigurationService;
+use App\Services\PayslipProcessGuardService;
+use App\Services\PayslipProcessStartResult;
 use App\Services\SftpPayslipService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -176,7 +178,8 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
         // ── Match routing ─────────────────────────────────────────────────────
         // Business rule:
-        // - Use configured auto-match threshold/strategy for automatic processing
+        // - Auto-match: auto-validate and auto-send when threshold/strategy are met
+        // - Manual match: validate in UI, then click Process to send
         // - No match / lower-confidence match => notify admins for manual review
         $autoMatchConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
         $best = !empty($candidates) ? $candidates[0] : null;
@@ -260,12 +263,40 @@ class ProcessSftpPushFileJob implements ShouldQueue
                 ]);
             }
         } elseif ($meetsConfiguredAutoCriteria && $bestCompany && $bestDepartment && $autoMatchEnabled) {
-            // Auto-validate + auto-process synchronously so the pipeline starts immediately
             $proposal->update([
                 'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
                 'is_auto_matched' => true,
                 'matched_at'      => now(),
             ]);
+
+            $guard = app(PayslipProcessGuardService::class);
+            $periodEvaluation = $guard->evaluateStart(
+                $bestDepartment->id,
+                (int) $bestCompany->id,
+                $proposal->matched_month,
+                (int) $proposal->matched_year,
+            );
+
+            if ($periodEvaluation->action === PayslipProcessStartResult::ACTION_BLOCK) {
+                $blockMessage = $periodEvaluation->message() ?? __('payslips.process_already_running_or_completed');
+                $proposal->update(['rejection_reason' => $blockMessage]);
+
+                \Log::warning('ProcessSftpPushFileJob: Auto-match blocked — period already handled.', [
+                    'file' => $basename,
+                    'proposal_id' => $proposal->id,
+                    'existing_process_id' => $periodEvaluation->process?->id,
+                    'message' => $blockMessage,
+                ]);
+
+                if ($hasEmailConfig) {
+                    $this->notifyEmailsSafely(
+                        $notificationEmails,
+                        new SftpAutoMatchNotification($proposal, 'processing_failed')
+                    );
+                }
+
+                return;
+            }
 
             try {
                 ProcessValidatedPayslipsJob::dispatchSync($proposal);
@@ -292,9 +323,6 @@ class ProcessSftpPushFileJob implements ShouldQueue
                     ]);
                 }
             } catch (\Throwable $processingException) {
-                // The inner job already set the proposal to STATUS_FAILED.
-                // Don't let its exception kill the intake job — the proposal record
-                // exists and an admin needs to be alerted so they can intervene.
                 \Log::error('[' . self::CODE_INNER_PROCESSING_FAILED . '] ProcessSftpPushFileJob: Auto-process inner job failed; notifying admin.', [
                     'failure_code' => self::CODE_INNER_PROCESSING_FAILED,
                     'file'  => $basename,
@@ -302,7 +330,6 @@ class ProcessSftpPushFileJob implements ShouldQueue
                     'notification_configured' => $hasEmailConfig,
                 ]);
 
-                // Reload proposal to pick up the rejection_reason written by the inner job
                 $proposal->refresh();
 
                 if ($hasEmailConfig) {

@@ -44,15 +44,15 @@ class SftpAutoMatchNotification extends Notification
             $link = route('portal.payslips.sftp-validator') . '?proposal=' . $this->proposal->id . '&mode=view';
 
             return (new MailMessage)
-                ->subject('[CibleRH] Payslip auto-validated — ' . $this->proposal->file_name)
+                ->subject('[CibleRH] Payslip auto-matched and sent — ' . $this->proposal->file_name)
                 ->greeting('Auto-match notification')
-                ->line('A payslip has been automatically validated with high confidence.')
+                ->line('A payslip matched with high confidence and was automatically validated and queued for sending.')
                 ->line('**File:** ' . $this->proposal->file_name)
                 ->line('**Company:** ' . $companyName)
                 ->line('**Confidence:** ' . $confidence . ' (' . $strategy . ')')
                 ->line('**Period:** ' . $period)
-                ->action('Open proposal', $link)
-                ->line('The proposal is in the Validated tab and is ready for bulk processing. Click the button above to review it directly — you will be asked to log in if not already authenticated.');
+                ->action('View proposal', $link)
+                ->line('If sending was blocked because this period was already processed, open the proposal to see the reason and link to the existing process.');
         }
 
         if ($this->type === 'manual_review') {

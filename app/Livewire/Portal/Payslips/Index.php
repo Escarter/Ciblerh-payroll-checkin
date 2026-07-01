@@ -14,6 +14,8 @@ use App\Models\SendPayslipProcess;
 use Illuminate\Support\Facades\Gate;
 use App\Jobs\Plan\PayslipSendingPlan;
 use App\Livewire\Traits\WithDataTable;
+use App\Services\PayslipProcessGuardService;
+use App\Services\PayslipProcessStartResult;
 use Illuminate\Support\Facades\Storage;
 use App\Jobs\Single\ResendFailedPayslipJob;
 
@@ -1188,33 +1190,38 @@ class Index extends Component
             return $this->redirect(route('portal.payslips.index'), navigate: true);
         }
 
-        $existing = SendPayslipProcess::where('department_id', $this->department_id)->where('month', $this->month)->where('year', now()->year)->first();
+        $guard = app(PayslipProcessGuardService::class);
+        $evaluation = $guard->evaluateStart(
+            (int) $this->department_id,
+            (int) (!empty($this->company_id) ? $this->company_id : auth()->user()->company_id),
+            $this->month,
+            (int) $this->year,
+        );
 
-            $existing = SendPayslipProcess::where('department_id', $this->department_id)->where('month', $this->month)->where('year', $this->year)->first();
+        if ($evaluation->action === PayslipProcessStartResult::ACTION_BLOCK) {
+            $this->showToast($evaluation->message(), 'warning');
+            return $this->redirect(route('portal.payslips.details', $evaluation->process->id), navigate: true);
+        }
 
-            if (empty($existing)) {
-                $payslip_process =
-                    SendPayslipProcess::create([
-                    'user_id' => auth()->user()->id,
-                    'company_id' => !empty($this->company_id) ? $this->company_id : auth()->user()->company_id,
-                    'department_id' => $this->department_id,
-                    'author_id' => auth()->user()->id,
-                    'raw_file' => $raw_file,
-                    'destination_directory' => $destination_directory,
-                    'month' => $this->month,
-                        'year' => $this->year,
-                    'batch_id' => ''
-                ]);
+        if ($evaluation->action === PayslipProcessStartResult::ACTION_RESUME_EXISTING) {
+            $payslip_process = $guard->prepareForResume(
+                $evaluation->process,
+                $raw_file,
+                $destination_directory,
+                auth()->user()->id,
+            );
         } else {
-            // Only restart if the process failed or was cancelled, not if it's successful or already processing
-            if (in_array($existing->status, ['failed', 'cancelled'])) {
-                $existing->update(['status' => 'processing', 'batch_id' => '']);
-                $payslip_process = $existing;
-            } else {
-                // Process is already successful or processing - don't restart
-                $this->showToast(__('payslips.process_already_running_or_completed'), 'warning');
-                return $this->redirect(route('portal.payslips.index'), navigate: true);
-            }
+            $payslip_process = SendPayslipProcess::create([
+                'user_id' => auth()->user()->id,
+                'company_id' => !empty($this->company_id) ? $this->company_id : auth()->user()->company_id,
+                'department_id' => $this->department_id,
+                'author_id' => auth()->user()->id,
+                'raw_file' => $raw_file,
+                'destination_directory' => $destination_directory,
+                'month' => $this->month,
+                'year' => $this->year,
+                'batch_id' => '',
+            ]);
         }
 
         PayslipSendingPlan::start($payslip_process);

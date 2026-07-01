@@ -213,6 +213,12 @@
         @endforeach
     </div>
 
+    @if ($filterStatus === 'validated')
+        <div class="alert alert-info border-0 shadow-sm mb-3 py-2 small">
+            {{ __('payslips.sftp_validated_tab_hint') }}
+        </div>
+    @endif
+
     {{-- ── Proposals Table ──────────────────────────────────────── --}}
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
