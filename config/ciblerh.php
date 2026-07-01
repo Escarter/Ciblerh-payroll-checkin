@@ -7,6 +7,8 @@ return [
     'temp_dir' => storage_path('app/public/tmp'),
     'max_payslip_pages' => env('MAXPAYSLIPPAGES', '650'),
     'chunk_size' => env('CHUNK_SIZE', '50'),
+    'email_chunk_size' => env('EMAIL_CHUNK_SIZE', 15),
+    'send_payslip_job_timeout' => env('SEND_PAYSLIP_JOB_TIMEOUT', 300),
     'email_retry_attempts' => env('EMAIL_RETRY_ATTEMPTS', 3), // Number of automatic retry attempts for failed emails
     'email_retry_delay' => env('EMAIL_RETRY_DELAY', 60), // Delay in seconds between retry attempts
     

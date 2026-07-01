@@ -141,7 +141,7 @@ class PayslipSendingPlan
             return;
         }
 
-        $email_jobs = $employees->chunk(config('ciblerh.chunk_size'))->map(function ($employee_chunk) use ($payslip_process) {
+        $email_jobs = $employees->chunk((int) config('ciblerh.email_chunk_size', 15))->map(function ($employee_chunk) use ($payslip_process) {
             return new SendPayslipJob($employee_chunk, $payslip_process);
         });
 
@@ -203,6 +203,8 @@ class PayslipSendingPlan
             ]);
             return;
         }
+
+        static::relinkPayslipsWithFilesToProcess($payslip_process, $allEmployees);
         
         // Get all employees who already have payslip records for this month/process
         $matchedEmployeeIds = Payslip::where('send_payslip_process_id', $payslip_process->id)
@@ -276,6 +278,43 @@ class PayslipSendingPlan
                 'process_id' => $payslip_process->id,
                 'unmatched_count' => $unmatchedCount,
                 'total_employees' => $totalEmployees
+            ]);
+        }
+    }
+
+    /**
+     * Self-heal payslip rows that were matched on disk but still point at an older process
+     * (common when re-running a send for the same month/year).
+     */
+    private static function relinkPayslipsWithFilesToProcess($payslip_process, $allEmployees): void
+    {
+        $employeeIds = $allEmployees->pluck('id')->filter()->all();
+        if ($employeeIds === []) {
+            return;
+        }
+
+        $year = $payslip_process->year ?? now()->year;
+
+        $relinked = Payslip::query()
+            ->whereIn('employee_id', $employeeIds)
+            ->where('month', $payslip_process->month)
+            ->where('year', $year)
+            ->whereNotNull('file')
+            ->where('file', '!=', '')
+            ->where('send_payslip_process_id', '!=', $payslip_process->id)
+            ->whereIn('encryption_status', [
+                Payslip::STATUS_PENDING,
+                Payslip::STATUS_SUCCESSFUL,
+            ])
+            ->update([
+                'send_payslip_process_id' => $payslip_process->id,
+                'user_id' => $payslip_process->user_id,
+            ]);
+
+        if ($relinked > 0) {
+            Log::info('Re-linked payslip records to current process', [
+                'process_id' => $payslip_process->id,
+                'relinked_count' => $relinked,
             ]);
         }
     }

@@ -161,11 +161,11 @@ class RenameEncryptPdfJob implements ShouldQueue
                                                 'encryption_status_note' => 'Pending page combination and encryption'
                                             ]);
                                         } else {
-                                            $record_exists->update([
+                                            $record_exists->update($this->processReassignAttributes([
                                                 'file' => $temp_unencrypted_file,
                                                 'encryption_status' => Payslip::STATUS_PENDING,
-                                                'encryption_status_note' => 'Pending page combination and encryption'
-                                            ]);
+                                                'encryption_status_note' => 'Pending page combination and encryption',
+                                            ]));
                                         }
                                     }
                                 } catch (\Exception $e) {
@@ -222,11 +222,11 @@ class RenameEncryptPdfJob implements ShouldQueue
                         ->first();
                     
                     if ($payslip) {
-                        $payslip->update([
+                        $payslip->update($this->processReassignAttributes([
                             'file' => $tempCombinedPath,
                             'encryption_status' => Payslip::STATUS_PENDING,
-                            'encryption_status_note' => 'Pending encryption after page combination'
-                        ]);
+                            'encryption_status_note' => 'Pending encryption after page combination',
+                        ]));
                     }
                 } catch (\Exception $e) {
                     Log::error('Failed to copy page file for combination', [
@@ -290,11 +290,11 @@ class RenameEncryptPdfJob implements ShouldQueue
                     ->first();
                 
                 if ($payslip) {
-                    $payslip->update([
+                    $payslip->update($this->processReassignAttributes([
                         'file' => $tempCombinedPath,
                         'encryption_status' => Payslip::STATUS_PENDING,
-                        'encryption_status_note' => 'Multi-page combination complete, pending encryption'
-                    ]);
+                        'encryption_status_note' => 'Multi-page combination complete, pending encryption',
+                    ]));
                 }
                 
                 Log::info('Combined unencrypted multi-page PDF for employee', [
@@ -365,6 +365,19 @@ class RenameEncryptPdfJob implements ShouldQueue
                 ]);
             }
         }
+    }
+
+    /**
+     * When reusing an existing payslip row (same employee/month/year), attach it to
+     * the current process so reconciliation and finalization see the match.
+     */
+    private function processReassignAttributes(array $attributes = []): array
+    {
+        return array_merge([
+            'send_payslip_process_id' => $this->process_id,
+            'user_id' => $this->user_id,
+            'failure_reason' => null,
+        ], $attributes);
     }
 
 }

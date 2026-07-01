@@ -42,14 +42,15 @@ class SendPayslipJob implements ShouldQueue
      *
      * @var int
      */
-    public $timeout = 120;
+    public $timeout = 300;
 
     /**
      * Indicate if the job should be marked as failed on timeout.
+     * When false, the job is released back to the queue so partial sends can continue.
      *
      * @var bool
      */
-    public $failOnTimeout = true;
+    public $failOnTimeout = false;
 
     protected $employee_chunk;
     protected $destination;
@@ -78,6 +79,7 @@ class SendPayslipJob implements ShouldQueue
         $this->year = $process->year ?? now()->year;
         $this->user_id = $process->user_id;
         $this->process_id = $process->id;
+        $this->timeout = (int) config('ciblerh.send_payslip_job_timeout', 300);
         $this->queue = 'emails';
 
     }
