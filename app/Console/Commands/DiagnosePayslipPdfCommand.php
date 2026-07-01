@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Department;
+use App\Models\Payslip;
 use App\Models\SendPayslipProcess;
 use App\Models\User;
+use App\Services\PayslipProcessLinkService;
 use Escarter\PopplerPhp\PdfToText;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -18,7 +19,7 @@ class DiagnosePayslipPdfCommand extends Command
                             {--directory= : Splitted destination_directory (e.g. oBeE3kgvyHygl2sjSoKy)}
                             {--pdf= : Absolute path to a single PDF page}
                             {--matricule= : Matricule to test token matching against --pdf}
-                            {--sample-pages=5 : Max splitted pages to scan when comparing pool (0 = all)}';
+                            {--sample-pages=0 : Max splitted pages to scan when comparing pool (0 = all)}';
 
     protected $description = 'Diagnose PDF tools, matricule extraction, and employee-pool matching for payslip sending';
 
@@ -159,8 +160,46 @@ class DiagnosePayslipPdfCommand extends Command
             $this->line('Failure: ' . substr($process->failure_reason, 0, 160));
         }
 
-        $employees = $this->resolveEmployeePool($process);
+        $linkService = app(PayslipProcessLinkService::class);
+        $employees = $linkService->resolveEmployeePool($process);
         $this->line('Employee pool size: ' . $employees->count());
+
+        $failedOnProcess = Payslip::query()
+            ->where('send_payslip_process_id', $process->id)
+            ->where('encryption_status', Payslip::STATUS_FAILED)
+            ->where(function ($query) {
+                $query->whereNull('file')->orWhere('file', '');
+            })
+            ->count();
+
+        $withFileOnProcess = Payslip::query()
+            ->where('send_payslip_process_id', $process->id)
+            ->whereNotNull('file')
+            ->where('file', '!=', '')
+            ->count();
+
+        $orphans = $linkService->findOrphanedFilePayslips($process, $employees);
+
+        $this->newLine();
+        $this->info('=== Database (this process) ===');
+        $this->table(['Metric', 'Count'], [
+            ['Failed payslip rows (no file)', $failedOnProcess],
+            ['Payslip rows with file on this process', $withFileOnProcess],
+            ['Payslip rows with file on OTHER process (same month/year)', $orphans->count()],
+        ]);
+
+        if ($orphans->isNotEmpty()) {
+            $this->error('Cross-process mismatch: PDF matching likely updated an older process. Run: php artisan payslips:relink-process --process=' . $process->id);
+            foreach ($orphans->take(3) as $row) {
+                $this->line("  {$row->matricule} → process #{$row->send_payslip_process_id} (" . basename($row->file) . ')');
+            }
+            $failed = true;
+        }
+
+        if ($failedOnProcess > 0 && $withFileOnProcess === 0 && $orphans->isNotEmpty()) {
+            $this->error('UI "Unmatched" tab matches these failed DB rows, but matched files exist on another process.');
+            $failed = true;
+        }
 
         $splittedDir = $process->destination_directory;
         $files = collect(Storage::disk('splitted')->allFiles($splittedDir))
@@ -171,7 +210,12 @@ class DiagnosePayslipPdfCommand extends Command
             ->filter(fn (string $file) => str_ends_with(strtolower($file), '.pdf'))
             ->count();
 
-        $this->line("Splitted pages: {$files->count()} | Modified PDFs: {$modifiedCount}");
+        $this->line("Splitted pages: {$files->count()} | Modified PDFs on disk: {$modifiedCount}");
+
+        if ($modifiedCount > 0 && $withFileOnProcess === 0 && $failedOnProcess > 0) {
+            $this->warn('Modified PDFs exist on disk but no payslip rows on this process have files — likely a re-run linking bug.');
+            $failed = true;
+        }
 
         if ($files->isEmpty()) {
             $this->warn('No splitted PDF pages found for this process directory.');
@@ -179,6 +223,13 @@ class DiagnosePayslipPdfCommand extends Command
         } else {
             $sampleLimit = max(0, (int) $this->option('sample-pages'));
             $filesToScan = $sampleLimit === 0 ? $files : $files->take($sampleLimit);
+
+            if ($sampleLimit > 0 && $files->count() > $sampleLimit) {
+                $this->warn("Only scanning {$sampleLimit} of {$files->count()} pages — use --sample-pages=0 for full scan.");
+            }
+
+            $this->newLine();
+            $this->info('=== PDF text vs employee pool ===');
 
             $pdfMatricules = collect();
             foreach ($filesToScan as $file) {
@@ -231,22 +282,20 @@ class DiagnosePayslipPdfCommand extends Command
                 $this->error('Zero overlap between PDF matricules and employee pool — wrong company/department or PDF.');
                 $failed = true;
             }
+
+            $poolOnlyRatio = $dbMatricules->count() > 0
+                ? $inDbOnly->count() / $dbMatricules->count()
+                : 0;
+
+            if ($poolOnlyRatio >= 0.5 && $filesToScan->count() < $files->count()) {
+                $this->warn('Many employees not in scanned pages — re-run with --sample-pages=0 before concluding matching failed.');
+            } elseif ($poolOnlyRatio >= 0.5 && $filesToScan->count() === $files->count()) {
+                $this->error('More than half of the employee pool has no matricule in the PDF — true matching failure or wrong PDF.');
+                $failed = true;
+            }
         }
 
         return $failed;
-    }
-
-    private function resolveEmployeePool(SendPayslipProcess $process): Collection
-    {
-        if ($process->department_id) {
-            $department = Department::withTrashed()->find($process->department_id);
-
-            return $department ? $department->employees : collect();
-        }
-
-        return User::where('company_id', $process->company_id)
-            ->whereHas('roles', fn ($q) => $q->where('name', 'employee'))
-            ->get();
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Jobs\SplitPdfJob;
 use App\Models\Department;
 use App\Jobs\SendPayslipJob;
 use App\Jobs\RenameEncryptPdfJob;
+use App\Services\PayslipProcessLinkService;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -205,7 +206,7 @@ class PayslipSendingPlan
         }
 
         static::relinkPayslipsWithFilesToProcess($payslip_process, $allEmployees);
-        
+
         // Get all employees who already have payslip records for this month/process
         $matchedEmployeeIds = Payslip::where('send_payslip_process_id', $payslip_process->id)
             ->where('month', $payslip_process->month)
@@ -288,35 +289,9 @@ class PayslipSendingPlan
      */
     private static function relinkPayslipsWithFilesToProcess($payslip_process, $allEmployees): void
     {
-        $employeeIds = $allEmployees->pluck('id')->filter()->all();
-        if ($employeeIds === []) {
-            return;
-        }
-
-        $year = $payslip_process->year ?? now()->year;
-
-        $relinked = Payslip::query()
-            ->whereIn('employee_id', $employeeIds)
-            ->where('month', $payslip_process->month)
-            ->where('year', $year)
-            ->whereNotNull('file')
-            ->where('file', '!=', '')
-            ->where('send_payslip_process_id', '!=', $payslip_process->id)
-            ->whereIn('encryption_status', [
-                Payslip::STATUS_PENDING,
-                Payslip::STATUS_SUCCESSFUL,
-            ])
-            ->update([
-                'send_payslip_process_id' => $payslip_process->id,
-                'user_id' => $payslip_process->user_id,
-            ]);
-
-        if ($relinked > 0) {
-            Log::info('Re-linked payslip records to current process', [
-                'process_id' => $payslip_process->id,
-                'relinked_count' => $relinked,
-            ]);
-        }
+        $service = app(PayslipProcessLinkService::class);
+        $service->relinkPayslipsWithFilesToProcess($payslip_process, $allEmployees);
+        $service->removeDuplicateFailedPayslips($payslip_process);
     }
 
     private static function failed($payslip_process, ?string $reason = null): void
