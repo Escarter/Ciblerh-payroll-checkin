@@ -88,7 +88,8 @@ class AuditEmployeeIdentityDuplicatesCommand extends Command
         $this->newLine();
         $this->error('Duplicate matricules must be resolved before migrating.');
         $this->line('Use Portal → Employee payslip history → Employee Access Diagnostic → Relink payslips,');
-        $this->line('then deactivate or remove duplicate accounts and re-run this command.');
+        $this->line('or run: php artisan employees:resolve-identity-duplicates --dry-run');
+        $this->line('then: php artisan employees:resolve-identity-duplicates');
 
         return self::FAILURE;
     }
