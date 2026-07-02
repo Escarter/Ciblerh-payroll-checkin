@@ -7,6 +7,7 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => __('payslips.payslip')])
+    @include('livewire.portal.employees.payslip.partials.employee-access-diagnostic-modal')
     <x-alert />
     <div>
         <div class='pt-2'>
@@ -29,6 +30,20 @@
                         {{__(ucfirst($employee->first_name) .' - '.__('payslips.payslip_history_for_employee',['name'=>ucfirst($employee->name)]))}}
                     </h1>
                     <p class="mb-0">{{__('payslips.view_all_employee_payslip_history',['name'=>ucfirst($employee->name)])}}</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    @can('payslip-read')
+                    <button type="button"
+                        class="btn btn-outline-primary btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#EmployeePayslipDiagnosticModal"
+                        wire:click="runEmployeePayslipDiagnostic">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        {{ __('payslips.employee_access_diagnostic') }}
+                    </button>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -105,6 +120,32 @@
                                     <a href="#" class="d-none d-sm-block">
                                         <h2 class="h5">{{ __('common.deleted') }}</h2>
                                         <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_payslips ?? 0)}} </h3>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-info rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ __('payslips.visible_on_employee_dashboard') }}</h2>
+                                        <h3 class="mb-1">{{numberFormat($visible_to_employee ?? 0)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="#" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ __('payslips.visible_on_employee_dashboard') }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($visible_to_employee ?? 0)}}</h3>
                                     </a>
                                 </div>
                             </div>

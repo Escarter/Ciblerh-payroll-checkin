@@ -39,6 +39,7 @@
                     <option value="first_name">{{__('employees.first_name')}}</option>
                     <option value="last_name">{{__('employees.last_name')}}</option>
                     <option value="created_at">{{__('common.created_date')}}</option>
+                    <option value="year">{{__('employees.year')}}</option>
                 </select>
             </div>
 
@@ -88,7 +89,7 @@
                             <td>
                                 @can('payslip-read')
                                 <div class='d-flex justify-content-center gap-2'>
-                                    @if($payslip->encryption_status == 1)
+                                    @if(!empty($payslip->file))
                                     <a href="{{ route('employee.payslip.view-pdf', $payslip->id) }}" class="text-info" target="_blank" title="{{__('payslips.view_pdf')}}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>

@@ -3,27 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Payslip;
-use Illuminate\Http\Request;
+use App\Models\User;
+use App\Services\PayslipEncryptionService;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Gate;
 
 class PayslipViewController extends Controller
 {
     public function viewPdf($id)
     {
         $payslip = Payslip::findOrFail($id);
-        
-        // Check if encryption was successful
-        if ($payslip->encryption_status != 1) {
-            abort(404, __('payslips.encryption_not_successful'));
-        }
-
-        // Check if the file exists
-        if (!Storage::disk('modified')->exists($payslip->file)) {
-            abort(404, __('payslips.payslip_file_not_found'));
-        }
-
-        // Authorization check
         $user = auth()->user();
         
         if (!$user) {
@@ -32,17 +20,14 @@ class PayslipViewController extends Controller
         
         $role = $user->getRoleNames()->first();
         
-        // Authorization checks based on role
         switch ($role) {
             case 'employee':
-                // Employee can only view their own payslips
-                if ($payslip->employee_id !== $user->id) {
+                if (!$payslip->isVisibleToEmployee($user)) {
                     abort(403);
                 }
                 break;
                 
             case 'supervisor':
-                // Supervisor can only view payslips from their departments
                 $validDepartmentIds = $user->supDepartments->pluck('department_id')->toArray();
                 if (!in_array($payslip->department_id, $validDepartmentIds)) {
                     abort(403, __('common.unauthorized_department_access'));
@@ -51,12 +36,24 @@ class PayslipViewController extends Controller
                 
             case 'admin':
             case 'manager':
-                // Admin and manager have full access - no additional checks needed
                 break;
                 
             default:
-                // Unknown role - deny access
                 abort(403);
+        }
+
+        if (empty($payslip->file) || !Storage::disk('modified')->exists($payslip->file)) {
+            abort(404, __('payslips.payslip_file_not_found'));
+        }
+
+        $encryptionEmployee = $role === 'employee'
+            ? $user
+            : (User::find($payslip->employee_id) ?? $user);
+
+        if ((int) $payslip->encryption_status !== Payslip::STATUS_SUCCESSFUL) {
+            if (!app(PayslipEncryptionService::class)->ensureEncrypted($payslip->fresh(), $encryptionEmployee)) {
+                abort(404, __('payslips.encryption_not_successful'));
+            }
         }
         
         try {
@@ -70,4 +67,3 @@ class PayslipViewController extends Controller
         }
     }
 }
-

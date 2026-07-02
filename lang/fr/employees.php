@@ -576,6 +576,8 @@ return [
     'professional_phone_required' => 'Le numéro de téléphone professionnel est requis',
     'matricule_required' => 'Le matricule est requis',
     'matricule_already_exists' => 'Le matricule existe déjà',
+    'matricule_already_used_by' => 'Ce matricule est déjà attribué à :email.',
+    'email_local_part_already_used' => 'La partie avant @ de cet e-mail est déjà utilisée par :email. Utilisez le compte existant ou mettez cet employé à jour.',
     'position_required' => 'Le poste est requis',
     'net_salary_required_numeric' => 'Le salaire net est requis et doit être numérique',
     'salary_grade_required' => 'Le grade salarial est requis',

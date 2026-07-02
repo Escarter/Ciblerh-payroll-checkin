@@ -243,11 +243,22 @@ class EmployeeImportAdapter extends BaseImportAdapter
                 'field' => 'email',
                 'message' => __('validation.required', ['attribute' => __('employees.email')]),
             ];
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = [
-                'field' => 'email',
-                'message' => __('validation.email', ['attribute' => __('employees.email')]),
-            ];
+        } else {
+            $emailValidation = validateEmail($email);
+            if (!$emailValidation['valid']) {
+                $errors[] = [
+                    'field' => 'email',
+                    'message' => $emailValidation['error'] ?? __('validation.email', ['attribute' => __('employees.email')]),
+                ];
+            } else {
+                $emailConflict = User::findConflictingEmailLocalPart($email);
+                if ($emailConflict) {
+                    $errors[] = [
+                        'field' => 'email',
+                        'message' => __('employees.email_local_part_already_used', ['email' => $emailConflict->email]),
+                    ];
+                }
+            }
         }
 
         // Phone required
@@ -260,11 +271,20 @@ class EmployeeImportAdapter extends BaseImportAdapter
         }
 
         // Matricule required
-        if (empty($this->cleanValue($row['matricule'] ?? null))) {
+        $matricule = $this->cleanValue($row['matricule'] ?? null);
+        if (empty($matricule)) {
             $errors[] = [
                 'field' => 'matricule',
                 'message' => __('validation.required', ['attribute' => __('employees.matricule')]),
             ];
+        } else {
+            $matriculeConflict = User::findConflictingMatricule($matricule, $email);
+            if ($matriculeConflict) {
+                $errors[] = [
+                    'field' => 'matricule',
+                    'message' => __('employees.matricule_already_used_by', ['email' => $matriculeConflict->email]),
+                ];
+            }
         }
 
         // Net salary — optional, but must be numeric when provided

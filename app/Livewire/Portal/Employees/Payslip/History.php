@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\Payslip;
 use App\Models\Setting;
 use App\Services\Nexah;
+use App\Services\PayslipEmployeeDiagnosticService;
+use App\Services\PayslipEncryptionService;
 use Livewire\Component;
 use App\Mail\SendPayslip;
 use App\Services\TwilioSMS;
@@ -41,6 +43,9 @@ class History extends Component
     public $smsStatus = '';
     public $overallStatus = '';
 
+    public array $employeeDiagnostic = [];
+    public bool $diagnosticRan = false;
+
     public function mount($employee_uuid)  
     {
         $this->employee = User::whereUuid($employee_uuid)->first();
@@ -72,15 +77,7 @@ class History extends Component
     {
         $payslip = Payslip::findOrFail($payslip_id);
 
-        // Check if encryption was successful
-        if ($payslip->encryption_status != 1) {
-            $this->showToast(__('payslips.encryption_not_successful'), 'danger');
-            return;
-        }
-
-        // Check if the file exists
-        if (!Storage::disk('modified')->exists($payslip->file)) {
-            $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
+        if (!$this->ensurePayslipAccessible($payslip)) {
             return;
         }
         
@@ -99,15 +96,7 @@ class History extends Component
     {
         $payslip = Payslip::findOrFail($payslip_id);
 
-        // Check if encryption was successful
-        if ($payslip->encryption_status != 1) {
-            $this->showToast(__('payslips.encryption_not_successful'), 'danger');
-            return;
-        }
-
-        // Check if the file exists
-        if (!Storage::disk('modified')->exists($payslip->file)) {
-            $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
+        if (!$this->ensurePayslipAccessible($payslip)) {
             return;
         }
         
@@ -121,6 +110,77 @@ class History extends Component
             $this->showToast(__('payslips.unable_to_view_payslip'), 'danger');
         }
     }
+
+    private function ensurePayslipAccessible(Payslip $payslip): bool
+    {
+        if (empty($payslip->file) || !Storage::disk('modified')->exists($payslip->file)) {
+            $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
+            return false;
+        }
+
+        if ((int) $payslip->encryption_status !== Payslip::STATUS_SUCCESSFUL) {
+            $employee = User::find($payslip->employee_id) ?? $this->employee;
+            if (!app(PayslipEncryptionService::class)->ensureEncrypted($payslip->fresh(), $employee)) {
+                $this->showToast(__('payslips.encryption_not_successful'), 'danger');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function runEmployeePayslipDiagnostic(): void
+    {
+        if (!Gate::allows('payslip-read')) {
+            abort(401);
+        }
+
+        $this->employeeDiagnostic = app(PayslipEmployeeDiagnosticService::class)->diagnose($this->employee);
+        $this->diagnosticRan = true;
+    }
+
+    public function relinkEmployeePayslips(): void
+    {
+        if (!auth()->user()?->hasRole('admin') && !Gate::allows('payslip-update')) {
+            abort(403);
+        }
+
+        $result = app(PayslipEmployeeDiagnosticService::class)->relinkPayslipsToEmployee($this->employee);
+        $this->runEmployeePayslipDiagnostic();
+
+        $this->showToast(__('payslips.employee_payslips_relinked', [
+            'relinked' => $result['relinked'],
+            'synced' => $result['matricules_synced'],
+        ]), $result['relinked'] > 0 || $result['matricules_synced'] > 0 ? 'success' : 'info');
+    }
+
+    public function restoreEmployeeDeletedPayslips(): void
+    {
+        if (!auth()->user()?->hasRole('admin') && !Gate::allows('payslip-restore')) {
+            abort(403);
+        }
+
+        $restored = app(PayslipEmployeeDiagnosticService::class)->restoreDeletedPayslips($this->employee);
+        $this->runEmployeePayslipDiagnostic();
+
+        $this->showToast(__('payslips.employee_deleted_payslips_restored', ['count' => $restored]), $restored > 0 ? 'success' : 'info');
+    }
+
+    public function encryptEmployeePayslips(): void
+    {
+        if (!auth()->user()?->hasRole('admin') && !Gate::allows('payslip-update')) {
+            abort(403);
+        }
+
+        $result = app(PayslipEmployeeDiagnosticService::class)->encryptVisiblePayslips($this->employee);
+        $this->runEmployeePayslipDiagnostic();
+
+        $this->showToast(__('payslips.employee_payslips_encrypted', [
+            'encrypted' => $result['encrypted'],
+            'failed' => $result['failed'],
+        ]), $result['failed'] > 0 ? 'warning' : 'success');
+    }
+
     public function resendEmail()
     {
         if (!empty($this->payslip)) {
@@ -856,12 +916,14 @@ class History extends Component
         // Get counts for active payslips (non-deleted)
         $active_payslips = Payslip::search($this->query)->where('employee_id', $this->employee->id)->whereNull('deleted_at')->count();
         $deleted_payslips = Payslip::search($this->query)->where('employee_id', $this->employee->id)->withTrashed()->whereNotNull('deleted_at')->count();
+        $visible_to_employee = Payslip::visibleToEmployee($this->employee)->count();
 
         return view('livewire.portal.employees.payslip.history', [
             'payslips' => $payslips,
-            'payslips_count' => $active_payslips, // Legacy for backward compatibility
+            'payslips_count' => $active_payslips,
             'active_payslips' => $active_payslips,
             'deleted_payslips' => $deleted_payslips,
+            'visible_to_employee' => $visible_to_employee,
         ])->layout('components.layouts.dashboard');
     }
 

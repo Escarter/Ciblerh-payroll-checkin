@@ -6,9 +6,17 @@ use App\Models\Company;
 use App\Models\Department;
 use App\Models\SendPayslipProcess;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    Role::firstOrCreate([
+        'name' => 'employee',
+        'guard_name' => 'web',
+    ]);
+});
 
 test('payslip has correct status constants', function () {
     expect(Payslip::STATUS_PENDING)->toBe(0);
@@ -152,6 +160,83 @@ test('payslip search scope without query', function () {
     $results = Payslip::search('')->get();
     
     expect($results)->toHaveCount(3);
+});
+
+test('visible to employee includes payslips linked by matricule when duplicate accounts exist', function () {
+    $company = Company::factory()->create();
+
+    $primary = User::factory()->create([
+        'company_id' => $company->id,
+        'matricule' => 'MAT-100',
+    ]);
+
+    $duplicate = User::factory()->create([
+        'company_id' => $company->id,
+        'matricule' => 'MAT-100',
+    ]);
+
+    $payslip = Payslip::factory()->create([
+        'employee_id' => $primary->id,
+        'company_id' => $company->id,
+        'matricule' => 'MAT-100',
+        'month' => 'January',
+        'year' => 2026,
+    ]);
+
+    expect(Payslip::visibleToEmployee($duplicate)->pluck('id'))->toContain($payslip->id);
+    expect($payslip->isVisibleToEmployee($duplicate))->toBeTrue();
+});
+
+test('visible to employee deduplicates same month and year across duplicate accounts', function () {
+    $company = Company::factory()->create();
+
+    $primary = User::factory()->create([
+        'company_id' => $company->id,
+        'matricule' => 'MAT-200',
+    ]);
+
+    $duplicate = User::factory()->create([
+        'company_id' => $company->id,
+        'matricule' => 'MAT-200',
+    ]);
+
+    Payslip::factory()->create([
+        'employee_id' => $primary->id,
+        'company_id' => $company->id,
+        'matricule' => 'MAT-200',
+        'month' => 'February',
+        'year' => 2026,
+    ]);
+
+    Payslip::factory()->create([
+        'employee_id' => $duplicate->id,
+        'company_id' => $company->id,
+        'matricule' => 'MAT-200',
+        'month' => 'February',
+        'year' => 2026,
+    ]);
+
+    expect(Payslip::visibleToEmployee($duplicate)->count())->toBe(1);
+});
+
+test('visible to employee does not expose payslips from another company with same matricule', function () {
+    $companyA = Company::factory()->create();
+    $companyB = Company::factory()->create();
+
+    $employee = User::factory()->create([
+        'company_id' => $companyA->id,
+        'matricule' => 'MAT-300',
+    ]);
+
+    $foreignPayslip = Payslip::factory()->create([
+        'company_id' => $companyB->id,
+        'matricule' => 'MAT-300',
+        'month' => 'March',
+        'year' => 2026,
+    ]);
+
+    expect(Payslip::visibleToEmployee($employee)->pluck('id'))->not->toContain($foreignPayslip->id);
+    expect($foreignPayslip->isVisibleToEmployee($employee))->toBeFalse();
 });
 
 

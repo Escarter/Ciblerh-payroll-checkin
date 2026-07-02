@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -138,6 +139,57 @@ class Payslip extends Model
     public function department()
     {
         return $this->belongsTo(Department::class,'department_id');
+    }
+
+    /**
+     * Payslips an employee can see: linked by user id, or by matricule within the same company.
+     * Deduplicates by month/year so duplicate accounts do not list the same period twice.
+     */
+    public function scopeVisibleToEmployee(Builder $query, User $user): Builder
+    {
+        $normalizedMatricule = User::normalizeMatricule($user->matricule);
+        $table = $query->getModel()->getTable();
+
+        return $query->whereIn($table . '.id', function ($sub) use ($user, $normalizedMatricule, $table) {
+            $sub->selectRaw('MAX(id)')
+                ->from($table)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($user, $normalizedMatricule) {
+                    $q->where('employee_id', $user->id);
+
+                    if ($normalizedMatricule !== null && $normalizedMatricule !== '') {
+                        $q->orWhere(function ($q2) use ($user, $normalizedMatricule) {
+                            if ($user->company_id) {
+                                $q2->where('company_id', $user->company_id);
+                            }
+                            $q2->whereRaw('UPPER(TRIM(matricule)) = ?', [$normalizedMatricule]);
+                        });
+                    }
+                })
+                ->groupBy('year', 'month');
+        });
+    }
+
+    public function isVisibleToEmployee(User $user): bool
+    {
+        if ($this->trashed()) {
+            return false;
+        }
+
+        if ($this->employee_id === $user->id) {
+            return true;
+        }
+
+        $normalizedMatricule = User::normalizeMatricule($user->matricule);
+        if ($normalizedMatricule === null || $normalizedMatricule === '' || blank($this->matricule)) {
+            return false;
+        }
+
+        if ($user->company_id && $this->company_id !== $user->company_id) {
+            return false;
+        }
+
+        return User::normalizeMatricule($this->matricule) === $normalizedMatricule;
     }
 
     public static function search($query)

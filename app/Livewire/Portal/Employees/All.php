@@ -18,6 +18,7 @@ use App\Livewire\Traits\WithDataTable;
 use App\Models\Role;
 use App\Rules\PhoneNumber;
 use App\Rules\ValidEmail;
+use App\Support\EmployeeIdentityRules;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\Eloquent\Collection;
@@ -192,9 +193,9 @@ class All extends BaseImportComponent
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
-            'matricule' => 'required',
+            'matricule' => EmployeeIdentityRules::matricule(null, $this->email),
             'professional_phone_number' => ['required', new PhoneNumber()],
-            'email' => ['required', new ValidEmail(), 'unique:users'],
+            'email' => EmployeeIdentityRules::email(),
             
             // Optional fields
             'personal_phone_number' => ['nullable', new PhoneNumber()],
@@ -283,9 +284,9 @@ class All extends BaseImportComponent
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
-            'matricule' => 'required',
+            'matricule' => EmployeeIdentityRules::matricule($this->employee->id, $this->email),
             'professional_phone_number' => ['required', new PhoneNumber()],
-            'email' => ['required', new ValidEmail()],
+            'email' => EmployeeIdentityRules::email($this->employee->id),
             
             // Optional fields
             'personal_phone_number' => ['nullable', new PhoneNumber()],
@@ -373,7 +374,10 @@ class All extends BaseImportComponent
             return abort(401);
         }
         $this->setDefaultWorkTimes();
-        $this->validate();
+        $this->validate(array_merge($this->rules, [
+            'email' => EmployeeIdentityRules::email($this->employee->id),
+            'matricule' => EmployeeIdentityRules::matricule($this->employee->id, $this->email),
+        ]));
 
         // Format phone numbers before updating
         $professionalPhone = validatePhoneNumber($this->professional_phone_number);
@@ -1341,7 +1345,7 @@ class All extends BaseImportComponent
             } else {
                 // Check for duplicate matricule (optimized to avoid N+1 queries)
                 if ($this->isEmployeeMatriculeExists($rowData[4])) {
-                    $warnings[] = __('employees.matricule_already_exists');
+                    $errors[] = __('employees.matricule_already_exists');
                 }
             }
 

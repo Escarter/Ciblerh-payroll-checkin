@@ -157,6 +157,78 @@ class User extends Authenticatable implements HasLocalePreference
         return $clean;
     }
 
+    public static function normalizeEmailLocalPart(?string $email): ?string
+    {
+        if ($email === null || !str_contains($email, '@')) {
+            return null;
+        }
+
+        $localPart = explode('@', trim($email), 2)[0];
+
+        return $localPart === '' ? null : strtolower($localPart);
+    }
+
+    public function scopeWhereEmailLocalPart(Builder $query, string $localPart): Builder
+    {
+        $normalized = strtolower(trim($localPart));
+        if ($normalized === '') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        $driver = $query->getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return $query->whereRaw("LOWER(substr(email, 1, instr(email, '@') - 1)) = ?", [$normalized]);
+        }
+
+        return $query->whereRaw("LOWER(SUBSTRING_INDEX(email, '@', 1)) = ?", [$normalized]);
+    }
+
+    public static function findConflictingEmailLocalPart(string $email, ?int $ignoreUserId = null): ?self
+    {
+        $normalizedEmail = strtolower(trim($email));
+        $localPart = self::normalizeEmailLocalPart($email);
+
+        if ($localPart === null) {
+            return null;
+        }
+
+        $query = static::query()->whereEmailLocalPart($localPart);
+
+        if ($ignoreUserId) {
+            $query->where('id', '!=', $ignoreUserId);
+        }
+
+        return $query->get()->first(
+            fn (self $user) => strtolower(trim((string) $user->getRawOriginal('email') ?: $user->email)) !== $normalizedEmail
+        );
+    }
+
+    public static function findConflictingMatricule(string $matricule, ?string $email = null, ?int $ignoreUserId = null): ?self
+    {
+        $normalizedMatricule = self::normalizeMatricule($matricule);
+        if ($normalizedMatricule === null || $normalizedMatricule === '') {
+            return null;
+        }
+
+        $query = static::query()->where('matricule', $normalizedMatricule);
+
+        if ($ignoreUserId) {
+            $query->where('id', '!=', $ignoreUserId);
+        }
+
+        $existing = $query->first();
+        if (!$existing) {
+            return null;
+        }
+
+        if ($email !== null && strtolower(trim($existing->email)) === strtolower(trim($email))) {
+            return null;
+        }
+
+        return $existing;
+    }
+
     protected function matricule(): Attribute
     {
         return Attribute::make(

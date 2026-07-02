@@ -9,6 +9,7 @@ use App\Models\Leave;
 use App\Models\Overtime;
 use App\Models\Absence;
 use App\Models\AdvanceSalary;
+use App\Models\Payslip;
 use Carbon\Carbon;
 
 class Dashboard extends Component
@@ -20,7 +21,7 @@ class Dashboard extends Component
         $total_advance_salary = $user->advanceSalaries()->count();
         $total_absences = $user->absences()->count();
         $total_checklogs = $user->tickings()->count();
-        $total_payslips = $user->payslips()->count();
+        $total_payslips = Payslip::visibleToEmployee($user)->count();
         $logs = AuditLog::with('user')->where('user_id', $user->id)->orderBy('created_at', 'desc')->get()->take(10);
         
         // Enhanced metrics for employee dashboard

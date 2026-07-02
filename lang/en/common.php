@@ -102,6 +102,7 @@ return [
     'email_address_cannot_be_empty' => 'Email address cannot be empty',
     'email_address_is_too_long' => 'Email address is too long (maximum :maximum characters)',
     'email_local_part_is_invalid_or_too_long' => 'Email local part is invalid or too long (maximum 64 characters)',
+    'email_local_part_format_is_invalid' => 'Email local part contains invalid characters. Use letters, numbers, dots, hyphens, underscores, plus, or apostrophes only.',
     'email_domain_is_invalid_or_too_long' => 'Email domain is invalid or too long (maximum 255 characters)',
     'email_address_cannot_contain_consecutive_dots' => 'Email address cannot contain consecutive dots',
     'email_domain_must_contain_a_top_level_domain' => 'Email domain must contain a top-level domain',

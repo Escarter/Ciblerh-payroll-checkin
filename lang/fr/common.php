@@ -100,6 +100,7 @@ return [
     'email_address_cannot_be_empty' => 'L\'adresse email ne peut pas être vide',
     'email_address_is_too_long' => 'L\'adresse email est trop longue (maximum :maximum caractères)',
     'email_local_part_is_invalid_or_too_long' => 'La partie locale de l\'email est invalide ou trop longue (maximum 64 caractères)',
+    'email_local_part_format_is_invalid' => 'La partie locale de l\'e-mail contient des caractères invalides. Utilisez uniquement des lettres, chiffres, points, tirets, underscores, plus ou apostrophes.',
     'email_domain_is_invalid_or_too_long' => 'Le domaine de l\'email est invalide ou trop long (maximum 255 caractères)',
     'email_address_cannot_contain_consecutive_dots' => 'L\'adresse email ne peut pas contenir des points consécutifs',
     'email_domain_must_contain_a_top_level_domain' => 'Le domaine de l\'email doit contenir un domaine de premier niveau',

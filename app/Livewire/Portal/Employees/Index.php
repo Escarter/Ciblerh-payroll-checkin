@@ -16,6 +16,7 @@ use App\Exports\EmployeeExport;
 use App\Imports\EmployeeImport;
 use App\Livewire\Traits\WithDataTable;
 use App\Livewire\Traits\WithImportPreview;
+use App\Support\EmployeeIdentityRules;
 use Illuminate\Validation\Rule;
 use App\Models\Role;
 use Illuminate\Support\Facades\Gate;
@@ -231,7 +232,10 @@ class Index extends BaseImportComponent
         array_unshift($this->selected_roles, 'employee');
         
         $this->setDefaultWorkTimes();
-        $this->validate();
+        $this->validate(array_merge($this->rules, [
+            'email' => EmployeeIdentityRules::email(),
+            'matricule' => EmployeeIdentityRules::matricule(null, $this->email),
+        ]));
 
         $user = User::create([
             'first_name' => $this->first_name,
@@ -284,8 +288,8 @@ class Index extends BaseImportComponent
             'first_name' => 'required',
             'last_name' => 'required',
             'professional_phone_number' => 'required',
-            'email' => ['required','email', Rule::unique('users')->ignore($this->employee->id)],
-            'matricule' => 'required',
+            'email' => EmployeeIdentityRules::email($this->employee->id),
+            'matricule' => EmployeeIdentityRules::matricule($this->employee->id, $this->email),
             
             // Optional fields
             'remaining_leave_days' => 'nullable',

@@ -1322,6 +1322,15 @@ if (!function_exists('validateEmail')) {
             ];
         }
 
+        if (!preg_match("/^[a-zA-Z0-9._+'\\-]+$/", $localPart)) {
+            return [
+                'valid' => false,
+                'error' => __('common.email_local_part_format_is_invalid')
+            ];
+        }
+
+        $domain = strtolower($domain);
+
         // Validate domain part
         if (empty($domain) || strlen($domain) > 255) {
             return [
