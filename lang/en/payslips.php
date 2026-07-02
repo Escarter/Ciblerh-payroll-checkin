@@ -497,4 +497,9 @@ return [
     'no_failed_sms_to_resend' => 'No failed SMS to resend',
     'no_payslips_selected' => 'No payslips selected',
     'view_details' => 'View details',
+    'recover_missing_files' => 'Recover Missing Files',
+    'recover_now' => 'Recover Now',
+    'recover_missing_files_description' => 'Attempt to rebuild missing payslip files for this process from split files and re-encrypt them for employees.',
+    'recover_missing_files_note' => 'This only works when split files still exist for this process destination folder.',
+    'recovery_completed_summary' => 'Recovery completed: :recovered recovered, :missing missing inspected, :skipped skipped.',
 ];

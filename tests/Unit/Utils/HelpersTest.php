@@ -92,9 +92,30 @@ test('createPayslipRecord uses personal phone if professional not available', fu
     expect($payslip->phone)->toBe('+0987654321');
 });
 
+test('isPdfEncrypted returns false for plain pdf without encrypt dictionary', function () {
+    $path = sys_get_temp_dir() . '/plain-' . uniqid() . '.pdf';
+    file_put_contents($path, "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n");
 
+    expect(isPdfEncrypted($path))->toBeFalse();
 
+    @unlink($path);
+});
 
+test('isPdfEncrypted returns true when trailer references encrypt dictionary', function () {
+    $path = sys_get_temp_dir() . '/encrypted-' . uniqid() . '.pdf';
+    file_put_contents(
+        $path,
+        "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<< /Encrypt 2 0 R >>\n%%EOF\n"
+    );
+
+    expect(isPdfEncrypted($path))->toBeTrue();
+
+    @unlink($path);
+});
+
+test('isPdfEncrypted returns false for missing file', function () {
+    expect(isPdfEncrypted('/tmp/does-not-exist-' . uniqid() . '.pdf'))->toBeFalse();
+});
 
 
 

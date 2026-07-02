@@ -17,6 +17,8 @@ use App\Models\Setting;
 use App\Services\SMS\TwilioSMS;
 use App\Services\SMS\Nexah;
 use App\Services\SMS\AwsSnsSMS;
+use App\Services\PayslipFileRecoveryService;
+use mikehaertl\pdftk\Pdf;
 
 class Details extends Component
 {
@@ -175,6 +177,11 @@ class Details extends Component
             $employee = User::findOrFail($this->payslip->employee->id);
 
             if (Storage::disk('modified')->exists($this->payslip->file)) {
+                if (!$this->ensureEncryptedPayslipForResend($this->payslip, $employee)) {
+                    $this->closeModalAndFlashMessage(__('payslips.failed_to_encrypt_payslip'), 'resendPayslipModal');
+                    return;
+                }
+
                 $destination_file = $this->payslip->file;
 
                 // Use unified resend function with user-selected options
@@ -453,7 +460,7 @@ class Details extends Component
         $failedPayslips = Payslip::where('send_payslip_process_id', $this->job->id)
             ->where('email_sent_status', Payslip::STATUS_FAILED)
             ->whereNotNull('file')
-            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL) // Only resend if encryption succeeded
+            ->where('file', '!=', '')
             ->get();
 
         if ($failedPayslips->isEmpty()) {
@@ -479,6 +486,11 @@ class Details extends Component
             }
 
             if (!Storage::disk('modified')->exists($payslip->file)) {
+                $skippedCount++;
+                continue;
+            }
+
+            if (!$this->ensureEncryptedPayslipForResend($payslip, $employee)) {
                 $skippedCount++;
                 continue;
             }
@@ -551,7 +563,7 @@ class Details extends Component
         $eligiblePayslips = Payslip::whereIn('id', $this->selectedPayslips)
             ->where('send_payslip_process_id', $this->job->id)
             ->whereNotNull('file')
-            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->where('file', '!=', '')
             ->get();
 
         if ($eligiblePayslips->isEmpty()) {
@@ -571,6 +583,11 @@ class Details extends Component
             }
 
             if (!Storage::disk('modified')->exists($payslip->file)) {
+                $skippedCount++;
+                continue;
+            }
+
+            if (!$this->ensureEncryptedPayslipForResend($payslip, $employee)) {
                 $skippedCount++;
                 continue;
             }
@@ -623,7 +640,7 @@ class Details extends Component
         $eligiblePayslips = Payslip::whereIn('id', $this->selectedPayslips)
             ->where('send_payslip_process_id', $this->job->id)
             ->whereNotNull('file')
-            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->where('file', '!=', '')
             ->get();
 
         if ($eligiblePayslips->isEmpty()) {
@@ -643,6 +660,11 @@ class Details extends Component
             }
 
             if (!Storage::disk('modified')->exists($payslip->file)) {
+                $skippedCount++;
+                continue;
+            }
+
+            if (!$this->ensureEncryptedPayslipForResend($payslip, $employee)) {
                 $skippedCount++;
                 continue;
             }
@@ -686,11 +708,35 @@ class Details extends Component
         $this->closeModalAndFlashMessage($message, 'BulkResendFailedSmsModal');
     }
 
+    public function recoverMissingFiles()
+    {
+        if (!auth()->user()?->hasRole('admin')) {
+            return abort(403);
+        }
+
+        $result = app(PayslipFileRecoveryService::class)->recoverProcess($this->job, false);
+
+        $message = __('payslips.recovery_completed_summary', [
+            'recovered' => $result['recovered'],
+            'missing' => $result['missing'],
+            'skipped' => $result['skipped'],
+        ]);
+
+        if (!empty($result['errors'])) {
+            Log::warning('Payslip missing file recovery completed with skips/errors', [
+                'process_id' => $this->job->id,
+                'errors' => $result['errors'],
+            ]);
+        }
+
+        $this->closeModalAndFlashMessage($message, 'RecoverMissingFilesModal');
+    }
+
     public function getFailedEmailsCount()
     {
         return Payslip::where('send_payslip_process_id', $this->job->id)
             ->whereNotNull('file')
-            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->where('file', '!=', '')
             ->count();
     }
 
@@ -698,7 +744,7 @@ class Details extends Component
     {
         return Payslip::where('send_payslip_process_id', $this->job->id)
             ->whereNotNull('file')
-            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->where('file', '!=', '')
             ->count();
     }
 
@@ -711,7 +757,7 @@ class Details extends Component
         return Payslip::whereIn('id', $this->selectedPayslips)
             ->where('send_payslip_process_id', $this->job->id)
             ->whereNotNull('file')
-            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->where('file', '!=', '')
             ->count();
     }
 
@@ -724,7 +770,7 @@ class Details extends Component
         return Payslip::whereIn('id', $this->selectedPayslips)
             ->where('send_payslip_process_id', $this->job->id)
             ->whereNotNull('file')
-            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->where('file', '!=', '')
             ->count();
     }
 
@@ -733,7 +779,7 @@ class Details extends Component
         return Payslip::where('send_payslip_process_id', $this->job->id)
             ->where('email_sent_status', Payslip::STATUS_FAILED)
             ->whereNotNull('file')
-            ->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+            ->where('file', '!=', '')
             ->count();
     }
 
@@ -1332,6 +1378,94 @@ class Details extends Component
         
         // Return the translated prefix + translated reason if prefix exists, otherwise just the translated reason
         return $hasPrefix ? $encryptionSkippedPrefix . $translatedReason : $translatedReason;
+    }
+
+    /**
+     * Attempt on-demand encryption for resend when metadata says encryption
+     * wasn't completed but the PDF file is present.
+     */
+    private function ensureEncryptedPayslipForResend(Payslip $payslip, User $employee): bool
+    {
+        if ((int) $payslip->encryption_status === Payslip::STATUS_SUCCESSFUL) {
+            return true;
+        }
+
+        if (empty($employee->pdf_password)) {
+            $payslip->update([
+                'encryption_status' => Payslip::STATUS_FAILED,
+                'failure_reason' => __('payslips.encryption_error') . ': Missing PDF password',
+            ]);
+            return false;
+        }
+
+        if (empty($payslip->file) || !Storage::disk('modified')->exists($payslip->file)) {
+            $payslip->update([
+                'encryption_status' => Payslip::STATUS_FAILED,
+                'failure_reason' => __('payslips.payslip_file_not_found'),
+            ]);
+            return false;
+        }
+
+        $absolutePath = Storage::disk('modified')->path($payslip->file);
+
+        if (isPdfEncrypted($absolutePath)) {
+            $payslip->update([
+                'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                'failure_reason' => null,
+            ]);
+
+            Log::info('Payslip file already encrypted; skipping re-encryption before resend', [
+                'payslip_id' => $payslip->id,
+                'employee_id' => $employee->id,
+                'file' => $payslip->file,
+            ]);
+
+            return true;
+        }
+
+        $tempFile = $payslip->file . '.enc_tmp_' . uniqid();
+
+        try {
+            $pdf = new Pdf($absolutePath, [
+                'command' => config('ciblerh.pdftk_path'),
+            ]);
+
+            $saved = $pdf->setUserPassword($employee->pdf_password)
+                ->passwordEncryption(128)
+                ->saveAs(Storage::disk('modified')->path($tempFile));
+
+            if (!$saved || !Storage::disk('modified')->exists($tempFile)) {
+                throw new \RuntimeException('Failed generating encrypted file');
+            }
+
+            Storage::disk('modified')->delete($payslip->file);
+            Storage::disk('modified')->move($tempFile, $payslip->file);
+
+            $payslip->update([
+                'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                'failure_reason' => null,
+            ]);
+
+            return true;
+        } catch (\Throwable $e) {
+            if (Storage::disk('modified')->exists($tempFile)) {
+                Storage::disk('modified')->delete($tempFile);
+            }
+
+            Log::error('On-demand payslip encryption failed before resend', [
+                'payslip_id' => $payslip->id,
+                'employee_id' => $employee->id,
+                'file' => $payslip->file,
+                'error' => $e->getMessage(),
+            ]);
+
+            $payslip->update([
+                'encryption_status' => Payslip::STATUS_FAILED,
+                'failure_reason' => __('payslips.encryption_error') . ': ' . $e->getMessage(),
+            ]);
+
+            return false;
+        }
     }
 
     public function getPayslipOverallStatus($payslip)

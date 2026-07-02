@@ -500,4 +500,9 @@ return [
     'no_failed_sms_to_resend' => 'Aucun SMS en échec à renvoyer',
     'no_payslips_selected' => 'Aucune fiche de paie sélectionnée',
     'view_details' => 'Voir les détails',
+    'recover_missing_files' => 'Récupérer les fichiers manquants',
+    'recover_now' => 'Récupérer maintenant',
+    'recover_missing_files_description' => 'Tenter de reconstruire les fichiers de fiche de paie manquants de ce processus à partir des fichiers découpés, puis les rechiffrer.',
+    'recover_missing_files_note' => 'Cela fonctionne uniquement si les fichiers découpés existent encore pour le dossier de destination du processus.',
+    'recovery_completed_summary' => 'Récupération terminée : :recovered récupérés, :missing manquants inspectés, :skipped ignorés.',
 ];

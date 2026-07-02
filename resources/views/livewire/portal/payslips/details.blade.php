@@ -66,6 +66,29 @@
     </div>
     @endcan
 
+    @if(auth()->user()->hasRole('admin'))
+    <div class="modal fade" id="RecoverMissingFilesModal" tabindex="-1" aria-labelledby="RecoverMissingFilesModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="RecoverMissingFilesModalLabel">{{__('payslips.recover_missing_files')}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{{__('payslips.recover_missing_files_description')}}</p>
+                    <p class="text-muted small mb-0">{{__('payslips.recover_missing_files_note')}}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{__('common.cancel')}}</button>
+                    <button type="button" class="btn btn-warning" wire:click="recoverMissingFiles" data-bs-dismiss="modal">
+                        {{__('payslips.recover_now')}}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Bulk Resend SMS Modal -->
     @can('payslip-bulkresend-sms')
     <div class="modal fade" id="BulkResendFailedSmsModal" tabindex="-1" aria-labelledby="BulkResendFailedSmsModalLabel" aria-hidden="true">
@@ -117,6 +140,15 @@
 
             <!-- Bulk Resend Buttons in Header (Right Aligned) -->
             <div class="d-flex gap-2 align-items-center" style="min-width: fit-content;">
+                @if(auth()->user()->hasRole('admin'))
+                <button type="button" class="btn btn-sm btn-outline-warning d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#RecoverMissingFilesModal">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    {{__('payslips.recover_missing_files')}}
+                </button>
+                @endif
+
                 @can('payslip-bulkresend-email')
                 <!-- Email Button -->
                 @if(count($selectedPayslips) > 0 && $this->getSelectedEligibleEmailsCount() > 0)
@@ -620,7 +652,7 @@
                                         </svg>
                                     </a>
                                     <!-- Download Link -->
-                                    @if($payslip->encryption_status == 1)
+                                    @if(!empty($payslip->file))
                                     <a href="#" wire:click="downloadPayslip({{$payslip->id}})" class="text-primary me-2" title="{{__('payslips.download_payslip_title')}}">
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -628,7 +660,7 @@
                                     </a>
                                     @endif
                                     <!-- Resend Link -->
-                                    @if($payslip->encryption_status == 1)
+                                    @if(!empty($payslip->file))
                                     <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendPayslipModal" class="text-warning me-2" title="{{__('payslips.resend_payslip_title')}}">
                                         <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />

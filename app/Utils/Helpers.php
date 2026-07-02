@@ -1566,6 +1566,40 @@ if (!function_exists('resendPayslipUnified')) {
         return $result;
     }
 }
+if (!function_exists('isPdfEncrypted')) {
+    /**
+     * Detect whether a PDF file uses encryption (header/trailer /Encrypt reference).
+     */
+    function isPdfEncrypted(string $absolutePath): bool
+    {
+        if (!is_file($absolutePath) || !is_readable($absolutePath)) {
+            return false;
+        }
+
+        $size = filesize($absolutePath);
+        if ($size === false || $size === 0) {
+            return false;
+        }
+
+        $handle = fopen($absolutePath, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+
+        $head = fread($handle, (int) min($size, 65536));
+        $tail = '';
+
+        if ($size > 4096) {
+            fseek($handle, -4096, SEEK_END);
+            $tail = fread($handle, 4096) ?: '';
+        }
+
+        fclose($handle);
+
+        return (bool) preg_match('/\/Encrypt\b/', ($head ?: '') . $tail);
+    }
+}
+
 if (!function_exists('formatBytes')) {
     /**
      * Format bytes to human-readable format
