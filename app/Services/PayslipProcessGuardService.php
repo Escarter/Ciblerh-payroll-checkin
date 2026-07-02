@@ -67,9 +67,9 @@ class PayslipProcessGuardService
 
         if ($this->hasIncompleteWork($existing)) {
             return new PayslipProcessStartResult(
-                PayslipProcessStartResult::ACTION_BLOCK,
+                PayslipProcessStartResult::ACTION_RESUME_EXISTING,
                 $existing,
-                'payslips.period_has_incomplete_process',
+                'payslips.period_process_resuming_incomplete',
                 $this->messageParams($existing),
             );
         }

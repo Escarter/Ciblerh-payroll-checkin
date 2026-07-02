@@ -340,6 +340,7 @@ return [
     'period_already_completed' => 'Payslips for :department — :month :year were already sent (process #:process_id). View: :details_url',
     'period_has_incomplete_process' => 'A prior process for :department — :month :year still has pending or failed items (process #:process_id). Resume from: :details_url instead of starting a new run.',
     'period_process_resuming' => 'Resuming existing process #:process_id for :department — :month :year.',
+    'period_process_resuming_incomplete' => 'Resuming process #:process_id for :department — :month :year to reprocess failed/pending items.',
     'payslip_already_sent_successfully' => 'This payslip has already been sent successfully.',
     'payslip_successfully_sent_to' => 'Payslip successfully sent to :name',
     'payslips_details' => 'Payslips Details',

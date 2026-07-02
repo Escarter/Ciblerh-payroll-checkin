@@ -340,6 +340,7 @@ return [
     'period_already_completed' => 'Les fiches de paie pour :department — :month :year ont déjà été envoyées (processus n°:process_id). Voir : :details_url',
     'period_has_incomplete_process' => 'Un traitement précédent pour :department — :month :year comporte encore des éléments en attente ou en échec (processus n°:process_id). Reprenez depuis : :details_url au lieu de lancer un nouveau traitement.',
     'period_process_resuming' => 'Reprise du processus existant n°:process_id pour :department — :month :year.',
+    'period_process_resuming_incomplete' => 'Reprise du processus n°:process_id pour :department — :month :year afin de retraiter les éléments en échec/en attente.',
     'payslip_already_sent_successfully' => 'Cette fiche de paie a déjà été envoyée avec succès.',
     'payslip_successfully_sent_to' => 'Fiche de paie envoyée avec succès à :name',
     'payslips_details' => 'Détails des fiches de paie',

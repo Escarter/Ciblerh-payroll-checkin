@@ -138,6 +138,18 @@ class RenameEncryptPdfJob implements ShouldQueue
                                 ->lockForUpdate()  // Acquire lock until transaction ends
                                 ->first();
 
+                            // Resume mode safeguard: do not touch fully successful rows.
+                            if ($this->isFullySuccessful($record_exists)) {
+                                Log::info('RenameEncryptPdfJob: skipping fully successful payslip during reprocess', [
+                                    'employee_id' => $employee->id,
+                                    'payslip_id' => $record_exists?->id,
+                                    'process_id' => $this->process_id,
+                                    'month' => $pay_month,
+                                    'year' => $this->year,
+                                ]);
+                                return;
+                            }
+
                             if (empty($record_exists) || empty($record_exists->file)) {
                                 // First file for this employee - copy to temp unencrypted (encryption deferred)
                                 // Use unique filename: process_id + timestamp to prevent overwrites in concurrent scenarios
@@ -222,6 +234,9 @@ class RenameEncryptPdfJob implements ShouldQueue
                         ->first();
                     
                     if ($payslip) {
+                        if ($this->isFullySuccessful($payslip)) {
+                            return;
+                        }
                         $payslip->update($this->processReassignAttributes([
                             'file' => $tempCombinedPath,
                             'encryption_status' => Payslip::STATUS_PENDING,
@@ -290,6 +305,9 @@ class RenameEncryptPdfJob implements ShouldQueue
                     ->first();
                 
                 if ($payslip) {
+                    if ($this->isFullySuccessful($payslip)) {
+                        return;
+                    }
                     $payslip->update($this->processReassignAttributes([
                         'file' => $tempCombinedPath,
                         'encryption_status' => Payslip::STATUS_PENDING,
@@ -329,6 +347,9 @@ class RenameEncryptPdfJob implements ShouldQueue
                     ->first();
                 
                 if ($payslip) {
+                    if ($this->isFullySuccessful($payslip)) {
+                        return;
+                    }
                     $payslip->update([
                         'encryption_status' => Payslip::STATUS_FAILED,
                         'failure_reason' => 'Failed to combine PDF pages'
@@ -352,6 +373,9 @@ class RenameEncryptPdfJob implements ShouldQueue
                     ->first();
                 
                 if ($payslip) {
+                    if ($this->isFullySuccessful($payslip)) {
+                        return;
+                    }
                     $payslip->update([
                         'encryption_status' => Payslip::STATUS_FAILED,
                         'failure_reason' => 'PDF combination error: ' . substr($e->getMessage(), 0, 100)
@@ -378,6 +402,20 @@ class RenameEncryptPdfJob implements ShouldQueue
             'user_id' => $this->user_id,
             'failure_reason' => null,
         ], $attributes);
+    }
+
+    /**
+     * Fully successful rows must remain immutable during reprocess.
+     */
+    private function isFullySuccessful(?Payslip $payslip): bool
+    {
+        if (!$payslip) {
+            return false;
+        }
+
+        return (int) $payslip->encryption_status === Payslip::STATUS_SUCCESSFUL
+            && (int) $payslip->email_sent_status === Payslip::STATUS_SUCCESSFUL
+            && (int) $payslip->sms_sent_status === Payslip::STATUS_SUCCESSFUL;
     }
 
 }

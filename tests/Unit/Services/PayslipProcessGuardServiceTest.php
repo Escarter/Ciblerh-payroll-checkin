@@ -68,7 +68,7 @@ test('guard blocks duplicate when prior process completed successfully', functio
     expect($evaluation->action)->toBe(PayslipProcessStartResult::ACTION_BLOCK);
 });
 
-test('guard blocks when prior successful process still has incomplete payslips', function () {
+test('guard resumes when prior successful process still has incomplete payslips', function () {
     $department = Department::factory()->create();
     $user = User::factory()->create(['department_id' => $department->id]);
     $process = SendPayslipProcess::factory()->create([
@@ -94,8 +94,8 @@ test('guard blocks when prior successful process still has incomplete payslips',
         2026,
     );
 
-    expect($evaluation->action)->toBe(PayslipProcessStartResult::ACTION_BLOCK)
-        ->and($evaluation->messageKey)->toBe('payslips.period_has_incomplete_process');
+    expect($evaluation->action)->toBe(PayslipProcessStartResult::ACTION_RESUME_EXISTING)
+        ->and($evaluation->messageKey)->toBe('payslips.period_process_resuming_incomplete');
 });
 
 test('guard resumes failed process instead of creating a duplicate', function () {
