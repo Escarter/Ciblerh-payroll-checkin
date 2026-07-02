@@ -160,3 +160,42 @@ test('guard uses latest process when multiple exist for same period', function (
 
     expect($evaluation->process->id)->toBe($latest->id);
 });
+
+test('guard resumes older incomplete process when latest appears completed', function () {
+    $department = Department::factory()->create();
+    $user = User::factory()->create(['department_id' => $department->id]);
+
+    $older = SendPayslipProcess::factory()->create([
+        'department_id' => $department->id,
+        'company_id' => $department->company_id,
+        'month' => 'May',
+        'year' => 2026,
+        'status' => 'successful',
+    ]);
+
+    Payslip::factory()->create([
+        'employee_id' => $user->id,
+        'send_payslip_process_id' => $older->id,
+        'month' => 'May',
+        'year' => 2026,
+        'encryption_status' => Payslip::STATUS_FAILED,
+    ]);
+
+    SendPayslipProcess::factory()->create([
+        'department_id' => $department->id,
+        'company_id' => $department->company_id,
+        'month' => 'May',
+        'year' => 2026,
+        'status' => 'successful',
+    ]);
+
+    $evaluation = app(PayslipProcessGuardService::class)->evaluateStart(
+        $department->id,
+        $department->company_id,
+        'May',
+        2026,
+    );
+
+    expect($evaluation->action)->toBe(PayslipProcessStartResult::ACTION_RESUME_EXISTING)
+        ->and($evaluation->process->id)->toBe($older->id);
+});

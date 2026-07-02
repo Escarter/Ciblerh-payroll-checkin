@@ -16,19 +16,9 @@ class PayslipProcessGuardService
         int|string $month,
         int $year,
     ): ?SendPayslipProcess {
-        $month = normalizeMonthToEnglishName($month) ?? (string) $month;
-
-        $query = SendPayslipProcess::query()
-            ->where('year', $year)
-            ->where('month', $month);
-
-        if ($departmentId) {
-            $query->where('department_id', $departmentId);
-        } else {
-            $query->where('company_id', $companyId)->whereNull('department_id');
-        }
-
-        return $query->orderByDesc('id')->first();
+        return $this->periodQuery($departmentId, $companyId, $month, $year)
+            ->orderByDesc('id')
+            ->first();
     }
 
     /**
@@ -63,6 +53,18 @@ class PayslipProcessGuardService
                 'payslips.period_process_resuming',
                 $this->messageParams($existing),
             );
+        }
+
+        if ($allowResumeOnFailed) {
+            $resumable = $this->findResumableForPeriod($departmentId, $companyId, $month, $year);
+            if ($resumable) {
+                return new PayslipProcessStartResult(
+                    PayslipProcessStartResult::ACTION_RESUME_EXISTING,
+                    $resumable,
+                    'payslips.period_process_resuming_incomplete',
+                    $this->messageParams($resumable),
+                );
+            }
         }
 
         if ($this->hasIncompleteWork($existing)) {
@@ -139,5 +141,46 @@ class PayslipProcessGuardService
             'department' => $process->departmentWithTrashed?->name ?? __('common.unknown'),
             'details_url' => route('portal.payslips.details', $process->id),
         ];
+    }
+
+    private function periodQuery(
+        ?int $departmentId,
+        int $companyId,
+        int|string $month,
+        int $year,
+    ) {
+        $month = normalizeMonthToEnglishName($month) ?? (string) $month;
+
+        $query = SendPayslipProcess::query()
+            ->where('year', $year)
+            ->where('month', $month);
+
+        if ($departmentId) {
+            $query->where('department_id', $departmentId);
+        } else {
+            $query->where('company_id', $companyId)->whereNull('department_id');
+        }
+
+        return $query;
+    }
+
+    private function findResumableForPeriod(
+        ?int $departmentId,
+        int $companyId,
+        int|string $month,
+        int $year,
+    ): ?SendPayslipProcess {
+        $candidates = $this->periodQuery($departmentId, $companyId, $month, $year)
+            ->whereNot('status', 'processing')
+            ->orderByDesc('id')
+            ->get();
+
+        foreach ($candidates as $candidate) {
+            if (in_array($candidate->status, ['failed', 'cancelled'], true) || $this->hasIncompleteWork($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 }
