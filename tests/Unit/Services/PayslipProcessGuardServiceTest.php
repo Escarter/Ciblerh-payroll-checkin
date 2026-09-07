@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\PayslipProcessGuardService;
 use App\Services\PayslipProcessStartResult;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 
 uses(RefreshDatabase::class);
 
@@ -132,6 +133,29 @@ test('guard resumes failed process instead of creating a duplicate', function ()
         ->and($resumed->raw_file)->toBe('/new/path.pdf')
         ->and($resumed->destination_directory)->toBe('new_dir')
         ->and($resumed->user_id)->toBe($user->id);
+});
+
+test('guard accepts a uuid sftp proposal id when resuming', function () {
+    $department = Department::factory()->create();
+    $process = SendPayslipProcess::factory()->create([
+        'department_id' => $department->id,
+        'company_id' => $department->company_id,
+        'month' => 'May',
+        'year' => 2026,
+        'status' => 'failed',
+    ]);
+
+    $proposalId = (string) Str::uuid();
+
+    $resumed = app(PayslipProcessGuardService::class)->prepareForResume(
+        $process,
+        '/new/path.pdf',
+        'new_dir',
+        null,
+        $proposalId,
+    );
+
+    expect($resumed->sftp_proposal_id)->toBe($proposalId);
 });
 
 test('guard uses latest process when multiple exist for same period', function () {

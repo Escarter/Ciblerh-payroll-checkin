@@ -105,7 +105,7 @@ class PayslipProcessGuardService
         string $rawFile,
         string $destinationDirectory,
         ?int $userId = null,
-        ?int $sftpProposalId = null,
+        ?string $sftpProposalId = null,
     ): SendPayslipProcess {
         $attrs = [
             'status' => 'processing',
