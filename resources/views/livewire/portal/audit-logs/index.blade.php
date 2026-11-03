@@ -486,13 +486,15 @@
 
     <!-- Audit Log Detail Modal -->
     @if($showDetailModal && $selectedLog)
-    <div class="modal-backdrop fade show" wire:click="closeDetailModal"></div>
-    <div wire:ignore.self class="modal side-layout-modal fade show" id="DetailModal" tabindex="-1" role="dialog" aria-labelledby="detailModal" data-bs-backdrop="static" data-bs-keyboard="false" style="display: block;" aria-hidden="false">
+    <div x-data="{ closing: false, close() { if (this.closing) return; this.closing = true; setTimeout(() => $wire.closeDetailModal(), 300); } }"
+        x-on:keydown.escape.window="close()" :class="{ 'rf-slide-closing': closing }">
+    <div class="modal-backdrop fade show rf-slide-backdrop" @click="close()"></div>
+    <div wire:ignore.self class="modal side-layout-modal rf-slide-modal fade show" id="DetailModal" tabindex="-1" role="dialog" aria-labelledby="detailModal" data-bs-backdrop="static" data-bs-keyboard="false" style="display: block;" aria-hidden="false">
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width:50%; max-height: 100vh;">
             <div class="modal-content" style="max-height: 100vh; display: flex; flex-direction: column;">
                 <div class="modal-header border-0 pb-2 flex-shrink-0">
                     <h1 class="mb-0 h4 fw-bold">{{__('audit_logs.log_details')}}</h1>
-                    <button type="button" class="btn-close" wire:click="closeDetailModal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" @click="close()" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-3 flex-grow-1" style="overflow-y: auto; min-height: 0;">
                     <div class="p-2 p-lg-3">
@@ -719,10 +721,11 @@
                     </div>
                 </div>
                 <div class="modal-footer border-1 pt-2 flex-shrink-0">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="closeDetailModal">{{__('common.close')}}</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" @click="close()">{{__('common.close')}}</button>
                 </div>
             </div>
         </div>
+    </div>
     </div>
     @endif
 </div>

@@ -596,6 +596,16 @@ nav.emp-topbar.rf-admin-bar { margin: 0 -1.5rem; padding: 0 !important; backgrou
     .side-layout-modal .modal-dialog .modal-content .modal-body { overflow-y: auto; }
 }
 
+/* Slide-in / slide-out for livewire-rendered side panels */
+@keyframes rf-slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes rf-slide-out { from { transform: translateX(0); } to { transform: translateX(100%); } }
+@keyframes rf-fade-in { from { opacity: 0; } to { opacity: .5; } }
+@keyframes rf-fade-out { from { opacity: .5; } to { opacity: 0; } }
+.rf-slide-modal .modal-dialog { animation: rf-slide-in .3s cubic-bezier(.22, .8, .3, 1) both; }
+.rf-slide-backdrop { animation: rf-fade-in .3s ease both; }
+.rf-slide-closing .rf-slide-modal .modal-dialog { animation: rf-slide-out .3s cubic-bezier(.4, 0, 1, 1) both; }
+.rf-slide-closing .rf-slide-backdrop { animation: rf-fade-out .3s ease both; }
+
 /* Breadcrumbs */
 .breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem; margin: 0 0 .6rem; padding: 0; font-size: .8rem; font-weight: 500; }
 .breadcrumb-item { display: inline-flex; align-items: center; padding: 0 !important; color: var(--rf-muted); }
