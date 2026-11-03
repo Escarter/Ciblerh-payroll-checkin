@@ -10,8 +10,8 @@
 
     <meta name="theme-color" content="#1F2937">
 
-    <link rel="icon" href="{{ \App\Support\Branding::get('favicon') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ \App\Support\Branding::get('favicon') }}" type="image/x-icon">
+    <link rel="icon" href="{{ \App\Support\Branding::get('favicon') }}">
+    <link rel="shortcut icon" href="{{ \App\Support\Branding::get('favicon') }}">
     <link rel="apple-touch-icon" href="{{ \App\Support\Branding::get('favicon') }}">
 
     <!-- Fonts -->

@@ -45,11 +45,15 @@ class Branding
             $primary = self::validColor($row?->brand_primary_color) ?? self::DEFAULT_PRIMARY;
             $font = $row?->brand_font_family;
 
+            $appName = $row?->brand_app_name ?: (config('app.name') ?: 'App');
+
             return [
-                'app_name' => $row?->brand_app_name ?: (config('app.name') ?: 'CibleRH'),
+                'app_name' => $appName,
                 'logo' => self::fileUrl($row?->brand_logo_path) ?? asset('img/logo.jpg'),
                 'show_logo' => (bool) ($row?->brand_show_logo ?? true),
-                'favicon' => self::fileUrl($row?->brand_favicon_path) ?? asset('img/fav.jpg'),
+                'favicon' => self::fileUrl($row?->brand_favicon_path)
+                    ?? self::fileUrl($row?->brand_logo_path)
+                    ?? self::letterFavicon($appName, $primary),
                 'primary' => $primary,
                 'secondary' => self::validColor($row?->brand_secondary_color) ?? self::DEFAULT_SECONDARY,
                 'sidebar' => self::validColor($row?->brand_sidebar_color) ?? self::DEFAULT_SIDEBAR,
@@ -61,6 +65,15 @@ class Branding
                 'timezone' => in_array($row?->brand_timezone, timezone_identifiers_list(), true) ? $row->brand_timezone : null,
             ];
         });
+    }
+
+    public static function letterFavicon(string $name, string $color): string
+    {
+        $letter = htmlspecialchars(mb_strtoupper(mb_substr(trim($name), 0, 1)) ?: 'A', ENT_XML1);
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="' . $color . '"/>'
+            . '<text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-family="Arial,Helvetica,sans-serif" font-size="38" font-weight="700" fill="#fff">' . $letter . '</text></svg>';
+
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 
     public static function get(string $key, $default = null)
