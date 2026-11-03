@@ -155,13 +155,13 @@
                                 </div>
                                 <div class="d-sm-none">
                                     <h2 class="fw-extrabold h5">{{ __('common.deleted') }}</h2>
-                                    <h3 class="mb-1">{{numberFormat($banned_employees)}} </h3>
+                                    <h3 class="mb-1">{{numberFormat($deleted_employees)}} </h3>
                                 </div>
                             </div>
                             <div class="col-12 col-xl-8 px-xl-0">
                                 <a href="#" class="d-none d-sm-block">
                                     <h2 class="h5">{{ __('common.deleted') }}</h2>
-                                    <h3 class="fw-extrabold mb-1">{{numberFormat($banned_employees)}} </h3>
+                                    <h3 class="fw-extrabold mb-1">{{numberFormat($deleted_employees)}} </h3>
                                 </a>
                             </div>
                         </div>
