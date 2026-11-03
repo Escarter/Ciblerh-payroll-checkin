@@ -200,7 +200,7 @@
                         <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <input type="checkbox"
                                 id="select-all-roles"
-                                wire:model="selectAll"
+                                wire:model.live="selectAll"
                                 wire:change="toggleSelectAll"
                                 class="form-check-input">
                         </th>
