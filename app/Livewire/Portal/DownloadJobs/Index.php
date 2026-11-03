@@ -223,9 +223,10 @@ class Index extends Component
 
     public function downloadFile($jobId)
     {
-        if (!Gate::allows('downloadjob-read')) {
-            return abort(401);
-        }
+        abort_unless(
+            auth()->user()?->hasAnyRole(['admin', 'manager', 'supervisor']) || Gate::allows('downloadjob-read'),
+            403
+        );
 
         $job = DownloadJob::findOrFail($jobId);
 
@@ -457,9 +458,10 @@ class Index extends Component
 
     public function viewJobDetails($jobId)
     {
-        if (!Gate::allows('downloadjob-read')) {
-            return abort(401);
-        }
+        abort_unless(
+            auth()->user()?->hasAnyRole(['admin', 'manager', 'supervisor']) || Gate::allows('downloadjob-read'),
+            403
+        );
 
         $this->selectedJob = DownloadJob::findOrFail($jobId);
         $this->showDetailsModal = true;
@@ -697,9 +699,10 @@ class Index extends Component
 
     public function refreshJobs()
     {
-        if (!Gate::allows('downloadjob-read')) {
-            return abort(401);
-        }
+        abort_unless(
+            auth()->user()?->hasAnyRole(['admin', 'manager', 'supervisor']) || Gate::allows('downloadjob-read'),
+            403
+        );
 
         $this->loadStats();
         $this->dispatch("showToast", message: __('download_jobs.jobs_refreshed_successfully'), type: "success");
@@ -1224,9 +1227,10 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('downloadjob-read')) {
-            return abort(401);
-        }
+        abort_unless(
+            auth()->user()?->hasAnyRole(['admin', 'manager', 'supervisor']) || Gate::allows('downloadjob-read'),
+            403
+        );
 
         return view('livewire.portal.download-jobs.index', [
             'jobs' => $this->getJobs(),

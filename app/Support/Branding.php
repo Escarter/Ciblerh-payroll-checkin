@@ -162,7 +162,8 @@ class Branding
 
         return 'html[data-theme="dark"]{--rf-brand:' . $brand . ';--rf-brand-hover:' . self::lighten($brand, .15)
             . ';--rf-brand-2:' . self::lighten($brand, .2)
-            . ';--rf-brand-soft:color-mix(in srgb,' . $brand . ' 16%,transparent);--rf-brand-ring:color-mix(in srgb,' . $brand . ' 28%,transparent);--rf-accent:' . $accent . ';}';
+            . ';--rf-brand-soft:color-mix(in srgb,' . $brand . ' 16%,transparent);--rf-brand-ring:color-mix(in srgb,' . $brand . ' 28%,transparent);--rf-accent:' . $accent . ';}'
+            . 'html[data-theme="dark"] .emp-portal.emp-topbar{background:color-mix(in srgb,' . $brand . ' 14%,var(--rf-surface))!important;border-color:color-mix(in srgb,' . $brand . ' 28%,var(--rf-line))!important;}';
     }
 
     public static function isDark(string $hex): bool

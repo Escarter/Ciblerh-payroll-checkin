@@ -362,7 +362,7 @@ html[data-theme="dark"] .emp-dd-toggle:focus { background: var(--rf-surface-2) !
 html[data-theme="dark"] .emp-link.active { background: var(--rf-brand-soft) !important; color: var(--rf-brand) !important; }
 
 /* Employee hero: calmer gradient and shadow; green tile tone */
-html[data-theme="dark"] .emp-hero { background: radial-gradient(120% 140% at 100% 0%, #2c5a8f 0%, transparent 55%), linear-gradient(135deg, #12294f 0%, #1d4380 60%, #1b3b72 100%) !important; box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .5) !important; }
+html[data-theme="dark"] .emp-hero { filter: brightness(.82) saturate(.95); box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .5) !important; }
 html[data-theme="dark"] .emp-hero::after { background: rgba(255, 255, 255, .04); }
 html[data-theme="dark"] .emp-hero-cta { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .16); }
 html[data-theme="dark"] .emp-quick-item .tone-green { background: rgba(16, 185, 129, .18); color: #34d399; }
