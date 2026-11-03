@@ -7,21 +7,20 @@ use App\Models\User;
 use App\Models\Company;
 use App\Livewire\BaseImportComponent;
 use Illuminate\Support\Str;
-use Livewire\WithPagination;
-use Livewire\WithFileUploads;
 use App\Imports\CompanyImport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
-use App\Models\SendPayslipProcess;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Computed;
 
 class Index extends BaseImportComponent
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     protected $importType = 'companies';
     protected $importPermission = 'company-create';
@@ -47,6 +46,9 @@ class Index extends BaseImportComponent
     public $activeTab = 'active';
     public $selectedCompanies = [];
     public $selectAll = false;
+
+    // Notification modal properties
+    public $smsCompanyActionId;
 
     //Update & Store Rules
     protected array $rules = [
@@ -90,9 +92,7 @@ class Index extends BaseImportComponent
 
     public function store()
     {
-        if (!Gate::allows('company-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-create');
         
         $this->validate();
 
@@ -121,9 +121,7 @@ class Index extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('company-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-update');
         $this->validate();
 
         DB::transaction(function () {
@@ -147,9 +145,7 @@ class Index extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('company-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-delete');
 
         if (!empty($this->company)) {
             $this->company->delete(); // Soft delete
@@ -161,9 +157,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('company-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-restore');
 
         $company = Company::withTrashed()->findOrFail($this->company_id);
         $company->restore();
@@ -171,40 +165,90 @@ class Index extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('companies.company_restored_successfully'), 'RestoreModal');
     }
 
-    public function forceDelete($companyId)
+    public function forceDelete($companyId = null)
     {
-        if (!Gate::allows('company-delete')) {
-            return abort(401);
+        $this->authorizeAbility('company-delete');
+
+        // If no companyId provided, try to get it from selectedCompanies
+        if (!$companyId) {
+            if (!empty($this->selectedCompanies) && is_array($this->selectedCompanies)) {
+                $companyId = $this->selectedCompanies[0] ?? null;
+            } elseif ($this->company_id) {
+                $companyId = $this->company_id;
+            } else {
+                $this->showToast(__('companies.no_company_selected'), 'danger');
+                return;
+            }
         }
 
         $company = Company::withTrashed()->findOrFail($companyId);
-        
-        // Check if company has related records
-        $hasRelatedRecords = $company->departments()->count() > 0 ||
-                           $company->employees()->count() > 0 ||
-                           $company->services()->count() > 0 ||
-                           $company->payslips()->count() > 0 ||
-                           $company->payslipProcess()->count() > 0;
-        
-        if ($hasRelatedRecords) {
+
+        if ($this->companyHasRelatedRecords($company)) {
             $this->showToast(__('companies.cannot_permanently_delete_company'), 'danger');
             return;
         }
-        
-        $company->forceDelete();
+
+        try {
+            DB::transaction(function () use ($company) {
+                $company->managers()->detach();
+                $company->forceDelete();
+            });
+        } catch (QueryException $e) {
+            $this->showToast(__('companies.cannot_permanently_delete_company'), 'danger');
+            return;
+        }
+
+        // Clear selection after deletion
+        if (in_array($companyId, $this->selectedCompanies ?? [])) {
+            $this->selectedCompanies = array_diff($this->selectedCompanies, [$companyId]);
+        }
+        $this->company_id = null;
 
         $this->closeModalAndFlashMessage(__('companies.company_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('company-delete')) {
-            return abort(401);
+        $this->authorizeAbility('company-bulkdelete');
+
+        $targetIds = $this->selectedCompanies ?? [];
+        $companies = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $companies = Company::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $companies->map(function ($company) {
+                return [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedCompanies)) {
-            Company::whereIn('id', $this->selectedCompanies)->delete(); // Soft delete
+        if (!empty($targetIds)) {
+            Company::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedCompanies = [];
+
+            if ($companies->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'company_bulk_deleted',
+                    'web',
+                    'bulk_deleted_companies',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_deleted_companies',
+                        'translation_params' => ['count' => $companies->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $companies->count(),
+                        'affected_ids' => $companies->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('companies.selected_companies_moved_to_trash'), 'BulkDeleteModal');
@@ -212,13 +256,46 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('company-delete')) {
-            return abort(401);
+        $this->authorizeAbility('company-bulkrestore');
+
+        $targetIds = $this->selectedCompanies ?? [];
+        $companies = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $companies = Company::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $companies->map(function ($company) {
+                return [
+                    'id' => $company->id,
+                    'name' => $company->name,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedCompanies)) {
-            Company::withTrashed()->whereIn('id', $this->selectedCompanies)->restore();
+        if (!empty($targetIds)) {
+            Company::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedCompanies = [];
+
+            if ($companies->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'company_bulk_restored',
+                    'web',
+                    'bulk_restored_companies',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_companies',
+                        'translation_params' => ['count' => $companies->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $companies->count(),
+                        'affected_ids' => $companies->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('companies.selected_companies_restored'), 'BulkRestoreModal');
@@ -226,74 +303,96 @@ class Index extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('company-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-delete');
 
         if (!empty($this->selectedCompanies)) {
+            /** @var \Illuminate\Database\Eloquent\Collection<int, Company> $companies */
             $companies = Company::withTrashed()->whereIn('id', $this->selectedCompanies)->get();
             $companiesWithRelatedRecords = [];
+            $affectedRecords = [];
             
+            /** @var Company $company */
             foreach ($companies as $company) {
-                $hasRelatedRecords = $company->departments()->count() > 0 ||
-                                   $company->employees()->count() > 0 ||
-                                   $company->services()->count() > 0 ||
-                                   $company->payslips()->count() > 0 ||
-                                   $company->payslipProcess()->count() > 0;
-                
-                if ($hasRelatedRecords) {
+                if ($this->companyHasRelatedRecords($company)) {
                     $companiesWithRelatedRecords[] = $company->name;
+                } else {
+                    $affectedRecords[] = [
+                        'id' => $company->id,
+                        'name' => $company->name,
+                    ];
                 }
             }
-            
+
             if (!empty($companiesWithRelatedRecords)) {
                 $companyNames = implode(', ', $companiesWithRelatedRecords);
                 $this->showToast(__('companies.cannot_permanently_delete_companies') . $companyNames, 'danger');
                 return;
             }
-            
+
+            /** @var Company $company */
             foreach ($companies as $company) {
-                $company->forceDelete();
+                try {
+                    DB::transaction(function () use ($company) {
+                        $company->managers()->detach();
+                        $company->forceDelete();
+                    });
+                } catch (QueryException $e) {
+                    $this->showToast(__('companies.cannot_permanently_delete_company'), 'danger');
+                    return;
+                }
             }
             
+            if (!empty($affectedRecords)) {
+                auditLog(
+                    auth()->user(),
+                    'company_bulk_force_deleted',
+                    'web',
+                    'bulk_force_deleted_companies',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_companies',
+                        'translation_params' => ['count' => count($affectedRecords)],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => count($affectedRecords),
+                        'affected_ids' => array_column($affectedRecords, 'id'),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedCompanies = [];
         }
 
         $this->closeModalAndFlashMessage(__('companies.selected_companies_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
+    protected function companyHasRelatedRecords(Company $company): bool
+    {
+        return $company->departments()->withTrashed()->exists()
+            || $company->employees()->withTrashed()->exists()
+            || $company->services()->withTrashed()->exists()
+            || $company->payslips()->exists()
+            || $company->payslipProcess()->exists()
+            || $company->holidays()->exists();
+    }
+
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedCompanies = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            // Deselect all
-            $this->selectedCompanies = [];
-            $this->selectAll = false;
-        } else {
-            // Select all companies from current page
-            $this->selectedCompanies = $this->getCompanies()->pluck('id')->toArray();
-            $this->selectAll = true;
-        }
+        return [
+            'active' => ['selectedCompanies', 'selectAll'],
+        ];
     }
 
-    public function toggleCompanySelection($companyId)
-    {
-        if (in_array($companyId, $this->selectedCompanies)) {
-            $this->selectedCompanies = array_diff($this->selectedCompanies, [$companyId]);
-        } else {
-            $this->selectedCompanies[] = $companyId;
-        }
-        
-        $this->selectAll = count($this->selectedCompanies) === $this->getCompanies()->count();
-    }
-
-    private function getCompanies()
+    protected function bulkQuery()
     {
         $query = Company::search($this->query)->with(['employees','departments','services']);
 
@@ -311,7 +410,12 @@ class Index extends BaseImportComponent
             default => [],
         };
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getCompanies()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function import()
@@ -347,9 +451,7 @@ class Index extends BaseImportComponent
 
     public function render()
     {
-        if (!Gate::allows('company-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-read');
 
         $companies = $this->getCompanies();
 
@@ -381,6 +483,83 @@ class Index extends BaseImportComponent
     protected function getImportColumns(): array
     {
         return $this->getPreviewColumns();
+    }
+
+    public function openCompanyNotificationsModal()
+    {
+        $this->authorizeAbility('company-update');
+
+        $this->dispatch('open-modal', 'CompanySmsToggleModal');
+    }
+
+    /**
+     * Bulk toggle SMS notifications for all employees in a company
+     */
+    public function bulkToggleCompanySmsNotifications(bool $enabled)
+    {
+        if (!Gate::allows('company-update')) {
+            $this->showToast(__('companies.bulk_sms_company_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $targetCompanyId = is_array($this->smsCompanyActionId) ? ($this->smsCompanyActionId[0] ?? null) : $this->smsCompanyActionId;
+
+        if (!$targetCompanyId) {
+            $this->showToast(__('companies.bulk_sms_select_company_first'), 'danger');
+            return;
+        }
+
+        $company = Company::find($targetCompanyId);
+        if (!$company) {
+            $this->showToast(__('companies.bulk_sms_company_not_found'), 'danger');
+            return;
+        }
+
+        // Update all active employees in the company
+        $affectedCount = User::query()
+            ->where('company_id', $company->id)
+            ->whereNull('deleted_at')
+            ->where('receive_sms_notifications', '!=', $enabled)
+            ->update(['receive_sms_notifications' => $enabled]);
+
+        $message = $enabled 
+            ? __('companies.bulk_sms_enabled_for_company', ['company' => $company->name, 'count' => $affectedCount])
+            : __('companies.bulk_sms_disabled_for_company', ['company' => $company->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
+    }
+
+    public function bulkToggleCompanyEmailNotifications(bool $enabled)
+    {
+        if (!Gate::allows('company-update')) {
+            $this->showToast(__('companies.bulk_sms_company_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $targetCompanyId = is_array($this->smsCompanyActionId) ? ($this->smsCompanyActionId[0] ?? null) : $this->smsCompanyActionId;
+
+        if (!$targetCompanyId) {
+            $this->showToast(__('companies.bulk_sms_select_company_first'), 'danger');
+            return;
+        }
+
+        $company = Company::find($targetCompanyId);
+        if (!$company) {
+            $this->showToast(__('companies.bulk_sms_company_not_found'), 'danger');
+            return;
+        }
+
+        $affectedCount = User::query()
+            ->where('company_id', $company->id)
+            ->whereNull('deleted_at')
+            ->where('receive_email_notifications', '!=', $enabled)
+            ->update(['receive_email_notifications' => $enabled]);
+
+        $message = $enabled
+            ? __('companies.bulk_email_enabled_for_company', ['company' => $company->name, 'count' => $affectedCount])
+            : __('companies.bulk_email_disabled_for_company', ['company' => $company->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
     }
 
     /**

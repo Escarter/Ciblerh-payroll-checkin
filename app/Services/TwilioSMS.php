@@ -4,10 +4,12 @@
 namespace App\Services;
 
 use Twilio\Rest\Client;
+use Twilio\Exceptions\RestException;
 use Illuminate\Support\Str;
 use App\Services\SmsProvider;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Throwable;
 
 class TwilioSMS extends SmsProvider
 {
@@ -16,14 +18,35 @@ class TwilioSMS extends SmsProvider
         $response = ['responsecode' => 0];
         try {
             $client = new Client($this->username, $this->password);
-            $client->messages->create($data['mobiles'], [
+            $client->messages->create(self::cleanPhone($data['mobiles']), [
                 'from' => $this->senderid,
                 'body' => $data['sms']
             ]);
 
             $response['responsecode'] = 1;
 
-        } catch (Exception $e) {
+        } catch (RestException $e) {
+            $errorParts = [$e->getMessage()];
+            if ($e->getStatusCode()) {
+                $errorParts[] = 'HTTP ' . $e->getStatusCode();
+            }
+            if ($e->getMoreInfo()) {
+                $errorParts[] = $e->getMoreInfo();
+            }
+            if (!empty($e->getDetails())) {
+                $errorParts[] = json_encode($e->getDetails());
+            }
+            $errorMessage = implode(' | ', $errorParts);
+
+            Log::error('Twilio SMS sending failed', [
+                'error' => $errorMessage,
+                'phone' => $data['mobiles'] ?? 'unknown',
+                'code' => $e->getCode(),
+                'status_code' => $e->getStatusCode(),
+            ]);
+            $response['responsecode'] = 0;
+            $response['error'] = $errorMessage;
+        } catch (Throwable $e) {
             Log::error('Twilio SMS sending failed', [
                 'error' => $e->getMessage(),
                 'phone' => $data['mobiles'] ?? 'unknown',

@@ -68,3 +68,4 @@ return [
     'employees_checklogs_report' => 'Rapport des journaux de pointage des employés',
     'generate_monthly_employees_checklog_reports' => 'Générer des rapports mensuels des journaux de pointage des employés!',
 ];
+

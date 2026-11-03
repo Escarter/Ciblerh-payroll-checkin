@@ -134,12 +134,12 @@
                                             @endphp
                                             <div class="d-flex align-items-center">
                                                 <span class="{{ $parsedValue !== $value ? 'text-primary fw-bold' : '' }}"
-                                                      title="{{ $parsedValue !== $value ? __('Original: :value', ['value' => $value]) : '' }}">
+                                                      title="{{ $parsedValue !== $value ? __('common.original') . ': :value', ['value' => $value] : '' }}">
                                                     {{ Str::limit($parsedValue, 30) }}
                                                 </span>
                                                 @if($parsedValue !== $value)
                                                     <i class="fas fa-info-circle text-primary ms-1"
-                                                       title="{{ __('Original: :value', ['value' => $value]) }}"></i>
+                                                       title="{{ __('common.original') . ': :value', ['value' => $value] }}"></i>
                                                 @endif
                                             </div>
                                         </td>

@@ -21,28 +21,28 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="amount">{{__('common.amount')}}</label>
-                            <input wire:model="amount" type="money" class="form-control  @error('amount') is-invalid @enderror" placeholder="{{__('employees.amount_placeholder')}}" value="" required="" name="amount">
+                            <label for="amount">{{__('common.amount')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <input wire:model="amount" type="money" class="form-control  @error('amount') is-invalid @enderror" placeholder="{{__('employees.amount_placeholder')}}" value="" name="amount" @if($advance_salary && !$advance_salary->canSupervisorEditAmount() && $role === 'supervisor') readonly @endif>
                             @error('amount')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="reason">{{__('common.reason')}}</label>
+                            <label for="reason">{{__('common.reason')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <textarea wire:model="reason" name="reason" class="form-control  @error('reason') is-invalid @enderror" id='' cols='3' rows="3" placeholder="{{__('employees.reason_placeholder')}}"></textarea>
                             @error('reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="repayment_from_month">{{__('employees.repayment_from_month')}}</label>
+                            <label for="repayment_from_month">{{__('employees.repayment_from_month')}} <span class="text-danger">*</span></label>
                             <input wire:model="repayment_from_month" type="month" class="form-control  @error('repayment_from_month') is-invalid @enderror" min="{{now()->addMonth(1)->format('Y-m')}}" value="" required="" name="repayment_from_month">
                             @error('repayment_from_month')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="repayment_to_month">{{__('employees.repayment_to_month')}}</label>
+                            <label for="repayment_to_month">{{__('employees.repayment_to_month')}} <span class="text-danger">*</span></label>
                             <input wire:model="repayment_to_month" type="month" class="form-control  @error('repayment_to_month') is-invalid @enderror" min="{{now()->addMonth(1)->format('Y-m')}}" value="" required="" name="repayment_to_month">
                             @error('end_repayment_month')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -52,44 +52,80 @@
                         <h5 class="pb-0 mb-n2">{{__('common.beneficiary_details')}}</h5>
                         <hr class="mb-3">
                         <div class="form-group mb-4">
-                            <label for="beneficiary_name">{{__('employees.beneficiary_name')}}</label>
+                            <label for="beneficiary_name">{{__('employees.beneficiary_name')}} <span class="text-danger">*</span></label>
                             <input wire:model="beneficiary_name" type="text" class="form-control  @error('beneficiary_name') is-invalid @enderror" placeholder="{{__('employees.beneficiary_name_placeholder')}}" value="" required="" name="beneficiary_name">
                             @error('beneficiary_name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="beneficiary_mobile_money_number">{{__('employees.beneficiary_mobile_money_number')}}</label>
+                            <label for="beneficiary_mobile_money_number">{{__('employees.beneficiary_mobile_money_number')}} <span class="text-danger">*</span></label>
                             <input wire:model="beneficiary_mobile_money_number" type="text" class="form-control  @error('beneficiary_mobile_money_number') is-invalid @enderror" placeholder="{{__('employees.mobile_money_placeholder')}}" value="" required="" name="beneficiary_mobile_money_number">
                             @error('beneficiary_mobile_money_number')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="beneficiary_id_card_number">{{__('employees.beneficiary_id_card_number')}}</label>
+                            <label for="beneficiary_id_card_number">{{__('employees.beneficiary_id_card_number')}} <span class="text-danger">*</span></label>
                             <input wire:model="beneficiary_id_card_number" type="text" class="form-control  @error('beneficiary_id_card_number') is-invalid @enderror" placeholder="{{__('employees.id_card_placeholder')}}" value="" required="" name="beneficiary_id_card_number">
                             @error('beneficiary_id_card_number')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
+                        @if($role === 'supervisor')
                         <div class='form-group mb-4'>
-                            <label for="approval_status">{{__('employees.approval_status')}}</label>
-                            <select wire:model="approval_status" id="approval_status" name="approval_status" class="form-select  @error('approval_status') is-invalid @enderror">
+                            <label for="supervisor_approval_status">{{__('employees.supervisor_approval')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <select wire:model="supervisor_approval_status" id="supervisor_approval_status" name="supervisor_approval_status" class="form-select @error('supervisor_approval_status') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.approve')}}</option>
                                 <option value="2">{{__('common.reject')}}</option>
                             </select>
-                            @error('approval_status')
+                            @error('supervisor_approval_status')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
+                        @else
+                        <div class='form-group mb-4'>
+                            <label for="manager_approval_status">{{__('employees.manager_approval')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <select wire:model="manager_approval_status" id="manager_approval_status" name="manager_approval_status" class="form-select @error('manager_approval_status') is-invalid @enderror">
+                                <option value="">{{__('common.select_status')}}</option>
+                                <option value="1">{{__('common.approve')}}</option>
+                                <option value="2">{{__('common.reject')}}</option>
+                            </select>
+                            @error('manager_approval_status')
+                            <div class="invalid-feedback">{{$message}}</div>
+                            @enderror
+                        </div>
+                        @endif
                         <div class="form-group mb-4">
-                            <label for="approval_reason">{{__('common.approval_rejection_reason')}}</label>
-                            <textarea wire:model="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" id="approval_reason" cols='2' rows="2"></textarea>
+                            <label for="approval_reason">{{__('common.approval_rejection_reason')}} <span class="text-danger">*</span></label>
+                            <textarea wire:model="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" id="approval_reason" cols='2' rows="2" placeholder="{{__('common.approval_rejection_reason')}}"></textarea>
                             @error('approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
+                        @if($advance_salary && $advance_salary->type === \App\Models\AdvanceSalary::TYPE_LOAN && in_array($role, ['manager', 'admin']))
+                        <h5 class="pb-0 mb-n2">{{__('employees.loan_repayment')}}</h5>
+                        <hr class="mb-3">
+                        <div class="form-group mb-4">
+                            <p class="small text-muted mb-1">
+                                {{__('employees.amount_repaid')}}: <strong>{{ number_format($advance_salary->amount_repaid ?? 0) }} XAF</strong> |
+                                {{__('employees.remaining_to_repay')}}: <strong>{{ number_format(max(0, ($advance_salary->amount ?? 0) - ($advance_salary->amount_repaid ?? 0))) }} XAF</strong>
+                                @if($advance_salary->is_fully_repaid)
+                                    <span class="badge bg-success">{{__('employees.fully_repaid')}}</span>
+                                @endif
+                            </p>
+                            @if(!$advance_salary->is_fully_repaid)
+                            <div class="input-group">
+                                <input wire:model="repayment_amount" type="text" class="form-control @error('repayment_amount') is-invalid @enderror" placeholder="{{__('employees.repayment_amount_placeholder')}}">
+                                <button type="button" wire:click="recordRepayment" wire:loading.attr="disabled" class="btn btn-outline-primary">{{__('employees.record_repayment')}}</button>
+                            </div>
+                            @error('repayment_amount')
+                            <div class="invalid-feedback d-block">{{$message}}</div>
+                            @enderror
+                            @endif
+                        </div>
+                        @endif
                         <div class="d-flex justify-content-end">
                             <button type="button" class="btn btn-gray-200 text-gray-600 ms-auto mx-3" data-bs-dismiss="modal">{{__('common.close')}}</button>
                             <button type="submit" wire:click.prevent="update" id="confirm-advance-salary-btn" class="btn btn-secondary " wire:loading.attr="disabled">{{__('common.confirm')}}</button>

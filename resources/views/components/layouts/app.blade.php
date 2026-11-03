@@ -10,16 +10,18 @@
 
     <meta name="theme-color" content="#1F2937">
 
-    <link rel="icon" href="{{ asset('img/fav.jpg') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('img/fav.jpg') }}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{ asset('img/fav.jpg') }}">
+    <link rel="icon" href="{{ \App\Support\Branding::get('favicon') }}">
+    <link rel="shortcut icon" href="{{ \App\Support\Branding::get('favicon') }}">
+    <link rel="apple-touch-icon" href="{{ \App\Support\Branding::get('favicon') }}">
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap" rel="stylesheet">
+    @if ($brandFont = \App\Support\Branding::fontUrl())
+    <link href="{{ $brandFont }}" rel="stylesheet">
+    @endif
 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>{{env('APP_NAME') ?? __('app.ciblerh')}}</title>
+    <title>{{ \App\Support\Branding::get('app_name') }}</title>
 
 
     <meta name="msapplication-TileColor" content="#1F2937">
@@ -34,43 +36,37 @@
     <link type="text/css" href="{{ asset('vendor/leaflet/dist/leaflet.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/medium-editor.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/themes/default.css')}}" rel="stylesheet">
-    <link type="text/css" href="{{ asset('css/theme.css')}}" rel="stylesheet">
+    @vite('resources/css/main.css')
+    <script src="{{ asset('js/dark-mode.js') }}?v={{ @filemtime(public_path('js/dark-mode.js')) }}"></script>
+    <style>{!! \App\Support\Branding::css() !!}</style>
     <style>
-        * {
-            font-family: 'Poppins', sans-serif;
-        }
 
-        /* Custom sidebar and content layout adjustments */
-        @media (min-width: 768px) {
-            .sidebar {
-                width: 100%;
-                max-width: 320px !important;
-            }
-        }
-
-        @media (min-width: 992px) {
-            .content {
-                margin-left: 320px !important;
-            }
-        }
-
-        /* Ensure sidebar stays within viewport on smaller screens */
-        @media (max-width: 991.98px) {
-            .sidebar {
-                width: 100% !important;
-            }
-
-            main.content {
-                margin-left: 0 !important;
-                width: 100% !important;
-            }
-        }
+        /* Sidebar and content layout live in resources/css/refined.css */
     </style>
     @livewireStyles
 
     <!-- Alpine.js Choices Multi-Select Component -->
     <script>
         document.addEventListener('alpine:init', () => {
+            Alpine.data('searchSelect', (model) => ({
+                choices: null,
+                init() {
+                    const el = this.$refs.select;
+                    this.choices = new window.Choices(el, {
+                        searchEnabled: true,
+                        searchPlaceholderValue: 'Search…',
+                        shouldSort: false,
+                        itemSelectText: '',
+                        allowHTML: false,
+                        placeholder: true,
+                        noResultsText: 'No results found',
+                        noChoicesText: 'No options available',
+                    });
+                    el.addEventListener('change', () => this.$wire.set(model, el.value));
+                },
+                destroy() { this.choices && this.choices.destroy(); },
+            }));
+
             Alpine.data('choicesMultiSelect', (prettyname, wireModel, selected) => {
                 return {
                     selectInstance: null,
@@ -96,11 +92,31 @@
                             const rawValues = this.selectInstance.getValue(true);
                             let normalized = [];
                             if (Array.isArray(rawValues)) {
-                                normalized = rawValues.map(item => (typeof item === 'object' && item !== null && item.value) ? String(item.value) : String(item));
+                                // Map and normalize values - handle both object format {value: "1"} and direct values
+                                normalized = rawValues.map(item => {
+                                    if (typeof item === 'object' && item !== null && item.value !== undefined) {
+                                        return String(item.value);
+                                    }
+                                    return String(item);
+                                }).filter(val => val !== '' && val !== 'undefined' && val !== 'null');
                             } else if (rawValues != null) {
                                 normalized = [String(rawValues)];
                             }
-                            this.$wire.set(wireModel, normalized);
+                            
+                            // Use the dedicated method for employee_id (more reliable for nested properties)
+                            if (wireModel === 'newReport.filters.employee_id') {
+                                // Call the dedicated method to update employee IDs
+                                this.$wire.call('updateEmployeeIds', normalized).then(() => {
+                                    // Verify the update worked (optional debugging)
+                                    const currentValue = this.$wire.get('newReport.filters.employee_id');
+                                    console.log('Employee IDs updated:', currentValue, 'Sent:', normalized);
+                                });
+                            } else if (wireModel.includes('.')) {
+                                // For other nested properties, use dot notation (Livewire 3 supports this)
+                                this.$wire.set(wireModel, normalized);
+                            } else {
+                                this.$wire.set(wireModel, normalized);
+                            }
                         });
 
                         // Remove any existing event listener to avoid duplicates
@@ -131,12 +147,24 @@
                                 // Clear all selected items in UI and in Livewire model
                                 this.selectInstance.removeActiveItems();
                                 this.selectInstance.setValue([]);
-                                this.$wire.set(wireModel, []);
+                                
+                                // Clear Livewire model using the appropriate method
+                                if (wireModel === 'newReport.filters.employee_id') {
+                                    this.$wire.call('updateEmployeeIds', []);
+                                } else {
+                                    this.$wire.set(wireModel, []);
+                                }
 
                                 // Set selected values if provided in the event
                                 if (event.detail.selected && Array.isArray(event.detail.selected)) {
                                     this.selectInstance.setChoiceByValue(event.detail.selected);
-                                    this.$wire.set(wireModel, event.detail.selected);
+                                    
+                                    // Use the appropriate method to update Livewire model
+                                    if (wireModel === 'newReport.filters.employee_id') {
+                                        this.$wire.call('updateEmployeeIds', event.detail.selected);
+                                    } else {
+                                        this.$wire.set(wireModel, event.detail.selected);
+                                    }
                                 }
                             }
                         };
@@ -278,10 +306,8 @@
         });
     </script>
 
+    <style>{!! \App\Support\Branding::css() !!}</style>
     <style>
-        * {
-            font-family: 'Poppins', sans-serif;
-        }
     </style>
 </head>
 
@@ -303,8 +329,44 @@
     <script src="{{ asset('vendor/choices.js/public/assets/scripts/choices.min.js')}}"></script>
     <!-- Choices.js CDN JS -->
     <script src="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/scripts/choices.min.js"></script>
+    @vite('resources/js/rf.js')
     <script src="{{ asset('vendor/medium-editor/js/medium-editor.js')}}"></script>
     <script src="{{ asset('js/theme.js')}}"></script>
+    <script>
+        // Sidebar: collapsed on desktop, off-canvas drawer on small screens. Delegated so it survives wire:navigate.
+        (function () {
+            if (window.__rfSidebar) return;
+            window.__rfSidebar = true;
+            const root = document.documentElement;
+            const wide = () => window.matchMedia('(min-width: 992px)').matches;
+            const apply = () => {
+                root.classList.toggle('sb-collapsed', localStorage.getItem('rf.sidebar') === '1');
+                const sb = document.getElementById('sidebarMenu');
+                if (sb) sb.classList.remove('contracted');
+            };
+            apply();
+            document.addEventListener('livewire:navigated', () => { root.classList.remove('sb-open'); apply(); });
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('#sidebar-toggle')) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    if (wide()) {
+                        const on = !root.classList.contains('sb-collapsed');
+                        root.classList.toggle('sb-collapsed', on);
+                        localStorage.setItem('rf.sidebar', on ? '1' : '0');
+                    } else {
+                        root.classList.toggle('sb-open');
+                    }
+                    return;
+                }
+                if (e.target.closest('.rf-sb-backdrop, #sidebarMenu .collapse-close') || (!wide() && e.target.closest('#sidebarMenu a[href]:not([data-bs-toggle])'))) {
+                    root.classList.remove('sb-open');
+                }
+            }, true);
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') root.classList.remove('sb-open'); });
+        })();
+    </script>
+
 
 
 
@@ -400,6 +462,46 @@
             });
 
         })
+    </script>
+    <script>
+        (function () {
+            function copyText(text) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(text);
+                }
+                return new Promise(function (resolve, reject) {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+                    var host = document.querySelector('.modal.show') || document.body;
+                    host.appendChild(ta);
+                    ta.select();
+                    var ok = false;
+                    try { ok = document.execCommand('copy'); } catch (err) {}
+                    ta.remove();
+                    ok ? resolve() : reject();
+                });
+            }
+            function copyPdfPwdHandler(e) {
+                var btn = e.target.closest('.copy-pdf-pwd');
+                if (!btn) return;
+                e.preventDefault();
+                var pwd = btn.getAttribute('data-password');
+                if (!pwd) return;
+                copyText(pwd).then(function () {
+                    var svg = btn.querySelector('svg');
+                    if (svg) svg.style.display = 'none';
+                    btn.insertAdjacentHTML('beforeend', '<span class="copy-ok text-success" style="font-size:11px">✓</span>');
+                    setTimeout(function () {
+                        var ok = btn.querySelector('.copy-ok');
+                        if (ok) ok.remove();
+                        if (svg) svg.style.display = '';
+                    }, 1500);
+                }).catch(function () {});
+            }
+            document.addEventListener('click', copyPdfPwdHandler);
+        })();
     </script>
     @stack('scripts')
 </body>

@@ -103,7 +103,7 @@ class Overtime extends Component
             })->when(!empty($this->status) && $this->status === "rejected", function ($query) {
                 return $query->where('approval_status',  EmployeeOvertime::APPROVAL_STATUS_REJECTED);
             })->when(!empty($this->period), function ($query) {
-                return $query->whereBetween('start_time', [now()->isoWeek($this->period)->startOfWeek(), now()->isoWeek($this->period)->endOfWeek()]);
+                return $query->whereBetween('start_time', [now()->isoWeek((int) $this->period)->startOfWeek(), now()->isoWeek((int) $this->period)->endOfWeek()]);
             })->orderBy('start_time', 'asc');
         })->get();
 
@@ -120,7 +120,7 @@ class Overtime extends Component
         $data = [
             'date' => date('m/d/Y'),
             'users' => $users,
-            'week' => $this->period,
+            'week' => (int) $this->period,
             'supervisor' => !empty($department->depSupervisor) ? $department->depSupervisor->supervisor : '',
             'company' => Company::whereId($this->selectedCompanyId)->first(),
             'department' => Department::whereId($this->selectedDepartmentId)->first(),
@@ -161,7 +161,7 @@ class Overtime extends Component
             })->when(!empty($this->status) && $this->status === "rejected", function ($query) {
                 return $query->where('approval_status',  EmployeeOvertime::APPROVAL_STATUS_REJECTED);
             })->when(!empty($this->period), function ($query) {
-                 return $query->whereBetween('start_time', [now()->isoWeek($this->period)->startOfWeek(), now()->isoWeek($this->period)->endOfWeek()]);
+                 return $query->whereBetween('start_time', [now()->isoWeek((int) $this->period)->startOfWeek(), now()->isoWeek((int) $this->period)->endOfWeek()]);
             });
     }
 }

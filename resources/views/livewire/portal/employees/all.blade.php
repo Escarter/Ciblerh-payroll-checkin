@@ -5,10 +5,12 @@
     @include('livewire.portal.employees.others.import-employees')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.restore-modal')
+    @include('livewire.portal.employees.partials.test-sms-modal')
     @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employees.employee')])
+    @include('livewire.portal.employees.partials.company-sms-toggle-modal')
     @livewire('portal.employees.partial.user-roles')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -54,7 +56,7 @@
                 </a>
                 @endcan
                 @can('employee-export')
-                <div class="mx-2" wire:loading.remove>
+                <div class="mx-2" wire:loading.remove wire:target="export">
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center  {{count($employees) > 0 ? '' :'disabled'}}">
 
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -71,6 +73,17 @@
                         <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
                     </div>
                 </div>
+                @endcan
+
+                @can('employee-update')
+                @if(auth()->user()->hasAnyRole(['admin', 'manager']) && $companies->isNotEmpty())
+                <button type="button" data-bs-toggle="modal" data-bs-target="#CompanySmsToggleModal" class="btn btn-sm btn-info py-2 d-inline-flex align-items-center">
+                    <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    {{ __('employees.manage_notifications_action') }}
+                </button>
+                @endif
                 @endcan
             </div>
 
@@ -161,12 +174,7 @@
 
     <div class="row pt-2 pb-3">
         <div class="col-md-3">
-            <label for="search">{{__('common.search')}}: </label>
-            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
-            <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
-        </div>
-        <div class="col-md-3">
-            <label for="orderBy">{{__('common.order_by')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}:</label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
                 <option value="first_name">{{__('employees.first_name')}}</option>
                 <option value="last_name">{{__('employees.last_name')}}</option>
@@ -175,7 +183,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('common.order_direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}:</label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>
@@ -183,7 +191,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('common.items_per_page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}:</label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -192,9 +200,31 @@
                 <option value="25">25</option>
             </select>
         </div>
+
+        @hasrole('admin')
+        @if($companies->isNotEmpty())
+        <div class="col-md-3">
+            <label for="filterCompany">{{__('companies.company')}}:</label>
+            <select wire:model.live="filterCompany" id="filterCompany" class="form-select">
+                <option value="">{{__('companies.all_companies')}}</option>
+                @foreach($companies as $company)
+                    <option value="{{ $company->id }}">{{ $company->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+        @endhasrole
+    </div>
+
+    <div class="row pb-3">
+        <div class="col-12">
+            <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
+            <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
+        </div>
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -237,7 +267,7 @@
                 </button>
                 <ul class="dropdown-menu shadow" style="z-index: 1050;">
                     <li><button class="dropdown-item" wire:click.prevent="selectAllVisible" type="button">{{__('absences.select_all_visible')}}</button></li>
-                    <li><button class="dropdown-item" wire:click.prevent="selectAllEmployees" type="button">{{__('employees.select_all_employees')}}</button></li>
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllMatching" type="button">{{__('employees.select_all_employees')}}</button></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -257,8 +287,8 @@
                     @endif
                 </button>
                 <ul class="dropdown-menu shadow" style="z-index: 1050;">
-                    <li><button class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" type="button">{{__('absences.select_all_visible')}}</button></li>
-                    <li><button class="dropdown-item" wire:click.prevent="selectAllDeletedEmployees" type="button">{{__('employees.select_all_deleted_employees')}}</button></li>
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllVisible" type="button">{{__('absences.select_all_visible')}}</button></li>
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllMatching" type="button">{{__('employees.select_all_deleted_employees')}}</button></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -273,7 +303,7 @@
             <div class="d-flex align-items-center gap-2">
 
                 @if($activeTab === 'active')
-                @can('employee-delete')
+                @can('employee-bulkdelete')
                 <button type="button"
                     class="btn btn-sm btn-danger d-flex align-items-center me-2"
                     data-bs-toggle="modal"
@@ -286,7 +316,7 @@
                 </button>
                 @endcan
                 @else
-                @can('employee-delete')
+                @can('employee-bulkrestore')
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('employees.restore_selected_employees') }}">
@@ -324,24 +354,26 @@
             @endif
         </div>
     </div>
+    @endif
 
     <div class="card pb-3">
         <div class="table-responsive  text-gray-700">
-            <table class="table employee-table table-hover  table-bordered align-items-center " id="">
-                <thead>
+            <table class="table employee-table table-bordered table-hover align-items-center " id="">
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <input type="checkbox"
-                                wire:model="selectAll"
-                                wire:change="toggleSelectAll"
+                                wire:key="select-all-{{ $activeTab }}"
+                                wire:model.live="selectAll"
                                 class="form-check-input">
                         </th>
-                        <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('companies.company')}}</th>
-                        <th class="border-bottom">{{__(key: 'Details')}}</th>
-                        <th class="border-bottom">{{__('Roles & Status')}}</th>
-                        @canany('employee-delete','employee-update')
-                        <th class="border-bottom">{{__('common.action')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('companies.company')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee_info')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.roles_status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.notifications')}}</th>
+                        @canany(['employee-delete','employee-update'])
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>
@@ -349,13 +381,13 @@
                     @forelse($employees as $employee)
                     <tr>
                         <td>
-                            <input type="checkbox"
-                                wire:click="toggleEmployeeSelection({{ $employee->id }})"
-                                {{ in_array($employee->id, $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees) ? 'checked' : '' }}
+                            <input wire:key="sel-{{ $employee->id }}-{{ in_array((string)$employee->id, array_map('strval', $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees), true) ? 1 : 0 }}" type="checkbox"
+                                wire:click="toggleSelection({{ $employee->id }})"
+                                {{ in_array((string)$employee->id, array_map('strval', $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees), true) ? 'checked' : '' }}
                                 class="form-check-input">
                         </td>
                         <td>
-                            <a href="{{ $employee->getRoleNames()->first() === 'employee' ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" wire:navigate class="d-flex align-items-center">
+                            <a href="{{ $employee->hasRole('employee') ? route('portal.employee.payslips',['employee_uuid' => $employee->uuid]) : '#'}}" class="d-flex align-items-center">
                                 <div class="avatar avatar-md d-flex align-items-center justify-content-center fw-bold fs-6 rounded bg-primary me-2"><span class="text-white">{{$employee->initials}}</span></div>
                                 <div class="d-block"><span class="fw-bolder fs-6">{{ucwords($employee->name)}}</span>
                                     <div class="small text-gray">
@@ -371,21 +403,28 @@
                                     <div class="small text-gray d-flex align-items-end">
                                         <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V7a2 2 0 012-2h2a2 2 0 012 2v0M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2"></path>
-                                        </svg> {{__('employees.created')}} : {{$employee->created_at->format('Y-m-d')}}
+                                        </svg> {{__('Created')}} : {{$employee->created_at->format('Y-m-d')}}
                                     </div>
                                 </div>
                             </a>
                         </td>
                         <td>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('companies.company')}} </span>: {{is_null($employee->company) ? __('employees.na'): ucfirst($employee->company->name) }}</span> <br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('departments.department')}}</span> : {{is_null($employee->department) ? __('employees.na'): ucfirst($employee->department->name) }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.service')}}</span> : {{is_null($employee->service) ? __('employees.na'): ucfirst($employee->service->name) }}</span>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('companies.company')}} </span>: {{is_null($employee->company) ? __('NA'): ucfirst($employee->company->name) }}</span> <br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('departments.department')}}</span> : {{is_null($employee->department) ? __('NA'): ucfirst($employee->department->name) }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.service')}}</span> : {{is_null($employee->service) ? __('NA'): ucfirst($employee->service->name) }}</span>
                         </td>
                         <td>
                             <span class="fs-normal"><span class="fw-bolder">{{__('employees.matricule')}} </span>: {{ $employee->matricule }}</span> <br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.pdf_password')}}</span> : {{ $employee->pdf_password }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.professional_phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
-                            <span class="fs-normal"><span class="fw-bolder">{{__('employees.personal_phone')}}</span> : {{ $employee->personal_phone_number }}</span>
+                            <span class="fs-normal d-inline-flex align-items-center gap-1"><span class="fw-bolder">{{__('payslips.pdf_password')}}</span> : {{ $employee->pdf_password }}
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-muted copy-pdf-pwd" data-password="{{ $employee->pdf_password }}" title="{{ __('common.copy') }}">
+                                    <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                </button>
+                            </span><br>
+                            @if(!is_null($employee->plain_password))
+                            <span class="fs-normal"><span class="fw-bolder">{{__('common.password')}}</span> : {{ $employee->plain_password }}</span><br>
+                            @endif
+                            <span class="fs-normal"><span class="fw-bolder">{{__('common.professional_phone')}}</span> : {{ $employee->professional_phone_number }}</span><br>
+                            <span class="fs-normal"><span class="fw-bolder">{{__('common.personal_phone')}}</span> : {{ $employee->personal_phone_number }}</span>
                         </td>
                         <td>
                             <div class="mb-2">
@@ -393,12 +432,12 @@
                                 <div class="d-flex flex-wrap align-items-center mt-1">
                                     @foreach($employee->roles as $role)
                                     <span class="fw-normal badge badge-lg bg-{{ match($role->name) {
-                                        'supervisor' => 'info',
-                                        'employee' => 'primary',
-                                        'manager' => 'success',
-                                        'admin' => 'warning',
-                                        default => 'danger'
-                                    } }} me-1 mb-1">{{$role->name}}</span>
+                                            'supervisor' => 'info',
+                                            'employee' => 'primary',
+                                            'manager' => 'success',
+                                            'admin' => 'warning',
+                                            default => 'danger'
+                                        } }} rounded me-1 mb-1">{{$role->name}}</span>
                                     @endforeach
                                 </div>
                             </div>
@@ -406,16 +445,76 @@
                             <div>
                                 <small class="text-muted fw-bold">{{__('common.status')}}:</small>
                                 <div class="mt-1">
-                                    <span class="fw-normal badge super-badge badge-lg bg-{{$employee->status_style}} rounded">{{$employee->status_text}}</span>
+                                    <span class="fw-normal badge badge-lg bg-{{$employee->status_style}} rounded">{{$employee->status_text}}</span>
                                 </div>
                             </div>
                         </td>
-                        @canany('employee-delete','employee-update')
+                        <td>
+                            <div class="d-flex flex-column align-items-start">
+                                <div class="mb-1">
+                                    <small class="text-muted fw-bold">{{__('employees.email_notifications')}}:</small>
+                                    <div class="d-flex align-items-center mt-1">
+                                        @if($employee->receive_email_notifications)
+                                            <span class="badge p-1 px-2 bg-success me-2">{{__('common.enabled')}}</span>
+                                        @else
+                                            <span class="badge p-1 px-2 bg-secondary me-2">{{__('common.disabled')}}</span>
+                                        @endif
+                                        @can('employee-update')
+                                        <button wire:click="toggleEmailNotifications({{ $employee->id }})"
+                                                class="btn btn-sm {{ $employee->receive_email_notifications ? 'btn-outline-danger' : 'btn-outline-success' }}"
+                                                style="padding: 0.125rem 0.25rem; font-size: 0.75rem; line-height: 1;"
+                                                title="{{ $employee->receive_email_notifications ? __('employees.disable_email_notifications') : __('employees.enable_email_notifications') }}">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                @if($employee->receive_email_notifications)
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                @else
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                @endif
+                                            </svg>
+                                        </button>
+                                        @endcan
+                                    </div>
+                                </div>
+                                <div>
+                                    <small class="text-muted fw-bold">{{__('employees.sms_notifications')}}:</small>
+                                    <div class="d-flex align-items-center mt-1">
+                                        @if($employee->receive_sms_notifications)
+                                            <span class="badge p-1 px-2 bg-info me-2">{{__('common.enabled')}}</span>
+                                        @else
+                                            <span class="badge p-1 px-2 bg-secondary me-2">{{__('common.disabled')}}</span>
+                                        @endif
+                                        @can('employee-update')
+                                        <button wire:click="toggleSmsNotifications({{ $employee->id }})"
+                                                class="btn btn-sm {{ $employee->receive_sms_notifications ? 'btn-outline-danger' : 'btn-outline-success' }}"
+                                                style="padding: 0.125rem 0.25rem; font-size: 0.75rem; line-height: 1;"
+                                                title="{{ $employee->receive_sms_notifications ? __('employees.disable_sms_notifications') : __('employees.enable_sms_notifications') }}">
+                                            <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                @if($employee->receive_sms_notifications)
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                @else
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                @endif
+                                            </svg>
+                                        </button>
+                                        @endcan
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        @canany(['employee-delete','employee-update'])
                         <td>
                             @if($activeTab === 'active')
+                            @if($employee->personal_phone_number || $employee->professional_phone_number)
+                            <button wire:click="openTestSms({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#TestSmsModal"
+                                class="rf-icon-btn rf-icon-btn-secondary me-1" title="{{ __('employees.send_test_sms') }}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.4-3.7A7.6 7.6 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                            </button>
+                            @endif
                             @can('employee-view')
                             <button wire:click="$dispatch('showUserRoles', [{{$employee->id}}])"
-                                class="btn btn-sm btn-outline-info me-1"
+                                class="rf-icon-btn rf-icon-btn-secondary me-1"
                                 title="{{ __('employees.manage_roles') }}">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
@@ -474,9 +573,9 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9">
+                        <td colspan="10">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                                 <p>{{__('common.no_employee_found')}}</p>
                             </div>
                         </td>

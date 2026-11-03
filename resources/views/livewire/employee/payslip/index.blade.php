@@ -29,21 +29,22 @@
 
         <div class="row py-2 text-gray-600  mb-2">
             <div class="col-md-3">
-                <label for="search">{{__('common.search')}}: </label>
+                <label for="search">{{__('common.search')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3">
-                <label for="orderBy">{{__('common.order_by')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model.live="orderBy" id="orderBy" class="form-select">
                     <option value="first_name">{{__('employees.first_name')}}</option>
                     <option value="last_name">{{__('employees.last_name')}}</option>
                     <option value="created_at">{{__('common.created_date')}}</option>
+                    <option value="year">{{__('employees.year')}}</option>
                 </select>
             </div>
 
             <div class="col-md-3">
-                <label for="direction">{{__('common.order_direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model.live="orderAsc" id="direction" class="form-select">
                     <option value="asc">{{__('common.ascending')}}</option>
                     <option value="desc">{{__('common.descending')}}</option>
@@ -51,7 +52,7 @@
             </div>
 
             <div class="col-md-3">
-                <label for="perPage">{{__('common.items_per_page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model.live="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -65,12 +66,12 @@
         <div class="card">
             <div class="table-responsive pb-4 text-gray-700">
                 <table class="table table-bordered table-hover align-items-center dataTable">
-                    <thead>
+                    <thead class="">
                         <tr>
-                            <th class="border-bottom">{{__('employees.year')}}</th>
-                            <th class="border-bottom">{{__('employees.month')}}</th>
-                            <th class="border-bottom">{{__('employees.sent_date')}}</th>
-                            <th class="border-bottom d-flex justify-content-center">{{__('employees.download')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.year')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.month')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.sent_date')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium d-flex justify-content-center">{{__('employees.download')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,15 +81,23 @@
                                 <span class="fw-bold">{{$payslip->year}}</span>
                             </td>
                             <td>
-                                <span class="fs-normal">{{$payslip->month}}</span>
+                                <span class="fs-normal">{{ getMonthName($payslip->month) }}</span>
                             </td>
                             <td>
                                 <span class="fw-normal">{{$payslip->created_at}}</span>
                             </td>
                             <td>
                                 @can('payslip-read')
-                                <div class='d-flex justify-content-center'>
-                                    <a href='#' class="text-info " wire:click="generatePDF({{ $payslip->id }})" wire:loading.remove>
+                                <div class='d-flex justify-content-center gap-2'>
+                                    @if(!empty($payslip->file))
+                                    <a href="{{ route('employee.payslip.view-pdf', $payslip->id) }}" class="text-info" target="_blank" title="{{__('payslips.view_pdf')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </a>
+                                    @endif
+                                    <a href='#' class="text-primary" wire:click="generatePDF({{ $payslip->id }})" wire:loading.remove wire:target="generatePDF({{ $payslip->id }})" title="{{__('payslips.download_payslip_title')}}">
                                         <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 7.5h-.75A2.25 2.25 0 004.5 9.75v7.5a2.25 2.25 0 002.25 2.25h7.5a2.25 2.25 0 002.25-2.25v-7.5a2.25 2.25 0 00-2.25-2.25h-.75m-6 3.75l3 3m0 0l3-3m-3 3V1.5m6 9h.75a2.25 2.25 0 012.25 2.25v7.5a2.25 2.25 0 01-2.25 2.25h-7.5a2.25 2.25 0 01-2.25-2.25v-.75" />
                                         </svg>
@@ -115,9 +124,9 @@
         </div>
         @else
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
-            <img src="{{asset('/img/empty.svg')}}" alt='{{__("Empty")}}' class="text-center  w-25 h-25">
+            <img src="{{asset('/img/empty.svg')}}" alt='{{__("common.empty")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                 <p>{{__('employees.record_payslip_message')}}</p>
             </div>
         </div>

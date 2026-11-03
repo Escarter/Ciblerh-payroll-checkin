@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 
 class ProfileSetting extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithFileUploads;
     public $first_name;
     public $last_name;
@@ -37,9 +39,7 @@ class ProfileSetting extends Component
 
     public function updateProfile()
     {
-        if (!Gate::allows('profile-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('profile-update');
         auth()->user()->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
@@ -47,17 +47,15 @@ class ProfileSetting extends Component
             'phone_number' => $this->phone_number,
             'position' => $this->position,
             'matricule' => $this->matricule,
-            'date_of_birth' => $this->date_of_birth,
+            'date_of_birth' => $this->date_of_birth ?: null,
             'preferred_language' => $this->preferred_language,
         ]);
 
-        $this->refresh(__('Profile updated successfully!'));
+        $this->refresh(__('auth.profile_updated_successfully'));
     }
     public function saveSignature()
     {
-        if (!Gate::allows('profile-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('profile-update');
         if ($this->signature) {
             if(!empty(auth()->user()->signature_path)){
 
@@ -65,7 +63,7 @@ class ProfileSetting extends Component
             auth()->user()->update(['signature_path' => $this->signature->storePublicly('signatures', 'attachments')]);
         }
 
-        $this->refresh(__('Signature saved successfully!'));
+        $this->refresh(__('auth.signature_saved_successfully'));
     }
     public function passwordReset()
     {
@@ -79,7 +77,7 @@ class ProfileSetting extends Component
 
         $this->reset(['current_password','password','password_confirmation']);
 
-        $this->refresh(__('Password reseted successfully!'));
+        $this->refresh(__('auth.password_reseted_successfully'));
     }
     public function refresh($message)
     {

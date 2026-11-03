@@ -19,6 +19,8 @@ use App\Livewire\Portal\Roles\Partial\WithImportJobPermissions;
 
 class Edit extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithComDeptServPermissions, WithRolePermissions, WithAuditLogPermissions, WithTickOvertimePermissions,
         WithAdvanceSalAndAbsencesPermissions, WithLeaveAndLeaveTypePermissions, WithSettingPermissions, WithPaySlipAndEmployeePermissions, WithReportPermissions, WithImportJobPermissions;
 
@@ -40,9 +42,7 @@ class Edit extends Component
 
     public function editRole($roleId)
     {
-        if (!Gate::allows('role-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-update');
 
         $this->roleId = $roleId;
         $this->role = Role::with('permissions')->findOrFail($roleId);
@@ -133,9 +133,7 @@ class Edit extends Component
 
     public function update()
     {
-        if (!Gate::allows('role-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-update');
 
         $this->validate(['name' => 'required|unique:roles,name,' . $this->roleId]);
 
@@ -165,7 +163,7 @@ class Edit extends Component
             $this->dispatch('cancel', modalId: 'EditRoleModal');
             
         } catch (\Throwable $th) {
-            $this->dispatch("showToast", message: __('common.something_went_wrong') . $th->getMessage(), type: "error");
+            $this->dispatch("showToast", message: __('common.something_went_wrong') . $th->getMessage(), type: "danger");
         }
     }
 

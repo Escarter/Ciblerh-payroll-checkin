@@ -3,14 +3,36 @@
 namespace App\Providers;
 
 use App\Models\Leave;
+use App\Models\LeaveType;
+use App\Models\Role;
+use App\Models\Company;
+use App\Models\User;
+use App\Models\Department;
+use App\Models\Service;
+use App\Models\Absence;
+use App\Models\Ticking;
+use App\Models\AdvanceSalary;
+use App\Models\Overtime;
+use App\Models\PayslipMatchingProposal;
 use DatePeriod;
 use DateInterval;
-use App\Models\Ticking;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Mail;
+use App\Observers\CompanyObserver;
+use App\Observers\UserObserver;
+use App\Observers\DepartmentObserver;
+use App\Observers\ServiceObserver;
+use App\Observers\AbsenceObserver;
+use App\Observers\CheckinObserver;
+use App\Observers\AdvanceSalaryObserver;
+use App\Observers\OvertimeObserver;
+use App\Observers\LeaveTypeObserver;
+use App\Observers\RoleObserver;
+use App\Observers\LeaveObserver;
+use App\Observers\PayslipMatchingProposalObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +49,57 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (!app()->runningInConsole() || app()->runningUnitTests()) {
+            try {
+                if ($tz = \App\Support\Branding::get('timezone')) {
+                    config(['app.timezone' => $tz]);
+                    date_default_timezone_set($tz);
+                }
+            } catch (\Throwable $e) {
+                // settings table not available yet (fresh install / migrations)
+            }
+        }
+
+
+        // Register missing Laravel core Blade directives (upgrade issue)
+        $directives = \Blade::getCustomDirectives();
+        if (!isset($directives['can'])) {
+            \Blade::if('auth', function () {
+                return auth()->check();
+            });
+
+            \Blade::if('guest', function () {
+                return auth()->guest();
+            });
+
+            \Blade::if('can', function ($ability, $model = null) {
+                return auth()->check() && auth()->user()->can($ability, $model);
+            });
+
+            \Blade::if('cannot', function ($ability, $model = null) {
+                return auth()->check() && !auth()->user()->can($ability, $model);
+            });
+        }
+
+        // Register custom @canany directive for Spatie Permission
+        \Blade::directive('canany', function ($permissions) {
+            return "<?php if(auth()->check() && auth()->user() && collect({$permissions})->contains(function(\$permission) { return auth()->user()->can(\$permission); })): ?>";
+        });
+
+        // Register @endcanany directive
+        \Blade::directive('endcanany', function () {
+            return "<?php endif; ?>";
+        });
+
+        // Register Mandrill HTTP API transport
+        Mail::extend('mandrill-api', function (array $config) {
+            return new \App\Mail\Transport\MandrillApiTransport(
+                $config['key'] ?? '',
+                $config['from_email'] ?? '',
+                $config['from_name'] ?? ''
+            );
+        });
+
         // Add failures method to Mail facade for Laravel 10 compatibility
         Mail::macro('failures', function () {
             return [];
@@ -52,6 +125,19 @@ class AppServiceProvider extends ServiceProvider
         //to be refactored
         Builder::macro('approvalStatusText', function ($status_owner = '', $type = '') {
             $model = $this->getModel();
+            if ($model instanceof AdvanceSalary) {
+                $status = match ($status_owner) {
+                    'supervisor' => (int) ($model->supervisor_approval_status ?? AdvanceSalary::APPROVAL_STATUS_PENDING),
+                    'manager' => (int) ($model->manager_approval_status ?? AdvanceSalary::APPROVAL_STATUS_PENDING),
+                    default => $model->getEffectiveApprovalStatus(),
+                };
+                return match ($status) {
+                    AdvanceSalary::APPROVAL_STATUS_PENDING => __('common.pending'),
+                    AdvanceSalary::APPROVAL_STATUS_APPROVED => __('common.approved'),
+                    AdvanceSalary::APPROVAL_STATUS_REJECTED => __('common.rejected'),
+                    default => __('common.pending'),
+                };
+            }
             if ($model instanceof Ticking || $model instanceof  Leave) {
                 $match = match ($status_owner) {
                     'supervisor' => match ($model->supervisor_approval_status) {
@@ -72,8 +158,8 @@ class AppServiceProvider extends ServiceProvider
                 if ($type === 'boolean') {
                     $match = match ($model->is_active) {
                         true => __('common.active'),
-                        false => __('Inactive'),
-                        default => __('Inactive'),
+                        false => __('common.inactive'),
+                        default => __('common.inactive'),
                     };
                 } else {
                     $match = match ($model->approval_status) {
@@ -88,6 +174,19 @@ class AppServiceProvider extends ServiceProvider
         });
         Builder::macro('approvalStatusStyle', function ($status_owner = '', $type = '') {
             $model = $this->getModel();
+            if ($model instanceof AdvanceSalary) {
+                $status = match ($status_owner) {
+                    'supervisor' => (int) ($model->supervisor_approval_status ?? AdvanceSalary::APPROVAL_STATUS_PENDING),
+                    'manager' => (int) ($model->manager_approval_status ?? AdvanceSalary::APPROVAL_STATUS_PENDING),
+                    default => $model->getEffectiveApprovalStatus(),
+                };
+                return match ($status) {
+                    AdvanceSalary::APPROVAL_STATUS_PENDING => 'warning',
+                    AdvanceSalary::APPROVAL_STATUS_APPROVED => 'success',
+                    AdvanceSalary::APPROVAL_STATUS_REJECTED => 'danger',
+                    default => 'warning',
+                };
+            }
             if ($model instanceof Ticking || $model instanceof  Leave) {
                 $match = match ($status_owner) {
                     'supervisor' => match ($model->supervisor_approval_status) {
@@ -122,6 +221,20 @@ class AppServiceProvider extends ServiceProvider
             }
             return $match;
         });
+
+        // Register Model Observers for Audit Logging
+        Company::observe(CompanyObserver::class);
+        User::observe(UserObserver::class);
+        Department::observe(DepartmentObserver::class);
+        Service::observe(ServiceObserver::class);
+        Absence::observe(AbsenceObserver::class);
+        Ticking::observe(CheckinObserver::class);
+        AdvanceSalary::observe(AdvanceSalaryObserver::class);
+        Overtime::observe(OvertimeObserver::class);
+        LeaveType::observe(LeaveTypeObserver::class);
+        Role::observe(RoleObserver::class);
+        Leave::observe(LeaveObserver::class);
+        PayslipMatchingProposal::observe(PayslipMatchingProposalObserver::class);
     }
     
 }

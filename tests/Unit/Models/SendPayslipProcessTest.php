@@ -74,13 +74,15 @@ test('send payslip process has destination directory', function () {
 
 test('send payslip process has month and year', function () {
     $process = SendPayslipProcess::factory()->create([
-        'month' => 'January',
+        'month' => 1, // January
         'year' => 2024,
     ]);
     
     expect($process->month)->toBe('January');
     expect($process->year)->toBe(2024);
 });
+
+
 
 
 

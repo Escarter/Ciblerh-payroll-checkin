@@ -11,15 +11,15 @@
 
                         <div class='row form-group mb-2'>
                             <div class="col">
-                                <label for="name">{{__('common.name')}}</label>
-                                <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
+                                <label for="name">{{__('common.name')}} <span class="text-danger">*</span></label>
+                                <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name" placeholder="{{__('common.name')}}">
                                 @error('name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class="col">
-                                <label for="default_number_of_days">{{__('leaves.default_number_of_days')}}</label>
-                                <input wire:model="default_number_of_days" type="text" class="form-control  @error('default_number_of_days') is-invalid @enderror" required="" name="default_number_of_days">
+                                <label for="default_number_of_days">{{__('leaves.default_number_of_days')}} <span class="text-danger">*</span></label>
+                                <input wire:model="default_number_of_days" type="text" class="form-control  @error('default_number_of_days') is-invalid @enderror" required="" name="default_number_of_days" placeholder="{{__('leaves.default_number_of_days')}}">
                                 @error('default_number_of_days')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -27,15 +27,15 @@
                         </div>
 
                         <div class="form-group mb-4">
-                            <label for="description">{{__('common.description')}}</label>
-                            <textarea wire:model="description" name="description" class="form-control  @error('description') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
+                            <label for="description">{{__('common.description')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <textarea wire:model="description" name="description" class="form-control  @error('description') is-invalid @enderror" id='' cols='3' rows="3" placeholder="{{__('common.description')}}"></textarea>
                             @error('description')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
 
                         <div class='form-group mb-4'>
-                            <label for="is_active">{{__('common.status')}}?</label>
+                            <label for="is_active">{{__('common.status')}}? <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model="is_active" class="form-select  @error('is_active') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.active')}}</option>

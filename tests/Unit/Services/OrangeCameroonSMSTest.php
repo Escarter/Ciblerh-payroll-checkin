@@ -8,12 +8,13 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
 beforeEach(function () {
-    Config::set('services.orange_cm.api_url', 'https://api.orange.com');
-    Config::set('services.orange_cm.token_url', 'https://api.orange.com/oauth/v3/token');
-    Config::set('services.orange_cm.sms_endpoint', '/smsmessaging/v1/outbound/{senderAddress}/requests');
-    Config::set('services.orange_cm.contracts_endpoint', '/sms/admin/v1/contracts');
-    Config::set('services.orange_cm.country', 'CMR');
+    Config::set('services.orange_cm.login_url', 'https://businessmessaging.orange.cm/api/v1/accounts/users/login');
+    Config::set('services.orange_cm.send_url', 'https://businessmessaging.orange.cm/api/v1/sms/send');
+    Config::set('services.orange_cm.category', 'Promo');
+    Config::set('services.orange_cm.country', 'CM');
+    Config::set('services.orange_cm.dr_callback', '');
     Config::set('services.orange_cm.default_country_code', '237');
+    Config::set('services.orange_cm.token_ttl', 3600);
     Log::spy();
 });
 
@@ -22,48 +23,57 @@ function makeOrangeSetting(array $overrides = []): Setting
     return new Setting(array_merge([
         'company_id' => 1,
         'sms_provider' => 'orange_cm',
-        'sms_provider_app_id' => 'app-id-123',
-        'sms_provider_username' => 'client-id',
-        'sms_provider_password' => 'client-secret',
-        'sms_provider_senderid' => '+237699000001',
+        'sms_provider_username' => 'lilian.kue@orange.com',
+        'sms_provider_password' => 'secret-password',
+        'sms_provider_senderid' => 'Corporate',
     ], $overrides));
 }
 
 test('orange cameroon sms sendSMS succeeds', function () {
     $setting = makeOrangeSetting();
-    Config::set('services.orange_cm.application_id', $setting->sms_provider_app_id);
-    $service = new OrangeCameroonSMS($setting);
-
     $mockClient = Mockery::mock(Client::class);
+
+    // 1) Login to obtain the Bearer access token.
     $mockClient->shouldReceive('request')
         ->once()
+        ->ordered()
         ->withArgs(function (string $method, string $url, array $options): bool {
+            $json = $options['json'] ?? [];
+
             return $method === 'POST'
-                && $url === 'https://api.orange.com/oauth/v3/token'
-                && ($options['form_params']['grant_type'] ?? null) === 'client_credentials';
+                && $url === 'https://businessmessaging.orange.cm/api/v1/accounts/users/login'
+                && ($json['email'] ?? null) === 'lilian.kue@orange.com'
+                && ($json['password'] ?? null) === 'secret-password';
         })
         ->andReturn(new Response(200, [], json_encode([
-            'access_token' => 'token-123',
-            'expires_in' => 3600,
+            'access_token' => 'ngage-access-token',
+            'refresh_token' => 'ngage-refresh-token',
         ])));
 
+    // 2) Send the SMS with the mandatory, case-sensitive body fields + Bearer token.
     $mockClient->shouldReceive('request')
         ->once()
+        ->ordered()
         ->withArgs(function (string $method, string $url, array $options): bool {
-            $payload = $options['json']['outboundSMSMessageRequest'] ?? [];
+            $payload = $options['json'] ?? [];
             $headers = array_change_key_case($options['headers'] ?? [], CASE_LOWER);
+
             return $method === 'POST'
-                && str_contains($url, '/smsmessaging/v1/outbound/tel%3A%2B237699000001/requests')
-                && ($payload['address'] ?? null) === 'tel:+237677001122'
-                && ($payload['senderAddress'] ?? null) === 'tel:+237699000001'
-                && ($payload['outboundSMSTextMessage']['message'] ?? null) === 'Hello'
-                && ($headers['x-orange-application-id'] ?? null) === 'app-id-123'
-                && ($headers['x-ibm-client-id'] ?? null) === 'app-id-123';
+                && $url === 'https://businessmessaging.orange.cm/api/v1/sms/send'
+                && ($payload['msg'] ?? null) === 'Hello'
+                && ($payload['recipient'] ?? null) === '237677001122'
+                && ($payload['sender'] ?? null) === 'Corporate'
+                && ($payload['category'] ?? null) === 'Promo'
+                && ($payload['country'] ?? null) === 'CM'
+                && ! empty($payload['clientTxnId'])
+                && ($headers['authorization'] ?? null) === 'Bearer ngage-access-token';
         })
-        ->andReturn(new Response(201, [], json_encode([
-            'outboundSMSMessageRequest' => [
-                'resourceURL' => 'https://api.orange.com/smsmessaging/v1/outbound/tel:+237699000001/requests/abc',
-            ],
+        ->andReturn(new Response(202, [], json_encode([
+            'txnId' => '42765dbf-fc06-4248-b58f-05fb0c581ac6',
+            'campaignId' => '42765dbf-fc06-4248-b58f-05fb0c581ac6',
+            'statusCode' => 0,
+            'statusMsg' => 'SUCCESS',
+            'clientTxnId' => 'Sample Transaction',
         ])));
 
     $serviceMock = Mockery::mock(OrangeCameroonSMS::class, [$setting])->makePartial();
@@ -76,65 +86,67 @@ test('orange cameroon sms sendSMS succeeds', function () {
         throw new RuntimeException('sendSMS error: ' . ($response['error'] ?? 'unknown'));
     }
     expect($response['responsecode'])->toBe(1);
-    expect($response['resource_url'])->not->toBeNull();
+    expect($response['body'])->toBeArray();
 });
 
-test('orange cameroon getBalance sums available units', function () {
+test('orange cameroon sms sendSMS includes drCallback when configured', function () {
+    Config::set('services.orange_cm.dr_callback', 'https://example.test/dr');
     $setting = makeOrangeSetting();
-    Config::set('services.orange_cm.application_id', $setting->sms_provider_app_id);
-
     $mockClient = Mockery::mock(Client::class);
-    $mockClient->shouldReceive('request')
-        ->once()
-        ->withArgs(function (string $method, string $url, array $options): bool {
-            return $method === 'POST'
-                && $url === 'https://api.orange.com/oauth/v3/token'
-                && ($options['form_params']['grant_type'] ?? null) === 'client_credentials';
-        })
-        ->andReturn(new Response(200, [], json_encode([
-            'access_token' => 'token-123',
-            'expires_in' => 3600,
-        ])));
 
     $mockClient->shouldReceive('request')
         ->once()
+        ->ordered()
+        ->withArgs(fn (string $method, string $url): bool => $method === 'POST' && str_contains($url, '/accounts/users/login'))
+        ->andReturn(new Response(200, [], json_encode(['access_token' => 'tok'])));
+
+    $mockClient->shouldReceive('request')
+        ->once()
+        ->ordered()
         ->withArgs(function (string $method, string $url, array $options): bool {
-            $headers = array_change_key_case($options['headers'] ?? [], CASE_LOWER);
-            return $method === 'GET'
-                && $url === 'https://api.orange.com/sms/admin/v1/contracts'
-                && ($options['query']['country'] ?? null) === 'CMR'
-                && ($headers['x-orange-application-id'] ?? null) === 'app-id-123'
-                && ($headers['x-ibm-client-id'] ?? null) === 'app-id-123';
+            $payload = $options['json'] ?? [];
+
+            return str_contains($url, '/sms/send')
+                && ($payload['drCallback'] ?? null) === 'https://example.test/dr';
         })
-        ->andReturn(new Response(200, [], json_encode([
-            'partnerContracts' => [
-                [
-                    'contracts' => [
-                        [
-                            'serviceContracts' => [
-                                ['availableUnits' => 25],
-                                ['availableUnits' => 75],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ])));
+        ->andReturn(new Response(202, [], json_encode(['statusCode' => 0, 'statusMsg' => 'SUCCESS'])));
 
     $serviceMock = Mockery::mock(OrangeCameroonSMS::class, [$setting])->makePartial();
     $serviceMock->shouldAllowMockingProtectedMethods();
     $serviceMock->shouldReceive('makeHttpClient')->andReturn($mockClient);
 
-    $response = $serviceMock->getBalance();
+    $response = $serviceMock->sendSMS(['mobiles' => '+237677001122', 'sms' => 'Hi']);
 
-    if (($response['responsecode'] ?? 0) !== 1) {
-        throw new RuntimeException('getBalance error: ' . ($response['error'] ?? 'unknown'));
-    }
     expect($response['responsecode'])->toBe(1);
-    expect($response['credit'])->toBe(100);
 });
 
-test('orange cameroon sendSMS fails for empty sms message', function () {
+test('orange cameroon sms sendSMS fails on non-zero statusCode', function () {
+    $setting = makeOrangeSetting();
+    $mockClient = Mockery::mock(Client::class);
+
+    $mockClient->shouldReceive('request')
+        ->once()
+        ->ordered()
+        ->withArgs(fn (string $method, string $url): bool => str_contains($url, '/accounts/users/login'))
+        ->andReturn(new Response(200, [], json_encode(['access_token' => 'tok'])));
+
+    $mockClient->shouldReceive('request')
+        ->once()
+        ->ordered()
+        ->withArgs(fn (string $method, string $url): bool => str_contains($url, '/sms/send'))
+        ->andReturn(new Response(202, [], json_encode(['statusCode' => 1, 'statusMsg' => 'FAILED'])));
+
+    $serviceMock = Mockery::mock(OrangeCameroonSMS::class, [$setting])->makePartial();
+    $serviceMock->shouldAllowMockingProtectedMethods();
+    $serviceMock->shouldReceive('makeHttpClient')->andReturn($mockClient);
+
+    $response = $serviceMock->sendSMS(['mobiles' => '+237677001122', 'sms' => 'Hi']);
+
+    expect($response['responsecode'])->toBe(0);
+    expect($response['error'])->toContain('FAILED');
+});
+
+test('orange cameroon sms sendSMS fails for empty sms message', function () {
     $setting = makeOrangeSetting();
     $service = new OrangeCameroonSMS($setting);
 
@@ -147,47 +159,28 @@ test('orange cameroon sendSMS fails for empty sms message', function () {
     expect($response['error'])->toContain('SMS message cannot be empty');
 });
 
-test('orange cameroon sendSMS includes config fallback app id header', function () {
-    Config::set('services.orange_cm.application_id', 'config-app-id');
+test('orange cameroon sms sendSMS fails when credentials missing', function () {
+    $setting = makeOrangeSetting(['sms_provider_username' => '', 'sms_provider_password' => '']);
+    $service = new OrangeCameroonSMS($setting);
 
-    $setting = makeOrangeSetting(['sms_provider_app_id' => null]);
-
-    $mockClient = Mockery::mock(Client::class);
-    $mockClient->shouldReceive('request')
-        ->once()
-        ->withArgs(function (string $method, string $url, array $options): bool {
-            return $method === 'POST'
-                && $url === 'https://api.orange.com/oauth/v3/token'
-                && ($options['form_params']['grant_type'] ?? null) === 'client_credentials';
-        })
-        ->andReturn(new Response(200, [], json_encode([
-            'access_token' => 'token-123',
-            'expires_in' => 3600,
-        ])));
-
-    $mockClient->shouldReceive('request')
-        ->once()
-        ->withArgs(function (string $method, string $url, array $options): bool {
-            $headers = array_change_key_case($options['headers'] ?? [], CASE_LOWER);
-            return $method === 'POST'
-                && str_contains($url, '/smsmessaging/v1/outbound/')
-                && ($headers['x-orange-application-id'] ?? null) === 'config-app-id'
-                && ($headers['x-ibm-client-id'] ?? null) === 'config-app-id';
-        })
-        ->andReturn(new Response(201, [], json_encode([
-            'outboundSMSMessageRequest' => ['resourceURL' => 'ok'],
-        ])));
-
-    $serviceMock = Mockery::mock(OrangeCameroonSMS::class, [$setting])->makePartial();
-    $serviceMock->shouldAllowMockingProtectedMethods();
-    $serviceMock->shouldReceive('makeHttpClient')->andReturn($mockClient);
-
-    $response = $serviceMock->sendSMS([
+    $response = $service->sendSMS([
         'mobiles' => '+237677001122',
         'sms' => 'Hello',
     ]);
 
+    expect($response['responsecode'])->toBe(0);
+    expect($response['error'])->toContain('login email and password are required');
+});
+
+test('orange cameroon getBalance reports unknown balance', function () {
+    $setting = makeOrangeSetting();
+    $service = new OrangeCameroonSMS($setting);
+
+    $response = $service->getBalance();
+
     expect($response['responsecode'])->toBe(1);
+    expect($response['credit'])->toBeNull();
+    expect($response['balance_unknown'])->toBeTrue();
 });
 
 afterEach(function () {

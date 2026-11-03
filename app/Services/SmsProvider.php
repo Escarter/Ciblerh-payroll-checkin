@@ -11,17 +11,25 @@ use Illuminate\Support\Facades\Log;
 
 abstract class SmsProvider {
 
-    protected string $username;
-    protected string $password;
-    protected string $senderid;
+    protected ?string $username;
+    protected ?string $password;
+    protected ?string $senderid;
 
     public function __construct(Setting $setting)
     {
-        $this->username = $setting->sms_provider_username;
-        $this->password = $setting->sms_provider_password;
-        $this->senderid = $setting->sms_provider_senderid;
+        // Ensure we never assign null to nullable string properties
+        // Convert null/empty to empty string to avoid type errors
+        $this->username = !empty($setting->sms_provider_username) ? (string) $setting->sms_provider_username : '';
+        $this->password = !empty($setting->sms_provider_password) ? (string) $setting->sms_provider_password : '';
+        $this->senderid = !empty($setting->sms_provider_senderid) ? (string) $setting->sms_provider_senderid : '';
     }
     
+    /** Strip display separators (commas, spaces, dots, dashes, parentheses) from a phone number. */
+    public static function cleanPhone(?string $phone): string
+    {
+        return preg_replace('/[^0-9+]/', '', (string) $phone);
+    }
+
     abstract protected function sendSMS(array $data): array;
 
     /**

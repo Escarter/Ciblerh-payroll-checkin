@@ -20,8 +20,19 @@ class Index extends Component
 
     public function render()
     {
-
-        $logs = AuditLog::search($this->query)->where('user_id',auth()->user()->id)->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        // Build query for employee's own audit logs
+        $query = AuditLog::with('user')->where('user_id', auth()->user()->id);
+        
+        // Apply search filter if query is provided
+        if (!empty($this->query)) {
+            $query->where(function ($q) {
+                $q->where('action_type', 'like', '%' . $this->query . '%')
+                  ->orWhere('action_perform', 'like', '%' . $this->query . '%')
+                  ->orWhere('user', 'like', '%' . $this->query . '%');
+            });
+        }
+        
+        $logs = $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
             
         return view('livewire.employee.audit-logs.index', [
             'logs' => $logs,

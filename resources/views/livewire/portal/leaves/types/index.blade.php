@@ -50,7 +50,7 @@
                     </a>
                     @endcan
                     @can('leave_type-export')
-                    <div class="mx-2" wire:loading.remove>
+                    <div class="mx-2" wire:loading.remove wire:target="export">
                         <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center">
                             <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -155,12 +155,12 @@
     </div>
     <div class="row pt-2 pb-3 px-3">
         <div class="col-md-3">
-            <label for="search">{{__('common.search')}}: </label>
+            <label for="search">{{__('common.search')}}:</label>
             <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('common.order_by')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}:</label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
                 <option value="name">{{__('common.name')}}</option>
                 <option value="created_at">{{__('common.created_date')}}</option>
@@ -168,7 +168,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('common.order_direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}:</label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>
@@ -176,7 +176,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('common.items_per_page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}:</label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -188,6 +188,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('leave_type-bulkdelete') && auth()->user()->can('leave_type-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -219,7 +220,7 @@
                 <!-- Soft Delete Bulk Actions (when items selected for delete) -->
                 @if(count($selectedLeaveTypes) > 0)
                 <div class="d-flex align-items-center gap-2">
-                    @can('leave_type-delete')
+                    @can('leave_type-bulkdelete')
                     <button type="button"
                         class="btn btn-sm btn-outline-danger d-flex align-items-center"
                         title="{{ __('leaves.move_selected_leave_types_to_trash') }}"
@@ -246,7 +247,7 @@
                 <!-- Deleted Tab Bulk Actions -->
                 @if(count($selectedLeaveTypes) > 0)
                 <div class="d-flex align-items-center gap-2">
-                    @can('leave_type-delete')
+                    @can('leave_type-bulkrestore')
                     <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                         class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                         title="{{ __('leaves.restore_selected_leave_types') }}">
@@ -282,27 +283,27 @@
             @endif
         </div>
     </div>
+    @endif
 
     <div class="card pb-3">
         <div class="table-responsive text-gray-700">
             <table class="table employee-table table-bordered table-hover align-items-center " id="">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 <input class="form-check-input p-2" 
                                     wire:model.live="selectAll" 
-                                    type="checkbox"
-                                    wire:click="toggleSelectAll">
+                                    type="checkbox">
                             </div>
                         </th>
-                        <th class="border-bottom">{{__('leaves.leave_type_id')}}</th>
-                        <th class="border-bottom">{{__('leaves.leave_type')}}</th>
-                        <th class="border-bottom">{{__('leaves.default_number_of_days')}}</th>
-                        <th class="border-bottom">{{__('common.status')}}</th>
-                        <th class="border-bottom">{{__('common.created_date')}}</th>
-                        @canany('leave_type-update','leave_type-delete')
-                        <th class="border-bottom">{{__('common.action')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('leaves.leave_type_id')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('leaves.leave_type')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('leaves.default_number_of_days')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.status')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
+                        @canany(['leave_type-update','leave_type-delete'])
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>
@@ -311,9 +312,9 @@
                     <tr>
                         <td>
                             <div class="form-check d-flex justify-content-center align-items-center">
-                                <input class="form-check-input" 
+                                <input wire:key="sel-{{ $leave_type->id }}-{{ in_array($leave_type->id, $selectedLeaveTypes) ? 1 : 0 }}" class="form-check-input" 
                                     type="checkbox"
-                                    wire:click="toggleLeaveTypeSelection({{ $leave_type->id }})"
+                                    wire:click="toggleSelection({{ $leave_type->id }})"
                                     {{ in_array($leave_type->id, $selectedLeaveTypes) ? 'checked' : '' }}>
                             </div>
                         </td>
@@ -332,7 +333,7 @@
                         <td>
                             <span class="fw-normal">{{$leave_type->created_at->format('Y-m-d')}}</span>
                         </td>
-                        @canany('leave_type-update','leave_type-delete')
+                        @canany(['leave_type-update','leave_type-delete'])
                         <td>
                             @if($activeTab === 'active')
                                 @can('leave_type-update')
@@ -370,7 +371,7 @@
                     <tr>
                         <td colspan="8">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                                 <p>{{__('leaves.no_leave_type_found')}}</p>
                             </div>
                         </td>

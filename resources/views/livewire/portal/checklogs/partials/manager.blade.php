@@ -4,8 +4,8 @@
 </div>
 <x-form-items.form wire:submit="bulkApproval">
     <div class="form-group mb-4">
-        <label for="manager_approval_reason">{{$bulk_approval_status ? __('common.approve') : __('common.reject')}} {{__('common.reason')}}</label>
-        <textarea wire:model="manager_approval_reason" name="manager_approval_reason" class="form-control  @error('manager_approval_reason') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
+        <label for="manager_approval_reason">{{$bulk_approval_status ? __('common.approve') : __('common.reject')}} {{__('common.reason')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+        <textarea wire:model="manager_approval_reason" name="manager_approval_reason" class="form-control  @error('manager_approval_reason') is-invalid @enderror" id='' cols='3' rows="3" placeholder="{{$bulk_approval_status ? __('common.approve') : __('common.reject')}} {{__('common.reason')}}"></textarea>
         @error('manager_approval_reason')
         <div class="invalid-feedback">{{$message}}</div>
         @enderror

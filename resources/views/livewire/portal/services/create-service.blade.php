@@ -22,8 +22,8 @@
                         </div>
 
                         <div class="form-group mb-4">
-                            <label for="name">{{__('common.name')}}</label>
-                            <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
+                            <label for="name">{{__('common.name')}} <span class="text-danger">*</span></label>
+                            <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name" placeholder="{{__('common.name')}}">
                             @error('name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

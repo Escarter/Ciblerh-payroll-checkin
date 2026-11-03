@@ -16,3 +16,4 @@ if (jsMatch) {
 } else {
   console.log('No script tags found');
 }
+

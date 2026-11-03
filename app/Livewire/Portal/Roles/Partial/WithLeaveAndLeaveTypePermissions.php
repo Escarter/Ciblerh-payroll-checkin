@@ -8,23 +8,29 @@ trait WithLeaveAndLeaveTypePermissions
     public $selectedLeavePermissions = [];
     public $selectAllLeavePermissions = false;
     public $LeavePermissions = [
-        'View' => 'leave-read',
-        'Update' => 'leave-update',
-        'Delete' => 'leave-delete',
-        'Create' => 'leave-create',
-        'Import' => 'leave-import',
-        'Export' => 'leave-export',
+        'common.view' => 'leave-read',
+        'common.update' => 'leave-update',
+        'common.delete' => 'leave-delete',
+        'common.create' => 'leave-create',
+        'common.import' => 'leave-import',
+        'common.export' => 'leave-export',
+        'common.restore' => 'leave-restore',
+        'common.bulk_delete' => 'leave-bulkdelete',
+        'common.bulk_restore' => 'leave-bulkrestore',
     ];
 
     public $selectedLeaveTypePermissions = [];
     public $selectAllLeaveTypePermissions = false;
     public $LeaveTypePermissions = [
-        'View' => 'leave_type-read',
-        'Update' => 'leave_type-update',
-        'Delete' => 'leave_type-delete',
-        'Create' => 'leave_type-create',
-        'Import' => 'leave_type-import',
-        'Export' => 'leave_type-export',
+        'common.view' => 'leave_type-read',
+        'common.update' => 'leave_type-update',
+        'common.delete' => 'leave_type-delete',
+        'common.create' => 'leave_type-create',
+        'common.import' => 'leave_type-import',
+        'common.export' => 'leave_type-export',
+        'common.restore' => 'leave_type-restore',
+        'common.bulk_delete' => 'leave_type-bulkdelete',
+        'common.bulk_restore' => 'leave_type-bulkrestore',
     ];
 
 

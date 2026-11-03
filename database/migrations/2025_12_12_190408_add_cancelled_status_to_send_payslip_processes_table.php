@@ -12,7 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE send_payslip_processes MODIFY COLUMN status ENUM('processing','failed','successful','cancelled') NOT NULL DEFAULT 'processing'");
+        // Use raw statement for MySQL, skip for SQLite
+        if (config('database.default') !== 'sqlite') {
+            DB::statement("ALTER TABLE send_payslip_processes MODIFY COLUMN status ENUM('processing','failed','successful','cancelled') NOT NULL DEFAULT 'processing'");
+        }
     }
 
     /**

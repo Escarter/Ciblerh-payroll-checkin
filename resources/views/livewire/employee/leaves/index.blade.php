@@ -53,7 +53,7 @@
                                 </svg>
 
                                 <div class="mb-3 mb-md-0">
-                                    <h6 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('employees.remaining_days')}} | {{__('employees.monthly_allocation')}} <strong>{{number_format(auth()->user()->monthly_leave_allocation)}} </strong>{{__('employees.days')}} </h6>
+                                    <h6 class="text-gray-700 fw-bold"><span class="display-4">{{number_format(auth()->user()->remaining_leave_days)}}</span> {{__('employees.remaining_days')}} | {{__('employees.monthly_allocation')}} <strong>{{number_format(auth()->user()->monthly_leave_allocation)}} </strong>{{__('employees.days')}}</h6>
                                     <div class="text-gray-500 ">{{__('employees.remaining_leave_days_allocation')}}</div>
                                 </div>
                             </div>
@@ -68,7 +68,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                                 </svg>
                                 <div class="mb-3 mb-md-0">
-                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($approved_leave) }} </span> {{__('employees.leave_days_taken')}} </h5>
+                                    <h5 class="text-gray-700 fw-bold"><span class="display-4">{{number_format($used_leave_days)}}</span> {{__('employees.leave_days_taken')}}</h5>
                                     <div class="text-gray-500 ">{{__('employees.all_leave_days_taken')}}</div>
                                 </div>
                             </div>
@@ -126,12 +126,12 @@
         </div>
         <div class="row py-2 text-gray-600 mt-3">
             <div class="col-md-3 mb-2">
-                <label for="search">{{__('common.search')}}: </label>
+                <label for="search">{{__('common.search')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <input wire:model="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="orderBy">{{__('common.order_by')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model="orderBy" id="orderBy" class="form-select">
                     <option value="start_date">{{__('employees.start_date')}}</option>
                     <option value="end_date">{{__('employees.end_date')}}</option>
@@ -143,7 +143,7 @@
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="direction">{{__('common.order_direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model="orderAsc" id="direction" class="form-select">
                     <option value="asc">{{__('common.ascending')}}</option>
                     <option value="desc">{{__('common.descending')}}</option>
@@ -151,7 +151,7 @@
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="perPage">{{__('common.items_per_page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -164,6 +164,7 @@
         <x-alert />
 
         <!-- Tab Buttons and Bulk Actions (Same Line) -->
+        @if(auth()->user()->can('leave-bulkdelete') && auth()->user()->can('leave-bulkrestore'))
         <div class="d-flex justify-content-between align-items-center mb-3">
             <!-- Tab Buttons (Left) -->
             <div class="d-flex gap-2">
@@ -204,7 +205,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllLeaves" href="#">{{__('leaves.select_all_leaves')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('leaves.select_all_leaves')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selectedLeaves', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -213,7 +214,7 @@
                     <!-- Active Tab Bulk Actions -->
                     @if(count($selectedLeaves) > 0)
                     <div class="d-flex align-items-center gap-2">
-                        @can('leave-delete')
+                        @can('leave-bulkdelete')
                         <button type="button"
                             class="btn btn-sm btn-outline-danger d-flex align-items-center"
                             data-bs-toggle="modal"
@@ -248,8 +249,8 @@
                             @endif
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedLeaves" href="#">{{__('leaves.select_all_deleted_leaves')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('leaves.select_all_deleted_leaves')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selectedLeavesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -258,7 +259,7 @@
                     <!-- Deleted Tab Bulk Actions -->
                     @if(count($selectedLeavesForDelete) > 0)
                     <div class="d-flex align-items-center gap-2">
-                        @can('leave-delete')
+                        @can('leave-bulkrestore')
                         <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                             class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                             title="{{ __('absences.restore_selected_absence_records') }}">
@@ -294,32 +295,32 @@
                 @endif
             @endif
         </div>
+        @endif
 
         @if(count($leaves) > 0)
         <div class="card">
             <div class="table-responsive py-4 text-gray-700">
                 <table class="table employee-table table-hover align-items-center dataTable" id="datatable">
-                    <thead>
+                    <thead class="">
                         <tr>
-                            <th class="border-bottom">
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">
                                 <div class="form-check d-flex justify-content-center align-items-center">
                                     @if($activeTab === 'active')
                                         <input class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
                                     @else
                                         <input class="form-check-input p-2"
                                             wire:model.live="selectAllForDelete"
-                                            type="checkbox"
-                                            wire:click="toggleSelectAllForDelete">
+                                            type="checkbox">
                                     @endif
                                 </div>
                             </th>
-                            <th class="border-bottom">{{__('employees.leave_type')}}</th>
-                            <th class="border-bottom">{{__('employees.period')}}</th>
-                            <th class="border-bottom">{{__('common.reason')}}</th>
-                            <th class="border-bottom">{{__('common.sup_approval')}}</th>
-                            <th class="border-bottom">{{__('common.mgr_approval')}}</th>
-                            <th class="border-bottom">{{__('common.created_date')}}</th>
-                            <th class="border-bottom">{{__('common.action')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.leave_type')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.period')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.reason')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sup_approval')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.mgr_approval')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -330,9 +331,9 @@
                                     @if($activeTab === 'active')
                                         <input class="form-check-input" wire:model.live="selectedLeaves" value="{{$leave->id}}" type="checkbox">
                                     @else
-                                        <input class="form-check-input"
+                                        <input wire:key="sel-{{ $leave->id }}-{{ in_array($leave->id, $selectedLeavesForDelete) ? 1 : 0 }}" class="form-check-input"
                                             type="checkbox"
-                                            wire:click="toggleLeaveSelectionForDelete({{ $leave->id }})"
+                                            wire:click="toggleSelection({{ $leave->id }})"
                                             {{ in_array($leave->id, $selectedLeavesForDelete) ? 'checked' : '' }}>
                                     @endif
                                 </div>
@@ -403,7 +404,7 @@
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("Empty")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                 <p>{{__('employees.record_leave_message')}}</p>
             </div>
         </div>

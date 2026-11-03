@@ -50,7 +50,7 @@
                     </a>
                     @endcan
                     @can('service-export')
-                    <div class="mx-2" wire:loading.remove>
+                    <div class="mx-2" wire:loading.remove wire:target="export">
                         <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center">
                             <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -66,6 +66,16 @@
                             <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
                         </div>
                     </div>
+                    @endcan
+                    @can('service-update')
+                    @if(count($services) > 0)
+                    <button type="button" data-bs-toggle="modal" data-bs-target="#ServiceSmsToggleModal" class="btn btn-sm btn-outline-info py-2 d-inline-flex align-items-center mx-2">
+                        <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        {{ __('services.manage_notifications_action') }}
+                    </button>
+                    @endif
                     @endcan
                 </div>
             </div>
@@ -151,14 +161,17 @@
             </div>
         </div>
     </div>
+
+    @include('livewire.portal.services.partials.service-notifications-modal')
+
     <div class="row pt-2 pb-3 ">
         <div class="col-md-3">
-            <label for="search">{{__('common.search')}}: </label>
+            <label for="search">{{__('common.search')}}:</label>
             <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('common.order_by')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}:</label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
                 <option value="name">{{__('common.name')}}</option>
                 <option value="created_at">{{__('common.created_date')}}</option>
@@ -166,7 +179,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('common.order_direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}:</label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>
@@ -174,7 +187,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('common.items_per_page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}:</label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -188,6 +201,7 @@
     <!-- Table Controls: Tab Buttons + Bulk Actions + Select All -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <!-- Tab Buttons (Left) -->
+        @if(auth()->user()->can('service-bulkdelete') && auth()->user()->can('service-bulkrestore'))
         <div class="d-flex gap-2">
             <button class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"
@@ -229,7 +243,7 @@
             <!-- Bulk Actions -->
             @if(count($selectedServices) > 0)
             @if($activeTab === 'active')
-            @can('service-delete')
+            @can('service-bulkdelete')
             <button type="button"
                 id="bulk-delete-services-btn"
                 class="btn btn-sm btn-danger d-flex align-items-center"
@@ -243,7 +257,7 @@
             </button>
             @endcan
             @else
-            @can('service-delete')
+            @can('service-bulkrestore')
             <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                 class="btn btn-sm btn-outline-success d-flex align-items-center"
                 title="{{ __('services.restore_selected_services') }}">
@@ -253,7 +267,9 @@
                 {{__('common.restore_selected')}}
                 <span class="badge bg-success text-white ms-1">{{ count($selectedServices) }}</span>
             </button>
+            @endcan
 
+            @can('service-delete')
             <button type="button"
                 class="btn btn-sm btn-outline-danger d-flex align-items-center"
                 title="{{ __('services.permanently_delete_selected_services') }}"
@@ -277,6 +293,7 @@
             </button>
             @endif
         </div>
+        @endif
     </div>
 
     <div class='row row-cols-1 @if(count($services) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>
@@ -284,7 +301,7 @@
         <div class='col-md-6 col-xl-4'>
             <div class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($service->id, $selectedServices) ? 'border-primary border-3' : 'border-0' }}" 
                  draggable="false" 
-                 wire:click="toggleServiceSelection({{ $service->id }})"
+                 wire:click="toggleSelection({{ $service->id }})"
                  style="cursor: pointer; transition: all 0.3s ease; min-height: 300px; border-radius: 12px;"
                  onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">

@@ -8,9 +8,12 @@ trait WithAuditLogPermissions
     public $selectedAuditLogPermissions = [];
     public $selectAllAuditLogPermissions = false;
     public $AuditLogPermissions = [
-        'View' => 'audit_log-read_all',
-        'Delete' => 'audit_log-delete',
-        'View own logs only' => 'audit_log-read_own_only',
+        'common.view' => 'audit_log-read_all',
+        'common.delete' => 'audit_log-delete',
+        'audit_logs.view_own_logs_only' => 'audit_log-read_own_only',
+        'common.restore' => 'audit_log-restore',
+        'common.bulk_delete' => 'audit_log-bulkdelete',
+        'common.bulk_restore' => 'audit_log-bulkrestore',
     ];
 
     public function auditLogPermissionClearFields()

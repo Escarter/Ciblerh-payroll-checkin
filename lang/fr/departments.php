@@ -26,6 +26,7 @@ return [
     'name' => 'Nom',
     'company' => 'Société',
     'supervisor' => 'Superviseur',
+    'supervisor_email' => 'Email du superviseur',
     'is_active' => 'Est actif?',
     'select_supervisor' => 'Sélectionner un superviseur',
     'select_status' => 'Sélectionner le statut',
@@ -140,4 +141,35 @@ return [
     'supervisor_not_found' => 'Superviseur non trouvé avec l\'email fourni',
     'supervisor_wrong_company' => 'Le superviseur n\'appartient pas à la même société',
     'supervisor_wrong_role' => 'L\'utilisateur doit avoir le rôle de superviseur pour être assigné comme superviseur de département',
+
+    // Messages de complétion d'import en arrière-plan
+    'background_import_completed' => 'Import en arrière-plan terminé avec succès. :count enregistrements importés.',
+
+    // Notifications SMS
+    'bulk_sms_department_label' => 'Notifications SMS pour tout le département',
+    'bulk_sms_select_department' => 'Sélectionner un département',
+    'bulk_sms_department_help' => 'Désactiver ou activer les notifications SMS pour tous les employés d\'un département',
+    'bulk_sms_disable_action' => 'Désactiver SMS pour le département',
+    'bulk_sms_enable_action' => 'Activer SMS pour le département',
+    'bulk_sms_select_department_first' => 'Veuillez d\'abord sélectionner un département',
+    'bulk_sms_department_not_found' => 'Département non trouvé',
+    'bulk_sms_department_role_not_allowed' => 'Vous n\'avez pas la permission de gérer les notifications SMS',
+    'bulk_sms_disabled_for_department' => 'Notifications SMS désactivées pour :count employés dans :department',
+    'bulk_sms_enabled_for_department' => 'Notifications SMS activées pour :count employés dans :department',
+    'bulk_sms_disable_confirm' => 'Êtes-vous sûr de vouloir désactiver les notifications SMS?',
+    'bulk_sms_enable_confirm' => 'Êtes-vous sûr de vouloir activer les notifications SMS?',
+    'bulk_sms_disable_confirm_department_name' => 'Êtes-vous sûr de vouloir désactiver les notifications SMS pour tous les employés de :department?',
+    'bulk_sms_enable_confirm_department_name' => 'Êtes-vous sûr de vouloir activer les notifications SMS pour tous les employés de :department?',
+    'bulk_email_department_help' => 'Désactiver ou activer les notifications email pour tous les employés d\'un département',
+    'bulk_email_disable_action' => 'Désactiver email pour le département',
+    'bulk_email_enable_action' => 'Activer email pour le département',
+    'bulk_email_disabled_for_department' => 'Notifications email désactivées pour :count employés dans :department',
+    'bulk_email_enabled_for_department' => 'Notifications email activées pour :count employés dans :department',
+    'manage_notifications_action' => 'Gérer les notifications',
+    'manage_notifications_title' => 'Gérer les notifications du département',
+    'manage_notifications_help' => 'Choisissez un département, puis activez ou désactivez les notifications SMS et email pour ses employés.',
+
+    // Additional translation keys
+    'no_department_selected' => 'Aucun département sélectionné',
+    'select_department_for_import' => 'Sélectionnez un département pour l\'importation',
 ];

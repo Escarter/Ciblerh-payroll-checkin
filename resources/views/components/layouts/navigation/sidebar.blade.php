@@ -1,13 +1,5 @@
 @inject('request', 'Illuminate\Http\Request')
-<nav id="sidebarMenu" class="sidebar d-lg-block bg-primary text-white collapse" data-simplebar="init">
-    <div class="simplebar-wrapper" style="margin: 0px;">
-        <div class="simplebar-height-auto-observer-wrapper">
-            <div class="simplebar-height-auto-observer"></div>
-        </div>
-        <div class="simplebar-mask">
-            <div class="simplebar-offset" style="right: 0px; bottom: 0px;">
-                <div class="simplebar-content-wrapper" style="height: auto; overflow: auto;">
-                    <div class="simplebar-content" style="padding: 0px;">
+<nav id="sidebarMenu" class="sidebar d-lg-block bg-primary text-white collapse" style="height: 100vh; overflow-y: auto;">
                         <div class="sidebar-inner px-4 pt-3">
                             <div class="user-card d-flex d-md-none justify-content-between justify-content-md-center pb-4">
                                 @auth
@@ -37,8 +29,12 @@
                                     <!-- <span class="ml-0 lead "><span class="bg-white px-1 border rounded text-secondary display-4">{{ __('common.admin') }}</span>
                                         <span class="display-4">{{ __('common.portal') }}</span>
                                     </span> -->
-                                    <img src="{{ asset('/img/logo.jpg') }}" class="rounded" id="fullLogo" alt="CibleRH">
-                                    <img src="{{ asset('/img/fav.jpg') }}" class="rounded d-none" id="smallLogo" alt="CibleRH">
+                                    <x-brand-logo class="rounded" id="fullLogo" />
+                                    @if (\App\Support\Branding::get('show_logo', true))
+                                        <img src="{{ \App\Support\Branding::get('favicon') }}" class="rounded d-none" id="smallLogo" alt="{{ \App\Support\Branding::get('app_name') }}">
+                                    @else
+                                        <span class="rf-brand-initial d-none" id="smallLogo">{{ mb_strtoupper(mb_substr(\App\Support\Branding::get('app_name'), 0, 1)) }}</span>
+                                    @endif
                                 </div>
                             </div>
 
@@ -87,7 +83,7 @@
                                     </a>
                                 </li>
                                 @else
-                                <li class="nav-item {{ $request->routeIs('portal.all-employees.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.all-employees*') ? 'active' : '' }}">
                                     <a href="{{route('portal.all-employees')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -100,7 +96,7 @@
                                     </a>
                                 </li>
                                 @endhasrole
-                                @canany('ticking-read','overtime-read')
+                                @canany(['ticking-read','overtime-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('ticking-read')
                                 <li class="nav-item {{ $request->routeIs('portal.checklogs.*') ? 'active' : '' }}">
@@ -131,7 +127,7 @@
                                 </li>
                                 @endcan
                                 @endcanany
-                                @canany('advance_salary-read','absence-read')
+                                @canany(['advance_salary-read','absence-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('advance_salary-read')
                                 <li class="nav-item {{ $request->routeIs('portal.advance-salaries.*') ? 'active' : '' }}">
@@ -162,8 +158,22 @@
                                 </li>
                                 @endcan
                                 @endcanany
-                                @canany('payslip-read','payslip-sending')
+                                @canany(['payslip-read','payslip-sending','manage-payslips'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
+                                @can('manage-payslips')
+                                <li class="nav-item {{ $request->routeIs('portal.payslips.sftp-validator') ? 'active' : '' }}">
+                                    <a href="{{route('portal.payslips.sftp-validator')}}" class="nav-link d-flex align-items-center justify-content-between">
+                                        <span>
+                                            <span class="sidebar-icon">
+                                                <svg class="icon icon-sm me-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                                                </svg>
+                                            </span>
+                                            <span class="sidebar-text">{{__('payslips.sftp_validator')}}</span>
+                                        </span>
+                                    </a>
+                                </li>
+                                @endcan
                                 @can('payslip-sending')
                                 <li class="nav-item {{ $request->routeIs('portal.payslips.index') ? 'active' : '' }}">
                                     <a href="{{route('portal.payslips.index')}}" class="nav-link d-flex align-items-center justify-content-between">
@@ -174,6 +184,20 @@
                                                 </svg>
                                             </span>
                                             <span class="sidebar-text">{{__('common.send_payslips')}}</span>
+                                        </span>
+                                    </a>
+                                </li>
+                                @endcan
+                                @can('payslip-read')
+                                <li class="nav-item {{ $request->routeIs('portal.annual-declarations.*') ? 'active' : '' }}">
+                                    <a href="{{route('portal.annual-declarations.index')}}" class="nav-link d-flex align-items-center justify-content-between">
+                                        <span>
+                                            <span class="sidebar-icon">
+                                                <svg class="icon icon-sm me-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                                </svg>
+                                            </span>
+                                            <span class="sidebar-text">{{__('annual_declarations.annual_declarations')}}</span>
                                         </span>
                                     </a>
                                 </li>
@@ -193,9 +217,8 @@
                                     </a>
                                 </li>
                                 @endcan
-
                                 @endcanany
-                                @canany('leave-read','leave_type-read')
+                                @canany(['leave-read','leave_type-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('leave-read')
                                 <li class="nav-item {{ $request->routeIs('portal.leaves.index') ? 'active' : '' }}">
@@ -227,7 +250,7 @@
                                 @endcan
                                 @endcanany
 
-                                @canany('report-payslip-read','report-checkin-read')
+                                @canany(['report-payslip-read','report-checkin-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 <li class="nav-item">
                                     <span class="nav-link d-flex justify-content-between align-items-center {{ $request->routeIs('portal.reports.*') ? '' : 'collapsed' }} " data-bs-toggle="collapse" data-bs-target="#submenu-user" aria-expanded="{{ $request->routeIs('portal.reports.*') ? 'true' : 'false' }}"><span>
@@ -269,7 +292,7 @@
                                         </ul>
                                     </div>
                                 </li>
-                                @endcanany
+                                @endif
 
                                 @can('importjob-read')
                                 <li class="nav-item {{ $request->routeIs('portal.import-jobs.*') ? 'active' : '' }}">
@@ -285,6 +308,18 @@
                                     </a>
                                 </li>
                                 @endcan
+                                <li class="nav-item {{ $request->routeIs('portal.export-wizard') ? 'active' : '' }}">
+                                    <a href="{{route('portal.export-wizard')}}" class="nav-link d-flex align-items-center justify-content-between">
+                                        <span>
+                                            <span class="sidebar-icon">
+                                                <svg class="icon icon-sm me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                </svg>
+                                            </span>
+                                            <span class="sidebar-text">{{__('common.export')}}</span>
+                                        </span>
+                                    </a>
+                                </li>
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 @can('role-read')
                                 <li class="nav-item {{ $request->routeIs('portal.roles.*') ? 'active' : '' }}">
@@ -299,7 +334,7 @@
                                 </li>
                                 @endcan
                                 @can('setting-read')
-                                <li class="nav-item {{ $request->routeIs('portal.settings.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.settings.index') ? 'active' : '' }}">
                                     <a href="{{ route('portal.settings.index') }}" class="nav-link">
                                         <span class="sidebar-icon">
                                             <svg class="icon icon-sm me-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -308,6 +343,26 @@
                                             </svg>
                                         </span>
                                         <span class="sidebar-text">{{ __('common.settings') }}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item {{ $request->routeIs('portal.settings.appearance') ? 'active' : '' }}">
+                                    <a href="{{ route('portal.settings.appearance') }}" class="nav-link">
+                                        <span class="sidebar-icon">
+                                            <svg class="icon icon-sm me-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+                                            </svg>
+                                        </span>
+                                        <span class="sidebar-text">{{ __('settings.appearance') }}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item {{ $request->routeIs('portal.holidays.*') ? 'active' : '' }}">
+                                    <a href="{{ route('portal.holidays.index') }}" class="nav-link">
+                                        <span class="sidebar-icon">
+                                            <svg class="icon icon-sm me-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                            </svg>
+                                        </span>
+                                        <span class="sidebar-text">{{ __('holidays.holiday_calendar') }}</span>
                                     </a>
                                 </li>
                                 @endcan

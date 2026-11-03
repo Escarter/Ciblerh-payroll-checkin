@@ -35,15 +35,15 @@
                     <x-form-items.form wire:submit.prevent="updateProfile" nctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="first_name">{{__('employees.first_name')}}</label>
-                                <input wire:model.defer="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" value="{{auth()->user()->first_name}}" required="" name="first_name">
+                                <label for="first_name">{{__('employees.first_name')}} <span class="text-danger">*</span></label>
+                                <input wire:model.defer="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" value="{{auth()->user()->first_name}}" required="" name="first_name" placeholder="{{__('employees.first_name')}}">
                                 @error('first_name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="last_name">{{__('employees.last_name')}}</label>
-                                <input wire:model.defer="last_name" type="text" class="form-control  @error('last_name') is-invalid @enderror" value="{{auth()->user()->last_name}}" required="" name="last_name">
+                                <label for="last_name">{{__('employees.last_name')}} <span class="text-danger">*</span></label>
+                                <input wire:model.defer="last_name" type="text" class="form-control  @error('last_name') is-invalid @enderror" value="{{auth()->user()->last_name}}" required="" name="last_name" placeholder="{{__('employees.last_name')}}">
                                 @error('last_name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -51,15 +51,15 @@
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="matricule">{{__('employees.matricule')}}</label>
-                                <input wire:model.defer="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" value="{{auth()->user()->matricule}}" required="" name="matricule">
+                                <label for="matricule">{{__('employees.matricule')}} <span class="text-danger">*</span></label>
+                                <input wire:model.defer="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" value="{{auth()->user()->matricule}}" required="" name="matricule" placeholder="{{__('employees.matricule')}}">
                                 @error('matricule')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="email">{{__('employees.email')}}</label>
-                                <input wire:model.defer="email" type="email" class="form-control @error('email') is-invalid @enderror" value="{{auth()->user()->email}}" required="" name="email">
+                                <label for="email">{{__('employees.email')}} <span class="text-danger">*</span></label>
+                                <input wire:model.defer="email" type="email" class="form-control @error('email') is-invalid @enderror" value="{{auth()->user()->email}}" required="" name="email" placeholder="{{__('employees.email')}}">
                                 @error('email')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -68,29 +68,41 @@
                         </div>
                         <div class='form-group mb-2'>
                             <label for="pdf_password">{{__('employees.pdf_password')}}</label>
-                            <input wire:model.defer="pdf_password" type="text" class="form-control  @error('pdf_password') is-invalid @enderror" disabled>
+                            <div class="input-group">
+                                <input wire:model.defer="pdf_password" type="text" class="form-control @error('pdf_password') is-invalid @enderror" disabled>
+                                <button type="button" class="btn btn-outline-secondary copy-pdf-pwd" data-password="{{ $pdf_password }}" title="{{ __('common.copy') }}">
+                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                </button>
+                            </div>
                             @error('pdf_password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="professional_phone_number">{{__('employees.phone_number')}}</label>
-                                <input wire:model.defer="professional_phone_number" type="text" class="form-control  @error('professional_phone_number') is-invalid @enderror" value="{{auth()->user()->phone}}" name="professional_phone_number">
+                                <label for="professional_phone_number">{{__('employees.phone_number')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <input wire:model.defer="professional_phone_number" type="text" class="form-control  @error('professional_phone_number') is-invalid @enderror" value="{{auth()->user()->phone}}" name="professional_phone_number" placeholder="{{__('employees.phone_number')}}">
                                 @error('professional_phone_number')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="personal_phone_number">{{__('employees.personal_phone_number')}}</label>
-                                <input wire:model.defer="personal_phone_number" type="text" class="form-control  @error('personal_phone_number') is-invalid @enderror" autofocus="" name="personal_phone_number">
+                                <label for="personal_phone_number">{{__('employees.personal_phone_number')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <input wire:model.defer="personal_phone_number" type="text" class="form-control  @error('personal_phone_number') is-invalid @enderror" autofocus="" name="personal_phone_number" placeholder="{{__('employees.personal_phone_number')}}">
                                 @error('personal_phone_number')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="mobile_money_number">{{__('employees.mobile_money_number')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <input wire:model.defer="mobile_money_number" type="text" class="form-control  @error('mobile_money_number') is-invalid @enderror" placeholder="{{__('employees.mobile_money_placeholder')}}" name="mobile_money_number">
+                                @error('mobile_money_number')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                         </div>
                         <div class='form-group mb-2'>
-                            <label for="date_of_birth">{{__('common.date_of_birth')}}</label>
+                            <label for="date_of_birth">{{__('common.date_of_birth')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <input wire:model="date_of_birth" type="date" class="form-control  @error('date_of_birth') is-invalid @enderror" >
                             @error('date_of_birth')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -105,15 +117,15 @@
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="position">{{__('common.position')}}</label>
-                                <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position">
+                                <label for="position">{{__('common.position')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position" placeholder="{{__('common.position')}}">
                                 @error('position')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                         </div>
                         <div class='form-group mb-2'>
-                            <label for="preferred_language">{{__('employees.select_preferred_language')}}</label>
+                            <label for="preferred_language">{{__('employees.select_preferred_language')}} <span class="text-danger">*</span></label>
                             <select wire:model.defer="preferred_language" name="preferred_language" class="form-select  @error('preferred_language') is-invalid @enderror" required="">
                                 <option value="">{{__('employees.select_language')}}</option>
                                 <option value="en">{{__('employees.english')}}</option>
@@ -158,23 +170,23 @@
                     <h5 class="pb-3">{{__('employees.password_reset')}}</h5>
                     <x-form-items.form wire:submit.prevent="passwordReset" nctype="multipart/form-data" class="form-modal">
                         <div class='form-group mb-2'>
-                            <label for="current_password">{{__('employees.current_password')}}</label>
-                            <input wire:model.defer="current_password" type="text" class="form-control  @error('current_password') is-invalid @enderror">
+                            <label for="current_password">{{__('employees.current_password')}} <span class="text-danger">*</span></label>
+                            <input wire:model.defer="current_password" type="text" class="form-control  @error('current_password') is-invalid @enderror" placeholder="{{__('employees.current_password')}}">
                             @error('current_password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class='form-group row mb-2'>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="password">{{__('employees.new_password')}}</label>
-                                <input wire:model.defer="password" type="text" class="form-control  @error('password') is-invalid @enderror">
+                                <label for="password">{{__('employees.new_password')}} <span class="text-danger">*</span></label>
+                                <input wire:model.defer="password" type="text" class="form-control  @error('password') is-invalid @enderror" placeholder="{{__('employees.new_password')}}">
                                 @error('password')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="password_confirmation">{{__('employees.confirm_password')}}</label>
-                                <input wire:model.defer="password_confirmation" type="text" class="form-control  @error('password_confirmation') is-invalid @enderror">
+                                <label for="password_confirmation">{{__('employees.confirm_password')}} <span class="text-danger">*</span></label>
+                                <input wire:model.defer="password_confirmation" type="text" class="form-control  @error('password_confirmation') is-invalid @enderror" placeholder="{{__('employees.confirm_password')}}">
                                 @error('password_confirmation')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror

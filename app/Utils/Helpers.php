@@ -11,33 +11,186 @@ use App\Services\OrangeCameroonSMS;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 
-function initials($string)
-{
-    $string_array = explode(" ",$string);
-    if(count($string_array) >= 2){
-        return strtoupper(Str::substr($string_array[0], 0, 1)) . "" . strtoupper(Str::substr($string_array[1], 0, 1));
-    }else{
-        return strtoupper(Str::substr($string_array[0], 0, 1)) ;
+if (!function_exists('initials')) {
+    function initials($string)
+    {
+        $string_array = explode(" ",$string);
+        if(count($string_array) >= 2){
+            return strtoupper(Str::substr($string_array[0], 0, 1)) . "" . strtoupper(Str::substr($string_array[1], 0, 1));
+        }else{
+            return strtoupper(Str::substr($string_array[0], 0, 1)) ;
+        }
     }
 }
 
 if (!function_exists('auditLog')) {
-    function auditLog(User $user, string $action_type, string $channel, string $action_performed)
-    {
-        AuditLog::create([
-            'user_id' => $user->id,
-            'user' => $user->name,
-            'action_type' => $action_type,
-            'channel' => $channel,
-            'action_perform' => $action_performed,
-            'company_id' => $user->company_id,
-            'department_id' => $user->department_id ,
-            'author_id' => $user->author_id ,
-        ]);
+    /**
+     * Enhanced audit log function
+     * 
+     * @param User $user The user performing the action
+     * @param string $action_type The action type (e.g., 'company_created', 'user_updated')
+     * @param string $channel The channel (e.g., 'web', 'api')
+     * @param string $action_performed Description of the action (can be translation key like 'bulk_approved_absences' or translated string)
+     * @param mixed $model Optional: The model instance being affected
+     * @param array $oldValues Optional: Old values for updates
+     * @param array $newValues Optional: New values for creates/updates
+     * @param array $metadata Optional: Additional metadata (can include 'translation_key' and 'translation_params' for proper translation)
+     */
+    function auditLog(
+        ?User $user, 
+        string $action_type, 
+        string $channel, 
+        string $action_performed,
+        $model = null,
+        array $oldValues = [],
+        array $newValues = [],
+        array $metadata = []
+    ) {
+        // If no user provided, try to get authenticated user or use system user
+        if (!$user) {
+            $user = auth()->user();
+            if (!$user) {
+                // Log error and return early if no user available
+                Log::warning('Audit log attempted without user', [
+                    'action_type' => $action_type,
+                    'channel' => $channel,
+                    'action_performed' => $action_performed,
+                ]);
+                return;
+            }
+        }
+        
+        $request = request();
+        
+        // Extract model information if provided
+        $modelType = null;
+        $modelId = null;
+        $modelName = null;
+        $modelData = null;
+        
+        if ($model) {
+            $modelType = get_class($model);
+            $modelId = $model->id ?? $model->uuid ?? null;
+            
+            // Try to get a simple name first
+            if (method_exists($model, 'getNameAttribute') || isset($model->name)) {
+                $modelName = $model->name ?? null;
+            } elseif (isset($model->title)) {
+                $modelName = $model->title;
+            } elseif (isset($model->first_name) && isset($model->last_name)) {
+                $modelName = $model->first_name . ' ' . $model->last_name;
+            }
+            
+            // If no simple name was found, store full model as JSON
+            if (!$modelName && $model) {
+                $modelData = $model->toArray();
+                // Still try __toString as fallback
+                if (method_exists($model, '__toString')) {
+                    $modelName = (string) $model;
+                }
+            }
+            
+            // Ensure model_name doesn't exceed 255 chars
+            if ($modelName && strlen($modelName) > 255) {
+                $modelData = $model->toArray();
+                $modelName = null; // Clear the name since it's too long
+            }
+        }
+        
+        // Calculate changes if both old and new values are provided
+        $changes = [];
+        if (!empty($oldValues) && !empty($newValues)) {
+            foreach ($newValues as $key => $newValue) {
+                $oldValue = $oldValues[$key] ?? null;
+                if ($oldValue !== $newValue) {
+                    $changes[$key] = [
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+            }
+        } elseif ($model && method_exists($model, 'getDirty')) {
+            // Auto-detect changes from model if it's an update
+            $dirty = $model->getDirty();
+            if (!empty($dirty)) {
+                $original = $model->getOriginal();
+                foreach ($dirty as $key => $newValue) {
+                    $oldValue = $original[$key] ?? null;
+                    $changes[$key] = [
+                        'old' => $oldValue,
+                        'new' => $newValue,
+                    ];
+                }
+                $oldValues = array_intersect_key($original, $dirty);
+                $newValues = $dirty;
+            }
+        }
+        
+        // Extract translation key and parameters from metadata if provided
+        // This allows storing translation keys separately for proper translation on display
+        $translationKey = $metadata['translation_key'] ?? null;
+        $translationParams = $metadata['translation_params'] ?? [];
+        
+        // If translation key is provided, store it; otherwise store the action_performed as-is
+        // Store the key in action_perform for backward compatibility and easy access
+        $actionPerformToStore = $translationKey ? $translationKey : $action_performed;
+        
+        // Remove translation_key and translation_params from metadata to avoid duplication
+        $metadataToStore = $metadata;
+        if (isset($metadataToStore['translation_key'])) {
+            unset($metadataToStore['translation_key']);
+        }
+        if (isset($metadataToStore['translation_params'])) {
+            unset($metadataToStore['translation_params']);
+        }
+        
+        // Store translation params in metadata if provided
+        if ($translationKey && !empty($translationParams)) {
+            $metadataToStore['translation_params'] = $translationParams;
+        }
+        
+        try {
+            AuditLog::create([
+                'user_id' => $user->id,
+                'user' => $user->name,
+                'action_type' => $action_type,
+                'channel' => $channel,
+                'action_perform' => $actionPerformToStore,
+                'company_id' => $user->company_id,
+                'department_id' => $user->department_id,
+                'author_id' => $user->author_id ?? null,
+                'model_type' => $modelType,
+                'model_id' => $modelId ? (string) $modelId : null,
+                'model_name' => $modelName,
+                'model_data' => $modelData ? json_encode($modelData) : null,
+                'old_values' => !empty($oldValues) ? $oldValues : null,
+                'new_values' => !empty($newValues) ? $newValues : null,
+                'changes' => !empty($changes) ? $changes : null,
+                'ip_address' => $request ? $request->ip() : null,
+                'user_agent' => $request ? $request->userAgent() : null,
+                'url' => $request ? $request->fullUrl() : null,
+                'method' => $request ? $request->method() : null,
+                'metadata' => !empty($metadataToStore) ? $metadataToStore : null,
+            ]);
+        } catch (\Exception $e) {
+            // Log the error instead of failing silently
+            Log::error('Failed to create audit log', [
+                'user_id' => $user->id,
+                'action_type' => $action_type,
+                'channel' => $channel,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            // Re-throw in development to help debug, but suppress in production
+            if (config('app.debug')) {
+                throw $e;
+            }
+        }
     }
 }
 if (!function_exists('createPayslipRecord')) {
-function createPayslipRecord($employee, $month, $process_id, $user_id, $file = null)
+function createPayslipRecord($employee, $month, $process_id, $user_id, $file = null, $year = null)
     {
         return
             Payslip::create([
@@ -54,20 +207,22 @@ function createPayslipRecord($employee, $month, $process_id, $user_id, $file = n
                 'phone' => !is_null($employee->professional_phone_number) ? $employee->professional_phone_number : $employee->personal_phone_number,
                 'matricule' => $employee->matricule,
                 'month' => $month,
-                'year' => now()->year,
+                'year' => $year ?? now()->year,
                 'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                'email_sent_status' => Payslip::STATUS_PENDING,
+                'sms_sent_status' => Payslip::STATUS_PENDING,
             ]);
     }
 }
 if (!function_exists('sendSmsAndUpdateRecord')) {
-    function sendSmsAndUpdateRecord($emp, $month, $record, $sms_balance = null)
+    function sendSmsAndUpdateRecord($emp, $month, $record, $sms_balance = null, $job_context = [])
     {
         // Check if employee has SMS notifications enabled
         if (isset($emp->receive_sms_notifications) && !$emp->receive_sms_notifications) {
             // Persist a note to explain the Disabled status without polluting failure_reason
             $record->update([
                 'sms_sent_status' => Payslip::STATUS_DISABLED,
-                'sms_status_note' => __('SMS notifications disabled for this employee'),
+                'sms_status_note' => __('payslips.sms_notifications_disabled_for_this_employee'),
             ]);
             return;
         }
@@ -86,13 +241,61 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 $year = '';
             }
 
-             $sms_client = match ($setting->sms_provider) {
-                'twilio' => new TwilioSMS($setting),
-                'nexah' =>  new Nexah($setting),
-                'aws_sns' => new AwsSnsSMS($setting),
-                'orange_cm' => new OrangeCameroonSMS($setting),
-                default => new Nexah($setting)
-             };
+             // Check if SMS provider is known to be unhealthy from balance check
+             if (isset($job_context['sms_provider_healthy']) && $job_context['sms_provider_healthy'] === false) {
+                 $error_message = $job_context['sms_provider_error'] ?? __('payslips.sms_provider_unhealthy');
+                 Log::warning('Skipping SMS send - provider unhealthy', [
+                     'employee_id' => $emp->id,
+                     'employee_matricule' => $emp->matricule,
+                     'error' => $error_message,
+                     'job_context' => $job_context
+                 ]);
+
+                 // Preserve existing failure reason if any
+                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                 $record->update([
+                     'sms_sent_status' => Payslip::STATUS_FAILED,
+                     'failure_reason' => $existingReason . __('payslips.sms_provider_unhealthy_during_balance_check') . ': ' . $error_message
+                 ]);
+                 return;
+             }
+
+             // Validate SMS provider credentials before creating client
+             if (empty($setting->sms_provider_username) || empty($setting->sms_provider_password)) {
+                 // Preserve existing failure reason if any
+                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                 $record->update([
+                     'sms_sent_status' => Payslip::STATUS_FAILED,
+                     'failure_reason' => $existingReason . __('payslips.sms_provider_credentials_not_configured')
+                 ]);
+                 return;
+             }
+
+             try {
+                 $sms_client = match ($setting->sms_provider) {
+                     'twilio' => new TwilioSMS($setting),
+                     'nexah' =>  new Nexah($setting),
+                     'aws_sns' => new AwsSnsSMS($setting),
+                     'orange_cm' => new OrangeCameroonSMS($setting),
+                     default => new Nexah($setting)
+                 };
+             } catch (\Throwable $e) {
+                 Log::error('Failed to initialize SMS provider', [
+                     'provider' => $setting->sms_provider,
+                     'error' => $e->getMessage(),
+                     'employee_id' => $emp->id,
+                     'employee_matricule' => $emp->matricule,
+                     'job_context' => $job_context
+                 ]);
+
+                 // Preserve existing failure reason if any
+                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                 $record->update([
+                     'sms_sent_status' => Payslip::STATUS_FAILED,
+                     'failure_reason' => $existingReason . __('payslips.sms_provider_initialization_failed')
+                 ]);
+                 return;
+             }
 
             $message = '';
 
@@ -102,34 +305,100 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_fr);
             }
 
-            $response = $sms_client->sendSMS([
+            if (trim($message) === '') {
+                $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                $record->update([
+                    'sms_sent_status' => Payslip::STATUS_FAILED,
+                    'failure_reason' => $existingReason . __('payslips.failed_sending_sms') . ': SMS content template is empty in settings'
+                ]);
+                return;
+            }
+
+            try {
+                $response = $sms_client->sendSMS([
                     'sms' =>  $message,
                     'mobiles' => $phone,
                 ]);
 
-            if ($response['responsecode'] === 1) {
-                $record->update(['sms_sent_status' => Payslip::STATUS_SUCCESSFUL]);
-            } else {
-                // Check if failure is due to insufficient balance
-                $failureReason = __('payslips.failed_sending_sms');
+                if ($response['responsecode'] === 1) {
+                    // Capture the provider's transaction ids (Orange echoes txnId/clientTxnId) so a later
+                    // delivery-report callback can be correlated back to this payslip.
+                    $txnId = data_get($response, 'body.txnId');
+                    $clientTxnId = data_get($response, 'body.clientTxnId');
+                    $record->update(array_filter([
+                        'sms_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                        'sms_txn_id' => $txnId,
+                        'sms_client_txn_id' => $clientTxnId,
+                        'sms_sent_at' => now(),
+                        // Only mark "pending delivery" when we have an id to receive a DR against.
+                        'sms_delivery_status' => $txnId || $clientTxnId ? Payslip::SMS_DELIVERY_STATUS_PENDING : null,
+                    ], fn ($value) => $value !== null));
+                } else {
+                    // Check if failure is due to insufficient balance
+                    $failureReason = __('payslips.failed_sending_sms');
 
-                // Use provided balance or check once per job if not provided
-                if ($sms_balance !== null) {
-                    if ($sms_balance['credit'] === 0) {
-                        $failureReason = __('payslips.insufficient_sms_balance');
+                    // Use provided balance or check once per job if not provided
+                    if ($sms_balance !== null) {
+                        if ($sms_balance['credit'] === 0) {
+                            $failureReason = __('payslips.insufficient_sms_balance');
+                        }
+                    } elseif (!empty($sms_client)) {
+                        try {
+                            $balance = $sms_client->getBalance();
+                            if ($balance['credit'] === 0) {
+                                $failureReason = __('payslips.insufficient_sms_balance');
+                            }
+                        } catch (\Throwable $balanceException) {
+                            Log::warning('Failed to check SMS balance', [
+                                'error' => $balanceException->getMessage(),
+                                'employee_id' => $emp->id
+                            ]);
+                        }
                     }
-                } elseif (!empty($sms_client)) {
-                    $balance = $sms_client->getBalance();
-                    if ($balance['credit'] === 0) {
-                        $failureReason = __('payslips.insufficient_sms_balance');
+
+                    if (!empty($response['error'])) {
+                        $failureReason .= ': ' . $response['error'];
                     }
+
+                    // Preserve existing failure reason if any
+                    $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                    $record->update([
+                        'sms_sent_status' => Payslip::STATUS_FAILED,
+                        'failure_reason' => $existingReason . $failureReason
+                    ]);
                 }
+            } catch (\Throwable $e) {
+                $error_details = [
+                    'error' => $e->getMessage(),
+                    'error_class' => get_class($e),
+                    'employee_id' => $emp->id,
+                    'employee_matricule' => $emp->matricule,
+                    'phone' => $phone,
+                    'provider' => $setting->sms_provider,
+                    'month' => $month,
+                    'message_length' => strlen($message),
+                    'job_context' => $job_context
+                ];
+
+                // Add stack trace only if in debug mode or if it's a critical error
+                if (config('app.debug') || strpos($e->getMessage(), 'Cannot assign null to property') !== false) {
+                    $error_details['stack_trace'] = $e->getTraceAsString();
+                }
+
+                Log::error('SMS sending failed with exception', $error_details);
 
                 // Preserve existing failure reason if any
                 $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+
+                // Create more specific error message based on exception type
+                $error_message = __('payslips.sms_sending_exception') . ': ' . $e->getMessage();
+                if (strpos($e->getMessage(), 'Cannot assign null to property') !== false) {
+                    $error_message = __('payslips.sms_provider_configuration_error') . ': ' . __('payslips.null_value_in_provider_config');
+                }
+
                 $record->update([
                     'sms_sent_status' => Payslip::STATUS_FAILED,
-                    'failure_reason' => $existingReason . $failureReason
+                    'failure_reason' => $existingReason . $error_message
                 ]);
             }
         } else {
@@ -137,7 +406,7 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
             $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
             $record->update([
                 'sms_sent_status' => Payslip::STATUS_FAILED,
-                'failure_reason' => $existingReason . __('No valid phone number for user')
+                'failure_reason' => $existingReason . __('payslips.no_valid_phone_number_for_user')
             ]);
         }
     }
@@ -174,12 +443,12 @@ if (!function_exists('sendSmsBirthday')) {
             ]);
 
             if ($response['responsecode'] === 1) {
-                Log::info(__('Birthday message sent successfully to '.$emp->name));
+                Log::info(__('payslips.birthday_message_sent_successfully_to') . $emp->name);
             } else {
-                Log::info(__('Birthday message failed to sent to ' . $emp->name));
+                Log::info(__('payslips.birthday_message_failed_to_send_to') . $emp->name);
             }
         } else {
-            Log::info(__('No valid phone number for user'));
+            Log::info(__('payslips.no_valid_phone_number_for_user'));
         }
     }
 }
@@ -191,68 +460,71 @@ if (!function_exists('countPages')) {
     }
 }
 if (!function_exists('setSavedSmtpCredentials')) {
-    function setSavedSmtpCredentials(): void
+    /**
+     * Load and apply saved SMTP settings from the database.
+     * This function is critical for password reset, test emails, and other notifications.
+     *
+     * @throws \RuntimeException If settings are configured but invalid
+     * @return bool True if settings were applied, false if none were found
+     */
+    function setSavedSmtpCredentials(): bool
     {
-        $setting = Setting::first();
+        // Fetch settings by company_id to ensure we get the right record
+        $setting = Setting::where('company_id', 1)->first();
 
-        if(!empty($setting)){
-            $provider = $setting->smtp_provider ?: 'smtp';
+        if (empty($setting)) {
+            return false;
+        }
 
-            // Set the default mailer
-            Config::set('mail.default', $provider);
+        $isMailchimp = $setting->smtp_provider === 'mailchimp';
+        $hasSmtpHost = !empty($setting->smtp_host);
 
-            // Set from address
+        if ($isMailchimp || $hasSmtpHost) {
+            if ($isMailchimp) {
+                // Mailchimp Transactional (Mandrill) — use the HTTP API transport
+                if (empty($setting->mailchimp_api_key)) {
+                    throw new \RuntimeException('Mailchimp API key is not configured in settings.');
+                }
+                Config::set('mail.mailers.mandrill.key', $setting->mailchimp_api_key);
+                Config::set('mail.mailers.mandrill.from_email', $setting->from_email);
+                Config::set('mail.mailers.mandrill.from_name', $setting->from_name);
+                Config::set('mail.default', 'mandrill');
+                Config::set('mail.from.address', $setting->from_email);
+                Config::set('mail.from.name', $setting->from_name);
+                app('mail.manager')->purge('mandrill');
+                return true;
+            } else {
+                // Validate required SMTP fields before applying
+                if (empty($setting->smtp_host) || empty($setting->smtp_port)) {
+                    throw new \RuntimeException('SMTP host and port are required but not configured in settings.');
+                }
+                if (empty($setting->smtp_username) || empty($setting->smtp_password)) {
+                    throw new \RuntimeException('SMTP username and password are required but not configured in settings.');
+                }
+                Config::set('mail.mailers.smtp.host', $setting->smtp_host);
+                Config::set('mail.mailers.smtp.port', (int) $setting->smtp_port);
+                Config::set('mail.mailers.smtp.username', $setting->smtp_username);
+                Config::set('mail.mailers.smtp.password', $setting->smtp_password);
+                Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption ?? 'tls');
+                // Always use 'smtp' as transport — provider value is only metadata (mailgun/ses etc. use their own mailers)
+                Config::set('mail.mailers.smtp.transport', 'smtp');
+            }
+            // Ensure the default mailer is always 'smtp' — never set to a provider name like 'mailchimp'
+            Config::set('mail.default', 'smtp');
             Config::set('mail.from.address', $setting->from_email);
             Config::set('mail.from.name', $setting->from_name);
 
-            // Configure based on provider
-            switch ($provider) {
-                case 'smtp':
-                    Config::set('mail.mailers.smtp.host', $setting->smtp_host);
-                    Config::set('mail.mailers.smtp.port', (int) $setting->smtp_port);
-                    Config::set('mail.mailers.smtp.username', $setting->smtp_username);
-                    Config::set('mail.mailers.smtp.password', $setting->smtp_password);
-                    Config::set('mail.mailers.smtp.encryption', $setting->smtp_encryption);
-                    break;
+            // Clear MAIL_URL so .env does not override database settings.
+            // When set, Laravel merges it into config and it takes precedence.
+            Config::set('mail.mailers.smtp.url', null);
 
-                case 'mailgun':
-                    Config::set('services.mailgun.domain', $setting->mailgun_domain);
-                    Config::set('services.mailgun.secret', $setting->mailgun_secret);
-                    Config::set('services.mailgun.endpoint', $setting->mailgun_endpoint ?: 'api.mailgun.net');
-                    Config::set('services.mailgun.scheme', $setting->mailgun_scheme ?: 'https');
-                    break;
-
-                case 'ses':
-                    Config::set('services.ses.key', $setting->ses_key);
-                    Config::set('services.ses.secret', $setting->ses_secret);
-                    Config::set('services.ses.region', $setting->ses_region ?: 'us-east-1');
-                    break;
-
-                case 'postmark':
-                    Config::set('services.postmark.token', $setting->postmark_token);
-                    break;
-
-                case 'sendmail':
-                    Config::set('mail.mailers.sendmail.path', $setting->sendmail_path ?: '/usr/sbin/sendmail -bs -i');
-                    break;
-
-                case 'mailpit':
-                    Config::set('mail.mailers.smtp.host', $setting->mailpit_host ?: 'localhost');
-                    Config::set('mail.mailers.smtp.port', (int) ($setting->mailpit_port ?: 1025));
-                    Config::set('mail.mailers.smtp.username', null);
-                    Config::set('mail.mailers.smtp.password', null);
-                    Config::set('mail.mailers.smtp.encryption', null);
-                    break;
-
-                case 'log':
-                    Config::set('mail.mailers.log.channel', $setting->log_channel ?: env('MAIL_LOG_CHANNEL'));
-                    break;
-
-                case 'array':
-                    // Array driver doesn't need configuration
-                    break;
-            }
+            // Purge cached mailer so it is recreated with the updated config.
+            // Otherwise Laravel uses the previously resolved mailer (from .env).
+            app('mail.manager')->purge(Config::get('mail.default', 'smtp'));
+            return true;
         }
+
+        return false;
     }
 }
 
@@ -307,109 +579,92 @@ if (!function_exists('numberFormat')) {
 
 if (!function_exists('validatePhoneNumber')) {
     /**
-     * Validate and format phone number to E.164 format
-     * 
+     * Normalise a phone number to E.164 (+<country code><number>).
+     *
+     * Pipeline:
+     *  1. Strip every separator/letter (spaces, commas, dots, dashes, brackets...), keep digits and a leading "+".
+     *  2. "00" international prefix is treated as "+".
+     *  3. With "+": the number is already international (a stray trunk "0" after the country code and a
+     *     duplicated country code are removed).
+     *  4. Without "+": a number that already starts with a recognised country code and has a plausible length is
+     *     international; any other number is national, so the leading trunk "0" is dropped and the default
+     *     country code is prepended (config app.phone_default_country_code, or the $countryCode argument).
+     *     Numbers too long to be national (> 10 digits) are assumed to carry their country code already.
+     *
      * @param string $phoneNumber Phone number to validate
-     * @param string|null $countryCode Optional country code to use if phone doesn't have one
+     * @param string|null $countryCode Optional default country code (digits only) for national numbers
      * @return array ['valid' => bool, 'formatted' => string|null, 'error' => string|null]
      */
     function validatePhoneNumber(string $phoneNumber, ?string $countryCode = null): array
     {
-        if (empty(trim($phoneNumber))) {
-            return [
-                'valid' => false,
-                'formatted' => null,
-                'error' => __('Phone number cannot be empty')
-            ];
+        $invalid = fn (string $message) => ['valid' => false, 'formatted' => null, 'error' => $message];
+
+        if (trim($phoneNumber) === '') {
+            return $invalid(__('common.phone_number_cannot_be_empty'));
         }
 
-        // Remove all whitespace and common formatting characters
-        $phoneNumber = preg_replace('/[\s\-\(\)\.]/', '', $phoneNumber);
-        
-        // Remove all non-numeric characters except +
-        $phoneNumber = preg_replace('/[^0-9+]/', '', $phoneNumber);
+        $hasPlus = str_starts_with(ltrim($phoneNumber), '+');
+        $digits = preg_replace('/\D/', '', $phoneNumber);
 
-        // If phone already starts with +, validate it
-        if (str_starts_with($phoneNumber, '+')) {
-            $digits = substr($phoneNumber, 1);
-            
-            // Check if country code starts with 0 (invalid in E.164)
-            if (str_starts_with($digits, '0')) {
-                return [
-                    'valid' => false,
-                    'formatted' => null,
-                    'error' => __('Country code cannot start with 0 in E.164 format')
-                ];
+        if (!$hasPlus && str_starts_with($digits, '00')) {
+            $hasPlus = true;
+            $digits = substr($digits, 2);
+        }
+
+        if ($digits === '') {
+            return $invalid(__('common.invalid_phone_number_format_e164'));
+        }
+
+        if (trim($digits, '0') === '') {
+            return $invalid(__($hasPlus ? 'common.phone_number_must_contain_non_zero_digit' : 'common.phone_number_cannot_be_all_zeros'));
+        }
+
+        $defaultCode = preg_replace('/\D/', '', (string) ($countryCode ?: config('app.phone_default_country_code', '237')));
+        $isInternational = $hasPlus;
+
+        if (!$isInternational) {
+            $detected = detectCountryCodeFromPhone($digits);
+            $startsWithDefault = $defaultCode !== ''
+                && str_starts_with($digits, $defaultCode)
+                && strlen($digits) - strlen($defaultCode) >= 8
+                && strlen($digits) - strlen($defaultCode) <= 12;
+
+            if ($startsWithDefault || $detected !== null || strlen(ltrim($digits, '0')) > 10) {
+                $isInternational = true;
             }
-            
-            // Remove leading zeros (trunk prefixes)
-            $originalDigits = $digits;
+        }
+
+        if ($isInternational) {
+            if ($hasPlus && str_starts_with($digits, '0')) {
+                return $invalid(__('common.country_code_cannot_start_with_zero'));
+            }
+
             $digits = ltrim($digits, '0');
-            
-            if (empty($digits)) {
-                return [
-                    'valid' => false,
-                    'formatted' => null,
-                    'error' => __('Phone number must contain at least one non-zero digit')
-                ];
-            }
-            
-            $formatted = '+' . $digits;
-            
-            // Validate E.164 format
-            if (!isValidE164Format($formatted)) {
-                return [
-                    'valid' => false,
-                    'formatted' => null,
-                    'error' => __('Invalid phone number format. Phone number must be in E.164 format (e.g., +1234567890)')
-                ];
-            }
-            
-            return [
-                'valid' => true,
-                'formatted' => $formatted,
-                'error' => null
-            ];
-        }
+            $code = ($defaultCode !== '' && str_starts_with($digits, $defaultCode)) ? $defaultCode : detectCountryCodeFromPhone($digits);
 
-        // Handle phone numbers without + prefix
-        $phoneNumber = ltrim($phoneNumber, '0');
-        if (empty($phoneNumber)) {
-            return [
-                'valid' => false,
-                'formatted' => null,
-                'error' => __('Phone number cannot be all zeros')
-            ];
-        }
-
-        // Use provided country code or try to detect
-        if ($countryCode !== null && is_numeric($countryCode) && strlen($countryCode) <= 3) {
-            $formatted = '+' . $countryCode . $phoneNumber;
+            if ($code !== null) {
+                $national = substr($digits, strlen($code));
+                // Collapse a duplicated country code (e.g. 237237699949194) and a stray trunk zero (+2370698...)
+                if (str_starts_with($national, $code) && strlen($national) > 10) {
+                    $national = substr($national, strlen($code));
+                }
+                $digits = $code . ltrim($national, '0');
+            }
         } else {
-            // Try to detect country code
-            $detectedCode = detectCountryCodeFromPhone($phoneNumber);
-            if ($detectedCode !== null) {
-                $formatted = '+' . $detectedCode . $phoneNumber;
-            } else {
-                // Just add + prefix (may fail if country code is required)
-                $formatted = '+' . $phoneNumber;
+            $national = ltrim($digits, '0');
+            if ($defaultCode === '' || strlen($national) < 7) {
+                return $invalid(__('common.invalid_phone_number_format_e164'));
             }
+            $digits = $defaultCode . $national;
         }
 
-        // Validate final format
-        if (!isValidE164Format($formatted)) {
-            return [
-                'valid' => false,
-                'formatted' => null,
-                'error' => __('Invalid phone number format. Phone number must be in E.164 format (e.g., +1234567890)')
-            ];
+        $formatted = '+' . $digits;
+
+        if (!isValidE164Format($formatted) || strlen($digits) < 8) {
+            return $invalid(__('common.invalid_phone_number_format_e164'));
         }
 
-        return [
-            'valid' => true,
-            'formatted' => $formatted,
-            'error' => null
-        ];
+        return ['valid' => true, 'formatted' => $formatted, 'error' => null];
     }
 }
 
@@ -495,7 +750,7 @@ if (!function_exists('findOrCreateDepartment')) {
             return [
                 'found' => false,
                 'department' => null,
-                'error' => __('Department name cannot be empty')
+                'error' => __('common.department_name_cannot_be_empty')
             ];
         }
 
@@ -515,7 +770,7 @@ if (!function_exists('findOrCreateDepartment')) {
             return [
                 'found' => false,
                 'department' => null,
-                'error' => __('Department ":name" not found in company. Available departments: :departments', [
+                'error' => __('common.department_not_found_in_company', [
                     'name' => $departmentName,
                     'departments' => \App\Models\Department::where('company_id', $companyId)->pluck('name')->join(', ')
                 ])
@@ -538,7 +793,7 @@ if (!function_exists('findOrCreateDepartment')) {
             return [
                 'found' => false,
                 'department' => null,
-                'error' => __('Failed to create department ":name": :error', [
+                'error' => __('common.failed_to_create_department', [
                     'name' => $departmentName,
                     'error' => $e->getMessage()
                 ])
@@ -563,7 +818,7 @@ if (!function_exists('findOrCreateService')) {
             return [
                 'found' => false,
                 'service' => null,
-                'error' => __('Service name cannot be empty')
+                'error' => __('common.service_name_cannot_be_empty')
             ];
         }
 
@@ -583,7 +838,7 @@ if (!function_exists('findOrCreateService')) {
             return [
                 'found' => false,
                 'service' => null,
-                'error' => __('Service ":name" not found in department. Available services: :services', [
+                'error' => __('common.service_not_found_in_department', [
                     'name' => $serviceName,
                     'services' => \App\Models\Service::where('department_id', $departmentId)->pluck('name')->join(', ')
                 ])
@@ -607,7 +862,7 @@ if (!function_exists('findOrCreateService')) {
             return [
                 'found' => false,
                 'service' => null,
-                'error' => __('Failed to create service ":name": :error', [
+                'error' => __('common.failed_to_create_service', [
                     'name' => $serviceName,
                     'error' => $e->getMessage()
                 ])
@@ -630,7 +885,7 @@ if (!function_exists('findOrCreateCompany')) {
             return [
                 'found' => false,
                 'company' => null,
-                'error' => __('Company name cannot be empty')
+                'error' => __('common.company_name_cannot_be_empty')
             ];
         }
 
@@ -648,7 +903,7 @@ if (!function_exists('findOrCreateCompany')) {
             return [
                 'found' => false,
                 'company' => null,
-                'error' => __('Company ":name" not found. Available companies: :companies', [
+                'error' => __('common.company_not_found', [
                     'name' => $companyName,
                     'companies' => \App\Models\Company::pluck('name')->join(', ')
                 ])
@@ -670,7 +925,7 @@ if (!function_exists('findOrCreateCompany')) {
             return [
                 'found' => false,
                 'company' => null,
-                'error' => __('Failed to create company ":name": :error', [
+                'error' => __('common.failed_to_create_company', [
                     'name' => $companyName,
                     'error' => $e->getMessage()
                 ])
@@ -694,7 +949,7 @@ if (!function_exists('findDepartmentByName')) {
                 'found' => false,
                 'department' => null,
                 'suggestions' => [],
-                'error' => __('Department name cannot be empty')
+                'error' => __('common.department_name_cannot_be_empty')
             ];
         }
 
@@ -737,11 +992,11 @@ if (!function_exists('findDepartmentByName')) {
             'found' => false,
             'department' => null,
             'suggestions' => array_slice($suggestions, 0, 3), // Top 3 suggestions
-            'error' => __('Department ":name" not found. :suggestions', [
+            'error' => __('common.department_not_found', [
                 'name' => $departmentName,
                 'suggestions' => !empty($suggestions)
-                    ? __('Did you mean: :names?', ['names' => collect($suggestions)->pluck('name')->join(', ')])
-                    : __('Available departments: :names', ['names' => $departments->pluck('name')->join(', ')])
+                    ? __('common.did_you_mean', ['names' => collect($suggestions)->pluck('name')->join(', ')])
+                    : __('common.available_departments', ['names' => $departments->pluck('name')->join(', ')])
             ])
         ];
     }
@@ -762,7 +1017,7 @@ if (!function_exists('findServiceByName')) {
                 'found' => false,
                 'service' => null,
                 'suggestions' => [],
-                'error' => __('Service name cannot be empty')
+                'error' => __('common.service_name_cannot_be_empty')
             ];
         }
 
@@ -804,20 +1059,183 @@ if (!function_exists('findServiceByName')) {
             'found' => false,
             'service' => null,
             'suggestions' => array_slice($suggestions, 0, 3), // Top 3 suggestions
-            'error' => __('Service ":name" not found. :suggestions', [
+            'error' => __('common.service_not_found', [
                 'name' => $serviceName,
                 'suggestions' => !empty($suggestions)
-                    ? __('Did you mean: :names?', ['names' => collect($suggestions)->pluck('name')->join(', ')])
-                    : __('Available services: :names', ['names' => $services->pluck('name')->join(', ')])
+                    ? __('common.did_you_mean', ['names' => collect($suggestions)->pluck('name')->join(', ')])
+                    : __('common.available_services', ['names' => $services->pluck('name')->join(', ')])
             ])
         ];
+    }
+}
+
+if (!function_exists('monthNumberToEnglishName')) {
+    /**
+     * Convert a month number (1-12) to its English month name.
+     */
+    function monthNumberToEnglishName(int|string|null $monthNumber): ?string
+    {
+        if ($monthNumber === null || $monthNumber === '') {
+            return null;
+        }
+
+        $month = (int) $monthNumber;
+
+        if ($month < 1 || $month > 12) {
+            return null;
+        }
+
+        return [
+            1 => 'January',
+            2 => 'February',
+            3 => 'March',
+            4 => 'April',
+            5 => 'May',
+            6 => 'June',
+            7 => 'July',
+            8 => 'August',
+            9 => 'September',
+            10 => 'October',
+            11 => 'November',
+            12 => 'December',
+        ][$month];
+    }
+}
+
+if (!function_exists('normalizeMonthToEnglishName')) {
+    /**
+     * Normalize numeric or textual month values to canonical English month names.
+     */
+    function normalizeMonthToEnglishName(int|string|null $month): ?string
+    {
+        if ($month === null) {
+            return null;
+        }
+
+        if (is_int($month) || ctype_digit((string) $month)) {
+            return monthNumberToEnglishName($month);
+        }
+
+        $normalized = strtolower(trim((string) $month));
+
+        $monthMap = [
+            '1' => 'January',
+            '01' => 'January',
+            'january' => 'January',
+            'janvier' => 'January',
+            '2' => 'February',
+            '02' => 'February',
+            'february' => 'February',
+            'février' => 'February',
+            'fevrier' => 'February',
+            '3' => 'March',
+            '03' => 'March',
+            'march' => 'March',
+            'mars' => 'March',
+            '4' => 'April',
+            '04' => 'April',
+            'april' => 'April',
+            'avril' => 'April',
+            '5' => 'May',
+            '05' => 'May',
+            'may' => 'May',
+            'mai' => 'May',
+            '6' => 'June',
+            '06' => 'June',
+            'june' => 'June',
+            'juin' => 'June',
+            '7' => 'July',
+            '07' => 'July',
+            'july' => 'July',
+            'juillet' => 'July',
+            '8' => 'August',
+            '08' => 'August',
+            'august' => 'August',
+            'août' => 'August',
+            'aout' => 'August',
+            '9' => 'September',
+            '09' => 'September',
+            'september' => 'September',
+            'septembre' => 'September',
+            '10' => 'October',
+            'october' => 'October',
+            'octobre' => 'October',
+            '11' => 'November',
+            'november' => 'November',
+            'novembre' => 'November',
+            '12' => 'December',
+            'december' => 'December',
+            'décembre' => 'December',
+            'decembre' => 'December',
+        ];
+
+        return $monthMap[$normalized] ?? null;
+    }
+}
+
+if (!function_exists('normalizeMonthToNumber')) {
+    /**
+     * Normalize numeric or textual month values to an integer month number.
+     */
+    function normalizeMonthToNumber(int|string|null $month): ?int
+    {
+        $normalizedName = normalizeMonthToEnglishName($month);
+
+        if ($normalizedName === null) {
+            return null;
+        }
+
+        return [
+            'January' => 1,
+            'February' => 2,
+            'March' => 3,
+            'April' => 4,
+            'May' => 5,
+            'June' => 6,
+            'July' => 7,
+            'August' => 8,
+            'September' => 9,
+            'October' => 10,
+            'November' => 11,
+            'December' => 12,
+        ][$normalizedName];
+    }
+}
+
+if (!function_exists('translateMonthName')) {
+    /**
+     * Translate a month value to current locale.
+     *
+     * Accepts English/French month names or numeric month values.
+     */
+    function translateMonthName(string|int $month): string
+    {
+        $englishMonth = normalizeMonthToEnglishName($month) ?? (string) $month;
+
+        $monthMap = [
+            'january' => 'january',
+            'february' => 'february',
+            'march' => 'march',
+            'april' => 'april',
+            'may' => 'may',
+            'june' => 'june',
+            'july' => 'july',
+            'august' => 'august',
+            'september' => 'september',
+            'october' => 'october',
+            'november' => 'november',
+            'december' => 'december',
+        ];
+
+        $monthKey = strtolower($englishMonth);
+        return isset($monthMap[$monthKey]) ? __('common.' . $monthMap[$monthKey]) : $englishMonth;
     }
 }
 
 if (!function_exists('validateEmail')) {
     /**
      * Validate email address with comprehensive checks
-     * 
+     *
      * @param string $email Email address to validate
      * @return array ['valid' => bool, 'error' => string|null]
      */
@@ -826,7 +1244,7 @@ if (!function_exists('validateEmail')) {
         if (empty(trim($email))) {
             return [
                 'valid' => false,
-                'error' => __('Email address cannot be empty')
+                'error' => __('common.email_address_cannot_be_empty')
             ];
         }
 
@@ -834,7 +1252,7 @@ if (!function_exists('validateEmail')) {
         if (strlen($email) > 320) {
             return [
                 'valid' => false,
-                'error' => __('Email address is too long (maximum 320 characters)')
+                'error' => __('common.email_address_is_too_long', ['maximum' => 320])
             ];
         }
 
@@ -843,7 +1261,7 @@ if (!function_exists('validateEmail')) {
         if (count($parts) !== 2) {
             return [
                 'valid' => false,
-                'error' => __('Invalid email address format')
+                'error' => __('common.invalid_email_address_format')
             ];
         }
 
@@ -853,15 +1271,24 @@ if (!function_exists('validateEmail')) {
         if (empty($localPart) || strlen($localPart) > 64) {
             return [
                 'valid' => false,
-                'error' => __('Email local part is invalid or too long')
+                'error' => __('common.email_local_part_is_invalid_or_too_long')
             ];
         }
+
+        if (!preg_match("/^[a-zA-Z0-9._+'\\-]+$/", $localPart)) {
+            return [
+                'valid' => false,
+                'error' => __('common.email_local_part_format_is_invalid')
+            ];
+        }
+
+        $domain = strtolower($domain);
 
         // Validate domain part
         if (empty($domain) || strlen($domain) > 255) {
             return [
                 'valid' => false,
-                'error' => __('Email domain is invalid or too long')
+                'error' => __('common.email_domain_is_invalid_or_too_long')
             ];
         }
 
@@ -869,7 +1296,7 @@ if (!function_exists('validateEmail')) {
         if (strpos($localPart, '..') !== false || strpos($domain, '..') !== false) {
             return [
                 'valid' => false,
-                'error' => __('Email address cannot contain consecutive dots')
+                'error' => __('common.email_address_cannot_contain_consecutive_dots')
             ];
         }
 
@@ -877,7 +1304,7 @@ if (!function_exists('validateEmail')) {
         if (strpos($domain, '.') === false) {
             return [
                 'valid' => false,
-                'error' => __('Email domain must contain a top-level domain')
+                'error' => __('common.email_domain_must_contain_a_top_level_domain')
             ];
         }
 
@@ -885,7 +1312,7 @@ if (!function_exists('validateEmail')) {
         if (!preg_match('/^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/', $domain)) {
             return [
                 'valid' => false,
-                'error' => __('Email domain format is invalid')
+                'error' => __('common.email_domain_format_is_invalid')
             ];
         }
 
@@ -893,7 +1320,7 @@ if (!function_exists('validateEmail')) {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return [
                 'valid' => false,
-                'error' => __('Invalid email address format')
+                'error' => __('common.invalid_email_address_format')
             ];
         }
 
@@ -901,5 +1328,286 @@ if (!function_exists('validateEmail')) {
             'valid' => true,
             'error' => null
         ];
+    }
+}
+
+if (!function_exists('resendPayslipUnified')) {
+    /**
+     * Unified function to resend payslip email and/or SMS
+     * 
+     * This function harmonizes payslip resending across all entry points.
+     * It intelligently determines what needs to be resent based on current status,
+     * but always allows resending even if already successful (forced resend).
+     * 
+     * @param \App\Models\User $employee The employee to send payslip to
+     * @param \App\Models\Payslip $payslip The payslip record
+     * @param string $destination_file The encrypted PDF file path
+     * @param array $options Optional configuration:
+     *   - 'force_resend_email' (bool): Force resend email even if successful (default: false)
+     *   - 'force_resend_sms' (bool): Force resend SMS even if successful (default: false)
+     *   - 'sms_balance' (array|null): Pre-checked SMS balance for optimization
+     *   - 'job_context' (array): Additional context for logging
+     * 
+     * @return array Result with 'email_sent', 'sms_sent', 'errors' keys
+     */
+    function resendPayslipUnified($employee, $payslip, $destination_file, $options = [])
+    {
+        $forceResendEmail = $options['force_resend_email'] ?? false;
+        $forceResendSms = $options['force_resend_sms'] ?? false;
+        $smsBalance = $options['sms_balance'] ?? null;
+        $jobContext = $options['job_context'] ?? [];
+        
+        $result = [
+            'email_sent' => false,
+            'sms_sent' => false,
+            'errors' => []
+        ];
+        
+        // Refresh payslip to get latest status
+        $payslip->refresh();
+        $employee->refresh();
+        
+        // Determine what needs to be resent
+        $shouldResendEmail = $forceResendEmail || 
+                            $payslip->email_sent_status !== Payslip::STATUS_SUCCESSFUL;
+        $shouldResendSms = $forceResendSms || 
+                          $payslip->sms_sent_status !== Payslip::STATUS_SUCCESSFUL;
+        
+        // Check if email notifications are disabled
+        if ($employee->receive_email_notifications === false) {
+            $smsStatusNote = __('payslips.sms_not_attempted_email_disabled');
+            $payslip->update([
+                'email_sent_status' => Payslip::STATUS_DISABLED,
+                'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee'),
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote
+            ]);
+            return $result;
+        }
+        
+        // Check if email has bounced
+        if ($employee->email_bounced) {
+            $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+            $payslip->update([
+                'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
+                'email_bounced' => true,
+                'email_bounced_at' => now(),
+                'email_bounce_reason' => __('payslips.email_previously_bounced') . ': ' . ($employee->email_bounce_reason ?? 'Unknown'),
+                'failure_reason' => __('payslips.email_address_has_bounced_previously')
+            ]);
+            return $result;
+        }
+        
+        // Use alternative email if primary email is empty
+        $emailToUse = !empty($employee->email) ? $employee->email : $employee->alternative_email;
+        
+        if (empty($emailToUse)) {
+            $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+            $payslip->update([
+                'email_sent_status' => Payslip::STATUS_FAILED,
+                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                'sms_status_note' => $smsStatusNote,
+                'failure_reason' => __('payslips.no_valid_email_address')
+            ]);
+            return $result;
+        }
+        
+        // Send email if needed
+        if ($shouldResendEmail) {
+            try {
+                setSavedSmtpCredentials();
+                
+                Mail::to(cleanString($emailToUse))->send(new \App\Mail\SendPayslip($employee, $destination_file, $payslip->month, $payslip->year));
+                
+                // Email accepted by mail server
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                    'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                    'email_sent_at' => now(),
+                    'email_retry_count' => 0,
+                    'last_email_retry_at' => null,
+                    'failure_reason' => null // Clear failure reason on success
+                ]);
+                
+                $result['email_sent'] = true;
+                
+                \Illuminate\Support\Facades\Log::info('Payslip email resent successfully', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id,
+                    'matricule' => $employee->matricule,
+                    'forced' => $forceResendEmail
+                ]);
+            } catch (\Swift_TransportException $e) {
+                $result['errors']['email'] = $e->getMessage();
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_FAILED,
+                    'failure_reason' => __('payslips.email_error') . ': ' . $e->getMessage()
+                ]);
+                
+                \Illuminate\Support\Facades\Log::error('Payslip email resend failed (Swift_TransportException)', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id,
+                    'error' => $e->getMessage()
+                ]);
+            } catch (\Swift_RfcComplianceException $e) {
+                $result['errors']['email'] = $e->getMessage();
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_FAILED,
+                    'failure_reason' => __('payslips.email_rfc_error') . ': ' . $e->getMessage()
+                ]);
+                
+                \Illuminate\Support\Facades\Log::error('Payslip email resend failed (Swift_RfcComplianceException)', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id,
+                    'error' => $e->getMessage()
+                ]);
+            } catch (\Exception $e) {
+                $result['errors']['email'] = $e->getMessage();
+                $payslip->update([
+                    'email_sent_status' => Payslip::STATUS_FAILED,
+                    'failure_reason' => __('payslips.email_error') . ': ' . $e->getMessage()
+                ]);
+                
+                \Illuminate\Support\Facades\Log::error('Payslip email resend failed (Exception)', [
+                    'payslip_id' => $payslip->id,
+                    'employee_id' => $employee->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+        
+        // Send SMS if needed (only if email was sent successfully or if email sending was skipped)
+        // If email failed, skip SMS (unless forced)
+        if ($shouldResendSms) {
+            // Only send SMS if email was successful or if we're forcing SMS resend
+            if ($result['email_sent'] || !$shouldResendEmail || $forceResendSms) {
+                // Check SMS balance if not provided
+                if ($smsBalance === null) {
+                    $setting = \App\Models\Setting::first();
+                    if (!empty($setting->sms_provider)) {
+                        try {
+                            $sms_client = match ($setting->sms_provider) {
+                                'twilio' => new \App\Services\TwilioSMS($setting),
+                                'nexah' => new \App\Services\Nexah($setting),
+                                'aws_sns' => new \App\Services\AwsSnsSMS($setting),
+                                'orange_cm' => new \App\Services\OrangeCameroonSMS($setting),
+                                default => new \App\Services\Nexah($setting)
+                            };
+                            $smsBalance = $sms_client->getBalance();
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::warning('Failed to check SMS balance in unified resend', [
+                                'error' => $e->getMessage(),
+                                'employee_id' => $employee->id
+                            ]);
+                        }
+                    }
+                }
+                
+                // Add job context for SMS sending
+                $jobContext['job_type'] = 'resendPayslipUnified';
+                sendSmsAndUpdateRecord($employee, $payslip->month, $payslip, $smsBalance, $jobContext);
+                
+                $payslip->refresh();
+                if ($payslip->sms_sent_status === Payslip::STATUS_SUCCESSFUL) {
+                    $result['sms_sent'] = true;
+                }
+            } else {
+                // Email failed, skip SMS (unless forced)
+                if (!$forceResendSms) {
+                    $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                    $payslip->update([
+                        'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                        'sms_status_note' => $smsStatusNote
+                    ]);
+                }
+            }
+        }
+        
+        return $result;
+    }
+}
+if (!function_exists('isPdfEncrypted')) {
+    /**
+     * Detect whether a PDF file uses encryption (header/trailer /Encrypt reference).
+     */
+    function isPdfEncrypted(string $absolutePath): bool
+    {
+        if (!is_file($absolutePath) || !is_readable($absolutePath)) {
+            return false;
+        }
+
+        $size = filesize($absolutePath);
+        if ($size === false || $size === 0) {
+            return false;
+        }
+
+        $handle = fopen($absolutePath, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+
+        $head = fread($handle, (int) min($size, 65536));
+        $tail = '';
+
+        if ($size > 4096) {
+            fseek($handle, -4096, SEEK_END);
+            $tail = fread($handle, 4096) ?: '';
+        }
+
+        fclose($handle);
+
+        return (bool) preg_match('/\/Encrypt\b/', ($head ?: '') . $tail);
+    }
+}
+
+if (!function_exists('formatBytes')) {
+    /**
+     * Format bytes to human-readable format
+     *
+     * @param int $bytes
+     * @param int $precision
+     * @return string
+     */
+    function formatBytes($bytes, $precision = 2)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+        
+        return round($bytes, $precision) . ' ' . $units[$i];
+    }
+}
+
+if (!function_exists('getMonthName')) {
+    /**
+     * Convert numeric month (1-12) to English month name
+     * Handles both numeric and string inputs
+     *
+     * @param int|string $month Month number (1-12) or month name
+     * @return string English month name or original input if invalid
+     */
+    function getMonthName($month)
+    {
+        $monthMap = [
+            1 => 'January',
+            2 => 'February',
+            3 => 'March',
+            4 => 'April',
+            5 => 'May',
+            6 => 'June',
+            7 => 'July',
+            8 => 'August',
+            9 => 'September',
+            10 => 'October',
+            11 => 'November',
+            12 => 'December',
+        ];
+
+        $monthNum = (int) $month;
+        return $monthMap[$monthNum] ?? $month;
     }
 }

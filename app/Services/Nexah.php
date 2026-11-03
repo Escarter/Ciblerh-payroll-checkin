@@ -21,7 +21,7 @@ class Nexah extends SmsProvider
                 'password' => $this->password,
                 'senderid' => $this->senderid,
                 'sms' => $data['sms'],
-                'mobiles' => $data['mobiles'],
+                'mobiles' => self::cleanPhone($data['mobiles']),
                 'scheduletime' => isset($data['scheduletime']) ?? now(),
             ]);
         } catch (\Throwable $th) {

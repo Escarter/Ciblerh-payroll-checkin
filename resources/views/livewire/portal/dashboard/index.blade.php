@@ -17,7 +17,7 @@
                 <div class="row gap-1">
                     @hasanyrole('manager|admin')
                     <div class="col">
-                        <label for="company">{{__('employees.company')}}: </label>
+                        <label for="company">{{__('employees.company')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                         <select wire:model.live="selectedCompanyId" id="selectedCompanyId" class="form-select">
                             <option value="all" selected>{{__('companies.all_companies')}}</option>
                             @foreach ($companies as $company)
@@ -27,7 +27,7 @@
                     </div>
                     @endhasanyrole
                     <div class="col">
-                        <label for="selectedDepartmentId">{{__('employees.department')}}: </label>
+                        <label for="selectedDepartmentId">{{__('employees.department')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                         <select wire:model.live="selectedDepartmentId" id="selectedDepartmentId" class="form-select">
                             <option value="all" selected>{{__('dashboard.all_departments')}}</option>
                             @foreach ($departments as $department)
@@ -36,7 +36,7 @@
                         </select>
                     </div>
                     <div class="col">
-                        <label for="period">{{__('dashboard.period')}}: </label>
+                        <label for="period">{{__('dashboard.period')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                         <select wire:model.live="period" id="period" class="form-select  @error('period') is-invalid @enderror">
                             <option value="all_time" selected>{{__('dashboard.all_time')}}</option>
                             <option value="last_15_days">{{__('dashboard.last_15_days')}}</option>
@@ -855,7 +855,7 @@
                             </div>
                             @empty
                             <div class="text-center text-gray-800 mt-4">
-                                <h4 class="fs-4 fw-bold">{{__('common.no_data_available')}} &#128540;</h4>
+                                <h4 class="fs-4 fw-bold">{{__('common.no_data_available')}}</h4>
                                 <p>{{__('dashboard.no_department_performance_data')}}</p>
                             </div>
                             @endforelse
@@ -912,13 +912,13 @@
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover align-items-center">
-                                <thead>
+                                <thead class="">
                                     <tr>
-                                        <th class="border-bottom">{{__('employees.employee')}}</th>
-                                        <th class="border-bottom">{{__('departments.department')}}</th>
-                                        <th class="border-bottom">{{__('dashboard.checkins')}}</th>
-                                        <th class="border-bottom">{{__('dashboard.overtime_hours')}}</th>
-                                        <th class="border-bottom">{{__('dashboard.performance_score')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('departments.department')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.checkins')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.overtime_hours')}}</th>
+                                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.performance_score')}}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -957,7 +957,7 @@
                                     <tr>
                                         <td colspan="5" class="text-center">
                                             <div class="text-center text-gray-800 mt-2">
-                                                <h4 class="fs-4 fw-bold">{{__('common.no_data_available')}} &#128540;</h4>
+                                                <h4 class="fs-4 fw-bold">{{__('common.no_data_available')}}</h4>
                                                 <p>{{__('common.no_performance_data_found')}}</p>
                                             </div>
                                         </td>
@@ -981,15 +981,15 @@
             <div class="card mt-2">
                 <div class="table-responsive text-gray-700">
                     <table class="table table-hover align-items-center dataTable">
-                        <thead>
+                        <thead class="">
                             <tr>
-                                <th class="border-bottom">{{__('employees.employee')}}</th>
-                                <th class="border-bottom">{{__('dashboard.checkin_time')}}</th>
-                                <th class="border-bottom">{{__('dashboard.checkout_time')}}</th>
-                                <th class="border-bottom">{{__('dashboard.hours_worked')}}</th>
-                                <th class="border-bottom">{{__('dashboard.sup_approval')}}</th>
-                                <th class="border-bottom">{{__('dashboard.mgr_approval')}}</th>
-                                <th class="border-bottom">{{__('dashboard.date_created')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.checkin_time')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.checkout_time')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.hours_worked')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.sup_approval')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.mgr_approval')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.date_created')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1035,7 +1035,7 @@
                             <tr>
                                 <td colspan="9" class="text-center">
                                     <div class="text-center text-gray-800 mt-2">
-                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}} &#128540;</h4>
+                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}}</h4>
                                         <p>{{__('common.no_employee_found')}}</p>
                                     </div>
                                 </td>
@@ -1056,30 +1056,37 @@
             <div class="card mt-2">
                 <div class="table-responsive text-gray-700">
                     <table class="table employee-table table-hover align-items-center ">
-                        <thead>
+                        <thead class="">
                             <tr>
-                                <th class="border-bottom">{{__('employees.employee')}}</th>
-                                <th class="border-bottom">{{__('employees.action_type')}}</th>
-                                <th class="border-bottom">{{__('employees.action_performed')}}</th>
-                                <th class="border-bottom">{{__('dashboard.date_created')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.action_type')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.action_performed')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('dashboard.date_created')}}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($logs as $log)
+                            @php
+                                $userModel = $log->relationLoaded('user') ? $log->getRelation('user') : null;
+                                $userName = $userModel ? $userModel->name : ($log->getAttribute('user') ?? __('audit_logs.system'));
+                                $userEmail = $userModel ? $userModel->email : null;
+                            @endphp
                             <tr>
                                 <td>
                                     <a href="#" class="d-flex align-items-center">
-                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($log->user)}}</span></div>
-                                        <div class="d-block"><span class="fw-bold">{{$log->user}}</span>
-                                            <div class="small text-gray">{{$log->user}}</div>
+                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($userName)}}</span></div>
+                                        <div class="d-block"><span class="fw-bold">{{$userName}}</span>
+                                            @if($userEmail)
+                                            <div class="small text-gray">{{$userEmail}}</div>
+                                            @endif
                                         </div>
                                     </a>
                                 </td>
                                 <td>
-                                    <span class="fw-normal badge super-badge badge-lg bg-{{$log->style}} rounded">{{$log->translated_action_type}}</span>
+                                    <span class="badge badge-lg bg-{{$log->action_color}} text-white">{{$log->translated_action_type}}</span>
                                 </td>
                                 <td>
-                                    <span class="fs-normal">{!! $log->translated_action_perform !!}</span>
+                                    <span class="fs-normal">{!! \Illuminate\Support\Str::limit(strip_tags($log->translated_action_perform), 50) !!}</span>
                                 </td>
                                 <td>
                                     <span class="fw-normal">{{$log->created_at->locale(app()->getLocale())->isoFormat(__('dashboard.date_format_short'))}}</span>
@@ -1089,7 +1096,7 @@
                             <tr>
                                 <td colspan="7" class="text-center">
                                     <div class="text-center text-gray-800 mt-2">
-                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}} &#128540;</h4>
+                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}}</h4>
                                         <p>{{__('common.no_record_found')}}</p>
                                     </div>
                                 </td>
@@ -1612,7 +1619,7 @@
     .line-chart .ct-series-pending .ct-area {
         stroke: #ffc107 !important;
         /* pending - warning/yellow */
-        fill: rgba(255, 193, 7, 0.3) !important;
+        fill: rgba(255, 193, 7, 0.06) !important;
     }
 
     .line-chart .ct-series-failed .ct-line,
@@ -1620,7 +1627,7 @@
     .line-chart .ct-series-failed .ct-area {
         stroke: #dc3545 !important;
         /* failed - danger/red */
-        fill: rgba(220, 53, 69, 0.3) !important;
+        fill: rgba(220, 53, 69, 0.06) !important;
     }
 
     .line-chart .ct-series-success .ct-line,
@@ -1628,7 +1635,7 @@
     .line-chart .ct-series-success .ct-area {
         stroke: #28a745 !important;
         /* success - success/green */
-        fill: rgba(40, 167, 69, 0.3) !important;
+        fill: rgba(40, 167, 69, 0.18) !important;
     }
 
     .bar-chart .ct-series-pending .ct-bar {
@@ -1976,48 +1983,36 @@
                 const chartData = @json($chart_data);
                 console.log('Line chart data:', chartData);
 
+                const lineSeries = [
+                    {name: 'success', data: chartData.success || [], className: 'ct-series-success'},
+                    {name: 'failed', data: chartData.failed || [], className: 'ct-series-failed'},
+                    {name: 'pending', data: chartData.pending || [], className: 'ct-series-pending'},
+                    {name: 'sms_disabled', data: chartData.sms_disabled || [], className: 'ct-series-sms-disabled'},
+                    {name: 'encryption_issues', data: chartData.encryption_issues || [], className: 'ct-series-encryption-issues'}
+                ].filter(s => s.data.some(v => v > 0) || s.name === 'success');
+
                 chartInstances.payslipLine = new Chartist.Line('.line-chart', {
                     labels: chartData.periods || [],
-                    series: [{
-                            name: 'pending',
-                            data: chartData.pending || [],
-                            className: 'ct-series-pending'
-                        },
-                        {
-                            name: 'failed',
-                            data: chartData.failed || [],
-                            className: 'ct-series-failed'
-                        },
-                        {
-                            name: 'success',
-                            data: chartData.success || [],
-                            className: 'ct-series-success'
-                        },
-                        {
-                            name: 'sms_disabled',
-                            data: chartData.sms_disabled || [],
-                            className: 'ct-series-sms-disabled'
-                        },
-                        {
-                            name: 'encryption_issues',
-                            data: chartData.encryption_issues || [],
-                            className: 'ct-series-encryption-issues'
-                        }
-                    ]
+                    series: lineSeries
                 }, {
                     low: 0,
-                    scaleMinSpace: 10,
                     showArea: true,
                     fullWidth: true,
+                    lineSmooth: Chartist.Interpolation.monotoneCubic({fillHoles: false}),
+                    chartPadding: {top: 15, right: 25, bottom: 5, left: 5},
                     plugins: [
                         Chartist.plugins.tooltip()
                     ],
                     axisX: {
-                        position: 'end'
+                        position: 'end',
+                        showGrid: false
                     },
                     axisY: {
                         showGrid: true,
                         showLabel: true,
+                        onlyInteger: true,
+                        offset: 40,
+                        scaleMinSpace: 30
                     }
                 });
                 console.log('Line chart created:', chartInstances.payslipLine);

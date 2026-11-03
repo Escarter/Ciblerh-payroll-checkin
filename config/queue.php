@@ -82,8 +82,8 @@ return [
 
         // Email/SMS operations
         'emails' => [
-            'driver' => 'redis',
-            'connection' => 'default',
+            'driver' => 'database',
+            'table' => 'jobs',
             'queue' => 'emails',
             'retry_after' => 90,
             'after_commit' => false,

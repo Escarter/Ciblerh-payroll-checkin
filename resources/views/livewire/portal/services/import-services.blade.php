@@ -50,7 +50,7 @@
                                 </ol>
                              </div>
                              <div class="mb-4">
-                                 <label for="service_file" class="form-label">{{__('common.select_file')}}</label>
+                                 <label for="service_file" class="form-label">{{__('common.select_file')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                  <input wire:model="service_file" class="form-control @error('service_file') is-invalid @enderror" type="file" name="service_file" id="formFile" accept=".csv,.xlsx,.xls,.txt">
                                  @error('service_file')
                                  <div class="invalid-feedback">{{$message}}</div>
@@ -162,7 +162,7 @@
                                                          $value = $row['data'][$key] ?? '';
                                                          $parsedValue = $row['validation']['parsed_data'][$key] ?? $value;
                                                      @endphp
-                                                     <span title="{{ $parsedValue !== $value ? 'Original: ' . $value : '' }}">
+                                                     <span title="{{ $parsedValue !== $value ? __('common.original') . ': ' . $value : '' }}">
                                                          {{ Str::limit($parsedValue, 30) }}
                                                      </span>
                                                  </td>

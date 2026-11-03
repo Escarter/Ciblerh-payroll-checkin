@@ -16,6 +16,7 @@ beforeEach(function () {
     Storage::fake('splitted');
     Storage::fake('modified');
     Bus::fake();
+    \Spatie\Permission\Models\Role::findOrCreate('employee', 'web');
 });
 
 test('reconcile unmatched employees creates failed payslip records', function () {
@@ -31,7 +32,7 @@ test('reconcile unmatched employees creates failed payslip records', function ()
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -39,7 +40,7 @@ test('reconcile unmatched employees creates failed payslip records', function ()
     Payslip::factory()->create([
         'employee_id' => $user1->id,
         'send_payslip_process_id' => $process->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -70,7 +71,7 @@ test('reconcile unmatched employees handles empty matricule', function () {
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -96,7 +97,7 @@ test('reconcile unmatched employees updates process failure reason', function ()
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -110,6 +111,49 @@ test('reconcile unmatched employees updates process failure reason', function ()
     expect($process->failure_reason)->toContain('could not be matched');
 });
 
+test('reconcile relinks payslips with files from a previous process', function () {
+    $department = Department::factory()->create();
+    $user = User::factory()->create([
+        'department_id' => $department->id,
+        'matricule' => 'EMP001',
+    ]);
+
+    $oldProcess = SendPayslipProcess::factory()->create([
+        'department_id' => $department->id,
+        'month' => 'December',
+        'year' => 2025,
+    ]);
+
+    $newProcess = SendPayslipProcess::factory()->create([
+        'department_id' => $department->id,
+        'month' => 'December',
+        'year' => 2025,
+    ]);
+
+    Payslip::factory()->create([
+        'employee_id' => $user->id,
+        'send_payslip_process_id' => $oldProcess->id,
+        'month' => 'December',
+        'year' => 2025,
+        'file' => $oldProcess->destination_directory . '/EMP001_December.pdf',
+        'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+        'matricule' => 'EMP001',
+    ]);
+
+    $reflection = new \ReflectionClass(PayslipSendingPlan::class);
+    $method = $reflection->getMethod('reconcileUnmatchedEmployees');
+    $method->setAccessible(true);
+    $method->invoke(null, $newProcess);
+
+    $payslips = Payslip::where('employee_id', $user->id)
+        ->where('month', 'December')
+        ->where('year', 2025)
+        ->get();
+
+    expect($payslips)->toHaveCount(1);
+    expect($payslips->first()->send_payslip_process_id)->toBe($newProcess->id);
+});
+
 test('reconcile unmatched employees does not create duplicate records', function () {
     $department = Department::factory()->create();
     $user = User::factory()->create([
@@ -119,7 +163,7 @@ test('reconcile unmatched employees does not create duplicate records', function
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -127,7 +171,7 @@ test('reconcile unmatched employees does not create duplicate records', function
     Payslip::factory()->create([
         'employee_id' => $user->id,
         'send_payslip_process_id' => $process->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -149,7 +193,7 @@ test('reconcile unmatched employees handles department with no employees', funct
     
     $process = SendPayslipProcess::factory()->create([
         'department_id' => $department->id,
-        'month' => 'January',
+        'month' => 1,  // January
         'year' => 2024,
     ]);
     
@@ -161,6 +205,8 @@ test('reconcile unmatched employees handles department with no employees', funct
     // Should not throw error and process should remain unchanged
     expect($process->fresh())->not->toBeNull();
 });
+
+
 
 
 

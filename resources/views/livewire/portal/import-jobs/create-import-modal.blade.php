@@ -99,7 +99,7 @@
                                     {{$fieldConfig['label']}}
                                     @if($fieldConfig['required']) <span class="text-danger">*</span> @endif
                                 </label>
-                                <select wire:model.live="newImport.{{$fieldName}}" class="form-select @error(" newImport.{$fieldName}") is-invalid @enderror"
+                                <select wire:model.live="newImport.{{$fieldName}}" class="form-select @error("newImport.{$fieldName}") is-invalid @enderror"
                                     @if($fieldConfig['depends_on'] ?? false) wire:loading.attr="disabled" @endif>
                                     <option value="">{{__('common.select')}} {{$fieldConfig['label']}}</option>
                                     @if($fieldConfig['options'] === 'companies')
@@ -291,7 +291,7 @@
                                                 $value = $row['data'][$key] ?? '';
                                                 $parsedValue = $row['validation']['parsed_data'][$key] ?? $value;
                                                 @endphp
-                                                <span title="{{ $parsedValue !== $value ? 'Original: ' . $value : '' }}">
+                                                <span title="{{ $parsedValue !== $value ? __('common.original') . ': ' . $value : '' }}">
                                                     {{ Str::limit($parsedValue, 30) }}
                                                 </span>
                                             </td>

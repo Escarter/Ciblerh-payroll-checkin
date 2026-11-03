@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 
 class Profile extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithFileUploads;
     public $first_name;
     public $last_name;
@@ -23,6 +25,7 @@ class Profile extends Component
     public $preferred_language;
     public $professional_phone_number;
     public $personal_phone_number;
+    public $mobile_money_number;
     public $pdf_password;
     public $work_time;
     public $date_of_birth;
@@ -36,6 +39,7 @@ class Profile extends Component
         $this->position = auth()->user()->position;
         $this->professional_phone_number = auth()->user()->professional_phone_number;
         $this->personal_phone_number = auth()->user()->personal_phone_number;
+        $this->mobile_money_number = auth()->user()->mobile_money_number;
         $this->pdf_password = auth()->user()->pdf_password;
         $this->work_time = auth()->user()->work_start_time ." - ". auth()->user()->work_end_time;
         $this->preferred_language = auth()->user()->preferred_language;
@@ -44,28 +48,25 @@ class Profile extends Component
 
     public function updateProfile()
     {
-        if (!Gate::allows('profile-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('profile-update');
         auth()->user()->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
+            'mobile_money_number' => $this->mobile_money_number,
             'position' => $this->position,
             'matricule' => $this->matricule,
             'preferred_language' => $this->preferred_language,
-            'date_of_birth' => $this->date_of_birth,
+            'date_of_birth' => $this->date_of_birth ?: null,
         ]);
 
-        $this->refresh(__('Profile updated successfully!'));
+        $this->refresh(__('auth.profile_updated_successfully'));
     }
     public function saveSignature()
     {
-        if (!Gate::allows('profile-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('profile-update');
         if ($this->signature) {
             if(!empty(auth()->user()->signature_path)){
 
@@ -73,7 +74,7 @@ class Profile extends Component
             auth()->user()->update(['signature_path' => $this->signature->storePublicly('signatures', 'attachments')]);
         }
 
-        $this->refresh(__('Signature saved successfully!'));
+        $this->refresh(__('auth.signature_saved_successfully'));
     }
     public function passwordReset()
     {
@@ -87,7 +88,7 @@ class Profile extends Component
 
         $this->reset(['current_password','password','password_confirmation']);
 
-        $this->refresh(__('Password reseted successfully!'));
+        $this->refresh(__('auth.password_reseted_successfully'));
     }
     public function refresh($message)
     {

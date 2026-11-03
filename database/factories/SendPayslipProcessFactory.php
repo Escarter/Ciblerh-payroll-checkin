@@ -19,7 +19,7 @@ class SendPayslipProcessFactory extends Factory
             'user_id' => User::factory(),
             'company_id' => Company::factory(),
             'department_id' => Department::factory(),
-            'month' => $this->faker->monthName(), // or use specific month like 'January'
+            'month' => $this->faker->numberBetween(1, 12),
             'year' => now()->year,
             'destination_directory' => 'payslips/' . Str::uuid(),
             'status' => 'processing',

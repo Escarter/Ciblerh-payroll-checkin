@@ -4,19 +4,14 @@ namespace App\Imports;
 
 use App\Models\User;
 use App\Models\Company;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use Illuminate\Support\Carbon;
 use App\Events\EmployeeCreated;
 use App\Models\Department;
 use App\Models\Service;
-use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
-use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
@@ -24,7 +19,6 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use App\Rules\PhoneNumber;
-use App\Rules\ValidEmail;
 
 class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValidation, SkipsOnError, SkipsOnFailure, WithChunkReading
 {
@@ -33,9 +27,11 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     public $company;
     public $department; // Optional department context
     public $service; // Optional service context
+    public $user; // User model instance for role checking and author_id
     public $autoCreateEntities = false; // Whether to auto-create missing departments/services
     public $sendWelcomeEmails = false; // Whether to send welcome emails to imported employees
-    public $userId; // User ID for author_id field in background jobs
+    public $userId; // User ID for author_id field (kept for backward compatibility)
+    public $importJobId; // ImportJob context for welcome email tracking
 
     /**
      * @return int
@@ -54,14 +50,30 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
     }
 
 
-    public function __construct(Company $company, Department $department = null, Service $service = null, bool $autoCreateEntities = false, $userId = null, bool $sendWelcomeEmails = false)
+    public function __construct(Company $company, ?Department $department = null, ?Service $service = null, bool $autoCreateEntities = false, $user = null, bool $sendWelcomeEmails = false, ?int $importJobId = null)
     {
         $this->company = $company;
         $this->department = $department;
         $this->service = $service;
+        $this->user = $user; // User model instance, just like company/department/service
         $this->autoCreateEntities = $autoCreateEntities;
         $this->sendWelcomeEmails = $sendWelcomeEmails;
-        $this->userId = $userId;
+        $this->importJobId = $importJobId;
+        // Keep userId for backward compatibility (extract from user model if available)
+        $this->userId = $user ? $user->id : ($user instanceof \App\Models\User ? $user->id : null);
+        
+        // Log constructor to verify all context is being passed
+        \Log::info('EmployeeImport constructor called', [
+            'company_id' => $company->id ?? null,
+            'department_id' => $department ? ($department->id ?? 'no-id') : null,
+            'department_name' => $department ? ($department->name ?? 'no-name') : null,
+            'service_id' => $service ? ($service->id ?? 'no-id') : null,
+            'has_department' => !is_null($department),
+            'has_service' => !is_null($service),
+            'user_id' => $user ? $user->id : null,
+            'user_email' => $user ? $user->email : null,
+            'has_user' => !is_null($user)
+        ]);
     }
 
     /**
@@ -86,10 +98,23 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             throw new \Exception('Professional phone number is required');
         }
         
+        // Log original phone number for debugging
+        \Log::debug('Phone number validation', [
+            'original' => $row[3] ?? null,
+            'cleaned' => $phoneNumber,
+            'starts_with_plus' => str_starts_with($phoneNumber, '+')
+        ]);
+        
         $phoneValidation = validatePhoneNumber($phoneNumber);
         if (!$phoneValidation['valid']) {
             throw new \Exception('Professional phone number validation failed: ' . $phoneValidation['error']);
         }
+        
+        // Log formatted result
+        \Log::debug('Phone number formatted', [
+            'original' => $phoneNumber,
+            'formatted' => $phoneValidation['formatted']
+        ]);
 
         // Validate personal phone number if provided
         $personalPhoneNumber = null;
@@ -115,21 +140,34 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             return null;
         }
 
-        // Handle department lookup (prioritize context over CSV)
+        // Handle department lookup (CSV priority with context fallback)
         $departmentResult = $this->findDepartment($row[9] ?? '');
         if (!$departmentResult['found']) {
             throw new \Exception('Department validation failed: ' . $departmentResult['error']);
         }
 
-        // Handle service lookup (prioritize context over CSV)
+        // Handle service lookup (CSV priority with context fallback)
         $serviceResult = $this->findService($row[10] ?? '', $departmentResult['department']->id);
-        if (!$serviceResult['found']) {
+        // Service is optional when no context service is provided
+        if (!$serviceResult['found'] && $this->service) {
             throw new \Exception('Service validation failed: ' . $serviceResult['error']);
         }
 
+        // Validate that at least one of first_name or last_name is present
+        $firstName = trim($row[0] ?? '');
+        $lastName = trim($row[1] ?? '');
+        
+        if (empty($firstName) && empty($lastName)) {
+            throw new \Exception(__('employees.at_least_one_name_required'));
+        }
+
+        // Use 'NA' if one is missing (but at least one exists)
+        $firstName = !empty($firstName) ? $firstName : 'NA';
+        $lastName = !empty($lastName) ? $lastName : 'NA';
+
                 $user = User::create([
-                    'first_name' => $row[0],
-                    'last_name' => $row[1],
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
                     'email' => $row[2],
                     'professional_phone_number' => $phoneValidation['formatted'],
                     'personal_phone_number' => $personalPhoneNumber,
@@ -140,7 +178,7 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     'contract_end' => $this->transformDate($row[8]),
                     'company_id' => $this->company->id,
                     'department_id' => $departmentResult['department']->id,
-                    'service_id' => $serviceResult['service']->id,
+                    'service_id' => $serviceResult['found'] ? $serviceResult['service']->id : null,
                     'status' => $row[12],
                     'password' => bcrypt($row[13]),
                     'remaining_leave_days' => $row[14],
@@ -151,12 +189,46 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
                     'date_of_birth' => $this->transformDate($row[22] ?? null),
                     'work_start_time' => $workStartTime,
                     'work_end_time' => $workEndTime,
-                    'author_id' => $this->userId ?? auth()->user()->id,
+                    'author_id' => $this->user ? $this->user->id : ($this->userId ?? (auth()->check() ? auth()->user()->id : null)),
                     'pdf_password' => Str::random(10),
                 ]);
 
-                // Assign employee role by default, plus the specific role from CSV (if different)
+                // Assign roles based on user permissions and CSV data
                 $csvRole = strtolower($row[11]);
+                // Use user model instance passed as context (just like company/department/service)
+                $currentUser = $this->user;
+                
+                // Fallback to auth if user not provided (for backward compatibility)
+                if (!$currentUser && auth()->check()) {
+                    $currentUser = auth()->user();
+                }
+                
+                // Get user role - use the user model instance passed as context
+                if ($currentUser && method_exists($currentUser, 'getRoleNames')) {
+                    $currentUserRole = $currentUser->getRoleNames()->first() ?? 'employee';
+                } else {
+                    // Default to 'employee' role if no user found
+                    $currentUserRole = 'employee';
+                    if (!$currentUser) {
+                        \Log::debug('No user available for role assignment, defaulting to employee', [
+                            'has_user_context' => !is_null($this->user),
+                            'auth_check' => auth()->check()
+                        ]);
+                    }
+                }
+                $allowedRoles = match ($currentUserRole) {
+                    'admin' => ['admin', 'manager', 'supervisor', 'employee'],
+                    'manager' => ['employee', 'supervisor'],
+                    'supervisor' => ['employee'],
+                    default => ['employee'],
+                };
+
+                // Validate that the role from CSV is allowed for the current user
+                if (!in_array($csvRole, $allowedRoles)) {
+                    throw new \Exception("You don't have permission to assign the role: {$row[11]}");
+                }
+
+                // Assign roles
                 if ($csvRole === 'employee') {
                     $user->assignRole('employee');
                 } else {
@@ -165,18 +237,56 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
 
                 // Only fire EmployeeCreated event if welcome emails should be sent
                 if ($this->sendWelcomeEmails) {
-                    event(new EmployeeCreated($user, $row[13]));
+                    event(new EmployeeCreated($user, $row[13], $this->importJobId));
                 }
 
                 return $user;
     }
 
     /**
-     * Find department by ID or name
+     * Find department by ID or name, with CSV priority but context fallback
      */
     private function findDepartment($departmentValue): array
     {
-        // If we have department context, use it
+        // If department value provided in CSV, try to use it first
+        if (!empty($departmentValue)) {
+            // Try to find by ID first (if it's numeric)
+            if (is_numeric($departmentValue)) {
+                $department = Department::where('id', $departmentValue)
+                    ->where('company_id', $this->company->id)
+                    ->first();
+
+                if ($department) {
+                    return [
+                        'found' => true,
+                        'department' => $department,
+                        'error' => null
+                    ];
+                }
+            }
+
+            // Try to find by name (using the helper function)
+            $result = findOrCreateDepartment($departmentValue, $this->company->id, $this->autoCreateEntities);
+
+            // If found, return it
+            if ($result['found']) {
+                return $result;
+            }
+
+            // If not found, fall back to context if available (don't throw error)
+            if ($this->department && $this->department->id) {
+                return [
+                    'found' => true,
+                    'department' => $this->department,
+                    'error' => null
+                ];
+            }
+
+            // If not found and no context fallback, return the error from helper
+            return $result;
+        }
+
+        // If no department value in CSV, use context if available
         if ($this->department && $this->department->id) {
             return [
                 'found' => true,
@@ -185,42 +295,58 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             ];
         }
 
-        // If no department value provided and no context, this is an error
-        if (empty($departmentValue)) {
-            return [
-                'found' => false,
-                'department' => null,
-                'error' => __('employees.department_required')
-            ];
-        }
-
-        // Try to find by ID first (if it's numeric)
-        if (is_numeric($departmentValue)) {
-            $department = Department::where('id', $departmentValue)
-                ->where('company_id', $this->company->id)
-                ->first();
-
-            if ($department) {
-                return [
-                    'found' => true,
-                    'department' => $department,
-                    'error' => null
-                ];
-            }
-        }
-
-        // Try to find by name (using the helper function)
-        $result = findOrCreateDepartment($departmentValue, $this->company->id, $this->autoCreateEntities);
-
-        return $result;
+        // If no CSV value and no context, this is an error
+        return [
+            'found' => false,
+            'department' => null,
+            'error' => __('employees.department_required')
+        ];
     }
 
     /**
-     * Find service by ID or name
+     * Find service by ID or name, with CSV priority but context fallback
      */
     private function findService($serviceValue, $departmentId): array
     {
-        // If we have service context, use it
+        // If service value provided in CSV, try to use it first
+        if (!empty($serviceValue)) {
+            // Try to find by ID first (if it's numeric)
+            if (is_numeric($serviceValue)) {
+                $service = Service::where('id', $serviceValue)
+                    ->where('department_id', $departmentId)
+                    ->first();
+
+                if ($service) {
+                    return [
+                        'found' => true,
+                        'service' => $service,
+                        'error' => null
+                    ];
+                }
+            }
+
+            // Try to find by name (using the helper function)
+            $result = findOrCreateService($serviceValue, $departmentId, $this->company->id, $this->autoCreateEntities);
+
+            // If found, return it
+            if ($result['found']) {
+                return $result;
+            }
+
+            // If not found, fall back to context if available (don't throw error)
+            if ($this->service && $this->service->id) {
+                return [
+                    'found' => true,
+                    'service' => $this->service,
+                    'error' => null
+                ];
+            }
+
+            // If not found and no context fallback, return the error from helper
+            return $result;
+        }
+
+        // If no service value in CSV, use context if available
         if ($this->service && $this->service->id) {
             return [
                 'found' => true,
@@ -229,34 +355,12 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             ];
         }
 
-        // If no service value provided and no context, this is an error
-        if (empty($serviceValue)) {
-            return [
-                'found' => false,
-                'service' => null,
-                'error' => __('employees.service_required')
-            ];
-        }
-
-        // Try to find by ID first (if it's numeric)
-        if (is_numeric($serviceValue)) {
-            $service = Service::where('id', $serviceValue)
-                ->where('department_id', $departmentId)
-                ->first();
-
-            if ($service) {
-                return [
-                    'found' => true,
-                    'service' => $service,
-                    'error' => null
-                ];
-            }
-        }
-
-        // Try to find by name (using the helper function)
-        $result = findOrCreateService($serviceValue, $departmentId, $this->company->id, $this->autoCreateEntities);
-
-        return $result;
+        // If no CSV value and no context, this is an error
+        return [
+            'found' => false,
+            'service' => null,
+            'error' => __('employees.service_required')
+        ];
     }
 
     /**
@@ -324,20 +428,41 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
 
     public function rules(): array
     {
+        // Check if department context is available - use fresh check each time
+        $hasDepartmentContext = false;
+        if ($this->department) {
+            if (is_object($this->department)) {
+                $hasDepartmentContext = isset($this->department->id) && !empty($this->department->id);
+            } elseif (is_numeric($this->department)) {
+                $hasDepartmentContext = true;
+            }
+        }
+        
+        // Log for debugging
+        \Log::debug('EmployeeImport rules() called', [
+            'has_department' => !empty($this->department),
+            'department_type' => gettype($this->department),
+            'department_id' => is_object($this->department) ? ($this->department->id ?? 'no-id') : 'not-object',
+            'has_department_context' => $hasDepartmentContext,
+            'department_rule' => $hasDepartmentContext ? 'nullable' : 'required'
+        ]);
+        
         return [
+            // Mandatory fields only
             '0' => 'required|string', // first_name
             '1' => 'required|string', // last_name
-            '2' => ['required', 'email', 'unique:users,email'], // email - using built-in email validation
+            '2' => ['required', 'email', 'unique:users,email'], // email
             '3' => ['required', new PhoneNumber()], // professional_phone_number
             '4' => 'required', // matricule (can be string or numeric)
-            '5' => 'required|string', // position
-            '6' => 'required|numeric', // net_salary
-            '7' => 'required|string', // salary_grade
-            '9' => 'required', // department (can be ID or name)
-            '10' => 'required', // service (can be ID or name)
+            
+            // Optional fields
+            '5' => 'nullable|string', // position
+            '6' => 'nullable|numeric', // net_salary
+            '7' => 'nullable|string', // salary_grade
+            '9' => 'nullable', // department (optional, can use context if provided)
+            '10' => 'nullable', // service - always optional (can use context if provided)
             '11' => function ($attribute, $value, $onFailure) {
-                $array = ['employee', 'supervisor', 'manager'];
-                if (!in_array(strtolower($value), $array)) {
+                if (!empty($value) && !in_array(strtolower($value), ['employee', 'supervisor', 'manager'])) {
                     $onFailure(__('employees.role_invalid'));
                 }
             },
@@ -374,14 +499,14 @@ class EmployeeImport implements ToModel, WithStartRow, SkipsEmptyRows, WithValid
             '12' => __('common.status'),
             '13' => __('common.password'),
             '14' => __('employees.remaining_leave_days'),
-            '15' => __('employees.monthly_leave_allocation'),
+            '15' => __('common.monthly_leave_allocation'),
             '16' => __('employees.receive_sms_notifications'),
             '17' => __('common.personal_phone_number'),
-            '18' => __('employees.work_start_time'),
-            '19' => __('employees.work_end_time'),
+            '18' => __('common.work_start_time'),
+            '19' => __('common.work_end_time'),
             '20' => __('employees.receive_email_notifications'),
             '21' => __('employees.alternative_email'),
-            '22' => __('employees.date_of_birth'),
+            '22' => __('common.date_of_birth'),
         ];
     }
 }

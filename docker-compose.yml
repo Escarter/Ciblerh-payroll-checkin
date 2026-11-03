@@ -130,7 +130,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["php", "artisan", "queue:work", "--queue=emails", "--sleep=3", "--tries=3", "--max-jobs=1000", "--timeout=120"]
+    command: ["php", "artisan", "queue:work", "--queue=emails", "--sleep=3", "--tries=3", "--max-jobs=1000", "--timeout=360"]
     restart: unless-stopped
     environment:
       - APP_ENV=${APP_ENV:-local}

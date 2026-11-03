@@ -33,7 +33,7 @@
             </div>
             <div class="mb-2 mx-3">
                 @can('ticking-export')
-                <div class="mx-2" wire:loading.remove>
+                <div class="mx-2" wire:loading.remove wire:target="export">
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center {{count($checklogs) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -75,7 +75,7 @@
                                     <h2 class="h5">{{__('employees.total_checkins')}}</h2>
                                     <h3 class="fw-extrabold mb-1">{{numberFormat($checklogs_count)}}</h3>
                                 </a>
-                                
+
                             </div>
                         </div>
                     </div>
@@ -165,14 +165,36 @@
     <div class='pt-1'>
     </div>
     @endcan
-    <div class="row py-3">
-        <div class="col-md-3">
-            <label for="search">{{__('common.search')}}: </label>
+    <div class="row py-3 g-3 filter-row">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="search">{{__('common.search')}}:</label>
             <input wire:model.live="query" id="checklogs-search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
-            <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
+            <p class="badge badge-info mt-1" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
-        <div class="col-md-3">
-            <label for="orderBy">{{__('common.order_by')}}: </label>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="filterEmployeeName">{{__('employees.employee')}}:</label>
+            <input wire:model.live="filterEmployeeName" id="filterEmployeeName" type="text" placeholder="Name..." class="form-control">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="filterEmployeeId">{{__('employees.employee')}} {{__('common.select')}}:</label>
+            <select wire:model.live="filterEmployeeId" id="filterEmployeeId" class="form-select">
+                <option value="">{{__('common.all')}}</option>
+                @foreach($filterEmployees as $emp)
+                <option value="{{ $emp->user_id }}">{{ $emp->user_full_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="filterDepartmentId">{{__('departments.department')}}:</label>
+            <select wire:model.live="filterDepartmentId" id="filterDepartmentId" class="form-select">
+                <option value="">{{__('common.all')}}</option>
+                @foreach($filterDepartments as $dept)
+                <option value="{{ $dept->department_id }}">{{ $dept->department_name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="orderBy">{{__('common.order_by')}}:</label>
             <select wire:model.live="orderBy" id="checklogs-order-by" class="form-select">
                 <option value="company_name">{{__('companies.company')}}</option>
                 <option value="department_name">{{__('departments.department')}}</option>
@@ -184,28 +206,57 @@
                 <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
-
-        <div class="col-md-3">
-            <label for="direction">{{__('common.order_direction')}}: </label>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="direction">{{__('common.order_direction')}}:</label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>
             </select>
         </div>
+    </div>
+    
+    <!-- Filter Summary Section -->
+    @if($filterEmployeeName || $filterEmployeeId || $filterDepartmentId)
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <strong>{{__('common.active_filters')}}:</strong>
+        @if($filterEmployeeName)
+        <span class="badge bg-primary me-2">Name: {{ $filterEmployeeName }}</span>
+        @endif
+        @if($filterEmployeeId)
+        <span class="badge bg-primary me-2">Employee: {{ $filterEmployees->where('user_id', $filterEmployeeId)->first()?->user_full_name }}</span>
+        @endif
+        @if($filterDepartmentId)
+        <span class="badge bg-primary me-2">Department: {{ $filterDepartments->where('department_id', $filterDepartmentId)->first()?->department_name }}</span>
+        @endif
+        <button type="button" class="btn-close" wire:click="$set('filterEmployeeName', ''); $set('filterEmployeeId', ''); $set('filterDepartmentId', '');"></button>
+    </div>
+    @endif
 
-        <div class="col-md-3">
-            <label for="perPage">{{__('common.items_per_page')}}: </label>
-            <select wire:model.live="perPage" id="checklogs-per-page" class="form-select">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
-                <option value="25">25</option>
-            </select>
+    <!-- View Mode Toggle -->
+    <div class="d-flex justify-content-end align-items-center gap-2 mb-3">
+        <small class="text-muted fw-bold">{{__('common.view')}}</small>
+        <div class="btn-group" role="group">
+            <button type="button" 
+                class="btn btn-sm {{ $viewMode === 'card' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="$set('viewMode', 'card')"
+                title="Card View">
+                <svg class="icon icon-xs" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 4a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"/><path d="M7 14a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H8a1 1 0 01-1-1v-2z"/><path d="M13 4a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/><path d="M17 14a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z"/><path d="M3 14a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z"/><path d="M13 14a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1h-2a1 1 0 01-1-1v-2z"/>
+                </svg>
+            </button>
+            <button type="button" 
+                class="btn btn-sm {{ $viewMode === 'table' ? 'btn-primary' : 'btn-outline-primary' }}"
+                wire:click="$set('viewMode', 'table')"
+                title="Table View">
+                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+            </button>
         </div>
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->can('ticking-bulkdelete') && auth()->user()->can('ticking-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -234,30 +285,32 @@
         <!-- Bulk Actions (Left) -->
         <div class="d-flex align-items-center gap-2">
             @if($activeTab === 'active')
-                <!-- Selection Controls -->
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        {{__('common.select')}}
-                        @if(count($selectedChecklogs) > 0)
-                            <span class="badge bg-primary text-white ms-1">{{ count($selectedChecklogs) }}</span>
-                        @endif
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllChecklogs" href="#">{{__('checklog.select_all_checklogs')}}</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedChecklogs', [])" href="#">{{__('absences.deselect_all')}}</a></li>
-                    </ul>
-                </div>
+            <!-- Selection Controls -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    {{__('common.select')}}
+                    @if(count($selectedChecklogs) > 0)
+                    <span class="badge bg-primary text-white ms-1">{{ count($selectedChecklogs) }}</span>
+                    @endif
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('checklog.select_all_checklogs')}}</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" wire:click.prevent="$set('selectedChecklogs', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                </ul>
+            </div>
 
-                <!-- Bulk Actions when items are selected -->
-                @if(!$bulkDisabled && count($selectedChecklogs) > 0)
+            <!-- Bulk Actions when items are selected -->
+            @if(!$bulkDisabled && count($selectedChecklogs) > 0)
             <div class="d-flex align-items-center gap-2">
                 <!-- Bulk Approval Actions -->
-                @can('ticking-update')
+                @can('ticking-bulkapproval')
                 <button wire:click.prevent="initDataBulk('approve')"
                     data-bs-toggle="modal"
                     data-bs-target="#EditBulkChecklogModal"
@@ -268,7 +321,8 @@
                     {{__('common.bulk_approve')}}
                     <span class="badge bg-light text-dark ms-1">{{ count($selectedChecklogs) }}</span>
                 </button>
-
+                @endcan
+                @can('ticking-bulkrejection')
                 <button wire:click.prevent="initDataBulk('reject')"
                     data-bs-toggle="modal"
                     data-bs-target="#EditBulkChecklogModal"
@@ -282,7 +336,7 @@
                 @endcan
 
                 <!-- Soft Delete Actions -->
-                @can('ticking-delete')
+                @can('ticking-bulkdelete')
                 <button type="button"
                     class="btn btn-sm btn-outline-danger d-flex align-items-center"
                     title="{{ __('common.move_to_trash') }}"
@@ -307,29 +361,31 @@
             </div>
             @endif
             @else
-                <!-- Selection Controls for Deleted Tab -->
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
-                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        {{__('common.select')}}
-                        @if(count($selectedChecklogsForDelete) > 0)
-                            <span class="badge bg-primary text-white ms-1">{{ count($selectedChecklogsForDelete) }}</span>
-                        @endif
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                        <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedChecklogs" href="#">{{__('checklog.select_all_deleted_checklogs')}}</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" wire:click.prevent="$set('selectedChecklogsForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
-                    </ul>
-                </div>
+            <!-- Selection Controls for Deleted Tab -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                    <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    {{__('common.select')}}
+                    @if(count($selectedChecklogsForDelete) > 0)
+                    <span class="badge bg-primary text-white ms-1">{{ count($selectedChecklogsForDelete) }}</span>
+                    @endif
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('checklog.select_all_deleted_checklogs')}}</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" wire:click.prevent="$set('selectedChecklogsForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
+                </ul>
+            </div>
 
-                <!-- Deleted Tab Bulk Actions -->
-                @if(count($selectedChecklogsForDelete) > 0)
+            <!-- Deleted Tab Bulk Actions -->
+            @if(count($selectedChecklogsForDelete) > 0)
             <div class="d-flex align-items-center gap-2">
-                @can('ticking-delete')
+                @can('ticking-bulkrestore')
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('common.restore_selected') }}">
@@ -365,13 +421,26 @@
             @endif
         </div>
     </div>
+    @endif
 
+    {{-- Card View --}}
+    @if($viewMode === 'card')
+    <div class="mb-4">
+        @include('livewire.portal.checklogs.card-view')
+    </div>
+    <div class='py-3 px-3'>
+        {{ $checklogs->links() }}
+    </div>
+    @endif
+
+    {{-- Table View --}}
+    @if($viewMode === 'table')
     <div class="card">
         <div class="table-responsive pb-4 text-gray-700">
             <table class="table table-hover table-bordered align-items-center dataTable">
-                <thead>
+                <thead class="">
                     <tr>
-                        <th class="border-bottom">
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 @if($activeTab === 'active')
                                 <!-- For active tab, use existing bulk approval selection -->
@@ -380,18 +449,17 @@
                                 <!-- For deleted tab, use soft delete selection -->
                                 <input class="form-check-input p-2"
                                     wire:model.live="selectAllForDelete"
-                                    type="checkbox"
-                                    wire:click="toggleSelectAllForDelete">
+                                    type="checkbox">
                                 @endif
                             </div>
                         </th>
-                        <th class="border-bottom">{{__('employees.employee')}}</th>
-                        <th class="border-bottom">{{__('employees.check_period')}}</th>
-                        <th class="border-bottom">{{__('common.sup_approval')}}</th>
-                        <th class="border-bottom">{{__('common.mgr_approval')}}</th>
-                        <th class="border-bottom">{{__('common.created_date')}}</th>
-                        @canany('ticking-update','ticking-delete')
-                        <th class="border-bottom">{{__('common.action')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.check_period')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sup_approval')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.mgr_approval')}}</th>
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
+                        @canany(['ticking-update','ticking-delete'])
+                        <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         @endcanany
                     </tr>
                 </thead>
@@ -406,9 +474,9 @@
                                 <input class="form-check-input" wire:model.live="selectedChecklogs" value="{{$checklog->id}}" type="checkbox">
                                 @else
                                 <!-- For deleted tab, use soft delete selection -->
-                                <input class="form-check-input"
+                                <input wire:key="sel-{{ $checklog->id }}-{{ in_array($checklog->id, $selectedChecklogsForDelete) ? 1 : 0 }}" class="form-check-input"
                                     type="checkbox"
-                                    wire:click="toggleChecklogSelectionForDelete({{ $checklog->id }})"
+                                    wire:click="toggleSelection({{ $checklog->id }})"
                                     {{ in_array($checklog->id, $selectedChecklogsForDelete) ? 'checked' : '' }}>
                                 @endif
                             </div>
@@ -456,7 +524,7 @@
                         <td>
                             <span class="fw-normal">{{$checklog->created_at->format('Y-m-d')}}</span>
                         </td>
-                        @canany('ticking-update','ticking-delete')
+                        @canany(['ticking-update','ticking-delete'])
                         <td>
                             @if($activeTab === 'active')
                             @can('ticking-update')
@@ -495,7 +563,7 @@
                     <tr>
                         <td colspan="9" class="text-center">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                                 <p>{{__('common.no_employee_found')}}</p>
                             </div>
                         </td>
@@ -508,4 +576,5 @@
             </div>
         </div>
     </div>
+    @endif
 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Employee\Overtime;
 
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Livewire\Component;
 use App\Models\Overtime;
@@ -16,7 +17,9 @@ use App\Rules\Overtime\CheckOverlapWorkingHoursRule;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
     public bool $selectAll = false;
@@ -33,6 +36,9 @@ class Index extends Component
     //Create, Edit, Delete, View Post props
     public ?string $start_time = null;
     public ?string $end_time = null;
+    public ?float $quick_hours = null;
+    public ?string $quick_date = null;
+    public $use_quick_add = false;
     public $reason ;
     public ?int $overtime_id = null;
     public ?Overtime $overtime = null;
@@ -64,34 +70,50 @@ class Index extends Component
     }
     public function store()
     {
-        if (!Gate::allows('overtime-create')) {
-            return abort(401);
+        $this->authorizeAbility('overtime-create');
+        $useQuick = (bool) $this->use_quick_add;
+        if ($useQuick) {
+            $this->validate([
+                'quick_hours' => 'required|numeric|min:0.5|max:24',
+                'quick_date' => 'required|date',
+                'reason' => 'required',
+            ]);
+        } else {
+            $this->validate([
+                'start_time' => ['required', 'date'],
+                'end_time' => ['required', 'date', 'after:start_time'],
+                'reason' => 'required',
+            ]);
         }
-        $this->validate([
-            'start_time' => ['required', 'date'],
-            'end_time' => ['required', 'date', 'after:start_time'],
-            'reason' => 'required'
-        ]);
 
-        // Validate that user has required relationships
         if (empty($this->company)) {
             $this->addError('company', __('employees.not_associated_with_company'));
             return;
         }
-
         if (empty($this->department)) {
             $this->addError('department', __('employees.not_associated_with_department'));
             return;
         }
 
+        if ($useQuick) {
+            $workEnd = Carbon::parse($this->quick_date . ' ' . auth()->user()->work_end_time);
+            $startTime = $workEnd->copy();
+            $endTime = $workEnd->copy()->addMinutes((int) round($this->quick_hours * 60));
+            $minutesWorked = (int) round($this->quick_hours * 60);
+        } else {
+            $startTime = Carbon::parse($this->start_time);
+            $endTime = Carbon::parse($this->end_time);
+            $minutesWorked = $startTime->diffInMinutes($endTime);
+        }
+
         auth()->user()->overtimes()->create([
-            'start_time' => $this->start_time,
-            'end_time' => $this->end_time,
-            'minutes_worked' => Carbon::parse($this->start_time)->diffInMinutes(Carbon::parse($this->end_time)),
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'minutes_worked' => $minutesWorked,
             'reason' => $this->reason,
             'company_id' => $this->company->id,
             'department_id' => $this->department->id,
-            'author_id' => auth()->user()->author_id,
+            'author_id' => auth()->user()->author_id ?? null,
         ]);
 
         $this->clearFields();
@@ -99,9 +121,7 @@ class Index extends Component
     }
     public function update()
     {
-        if (!Gate::allows('overtime-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-update');
         $this->validate([
             'start_time' => ['required', 'date'],
             'end_time' => ['required', 'date', 'after:start_time', new CheckEndTimeRule, new CheckStartAndEndTimeAreSameDayRule($this->start_time)],
@@ -122,9 +142,7 @@ class Index extends Component
 
     public function delete()
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-delete');
 
         if (!empty($this->overtime)) {
             $this->overtime->delete();
@@ -139,14 +157,45 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-bulkdelete');
 
         if (!empty($this->selected)) {
+            $overtimes = Overtime::whereIn('id', $this->selected)
+                ->where('user_id', auth()->user()->id)
+                ->get();
+
+            $affectedRecords = $overtimes->map(function ($overtime) {
+                return [
+                    'id' => $overtime->id,
+                    'date' => $overtime->overtime_date,
+                    'approval_status' => $overtime->approval_status,
+                ];
+            })->toArray();
+
             Overtime::whereIn('id', $this->selected)
                 ->where('user_id', auth()->user()->id)
                 ->delete();
+
+            if ($overtimes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'overtime_bulk_deleted',
+                    'web',
+                    'bulk_deleted_overtimes',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_deleted_overtimes',
+                        'translation_params' => ['count' => $overtimes->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $overtimes->count(),
+                        'affected_ids' => $overtimes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selected = [];
             $this->selectAll = false;
@@ -160,9 +209,7 @@ class Index extends Component
 
     public function restore($overtimeId)
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-restore');
 
         $overtime = Overtime::withTrashed()->findOrFail($overtimeId);
 
@@ -179,10 +226,18 @@ class Index extends Component
         $this->updateCounts();
     }
 
-    public function forceDelete($overtimeId)
+    public function forceDelete($overtimeId = null)
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
+        $this->authorizeAbility('overtime-delete');
+
+        // If no overtimeId provided, try to get it from selectedOvertimesForDelete
+        if (!$overtimeId) {
+            if (!empty($this->selectedOvertimesForDelete) && is_array($this->selectedOvertimesForDelete)) {
+                $overtimeId = $this->selectedOvertimesForDelete[0] ?? null;
+            } else {
+                $this->showToast(__('employees.no_overtime_selected'), 'danger');
+                return;
+            }
         }
 
         $overtime = Overtime::withTrashed()->findOrFail($overtimeId);
@@ -194,6 +249,11 @@ class Index extends Component
 
         $overtime->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($overtimeId, $this->selectedOvertimesForDelete ?? [])) {
+            $this->selectedOvertimesForDelete = array_diff($this->selectedOvertimesForDelete, [$overtimeId]);
+        }
+
         $this->closeModalAndFlashMessage(__('employees.overtime_permanently_deleted'), 'ForceDeleteModal');
 
         // Update counts
@@ -202,15 +262,47 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-bulkrestore');
 
         if (!empty($this->selectedOvertimesForDelete)) {
+            $overtimes = Overtime::withTrashed()
+                ->whereIn('id', $this->selectedOvertimesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $overtimes->map(function ($overtime) {
+                return [
+                    'id' => $overtime->id,
+                    'date' => $overtime->overtime_date,
+                    'approval_status' => $overtime->approval_status,
+                ];
+            })->toArray();
+
             Overtime::withTrashed()
                 ->whereIn('id', $this->selectedOvertimesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own overtimes
+                ->where('user_id', auth()->id())
                 ->restore();
+
+            if ($overtimes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'overtime_bulk_restored',
+                    'web',
+                    'bulk_restored_overtimes',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_overtimes',
+                        'translation_params' => ['count' => $overtimes->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $overtimes->count(),
+                        'affected_ids' => $overtimes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedOvertimesForDelete = [];
 
@@ -223,15 +315,47 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-delete');
 
         if (!empty($this->selectedOvertimesForDelete)) {
+            $overtimes = Overtime::withTrashed()
+                ->whereIn('id', $this->selectedOvertimesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $overtimes->map(function ($overtime) {
+                return [
+                    'id' => $overtime->id,
+                    'date' => $overtime->overtime_date,
+                    'approval_status' => $overtime->approval_status,
+                ];
+            })->toArray();
+
             Overtime::withTrashed()
                 ->whereIn('id', $this->selectedOvertimesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own overtimes
+                ->where('user_id', auth()->id())
                 ->forceDelete();
+
+            if ($overtimes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'overtime_bulk_force_deleted',
+                    'web',
+                    'bulk_force_deleted_overtimes',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_overtimes',
+                        'translation_params' => ['count' => $overtimes->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $overtimes->count(),
+                        'affected_ids' => $overtimes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedOvertimesForDelete = [];
 
@@ -242,61 +366,10 @@ class Index extends Component
         }
     }
 
-    //Toggle the $selectAll on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selected = $this->getOvertimes()->pluck('id')->toArray();
-        } else {
-            $this->selected = [];
-        }
-    }
-
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedOvertimesForDelete = [];
-        $this->selectAllForDelete = false;
-    }
-
-    public function toggleSelectAllForDelete()
-    {
-        if ($this->selectAllForDelete) {
-            $this->selectedOvertimesForDelete = $this->getOvertimes()->pluck('id')->toArray();
-        } else {
-            $this->selectedOvertimesForDelete = [];
-        }
-    }
-
-    public function toggleOvertimeSelectionForDelete($overtimeId)
-    {
-        if (in_array($overtimeId, $this->selectedOvertimesForDelete)) {
-            $this->selectedOvertimesForDelete = array_diff($this->selectedOvertimesForDelete, [$overtimeId]);
-        } else {
-            $this->selectedOvertimesForDelete[] = $overtimeId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedOvertimesForDelete) === $this->getOvertimes()->count();
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selected = $this->getOvertimes()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedOvertimesForDelete = $this->getOvertimes()->pluck('id')->toArray();
-    }
-
-    public function selectAllOvertimes()
-    {
-        $this->selected = auth()->user()->overtimes()->whereNull('deleted_at')->pluck('id')->toArray();
-    }
-
-    public function selectAllDeletedOvertimes()
-    {
-        $this->selectedOvertimesForDelete = auth()->user()->overtimes()->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
+        $this->resetBulkSelection();
     }
 
     private function updateCounts()
@@ -305,7 +378,7 @@ class Index extends Component
         $this->deletedOvertimesCount = Overtime::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
     }
 
-    private function getOvertimes()
+    protected function bulkQuery()
     {
         $query = Overtime::search($this->query)->where('user_id', auth()->user()->id);
 
@@ -316,7 +389,20 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return [
+            'active' => ['selectedOvertimes', 'selectAll'],
+            'deleted' => ['selectedOvertimesForDelete', 'selectAllForDelete'],
+        ];
+    }
+
+    private function getOvertimes()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function clearFields()
@@ -326,6 +412,9 @@ class Index extends Component
             'overtime_id',
             'start_time',
             'end_time',
+            'quick_hours',
+            'quick_date',
+            'use_quick_add',
             'reason',
             'selected',
             'selectAll',

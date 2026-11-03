@@ -74,6 +74,7 @@ return [
 
     // Validation
     'start_date_must_be_before_end_date' => 'Start date must be less than End date',
+    'insufficient_leave_balance' => 'Insufficient leave balance. You have :balance days remaining but requested :requested days.',
     'leave_request_submitted' => 'Leave request successfully submitted - nice 😍!',
     'selected_leave_days' => 'Selected Leave days are',
 
@@ -123,4 +124,13 @@ return [
     'move_selected_leave_records_to_trash' => 'Move Selected Leave Records to Trash',
     'restore_selected_leave_records' => 'Restore Selected Leave Records',
     'permanently_delete_selected_leave_records' => 'Permanently Delete Selected Leave Records',
+
+    // Additional translation keys
+    'leave_balance' => 'Leave balance',
+    'no_leave_selected' => 'No leave selected',
+    'no_leave_type_selected' => 'No leave type selected',
+    'remaining' => 'Remaining',
+    'select_all_deleted_leaves' => 'Select all deleted leaves',
+    'select_all_leaves' => 'Select all leaves',
+    'used' => 'Used',
 ];

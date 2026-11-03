@@ -144,3 +144,4 @@ function populateFailureModal(details) {
 }
 
 console.log('JavaScript syntax test completed successfully');
+

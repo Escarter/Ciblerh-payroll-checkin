@@ -93,4 +93,34 @@ return [
     // Import validation messages
     'name_required' => 'Service name is required',
     'name_already_exists' => 'Service name already exists in this department',
+
+    // Background import completion messages
+    'background_import_completed' => 'Background import completed successfully. :count records imported.',
+
+    // SMS Notifications
+    'bulk_sms_service_label' => 'Service-wide SMS notifications',
+    'bulk_sms_select_service' => 'Select Service',
+    'bulk_sms_service_help' => 'Disable or enable SMS notifications for all employees in a service',
+    'bulk_sms_disable_action' => 'Disable SMS for service',
+    'bulk_sms_enable_action' => 'Enable SMS for service',
+    'bulk_sms_select_service_first' => 'Please select a service first',
+    'bulk_sms_service_not_found' => 'Service not found',
+    'bulk_sms_service_role_not_allowed' => 'You do not have permission to manage SMS notifications',
+    'bulk_sms_disabled_for_service' => 'SMS notifications disabled for :count employees in :service',
+    'bulk_sms_enabled_for_service' => 'SMS notifications enabled for :count employees in :service',
+    'bulk_sms_disable_confirm' => 'Are you sure you want to disable SMS notifications?',
+    'bulk_sms_enable_confirm' => 'Are you sure you want to enable SMS notifications?',
+    'bulk_sms_disable_confirm_service_name' => 'Are you sure you want to disable SMS notifications for all employees in :service?',
+    'bulk_sms_enable_confirm_service_name' => 'Are you sure you want to enable SMS notifications for all employees in :service?',
+    'bulk_email_service_help' => 'Disable or enable email notifications for all employees in a service',
+    'bulk_email_disable_action' => 'Disable email for service',
+    'bulk_email_enable_action' => 'Enable email for service',
+    'bulk_email_disabled_for_service' => 'Email notifications disabled for :count employees in :service',
+    'bulk_email_enabled_for_service' => 'Email notifications enabled for :count employees in :service',
+    'manage_notifications_action' => 'Manage notifications',
+    'manage_notifications_title' => 'Manage service notifications',
+    'manage_notifications_help' => 'Choose a service, then enable or disable SMS and email notifications for its employees.',
+
+    // Additional translation keys
+    'select_service_for_import' => 'Select a service for the import',
 ];

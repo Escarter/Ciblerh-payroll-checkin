@@ -8,21 +8,27 @@ trait WithAdvanceSalAndAbsencesPermissions
     public $selectedAdvanceSalaryPermissions = [];
     public $selectAllAdvanceSalaryPermissions = false;
     public $AdvanceSalaryPermissions = [
-        'View' => 'advance_salary-read',
-        'Update' => 'advance_salary-update',
-        'Create' => 'advance_salary-create',
-        'Delete' => 'advance_salary-delete',
-        'Export' => 'advance_salary-export',
+        'common.view' => 'advance_salary-read',
+        'common.update' => 'advance_salary-update',
+        'common.create' => 'advance_salary-create',
+        'common.delete' => 'advance_salary-delete',
+        'common.export' => 'advance_salary-export',
+        'common.restore' => 'advance_salary-restore',
+        'common.bulk_delete' => 'advance_salary-bulkdelete',
+        'common.bulk_restore' => 'advance_salary-bulkrestore',
     ];
 
     public $selectedAbsencePermissions = [];
     public $selectAllAbsencePermissions = false;
     public $AbsencePermissions = [
-        'View' => 'absence-read',
-        'Update' => 'absence-update',
-        'Delete' => 'absence-delete',
-        'Create' => 'absence-create',
-        'Export' => 'absence-export',
+        'common.view' => 'absence-read',
+        'common.update' => 'absence-update',
+        'common.delete' => 'absence-delete',
+        'common.create' => 'absence-create',
+        'common.export' => 'absence-export',
+        'common.restore' => 'absence-restore',
+        'common.bulk_delete' => 'absence-bulkdelete',
+        'common.bulk_restore' => 'absence-bulkrestore',
     ];
 
 

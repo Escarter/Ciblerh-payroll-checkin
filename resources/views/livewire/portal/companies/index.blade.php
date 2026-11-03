@@ -71,7 +71,7 @@
                 </a>
                 @endcan
                 @can('company-export')
-                <div class="mx-2" wire:loading.remove>
+                <div class="mx-2" wire:loading.remove wire:target="export">
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center {{count($companies) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -87,6 +87,16 @@
                         <div class="spinner-grow text-grey-300" style="width: 0.9rem; height: 0.9rem;" role="status"></div>
                     </div>
                 </div>
+                @endcan
+                @can('company-update')
+                @if(count($companies) > 0)
+                <button type="button" data-bs-toggle="modal" data-bs-target="#CompanySmsToggleModal" class="btn btn-sm btn-outline-info py-2 d-inline-flex align-items-center mx-2">
+                    <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    {{ __('companies.manage_notifications_action') }}
+                </button>
+                @endif
                 @endcan
             </div>
         </div>
@@ -175,15 +185,16 @@
         </div>
     </div>
     <x-alert />
+    @include('livewire.portal.companies.partials.company-notifications-modal')
 
     <div class="row pt-2 pb-3">
         <div class="col-md-3">
-            <label for="search">{{__('common.search')}}: </label>
+            <label for="search">{{__('common.search')}}:</label>
             <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('common.order_by')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}:</label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
                 <option value="name">{{__('common.name')}}</option>
                 <option value="code">{{__('companies.code')}}</option>
@@ -193,7 +204,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('common.order_direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}:</label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>
@@ -201,7 +212,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('common.items_per_page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}:</label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -213,6 +224,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+    @if(auth()->user()->hasAnyRole(['admin','manager']) || (auth()->user()->can('company-bulkdelete') && auth()->user()->can('company-bulkrestore')))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -254,7 +266,7 @@
                 @if(count($selectedCompanies) > 0)
 
                 @if($activeTab === 'active')
-                @can('company-delete')
+                @can('company-bulkdelete')
                 <button id="bulk-delete-companies-btn" type="button"
                     class="btn btn-sm btn-danger d-flex align-items-center"
                     data-bs-toggle="modal"
@@ -267,7 +279,7 @@
                 </button>
                 @endcan
                 @else
-                @can('company-delete')
+                @can('company-bulkrestore')
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('companies.restore_selected_companies') }}">
@@ -304,20 +316,18 @@
             @endif
         </div>
     </div>
+    @endif
 
     <div class='row row-cols-1 @if(count($companies) >= 0) row-cols-xl-4 @else row-cols-xl-3 @endif  g-4'>
         @forelse ($companies as $company)
         <div class='col-md-6 col-xl-4'>
-            <div id="company-card-{{$company->id}}" class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($company->id, $selectedCompanies) ? 'border-primary border-3' : 'border-0' }}"
+            <div id="company-card-{{$company->id}}" class="card card-flush item-card h-100 {{ in_array($company->id, $selectedCompanies) ? 'is-selected' : '' }} {{ $company->is_active ? '' : 'is-inactive' }}"
                 draggable="false"
-                wire:click="toggleCompanySelection({{ $company->id }})"
-                style="cursor: pointer; transition: all 0.3s ease; min-height: 400px; border-radius: 12px;"
-                onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
-                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
+                wire:click="toggleSelection({{ $company->id }})">
                 <!-- Selection indicator -->
                 @if(in_array($company->id, $selectedCompanies))
-                <div class="position-absolute top-0 end-0 p-2">
-                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;">
+                <div class="item-card-check">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 24px; height: 24px;">
                         <svg class="icon icon-xs text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
@@ -327,13 +337,13 @@
 
                 <div class="card-header border-0 p-0 mb-3 d-flex justify-content-start align-items-start">
                     <div class="d-flex justify-content-start align-items-start w-100">
-                        <div class="avatar avatar-lg d-flex align-items-center justify-content-center fw-bold fs-5 rounded-3 bg-primary me-3 shadow-sm">
+                        <div class="avatar avatar-lg item-card-avatar d-flex align-items-center justify-content-center fw-bold fs-5 me-3">
                             <span class="text-white">{{$company->initials}}</span>
                         </div>
                         <div class="d-block flex-grow-1">
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h5 class="fw-bold text-gray-800 mb-0">{{ucwords($company->name)}}</h5>
-                                <span class="badge {{$company->is_active ? 'bg-success' : 'bg-danger'}} px-2 py-1 rounded-pill small">
+                                <h5 class="item-card-title mb-0">{{ucwords($company->name)}}</h5>
+                                <span class="item-card-status {{$company->is_active ? 'is-on' : 'is-off'}}">
                                     {{$company->is_active ? __('common.active') : __('companies.inactive')}}
                                 </span>
                             </div>
@@ -361,29 +371,29 @@
                 </div>
 
                 <div class="card-body p-0">
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <div class="row g-2">
                             <div class="col-3">
-                                <div class="text-center p-2 bg-light rounded-3">
-                                    <div class="fw-bold fs-5 text-primary">{{$company->id}}</div>
+                                <div class="item-card-stat">
+                                    <div class="item-card-stat-value text-primary">{{$company->id}}</div>
                                     <div class="small text-gray-600">{{__('common.id')}}</div>
                                 </div>
                             </div>
                             <div class="col-3">
-                                <div class="text-center p-2 bg-light rounded-3">
-                                    <div class="fw-bold fs-5 text-primary">{{numberFormat(count($company->departments)) }}</div>
+                                <div class="item-card-stat">
+                                    <div class="item-card-stat-value text-primary">{{numberFormat(count($company->departments)) }}</div>
                                     <div class="small text-gray-600">{{__('departments.departments_short')}}</div>
                                 </div>
                             </div>
                             <div class="col-3">
-                                <div class="text-center p-2 bg-light rounded-3">
-                                    <div class="fw-bold fs-5 text-success">{{numberFormat(count($company->employees)) }}</div>
+                                <div class="item-card-stat">
+                                    <div class="item-card-stat-value text-success">{{numberFormat(count($company->employees)) }}</div>
                                     <div class="small text-gray-600">{{__('employees.employees_short')}}</div>
                                 </div>
                             </div>
                             <div class="col-3">
-                                <div class="text-center p-2 bg-light rounded-3">
-                                    <div class="fw-bold fs-5 text-warning">{{numberFormat(count($company->services)) }}</div>
+                                <div class="item-card-stat">
+                                    <div class="item-card-stat-value text-warning">{{numberFormat(count($company->services)) }}</div>
                                     <div class="small text-gray-600">{{__('companies.services')}}</div>
                                 </div>
                             </div>
@@ -417,7 +427,7 @@
                     @endif
                 </div>
 
-                <div class='d-flex align-items-center justify-content-between pt-3 border-top'>
+                <div class='item-card-footer d-flex align-items-center justify-content-between'>
                     <div class="d-flex align-items-center gap-2">
                         <a href="{{route('portal.departments.index',['company_uuid'=>$company->uuid])}}" wire:navigate class="btn btn-sm btn-outline-primary d-flex align-items-center" title="{{__('companies.view_departments')}}" onclick="event.stopPropagation();">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

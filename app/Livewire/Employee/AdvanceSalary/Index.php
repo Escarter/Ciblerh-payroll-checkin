@@ -2,15 +2,22 @@
 
 namespace App\Livewire\Employee\AdvanceSalary;
 
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\AdvanceSalary;
+use App\Models\SupervisorDepartment;
+use App\Mail\AdvanceSalaryRequestNotification;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selectedAdvanceSalaries = [];
     public bool $selectAll = false;
@@ -25,13 +32,16 @@ class Index extends Component
     public $deletedAdvanceSalariesCount = 0;
 
     //Create, Edit, Delete, View Post props
-    public  $repayment_from_month;
-    public  $repayment_to_month;
-    public  $amount;
-    public  $reason;
-    public  $beneficiary_name;
-    public  $beneficiary_id_card_number;
-    public  $beneficiary_mobile_money_number;
+    public $type = AdvanceSalary::TYPE_ADVANCE;
+    public $attachment;
+    public $repayment_from_month;
+    public $repayment_to_month;
+    public $advance_for_month;
+    public $amount;
+    public $reason;
+    public $beneficiary_name;
+    public $beneficiary_id_card_number;
+    public $beneficiary_mobile_money_number;
     public  $advance_salary_id;
     public  $company_id;
     public ?AdvanceSalary $advance_salary = null;
@@ -44,26 +54,42 @@ class Index extends Component
         $this->company = auth()->user()->company;
         $this->department = auth()->user()->department;
         $this->service = auth()->user()->service;
-
-        // Initialize counts
+        $this->fillBeneficiaryFromUser();
         $this->updateCounts();
     }
 
+    public function updatedType($value)
+    {
+        $this->fillBeneficiaryFromUser();
+    }
+
+    protected function fillBeneficiaryFromUser(): void
+    {
+        $user = auth()->user();
+        if (empty($this->beneficiary_name) && $user) {
+            $this->beneficiary_name = $user->name;
+        }
+        if (empty($this->beneficiary_mobile_money_number) && $user?->mobile_money_number) {
+            $this->beneficiary_mobile_money_number = $user->mobile_money_number;
+        }
+    }
+
     protected $rules = [
+        "type" => "required|in:advance,loan",
         "amount" => "required|integer",
         "reason" => "required",
-        "repayment_from_month" => "required|date|before:repayment_to_month",
-        "repayment_to_month" => "required|date|after:repayment_from_month",
+        "repayment_from_month" => "required",
+        "repayment_to_month" => "required",
+        "advance_for_month" => "required_if:type,advance|nullable|date",
         "beneficiary_name" => "required",
         "beneficiary_mobile_money_number" => "required",
         "beneficiary_id_card_number" => "required",
+        "attachment" => "required_if:type,loan|nullable|file|mimes:png,jpg,jpeg,pdf,doc,docx|max:5120",
     ];
 
     public function store()
     {
-        if (!Gate::allows('advance_salary-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-create');
 
         $this->validate();
 
@@ -78,20 +104,87 @@ class Index extends Component
             return;
         }
 
-        auth()->user()->advanceSalaries()->create(
-            [
-                'company_id' => $this->company->id,
-                'department_id' => $this->department->id,
-                'author_id' => auth()->user()->author_id,
-                'amount' => $this->amount,
-                'reason' => $this->reason,
-                'repayment_from_month' => $this->repayment_from_month,
-                'repayment_to_month' => $this->repayment_to_month,
-                'beneficiary_name' => $this->beneficiary_name,
-                'beneficiary_mobile_money_number' => $this->beneficiary_mobile_money_number,
-                'beneficiary_id_card_number' => $this->beneficiary_id_card_number,
-            ]
-        );
+        // Validate that advance salary request is made between 1st-12th of the month
+        $currentDay = now()->day;
+        if ($currentDay > 12) {
+            $this->addError('amount', __('employees.advance_salary_request_only_1_to_12'));
+            return;
+        }
+
+        // Parse repayment months
+        $repaymentFromMonth = \Carbon\Carbon::createFromFormat('Y-m', $this->repayment_from_month)->startOfMonth();
+        $repaymentToMonth = \Carbon\Carbon::createFromFormat('Y-m', $this->repayment_to_month)->startOfMonth();
+
+        // Validate repayment_to_month is not before repayment_from_month
+        if ($repaymentToMonth->isBefore($repaymentFromMonth)) {
+            $this->addError('repayment_to_month', __('employees.repayment_end_before_start'));
+            return;
+        }
+
+        // Ensure repayment_from_month is not in the past
+        if ($repaymentFromMonth->isBefore(now()->startOfMonth())) {
+            $this->addError('repayment_from_month', __('employees.repayment_cannot_be_in_past'));
+            return;
+        }
+
+        // Loan: block new loan until previous is fully repaid
+        if ($this->type === AdvanceSalary::TYPE_LOAN) {
+            $hasUnrepaidLoan = auth()->user()->advanceSalaries()
+                ->where('type', AdvanceSalary::TYPE_LOAN)
+                ->where('is_fully_repaid', false)
+                ->whereNull('deleted_at')
+                ->exists();
+            if ($hasUnrepaidLoan) {
+                $this->addError('amount', __('employees.loan_previous_not_repaid'));
+                return;
+            }
+        }
+
+        // Advance: block duplicate for same month
+        if ($this->type === AdvanceSalary::TYPE_ADVANCE && $this->advance_for_month) {
+            $advanceMonth = \Carbon\Carbon::parse($this->advance_for_month);
+            $hasAdvanceForMonth = auth()->user()->advanceSalaries()
+                ->where('type', AdvanceSalary::TYPE_ADVANCE)
+                ->whereMonth('advance_for_month', $advanceMonth->month)
+                ->whereYear('advance_for_month', $advanceMonth->year)
+                ->where(function ($q) {
+                    $q->whereNull('manager_approval_status')
+                        ->orWhereIn('manager_approval_status', [AdvanceSalary::APPROVAL_STATUS_PENDING, AdvanceSalary::APPROVAL_STATUS_APPROVED]);
+                })
+                ->whereNull('deleted_at')
+                ->exists();
+            if ($hasAdvanceForMonth) {
+                $this->addError('advance_for_month', __('employees.advance_already_requested_for_month'));
+                return;
+            }
+        }
+
+        $attachmentPath = null;
+        if ($this->attachment) {
+            $attachmentPath = $this->attachment->storePublicly('advance-salaries', 'attachments');
+        }
+
+        $advanceSalary = auth()->user()->advanceSalaries()->create([
+            'company_id' => $this->company->id,
+            'department_id' => $this->department->id,
+            'author_id' => auth()->user()->author_id ?? null,
+            'type' => $this->type,
+            'amount' => $this->amount,
+            'reason' => $this->reason,
+            'repayment_from_month' => $repaymentFromMonth,
+            'repayment_to_month' => $repaymentToMonth,
+            'advance_for_month' => $this->type === AdvanceSalary::TYPE_ADVANCE && $this->advance_for_month
+                ? \Carbon\Carbon::parse($this->advance_for_month)->startOfMonth()
+                : null,
+            'attachment_path' => $attachmentPath,
+            'beneficiary_name' => $this->beneficiary_name,
+            'beneficiary_mobile_money_number' => $this->beneficiary_mobile_money_number,
+            'beneficiary_id_card_number' => $this->beneficiary_id_card_number,
+        ]);
+
+        // Notify supervisors of this department by email
+        $this->notifySupervisors($advanceSalary);
+
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.advance_salary_recorded'), 'CreateAdvanceSalaryModal');
     }
@@ -116,9 +209,7 @@ class Index extends Component
 
     public function update()
     {
-        if (!Gate::allows('advance_salary--update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary--update');
         $this->validate();
         $this->advance_salary->update([
             'amount' => $this->amount,
@@ -135,9 +226,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('advance_salary--delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary--delete');
 
         if (!empty($this->advance_salary)) {
             $this->advance_salary->delete();
@@ -152,9 +241,7 @@ class Index extends Component
 
     public function restore($advanceSalaryId)
     {
-        if (!Gate::allows('advance_salary--delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-restore');
 
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
 
@@ -171,10 +258,18 @@ class Index extends Component
         $this->updateCounts();
     }
 
-    public function forceDelete($advanceSalaryId)
+    public function forceDelete($advanceSalaryId = null)
     {
-        if (!Gate::allows('advance_salary--delete')) {
-            return abort(401);
+        $this->authorizeAbility('advance_salary-delete');
+
+        // If no advanceSalaryId provided, try to get it from selectedAdvanceSalariesForDelete
+        if (!$advanceSalaryId) {
+            if (!empty($this->selectedAdvanceSalariesForDelete) && is_array($this->selectedAdvanceSalariesForDelete)) {
+                $advanceSalaryId = $this->selectedAdvanceSalariesForDelete[0] ?? null;
+            } else {
+                $this->showToast(__('employees.no_advance_salary_selected'), 'danger');
+                return;
+            }
         }
 
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
@@ -186,6 +281,11 @@ class Index extends Component
 
         $advanceSalary->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($advanceSalaryId, $this->selectedAdvanceSalariesForDelete ?? [])) {
+            $this->selectedAdvanceSalariesForDelete = array_diff($this->selectedAdvanceSalariesForDelete, [$advanceSalaryId]);
+        }
+
         $this->closeModalAndFlashMessage(__('employees.advance_salary_permanently_deleted'), 'ForceDeleteModal');
 
         // Update counts
@@ -194,15 +294,47 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('advance_salary--delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-bulkdelete');
 
         if (!empty($this->selectedAdvanceSalaries)) {
+            $advanceSalaries = auth()->user()->advanceSalaries()
+                ->whereIn('id', $this->selectedAdvanceSalaries)
+                ->where('approval_status', '!=', AdvanceSalary::APPROVAL_STATUS_APPROVED)
+                ->get();
+
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                ];
+            })->toArray();
+
             auth()->user()->advanceSalaries()
                 ->whereIn('id', $this->selectedAdvanceSalaries)
                 ->where('approval_status', '!=', AdvanceSalary::APPROVAL_STATUS_APPROVED)
                 ->delete();
+
+            if ($advanceSalaries->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'advance_salary_bulk_deleted',
+                    'web',
+                    'bulk_deleted_advance_salaries',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_deleted_advance_salaries',
+                        'translation_params' => ['count' => $advanceSalaries->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $advanceSalaries->count(),
+                        'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedAdvanceSalaries = [];
 
@@ -215,15 +347,47 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('advance_salary--delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-bulkrestore');
 
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()
+                ->whereIn('id', $this->selectedAdvanceSalariesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                ];
+            })->toArray();
+
             AdvanceSalary::withTrashed()
                 ->whereIn('id', $this->selectedAdvanceSalariesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own advance salaries
+                ->where('user_id', auth()->id())
                 ->restore();
+
+            if ($advanceSalaries->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'advance_salary_bulk_restored',
+                    'web',
+                    'bulk_restored_advance_salaries',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_advance_salaries',
+                        'translation_params' => ['count' => $advanceSalaries->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $advanceSalaries->count(),
+                        'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedAdvanceSalariesForDelete = [];
 
@@ -236,15 +400,47 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('advance_salary--delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-delete');
 
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()
+                ->whereIn('id', $this->selectedAdvanceSalariesForDelete)
+                ->where('user_id', auth()->id())
+                ->get();
+
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                ];
+            })->toArray();
+
             AdvanceSalary::withTrashed()
                 ->whereIn('id', $this->selectedAdvanceSalariesForDelete)
-                ->where('user_id', auth()->id()) // Ensure only user's own advance salaries
+                ->where('user_id', auth()->id())
                 ->forceDelete();
+
+            if ($advanceSalaries->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'advance_salary_bulk_force_deleted',
+                    'web',
+                    'bulk_force_deleted_advance_salaries',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_advance_salaries',
+                        'translation_params' => ['count' => $advanceSalaries->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $advanceSalaries->count(),
+                        'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
 
             $this->selectedAdvanceSalariesForDelete = [];
 
@@ -255,61 +451,10 @@ class Index extends Component
         }
     }
 
-    //Toggle the $selectAll on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedAdvanceSalaries = $this->getAdvanceSalaries()->pluck('id')->toArray();
-        } else {
-            $this->selectedAdvanceSalaries = [];
-        }
-    }
-
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedAdvanceSalariesForDelete = [];
-        $this->selectAllForDelete = false;
-    }
-
-    public function toggleSelectAllForDelete()
-    {
-        if ($this->selectAllForDelete) {
-            $this->selectedAdvanceSalariesForDelete = $this->getAdvanceSalaries()->pluck('id')->toArray();
-        } else {
-            $this->selectedAdvanceSalariesForDelete = [];
-        }
-    }
-
-    public function toggleAdvanceSalarySelectionForDelete($advanceSalaryId)
-    {
-        if (in_array($advanceSalaryId, $this->selectedAdvanceSalariesForDelete)) {
-            $this->selectedAdvanceSalariesForDelete = array_diff($this->selectedAdvanceSalariesForDelete, [$advanceSalaryId]);
-        } else {
-            $this->selectedAdvanceSalariesForDelete[] = $advanceSalaryId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedAdvanceSalariesForDelete) === $this->getAdvanceSalaries()->count();
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selectedAdvanceSalaries = $this->getAdvanceSalaries()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedAdvanceSalariesForDelete = $this->getAdvanceSalaries()->pluck('id')->toArray();
-    }
-
-    public function selectAllAdvanceSalaries()
-    {
-        $this->selectedAdvanceSalaries = auth()->user()->advanceSalaries()->whereNull('deleted_at')->pluck('id')->toArray();
-    }
-
-    public function selectAllDeletedAdvanceSalaries()
-    {
-        $this->selectedAdvanceSalariesForDelete = auth()->user()->advanceSalaries()->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
+        $this->resetBulkSelection();
     }
 
     private function updateCounts()
@@ -318,7 +463,36 @@ class Index extends Component
         $this->deletedAdvanceSalariesCount = AdvanceSalary::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
     }
 
-    private function getAdvanceSalaries()
+    /**
+     * Notify all supervisors of the employee's department about the advance salary request.
+     */
+    private function notifySupervisors(AdvanceSalary $advanceSalary): void
+    {
+        try {
+            $departmentId = auth()->user()->department_id;
+
+            // Get all supervisors assigned to this department
+            $supervisorDepartments = SupervisorDepartment::where('department_id', $departmentId)
+                ->with('supervisor')
+                ->get();
+
+            foreach ($supervisorDepartments as $supDept) {
+                $supervisor = $supDept->supervisor;
+                if ($supervisor && $supervisor->email) {
+                    Mail::to($supervisor->email)->send(
+                        new AdvanceSalaryRequestNotification($advanceSalary, auth()->user(), $supervisor)
+                    );
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send advance salary notification to supervisors', [
+                'advance_salary_id' => $advanceSalary->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    protected function bulkQuery()
     {
         $query = auth()->user()->advanceSalaries()->with(['user', 'company']);
 
@@ -329,7 +503,20 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return [
+            'active' => ['selectedAdvanceSalaries', 'selectAll'],
+            'deleted' => ['selectedAdvanceSalariesForDelete', 'selectAllForDelete'],
+        ];
+    }
+
+    private function getAdvanceSalaries()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function clearFields()
@@ -337,6 +524,9 @@ class Index extends Component
         $this->reset([
             'advance_salary',
             'advance_salary_id',
+            'type',
+            'attachment',
+            'advance_for_month',
             'amount',
             'reason',
             'repayment_from_month',
@@ -352,9 +542,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('advance_salary-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-read');
 
         $advance_salaries = $this->getAdvanceSalaries();
 
@@ -364,6 +552,8 @@ class Index extends Component
         $approved_advance_salary = $allAdvanceSalaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)->whereNull('deleted_at')->count();
         $rejected_advance_salary = $allAdvanceSalaries->where('approval_status', AdvanceSalary::APPROVAL_STATUS_REJECTED)->whereNull('deleted_at')->count();
 
-        return view('livewire.employee.advance-salary.index', compact('advance_salaries', 'pending_advance_salary', 'approved_advance_salary', 'rejected_advance_salary'))->layout('components.layouts.employee.master');
+        $APPROVAL_STATUS_APPROVED = AdvanceSalary::APPROVAL_STATUS_APPROVED;
+
+        return view('livewire.employee.advance-salary.index', compact('advance_salaries', 'pending_advance_salary', 'approved_advance_salary', 'rejected_advance_salary', 'APPROVAL_STATUS_APPROVED'))->layout('components.layouts.employee.master');
     }
 }

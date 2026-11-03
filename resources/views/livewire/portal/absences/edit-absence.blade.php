@@ -9,21 +9,21 @@
                     </div>
                     <x-form-items.form wire:submit="update">
                         <div class="form-group mb-4">
-                            <label for="absence_date">{{__('employees.absence')}}</label>
+                            <label for="absence_date">{{__('employees.absence')}} <span class="text-danger">*</span></label>
                             <input wire:model="absence_date" type="date" class="form-control  @error('absence_date') is-invalid @enderror" value="{{now()->format('Y-m-d')}}" required="" name="absence_date">
                             @error('absence_date')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="absence_reason">{{__('leaves.absence_reason')}}</label>
-                            <textarea wire:model="absence_reason" name="absence_reason" class="form-control  @error('absence_reason') is-invalid @enderror" id='' cols='3' rows="3"></textarea>
+                            <label for="absence_reason">{{__('leaves.absence_reason')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <textarea wire:model="absence_reason" name="absence_reason" class="form-control  @error('absence_reason') is-invalid @enderror" id='' cols='3' rows="3" placeholder="{{__('leaves.absence_reason')}}"></textarea>
                             @error('absence_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class='form-group mb-4'>
-                            <label for="approval_status">{{__('employees.approval_status')}}</label>
+                            <label for="approval_status">{{__('employees.approval_status')}} <span class="text-danger">*</span></label>
                             <select wire:model="approval_status" id="approval_status" name="approval_status" class="form-select  @error('approval_status') is-invalid @enderror" required="">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.approve')}}</option>
@@ -34,8 +34,8 @@
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="approval_reason">{{__('common.approval_rejection_reason')}}</label>
-                            <textarea wire:model="approval_reason" id="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='2' rows="2"></textarea>
+                            <label for="approval_reason">{{__('common.approval_rejection_reason')}} <span class="text-danger">*</span></label>
+                            <textarea wire:model="approval_reason" id="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='2' rows="2" placeholder="{{__('common.approval_rejection_reason')}}"></textarea>
                             @error('approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

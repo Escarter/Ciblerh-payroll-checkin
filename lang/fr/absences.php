@@ -49,4 +49,7 @@ return [
     'selected_absence_records_restored' => 'Enregistrements d\'absence sélectionnés restaurés!',
     'selected_absence_records_permanently_deleted' => 'Enregistrements d\'absence sélectionnés supprimés définitivement!',
     'selected_absences_deleted' => 'Absences sélectionnées supprimées avec succès!',
+
+    // Additional translation keys
+    'no_absence_selected' => 'Aucune absence sélectionnée',
 ];

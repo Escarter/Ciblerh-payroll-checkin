@@ -1,6 +1,5 @@
 <div>
-    @include('livewire.portal.employees.payslip.resend-email-modal')
-    @include('livewire.portal.employees.payslip.resend-sms-modal')
+    @include('livewire.portal.payslips.partials.resend-payslip')
     @include('livewire.portal.payslips.partials.payslip-details-modal')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.restore-modal')
@@ -8,6 +7,7 @@
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => count($selectedPayslips) === 1 ? __('payslips.payslip') : __('payslips.payslips')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedPayslips, 'itemType' => __('payslips.payslip')])
+    @include('livewire.portal.employees.payslip.partials.employee-access-diagnostic-modal')
     <x-alert />
     <div>
         <div class='pt-2'>
@@ -30,6 +30,20 @@
                         {{__(ucfirst($employee->first_name) .' - '.__('payslips.payslip_history_for_employee',['name'=>ucfirst($employee->name)]))}}
                     </h1>
                     <p class="mb-0">{{__('payslips.view_all_employee_payslip_history',['name'=>ucfirst($employee->name)])}}</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    @can('payslip-read')
+                    <button type="button"
+                        class="btn btn-outline-primary btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#EmployeePayslipDiagnosticModal"
+                        wire:click="runEmployeePayslipDiagnostic">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        {{ __('payslips.employee_access_diagnostic') }}
+                    </button>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -112,6 +126,32 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-12 col-sm-6 col-xl-4 mb-2">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <div class="col-12 col-xl-4 text-xl-center mb-2 mb-xl-0 d-flex align-items-center justify-content-xl-center">
+                                    <div class="icon-shape icon-shape-info rounded me-2 me-sm-0">
+                                        <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="d-sm-none">
+                                        <h2 class="fw-extrabold h5">{{ __('payslips.visible_on_employee_dashboard') }}</h2>
+                                        <h3 class="mb-1">{{numberFormat($visible_to_employee ?? 0)}}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-8 px-xl-0">
+                                    <a href="#" class="d-none d-sm-block">
+                                        <h2 class="h5">{{ __('payslips.visible_on_employee_dashboard') }}</h2>
+                                        <h3 class="fw-extrabold mb-1">{{numberFormat($visible_to_employee ?? 0)}}</h3>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <x-alert />
@@ -120,12 +160,12 @@
             <x-alert />
             <div class="row pb-3">
                 <div class="col-md-3">
-                    <label for="search">{{__('common.search')}}: </label>
+                    <label for="search">{{__('common.search')}}:</label>
                     <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                     <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
                 </div>
                 <div class="col-md-3">
-                    <label for="orderBy">{{__('common.order_by')}}: </label>
+                    <label for="orderBy">{{__('common.order_by')}}:</label>
                     <select wire:model.live="orderBy" id="orderBy" class="form-select">
                         <option value="first_name">{{__('employees.first_name')}}</option>
                         <option value="last_name">{{__('employees.last_name')}}</option>
@@ -134,7 +174,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label for="direction">{{__('common.order_direction')}}: </label>
+                    <label for="direction">{{__('common.order_direction')}}:</label>
                     <select wire:model.live="orderAsc" id="direction" class="form-select">
                         <option value="asc">{{__('common.ascending')}}</option>
                         <option value="desc">{{__('common.descending')}}</option>
@@ -142,7 +182,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label for="perPage">{{__('common.items_per_page')}}: </label>
+                    <label for="perPage">{{__('common.items_per_page')}}:</label>
                     <select wire:model.live="perPage" id="perPage" class="form-select">
                         <option value="5">5</option>
                         <option value="10">10</option>
@@ -153,7 +193,65 @@
                 </div>
             </div>
 
+            <!-- Status Filters Row -->
+            <div class="row pb-3">
+                <div class="col-md-3">
+                    <label for="overallStatus">{{__('payslips.overall_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
+                    <select wire:model.live="overallStatus" id="overallStatus" class="form-select">
+                        <option value="all">{{__('common.all')}}</option>
+                        <option value="success">{{__('common.successful')}}</option>
+                        <option value="failed">{{__('common.failed')}}</option>
+                        <option value="processing">{{__('common.processing')}}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="encryptionStatus">{{__('payslips.encryption_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
+                    <select wire:model.live="encryptionStatus" id="encryptionStatus" class="form-select">
+                        <option value="all">{{__('common.all')}}</option>
+                        <option value="0">{{__('common.pending')}}</option>
+                        <option value="1">{{__('common.successful')}}</option>
+                        <option value="2">{{__('common.failed')}}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="emailStatus">{{__('payslips.email_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
+                    <select wire:model.live="emailStatus" id="emailStatus" class="form-select">
+                        <option value="all">{{__('common.all')}}</option>
+                        <option value="0">{{__('common.pending')}}</option>
+                        <option value="1">{{__('common.successful')}}</option>
+                        <option value="2">{{__('common.failed')}}</option>
+                        <option value="3">{{__('payslips.disabled')}}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="smsStatus">{{__('payslips.sms_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
+                    <select wire:model.live="smsStatus" id="smsStatus" class="form-select">
+                        <option value="all">{{__('common.all')}}</option>
+                        <option value="0">{{__('common.pending')}}</option>
+                        <option value="1">{{__('common.successful')}}</option>
+                        <option value="2">{{__('common.failed')}}</option>
+                        <option value="3">{{__('payslips.disabled')}}</option>
+                        <option value="4">{{__('payslips.skipped')}}</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Reset Filters Button -->
+            @if(($encryptionStatus !== '' && $encryptionStatus !== 'all') || ($emailStatus !== '' && $emailStatus !== 'all') || ($smsStatus !== '' && $smsStatus !== 'all') || ($overallStatus !== '' && $overallStatus !== 'all'))
+            <div class="row pb-2">
+                <div class="col-12">
+                    <button wire:click="resetFilters" class="btn btn-sm btn-outline-secondary">
+                        <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        {{__('common.reset_filters')}}
+                    </button>
+                </div>
+            </div>
+            @endif
+
             <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
+            @if(auth()->user()->can('payslip-bulkdelete') && auth()->user()->can('payslip-bulkrestore'))
             <div class="d-flex justify-content-between align-items-center mb-3">
 
                 <!-- Tab Buttons (Right) -->
@@ -196,7 +294,7 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                                <li><a class="dropdown-item" wire:click.prevent="selectAllPayslips" href="#">{{__('payslips.select_all_payslips')}}</a></li>
+                                <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('payslips.select_all_payslips')}}</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" wire:click.prevent="$set('selectedPayslips', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                             </ul>
@@ -206,7 +304,7 @@
                         <!-- Soft Delete Bulk Actions (when items selected for delete) -->
                         @if(count($selectedPayslips) > 0)
                         <div class="d-flex align-items-center gap-2">
-                            @can('payslip-delete')
+                            @can('payslip-bulkdelete')
                             <button type="button"
                                 class="btn btn-sm btn-outline-danger d-flex align-items-center"
                                 title="{{ __('payslips.move_selected_payslips_to_trash') }}"
@@ -244,17 +342,17 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllPayslips" href="#">{{__('payslips.select_all_payslips')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('payslips.select_all_payslips')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selectedPayslips', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
                     </div>
                     @endif
 
-                    <!-- Deleted Tab Bulk Actions -->
+                        <!-- Deleted Tab Bulk Actions -->
                         @if(count($selectedPayslips) > 0)
                         <div class="d-flex align-items-center gap-2">
-                            @can('payslip-delete')
+                            @can('payslip-bulkrestore')
                             <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                                 class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                                 title="{{ __('payslips.restore_selected_payslips') }}">
@@ -290,28 +388,29 @@
                     @endif
                 </div>
             </div>
+            @endif
 
             <div class="card">
                 <div class="table-responsive pb-4">
                     <table class="table employee-table table-bordered table-hover align-items-center dataTable" id="datatable">
-                        <thead>
+                        <thead class="">
                             <tr>
-                                <th class="border-bottom">
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">
                                     <div class="form-check d-flex justify-content-center align-items-center">
                                         <input class="form-check-input p-2" 
                                             wire:model.live="selectAll" 
-                                            type="checkbox"
-                                            wire:click="toggleSelectAll">
+                                            type="checkbox">
                                     </div>
                                 </th>
-                                <th class="border-bottom">{{__('common.name')}}</th>
-                                <th class="border-bottom">{{__('employees.employee_info')}}</th>
-                                <th class="border-bottom">{{__('payslips.category')}}</th>
-                                <th class="border-bottom">{{__('payslips.timeline')}}</th>
-                                <th class="border-bottom">{{__('payslips.encryption_status')}}</th>
-                                <th class="border-bottom">{{__('payslips.email_status')}}</th>
-                                <th class="border-bottom">{{__('payslips.sms_status')}}</th>
-                                <th class="border-bottom">{{__('common.action')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.name')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee_info')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.category')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.timeline')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.encryption_status')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.email_status')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.email_delivery_status')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('payslips.sms_status')}}</th>
+                                <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -319,16 +418,16 @@
                             <tr>
                                 <td>
                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                        <input class="form-check-input" 
+                                        <input wire:key="sel-{{ $payslip->id }}-{{ in_array($payslip->id, $selectedPayslips) ? 1 : 0 }}" class="form-check-input" 
                                             type="checkbox"
-                                            wire:click="togglePayslipSelection({{ $payslip->id }})"
+                                            wire:click="toggleSelection({{ $payslip->id }})"
                                             {{ in_array($payslip->id, $selectedPayslips) ? 'checked' : '' }}>
                                     </div>
                                 </td>
                                 <td>
 
                                     <a href="#" wire:click.prevent="showPayslipDetails({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#payslipDetailsModal" class="d-flex align-items-center text-decoration-none">
-                                        <div class="avatar avatar-sm d-flex align-items-center justify-content-center fw-bold rounded text-white bg-primary me-3">
+                                        <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded text-white bg-primary me-3">
                                             <span class="mb-0">{{$payslip->initials}}</span>
                                         </div>
                                         <div class="d-block"><span class="fw-bold">{{$payslip->name}}</span>
@@ -366,7 +465,7 @@
                                     <div class="d-flex flex-column">
                                         <div class="mb-1">
                                             <span class="fw-bold text-primary">{{__('payslips.period')}}:</span>
-                                            <span class="ms-1 fw-normal">{{$payslip->month}} - {{$payslip->year}}</span>
+                                            <span class="ms-1 fw-normal">{{ getMonthName($payslip->month) }} - {{$payslip->year}}</span>
                                         </div>
                                         <div>
                                             <span class="fw-bold text-primary">{{__('common.created')}}:</span>
@@ -374,7 +473,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>
+                                <td class="align-middle">
                                     @if($payslip->encryption_status == 1)
                                     <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
                                     @elseif($payslip->encryption_status == 2 )
@@ -383,22 +482,39 @@
                                     <span class="badge badge-lg text-md text-white bg-gray-400">{{__('payslips.not_recorded')}}</span>
                                     @endif
                                 </td>
-                                <td>
+                                <td class="align-middle">
                                     @if($payslip->email_sent_status == 1)
                                     <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
-                                    @elseif($payslip->email_sent_status == 2 )
+                                    @elseif($payslip->email_sent_status == 2)
                                     <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
+                                    @elseif($payslip->email_sent_status == 3)
+                                    <span class="badge badge-lg text-md bg-gray-400">{{__('payslips.disabled')}}</span>
                                     @else
                                     <span class="badge badge-lg text-md text-gray bg-warning">{{__('payslips.pending_status')}}</span>
                                     @endif
                                 </td>
-                                <td>
+                                <td class="align-middle">
+                                    @if($payslip->email_delivery_status === 'delivered')
+                                    <span class="badge badge-lg text-md bg-success" title="{{$payslip->email_delivered_at}}">{{__('payslips.delivery_delivered')}}</span>
+                                    @elseif($payslip->email_delivery_status === 'bounced')
+                                    <span class="badge badge-lg text-md bg-danger" title="{{$payslip->email_delivery_note}}">{{__('payslips.delivery_bounced')}}</span>
+                                    @elseif($payslip->email_delivery_status === 'complained')
+                                    <span class="badge badge-lg text-md bg-warning text-dark" title="{{$payslip->email_delivery_note}}">{{__('payslips.delivery_spam')}}</span>
+                                    @elseif($payslip->email_delivery_status === 'sent')
+                                    <span class="badge badge-lg text-md bg-info">{{__('payslips.delivery_sent')}}</span>
+                                    @else
+                                    <span class="badge badge-lg text-md bg-secondary">{{__('payslips.delivery_pending')}}</span>
+                                    @endif
+                                </td>
+                                <td class="align-middle">
                                     @if($payslip->sms_sent_status == 1)
                                     <span class="badge badge-lg text-md bg-success">{{__('common.successful')}}</span>
                                     @elseif($payslip->sms_sent_status == 2)
                                     <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @elseif($payslip->sms_sent_status == 3)
-                                    <span class="badge badge-lg text-md bg-info">{{__('common.disabled')}}</span>
+                                    <span class="badge badge-lg text-md bg-gray-400">{{__('payslips.disabled')}}</span>
+                                    @elseif($payslip->sms_sent_status == 4)
+                                    <span class="badge badge-lg text-md bg-info">{{__('payslips.skipped')}}</span>
                                     @else
                                     <span class="badge badge-lg text-md text-dark bg-warning">{{__('common.pending')}}</span>
                                     @endif
@@ -420,19 +536,11 @@
                                             </svg>
                                         </a>
                                         @endif
-                                        <!-- Resend Email Link -->
+                                        <!-- Resend Payslip Link -->
                                         @if($payslip->encryption_status == 1)
-                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendEmailModal" class="text-info me-2" title="{{__('payslips.resend_email_title')}}">
+                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendPayslipModal" class="text-warning me-2" title="{{__('payslips.resend_payslip_title')}}">
                                             <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                            </svg>
-                                        </a>
-                                        @endif
-                                        <!-- Resend SMS Link -->
-                                        @if($payslip->encryption_status == 1)
-                                        <a href='#' wire:click.prevent="initData({{$payslip->id}})" data-bs-toggle="modal" data-bs-target="#resendSMSModal" class="text-tertiary me-2" title="{{__('payslips.resend_sms_title')}}">
-                                            <svg class="icon icon-xs" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                                             </svg>
                                         </a>
                                         @endif
@@ -447,7 +555,7 @@
                                     @else
                                         @can('payslip-delete')
                                         <!-- Restore Link -->
-                                        <a href="#" wire:click.prevent="$set('{{ $payslip->id }}', {{ $payslip->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('common.restore')}}">
+                                        <a href="#" wire:click.prevent="restore({{ $payslip->id }})" class="text-success me-2" title="{{__('common.restore')}}">
                                             <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                             </svg>
@@ -466,7 +574,7 @@
                             <tr>
                                 <td colspan="10">
                                     <div class="text-center text-gray-800 mt-2">
-                                        <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                        <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                                         <p>{{__('common.no_records_found')}}</p>
                                     </div>
                                 </td>
@@ -517,3 +625,33 @@
         @endpush
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('payslipDetailsModal');
+    if (modal) {
+        // Listen for Bootstrap modal hidden event to ensure backdrop is removed
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Remove any lingering backdrop elements
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            
+            // Remove modal-open class from body if no other modals are open
+            const openModals = document.querySelectorAll('.modal.show');
+            if (openModals.length === 0) {
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            }
+        });
+
+        // Listen for Livewire close event
+        Livewire.on('close-payslip-details-modal', () => {
+            const bootstrapModal = bootstrap.Modal.getInstance(modal);
+            if (bootstrapModal) {
+                bootstrapModal.hide();
+            }
+        });
+    }
+});
+</script>

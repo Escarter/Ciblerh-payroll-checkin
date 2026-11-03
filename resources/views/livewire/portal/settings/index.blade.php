@@ -15,12 +15,12 @@
 
                         <x-form-items.form wire:submit="saveSmsConfig">
                             <div class='form-group mb-4'>
-                                <label for="sms_provider">{{ __('settings.sms_provider') }}</label>
+                                <label for="sms_provider">{{ __('settings.sms_provider') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <select wire:model.live='sms_provider' id="sms_provider" class="form-control w-100 @error('sms_provider') is-invalid @enderror">
                                     <option value='nexah' selected>{{__('NEXAH')}}</option>
-                                    <option value='twilio'>{{__('Twilio')}}</option>
-                                    <option value='aws_sns'>{{__('AWS SNS')}}</option>
-                                    <option value='orange_cm'>{{__('Orange Cameroon SMS')}}</option>
+                                    <option value='twilio'>{{__('settings.twilio')}}</option>
+                                    <option value='aws_sns'>{{__('settings.aws_sns')}}</option>
+                                    <option value='orange_cm'>{{__('settings.orange_cm')}}</option>
                                 </select>
                             </div>
 
@@ -30,16 +30,16 @@
                                 <h6 class="text-primary mb-3">{{__('NEXAH')}} {{__('settings.configuration')}}</h6>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
-                                        <label for="nexah_username">{{ __('settings.username') }}</label>
-                                        <input wire:model="nexah_username" id="nexah_username" type="text" class="form-control w-100 @error('nexah_username') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'nexah'">
+                                        <label for="nexah_username">{{ __('settings.username') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="nexah_username" id="nexah_username" type="text" class="form-control w-100 @error('nexah_username') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'nexah'" placeholder="{{ __('settings.username') }}">
                                     </div>
                                     <div class="col">
-                                        <label for="nexah_password">{{ __('settings.password') }}</label>
-                                        <input wire:model="nexah_password" id="nexah_password" type="password" class="form-control w-100 @error('nexah_password') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'nexah'">
+                                        <label for="nexah_password">{{ __('settings.password') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="nexah_password" id="nexah_password" type="password" class="form-control w-100 @error('nexah_password') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'nexah'" placeholder="{{ __('settings.password') }}">
                                     </div>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label for="nexah_senderid">{{ __('settings.senderid') }}</label>
+                                    <label for="nexah_senderid">{{ __('settings.senderid') }} <span class="text-danger">*</span></label>
                                     <input wire:model="nexah_senderid" id="nexah_senderid" type="text" class="form-control w-100 @error('nexah_senderid') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'nexah'" placeholder="Your Sender ID">
                                 </div>
                             </div>
@@ -47,19 +47,19 @@
                             <!-- Twilio Provider Configuration -->
                             <div x-show="$wire.sms_provider === 'twilio'" class="provider-config">
                                 <hr>
-                                <h6 class="text-primary mb-3">{{__('Twilio')}} {{__('settings.configuration')}}</h6>
+                                <h6 class="text-primary mb-3">{{__('settings.twilio')}} {{__('settings.configuration')}}</h6>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
-                                        <label for="twilio_account_sid">{{ __('Account SID') }}</label>
+                                        <label for="twilio_account_sid">{{ __('settings.account_sid') }} <span class="text-danger">*</span></label>
                                         <input wire:model="twilio_account_sid" id="twilio_account_sid" type="text" class="form-control w-100 @error('twilio_account_sid') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'twilio'" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
                                     </div>
                                     <div class="col">
-                                        <label for="twilio_auth_token">{{ __('Auth Token') }}</label>
+                                        <label for="twilio_auth_token">{{ __('settings.auth_token') }} <span class="text-danger">*</span></label>
                                         <input wire:model="twilio_auth_token" id="twilio_auth_token" type="password" class="form-control w-100 @error('twilio_auth_token') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'twilio'" placeholder="your_auth_token">
                                     </div>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label for="twilio_phone_number">{{ __('Phone Number') }}</label>
+                                    <label for="twilio_phone_number">{{ __('settings.phone_number') }} <span class="text-danger">*</span></label>
                                     <input wire:model="twilio_phone_number" id="twilio_phone_number" type="text" class="form-control w-100 @error('twilio_phone_number') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'twilio'" placeholder="+1234567890">
                                 </div>
                             </div>
@@ -67,20 +67,20 @@
                             <!-- AWS SNS Provider Configuration -->
                             <div x-show="$wire.sms_provider === 'aws_sns'" class="provider-config">
                                 <hr>
-                                <h6 class="text-primary mb-3">{{__('AWS SNS')}} {{__('settings.configuration')}}</h6>
+                                <h6 class="text-primary mb-3">{{__('settings.aws_sns')}} {{__('settings.configuration')}}</h6>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
-                                        <label for="sns_access_key">{{ __('Access Key ID') }}</label>
+                                        <label for="sns_access_key">{{ __('settings.access_key_id') }} <span class="text-danger">*</span></label>
                                         <input wire:model="sns_access_key" id="sns_access_key" type="text" class="form-control w-100 @error('sns_access_key') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'aws_sns'" placeholder="AKIA...">
                                     </div>
                                     <div class="col">
-                                        <label for="sns_secret_key">{{ __('Secret Access Key') }}</label>
+                                        <label for="sns_secret_key">{{ __('settings.secret_access_key') }} <span class="text-danger">*</span></label>
                                         <input wire:model="sns_secret_key" id="sns_secret_key" type="password" class="form-control w-100 @error('sns_secret_key') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'aws_sns'" placeholder="your_secret_key">
                                     </div>
                                 </div>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
-                                        <label for="sns_region">{{ __('Region') }}</label>
+                                        <label for="sns_region">{{ __('settings.region') }} <span class="text-danger">*</span></label>
                                         <select wire:model="sns_region" id="sns_region" class="form-control w-100 @error('sns_region') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'aws_sns'">
                                             <option value="us-east-1">US East (N. Virginia)</option>
                                             <option value="us-east-2">US East (Ohio)</option>
@@ -95,7 +95,7 @@
                                         </select>
                                     </div>
                                     <div class="col">
-                                        <label for="sns_senderid">{{ __('Sender ID (Optional)') }}</label>
+                                        <label for="sns_senderid">{{ __('settings.sender_id_optional') }}</label>
                                         <input wire:model="sns_senderid" id="sns_senderid" type="text" class="form-control w-100 @error('sns_senderid') is-invalid @enderror" placeholder="Country code (e.g., 237)">
                                     </div>
                                 </div>
@@ -104,39 +104,51 @@
                             <!-- Orange Cameroon Provider Configuration -->
                             <div x-show="$wire.sms_provider === 'orange_cm'" class="provider-config">
                                 <hr>
-                                <h6 class="text-primary mb-3">{{__('Orange Cameroon SMS')}} {{__('settings.configuration')}}</h6>
+                                <h6 class="text-primary mb-3">{{__('settings.orange_cm')}} {{__('settings.configuration')}}</h6>
+                                <p class="small text-muted mb-2">{{ __('settings.orange_cm_section_intro') }}</p>
                                 <div class='form-group row mb-2'>
                                     <div class="col">
-                                        <label for="orange_cm_application_id">{{ __('settings.orange_cm_application_id') }}</label>
-                                        <input wire:model="orange_cm_application_id" id="orange_cm_application_id" type="text" class="form-control w-100 @error('orange_cm_application_id') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_application_id">
-                                    </div>
-                                </div>
-                                <div class='form-group row mb-2'>
-                                    <div class="col">
-                                        <label for="orange_cm_client_id">{{ __('settings.orange_cm_client_id') }}</label>
-                                        <input wire:model="orange_cm_client_id" id="orange_cm_client_id" type="text" class="form-control w-100 @error('orange_cm_client_id') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_client_id">
+                                        <label for="orange_cm_login_email">{{ __('settings.orange_cm_login_email') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="orange_cm_login_email" id="orange_cm_login_email" type="email" class="form-control w-100 @error('orange_cm_login_email') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" autocomplete="off" placeholder="{{ __('settings.orange_cm_login_email_placeholder') }}">
                                     </div>
                                     <div class="col">
-                                        <label for="orange_cm_client_secret">{{ __('settings.orange_cm_client_secret') }}</label>
-                                        <input wire:model="orange_cm_client_secret" id="orange_cm_client_secret" type="password" class="form-control w-100 @error('orange_cm_client_secret') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="your_client_secret">
+                                        <label for="orange_cm_password">{{ __('settings.orange_cm_password') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="orange_cm_password" id="orange_cm_password" type="password" class="form-control w-100 @error('orange_cm_password') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" autocomplete="new-password" placeholder="{{ __('settings.orange_cm_password_placeholder') }}">
                                     </div>
                                 </div>
                                 <div class="form-group mb-2">
-                                    <label for="orange_cm_sender_address">{{ __('settings.orange_cm_sender_address') }}</label>
-                                    <input wire:model="orange_cm_sender_address" id="orange_cm_sender_address" type="text" class="form-control w-100 @error('orange_cm_sender_address') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="tel:+2376XXXXXXX">
-                                    <small class="text-muted">{{ __('settings.orange_cm_sender_address_help') }}</small>
+                                    <label for="orange_cm_sender">{{ __('settings.orange_cm_sender') }} <span class="text-danger">*</span></label>
+                                    <input wire:model="orange_cm_sender" id="orange_cm_sender" type="text" class="form-control w-100 @error('orange_cm_sender') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="{{ __('settings.orange_cm_sender_placeholder') }}">
+                                    <small class="text-muted">{{ __('settings.orange_cm_sender_help') }}</small>
+                                </div>
+                                <div class='form-group row mb-2'>
+                                    <div class="col">
+                                        <label for="orange_cm_category">{{ __('settings.orange_cm_category') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="orange_cm_category" id="orange_cm_category" type="text" class="form-control w-100 @error('orange_cm_category') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="{{ __('settings.orange_cm_category_placeholder') }}">
+                                        <small class="text-muted">{{ __('settings.orange_cm_category_help') }}</small>
+                                    </div>
+                                    <div class="col">
+                                        <label for="orange_cm_country">{{ __('settings.orange_cm_country') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="orange_cm_country" id="orange_cm_country" type="text" class="form-control w-100 @error('orange_cm_country') is-invalid @enderror" x-bind:required="$wire.sms_provider === 'orange_cm'" placeholder="{{ __('settings.orange_cm_country_placeholder') }}">
+                                        <small class="text-muted">{{ __('settings.orange_cm_country_help') }}</small>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-2">
+                                    <label for="orange_cm_dr_callback">{{ __('settings.orange_cm_dr_callback') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                    <input wire:model="orange_cm_dr_callback" id="orange_cm_dr_callback" type="url" class="form-control w-100 @error('orange_cm_dr_callback') is-invalid @enderror" placeholder="{{ __('settings.orange_cm_dr_callback_placeholder') }}">
+                                    <small class="text-muted">{{ __('settings.orange_cm_dr_callback_help') }}</small>
                                 </div>
                             </div>
 
                             <div class="card-title h5 pt-3 ">{{__('settings.payslip_sms_message_config')}} </div>
                             <hr>
                             <div class="form-group mb-2">
-                                <label for="sms_content_en">{{ __('settings.enter_sms_content_english') }}</label>
-                                <textarea wire:model="sms_content_en" id="sms_content_en" type="text" rows="3" class="form-control w-100 @error('sms_content_en') is-invalid @enderror" required autofocus></textarea>
+                                <label for="sms_content_en">{{ __('settings.enter_sms_content_english') }} <span class="text-danger">*</span></label>
+                                <textarea wire:model="sms_content_en" id="sms_content_en" type="text" rows="3" class="form-control w-100 @error('sms_content_en') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_sms_content_english') }}"></textarea>
                             </div>
                             <div class="form-group mb-2">
-                                <label for="sms_content_fr">{{ __('settings.enter_sms_content_french') }}</label>
-                                <textarea wire:model="sms_content_fr" id="sms_content_fr" type="text" rows="3" class="form-control w-100 @error('sms_content_fr') is-invalid @enderror" required autofocus></textarea>
+                                <label for="sms_content_fr">{{ __('settings.enter_sms_content_french') }} <span class="text-danger">*</span></label>
+                                <textarea wire:model="sms_content_fr" id="sms_content_fr" type="text" rows="3" class="form-control w-100 @error('sms_content_fr') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_sms_content_french') }}"></textarea>
                             </div>
                             <div class='text-xs text-danger ' style="font-size:small">
                                 {{__('settings.do_not_remove_placeholders')}} <strong class="fw-bolder"> :name: , :month: , :year: , :pdf_password: </strong>,{{__('settings.placeholders_note')}}
@@ -145,12 +157,12 @@
                             <div class="card-title h5 pt-3">{{__('settings.birthday_sms_message_config')}} </div>
                             <hr>
                             <div class="form-group mb-2">
-                                <label for="birthday_sms_message_en">{{ __('settings.enter_birthday_sms_english') }}</label>
-                                <textarea wire:model="birthday_sms_message_en" id="birthday_sms_message_en" type="text" rows="3" class="form-control w-100 @error('birthday_sms_message_en') is-invalid @enderror" required autofocus></textarea>
+                                <label for="birthday_sms_message_en">{{ __('settings.enter_birthday_sms_english') }} <span class="text-danger">*</span></label>
+                                <textarea wire:model="birthday_sms_message_en" id="birthday_sms_message_en" type="text" rows="3" class="form-control w-100 @error('birthday_sms_message_en') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_birthday_sms_english') }}"></textarea>
                             </div>
                             <div class="form-group mb-2">
-                                <label for="birthday_sms_message_fr">{{ __('settings.enter_birthday_sms_french') }}</label>
-                                <textarea wire:model="birthday_sms_message_fr" id="birthday_sms_message_fr" type="text" rows="3" class="form-control w-100 @error('birthday_sms_message_fr') is-invalid @enderror" required autofocus></textarea>
+                                <label for="birthday_sms_message_fr">{{ __('settings.enter_birthday_sms_french') }} <span class="text-danger">*</span></label>
+                                <textarea wire:model="birthday_sms_message_fr" id="birthday_sms_message_fr" type="text" rows="3" class="form-control w-100 @error('birthday_sms_message_fr') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_birthday_sms_french') }}"></textarea>
                             </div>
                             <div class='text-xs text-danger ' style="font-size:small">
                                 {{__('settings.do_not_remove_placeholders')}} <strong class="fw-bolder"> :name: </strong>,{{__('settings.placeholders_note')}}
@@ -172,10 +184,26 @@
                     <div class="px-3 mb-3 flex-fill d-flex">
                         <div class='card card-body card-raised text-center pt-5 w-100'>
                             <p class='display-3'>
-                                {{ $sms_balance }}
+                                @if($sms_provider === 'orange_cm' && ($sms_balance === null || $sms_balance === ''))
+                                    {{ __('settings.sms_balance_not_available_short') }}
+                                @else
+                                    {{ $sms_balance ?? '—' }}
+                                @endif
                             </p>
                             <div class="card-title">{{__('settings.sms_balance')}}</div>
-                            <div class="mb-2 text-muted text-xs">{{__('settings.you_can_check_sms_details')}}.</div>
+                            <div class="mb-2">
+                                <button type="button" wire:click="refreshSmsBalance(null, true)" wire:loading.attr="disabled" wire:target="refreshSmsBalance" class="btn btn-sm btn-outline-secondary">
+                                    <span wire:loading.remove wire:target="refreshSmsBalance">{{ __('settings.refresh_sms_balance') }}</span>
+                                    <span wire:loading wire:target="refreshSmsBalance">...</span>
+                                </button>
+                            </div>
+                            <div class="mb-2 text-muted text-xs">
+                                @if($sms_provider === 'orange_cm')
+                                    {{ __('settings.sms_balance_orange_cm_help') }}
+                                @else
+                                    {{__('settings.you_can_check_sms_details')}}.
+                                @endif
+                            </div>
                         </div>
                     </div>
                     <div class="px-3 flex-fill d-flex">
@@ -186,13 +214,13 @@
 
                                 <div class='form-group row mb-3'>
                                     <div class='col'>
-                                        <label for="test_phone_number">{{ __('settings.enter_phone_number') }}</label>
-                                        <input wire:model="test_phone_number" id="test_phone_number" type="text" class="form-control w-100 @error('test_phone_number') is-invalid @enderror" required autofocus>
+                                        <label for="test_phone_number">{{ __('settings.enter_phone_number') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="test_phone_number" id="test_phone_number" type="text" class="form-control w-100 @error('test_phone_number') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_phone_number') }}">
                                     </div>
                                 </div>
                                 <div class="form-group mb-3">
-                                    <label for="test_sms_message">{{ __('settings.test_sms_message') }}</label>
-                                    <textarea wire:model="test_sms_message" id="test_sms_message" type="text" rows="4" class="form-control w-100 @error('test_sms_message') is-invalid @enderror" required autofocus></textarea>
+                                    <label for="test_sms_message">{{ __('settings.test_sms_message') }} <span class="text-danger">*</span></label>
+                                    <textarea wire:model="test_sms_message" id="test_sms_message" type="text" rows="4" class="form-control w-100 @error('test_sms_message') is-invalid @enderror" required autofocus placeholder="{{ __('settings.test_sms_message') }}"></textarea>
                                 </div>
                                 <div class="mt-4 mb-0 form-group d-flex justify-content-end">
                                     <button type="submit" id="send-test-sms-btn" wire:click.prevent="sendTestSms" class="btn btn-primary" wire:loading.attr="disabled">
@@ -217,16 +245,17 @@
                                 </div>
                                 <x-form-items.form wire:submit="saveSmtpConfig">
                                     <div class='form-group mb-2'>
-                                        <label for='smtp_provider'>{{__('settings.email_provider')}}</label>
+                                        <label for='smtp_provider'>{{__('settings.email_provider')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                         <select wire:model.live='smtp_provider' id='smtp_provider' class="form-control @error('smtp_provider') is-invalid @enderror">
-                                            <option value='smtp'>{{__('SMTP')}}</option>
-                                            <option value='mailgun'>{{__('Mailgun')}}</option>
-                                            <option value='ses'>{{__('Amazon SES')}}</option>
-                                            <option value='postmark'>{{__('Postmark')}}</option>
-                                            <option value='sendmail'>{{__('Sendmail')}}</option>
-                                            <option value='mailpit'>{{__('Mailpit (Development)')}}</option>
-                                            <option value='log'>{{__('Log (Development)')}}</option>
-                                            <option value='array'>{{__('Array (Testing)')}}</option>
+                                            <option value='smtp'>{{__('settings.smtp')}}</option>
+                                            <option value='mailchimp'>{{__('settings.mailchimp_transactional')}}</option>
+                                            <option value='mailgun'>{{__('settings.mailgun')}}</option>
+                                            <option value='ses'>{{__('settings.ses')}}</option>
+                                            <option value='postmark'>{{__('settings.postmark')}}</option>
+                                            <option value='sendmail'>{{__('settings.sendmail')}}</option>
+                                            <option value='mailpit'>{{__('settings.mailpit')}}</option>
+                                            <option value='log'>{{__('settings.log')}}</option>
+                                            <option value='array'>{{__('settings.array')}}</option>
                                         </select>
                                     </div>
 
@@ -236,51 +265,66 @@
                                         <h6 class="text-primary mb-3">{{__('settings.smtp_configuration')}}</h6>
                                         <div class='form-group row mb-2'>
                                             <div class="col">
-                                                <label for="smtp_host">{{ __('settings.smtp_host') }}</label>
-                                                <input wire:model="smtp_host" id="smtp_host" type="text" class="form-control w-100 @error('smtp_host') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'">
+                                                <label for="smtp_host">{{ __('settings.smtp_host') }} <span class="text-danger">*</span></label>
+                                                <input wire:model="smtp_host" id="smtp_host" type="text" class="form-control w-100 @error('smtp_host') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'" placeholder="{{ __('settings.smtp_host') }}">
                                             </div>
                                             <div class="col">
-                                                <label for="smtp_port">{{ __('settings.smtp_port') }}</label>
-                                                <input wire:model="smtp_port" id="smtp_port" type="text" class="form-control w-100 @error('smtp_port') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'">
+                                                <label for="smtp_port">{{ __('settings.smtp_port') }} <span class="text-danger">*</span></label>
+                                                <input wire:model="smtp_port" id="smtp_port" type="text" class="form-control w-100 @error('smtp_port') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'" placeholder="{{ __('settings.smtp_port') }}">
                                             </div>
                                         </div>
                                         <div class='form-group row mb-2'>
                                             <div class="col">
-                                                <label for="smtp_username">{{ __('settings.smtp_username') }}</label>
-                                                <input wire:model="smtp_username" id="smtp_username" type="text" class="form-control w-100 @error('smtp_username') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'">
+                                                <label for="smtp_username">{{ __('settings.smtp_username') }} <span class="text-danger">*</span></label>
+                                                <input wire:model="smtp_username" id="smtp_username" type="text" class="form-control w-100 @error('smtp_username') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'" placeholder="{{ __('settings.smtp_username') }}">
                                             </div>
                                             <div class="col">
-                                                <label for="smtp_password">{{ __('settings.smtp_password') }}</label>
-                                                <input wire:model="smtp_password" id="smtp_password" type="password" class="form-control w-100 @error('smtp_password') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'">
+                                                <label for="smtp_password">{{ __('settings.smtp_password') }} <span class="text-danger">*</span></label>
+                                                <input wire:model="smtp_password" id="smtp_password" type="password" class="form-control w-100 @error('smtp_password') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'" placeholder="{{ __('settings.smtp_password') }}">
                                             </div>
                                         </div>
                                         <div class="form-group mb-2">
-                                            <label for="smtp_encryption">{{ __('settings.smtp_encryption') }}</label>
+                                            <label for="smtp_encryption">{{ __('settings.smtp_encryption') }} <span class="text-danger">*</span></label>
                                             <input wire:model="smtp_encryption" id="smtp_encryption" type="text" class="form-control w-100 @error('smtp_encryption') is-invalid @enderror" x-bind:required="$wire.smtp_provider === 'smtp'" placeholder="tls/ssl">
+                                        </div>
+                                    </div>
+
+                                    <!-- Mailchimp Transactional Configuration -->
+                                    <div x-show="$wire.smtp_provider === 'mailchimp'" class="provider-config">
+                                        <hr>
+                                        <h6 class="text-primary mb-3">{{__('settings.mailchimp_transactional_configuration')}}</h6>
+                                        <div class="alert alert-info mb-3">
+                                            <i class="fas fa-info-circle"></i>
+                                            {{__('settings.mailchimp_smtp_note')}}
+                                        </div>
+                                        <div class="form-group mb-2">
+                                            <label for="mailchimp_api_key">{{ __('settings.mailchimp_api_key') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                            <input wire:model="mailchimp_api_key" id="mailchimp_api_key" type="password" class="form-control w-100 @error('mailchimp_api_key') is-invalid @enderror" placeholder="{{__('settings.mailchimp_api_key_placeholder')}}">
+                                            <small class="text-muted">{{__('settings.mailchimp_api_key_help')}}</small>
                                         </div>
                                     </div>
 
                                     <!-- Mailgun Configuration -->
                                     <div x-show="$wire.smtp_provider === 'mailgun'" class="provider-config">
                                         <hr>
-                                        <h6 class="text-primary mb-3">{{__('Mailgun Configuration')}}</h6>
+                                        <h6 class="text-primary mb-3">{{__('settings.mailgun_configuration')}}</h6>
                                         <div class='form-group row mb-2'>
                                             <div class="col">
-                                                <label for="mailgun_domain">{{ __('Domain') }}</label>
+                                                <label for="mailgun_domain">{{ __('settings.domain') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                                 <input wire:model="mailgun_domain" id="mailgun_domain" type="text" class="form-control w-100 @error('mailgun_domain') is-invalid @enderror" placeholder="yourdomain.com">
                                             </div>
                                             <div class="col">
-                                                <label for="mailgun_secret">{{ __('API Secret') }}</label>
+                                                <label for="mailgun_secret">{{ __('settings.api_secret') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                                 <input wire:model="mailgun_secret" id="mailgun_secret" type="password" class="form-control w-100 @error('mailgun_secret') is-invalid @enderror" placeholder="key-...">
                                             </div>
                                         </div>
                                         <div class='form-group row mb-2'>
                                             <div class="col">
-                                                <label for="mailgun_endpoint">{{ __('Endpoint (Optional)') }}</label>
+                                                <label for="mailgun_endpoint">{{ __('settings.endpoint_optional') }}</label>
                                                 <input wire:model="mailgun_endpoint" id="mailgun_endpoint" type="text" class="form-control w-100 @error('mailgun_endpoint') is-invalid @enderror" placeholder="api.mailgun.net">
                                             </div>
                                             <div class="col">
-                                                <label for="mailgun_scheme">{{ __('Scheme (Optional)') }}</label>
+                                                <label for="mailgun_scheme">{{ __('settings.scheme_optional') }}</label>
                                                 <input wire:model="mailgun_scheme" id="mailgun_scheme" type="text" class="form-control w-100 @error('mailgun_scheme') is-invalid @enderror" placeholder="https">
                                             </div>
                                         </div>
@@ -289,19 +333,19 @@
                                     <!-- AWS SES Configuration -->
                                     <div x-show="$wire.smtp_provider === 'ses'" class="provider-config">
                                         <hr>
-                                        <h6 class="text-primary mb-3">{{__('Amazon SES Configuration')}}</h6>
+                                        <h6 class="text-primary mb-3">{{__('settings.amazon_ses_configuration')}}</h6>
                                         <div class='form-group row mb-2'>
                                             <div class="col">
-                                                <label for="ses_key">{{ __('Access Key ID') }}</label>
+                                                <label for="ses_key">{{ __('settings.access_key_id') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                                 <input wire:model="ses_key" id="ses_key" type="text" class="form-control w-100 @error('ses_key') is-invalid @enderror" placeholder="AKIA...">
                                             </div>
                                             <div class="col">
-                                                <label for="ses_secret">{{ __('Secret Access Key') }}</label>
+                                                <label for="ses_secret">{{ __('settings.secret_access_key') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                                 <input wire:model="ses_secret" id="ses_secret" type="password" class="form-control w-100 @error('ses_secret') is-invalid @enderror" placeholder="...">
                                             </div>
                                         </div>
                                         <div class="form-group mb-2">
-                                            <label for="ses_region">{{ __('Region') }}</label>
+                                            <label for="ses_region">{{ __('settings.region') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                             <select wire:model="ses_region" id="ses_region" class="form-control w-100 @error('ses_region') is-invalid @enderror">
                                                 <option value="us-east-1">US East (N. Virginia)</option>
                                                 <option value="us-east-2">US East (Ohio)</option>
@@ -320,9 +364,9 @@
                                     <!-- Postmark Configuration -->
                                     <div x-show="$wire.smtp_provider === 'postmark'" class="provider-config">
                                         <hr>
-                                        <h6 class="text-primary mb-3">{{__('Postmark Configuration')}}</h6>
+                                        <h6 class="text-primary mb-3">{{__('settings.postmark_configuration')}}</h6>
                                         <div class="form-group mb-2">
-                                            <label for="postmark_token">{{ __('Server Token') }}</label>
+                                            <label for="postmark_token">{{ __('settings.server_token') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                             <input wire:model="postmark_token" id="postmark_token" type="password" class="form-control w-100 @error('postmark_token') is-invalid @enderror" placeholder="server-token-...">
                                         </div>
                                     </div>
@@ -332,7 +376,7 @@
                                         <hr>
                                         <h6 class="text-primary mb-3">{{__('Sendmail Configuration')}}</h6>
                                         <div class="form-group mb-2">
-                                            <label for="sendmail_path">{{ __('Sendmail Path (Optional)') }}</label>
+                                            <label for="sendmail_path">{{ __('Sendmail Path (Optional)') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                             <input wire:model="sendmail_path" id="sendmail_path" type="text" class="form-control w-100 @error('sendmail_path') is-invalid @enderror" placeholder="/usr/sbin/sendmail -bs -i">
                                         </div>
                                     </div>
@@ -343,11 +387,11 @@
                                         <h6 class="text-primary mb-3">{{__('Mailpit Configuration (Development)')}}</h6>
                                         <div class='form-group row mb-2'>
                                             <div class="col">
-                                                <label for="mailpit_host">{{ __('Host') }}</label>
+                                                <label for="mailpit_host">{{ __('Host') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                                 <input wire:model="mailpit_host" id="mailpit_host" type="text" class="form-control w-100 @error('mailpit_host') is-invalid @enderror" placeholder="localhost">
                                             </div>
                                             <div class="col">
-                                                <label for="mailpit_port">{{ __('Port') }}</label>
+                                                <label for="mailpit_port">{{ __('Port') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                                 <input wire:model="mailpit_port" id="mailpit_port" type="text" class="form-control w-100 @error('mailpit_port') is-invalid @enderror" placeholder="1025">
                                             </div>
                                         </div>
@@ -358,18 +402,18 @@
                                         <hr>
                                         <h6 class="text-primary mb-3">{{__('Log Configuration (Development)')}}</h6>
                                         <div class="form-group mb-2">
-                                            <label for="log_channel">{{ __('Log Channel (Optional)') }}</label>
+                                            <label for="log_channel">{{ __('Log Channel (Optional)') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                             <input wire:model="log_channel" id="log_channel" type="text" class="form-control w-100 @error('log_channel') is-invalid @enderror" placeholder="daily">
                                         </div>
                                     </div>
                                     <div class='form-group row mb-2'>
                                         <div class="col">
-                                            <label for="from_email">{{ __('settings.from_email') }}</label>
-                                            <input wire:model="from_email" id="from_email" type="text" class="form-control w-100 @error('from_email') is-invalid @enderror" required autofocus>
+                                            <label for="from_email">{{ __('settings.from_email') }} <span class="text-danger">*</span></label>
+                                            <input wire:model="from_email" id="from_email" type="text" class="form-control w-100 @error('from_email') is-invalid @enderror" required autofocus placeholder="{{ __('settings.from_email') }}">
                                         </div>
                                         <div class="col">
-                                            <label for="from_name">{{ __('settings.smtp_from_name') }}</label>
-                                            <input wire:model="from_name" id="from_name" type="text" class="form-control w-100 @error('from_name') is-invalid @enderror" required autofocus>
+                                            <label for="from_name">{{ __('settings.from_name') }} <span class="text-danger">*</span></label>
+                                            <input wire:model="from_name" id="from_name" type="text" class="form-control w-100 @error('from_name') is-invalid @enderror" required autofocus placeholder="{{ __('settings.from_name') }}">
                                         </div>
                                     </div>
 
@@ -382,7 +426,7 @@
                                         </div>
                                     </div>
 
-                                    <div x-show="['mailgun', 'ses', 'postmark'].includes($wire.smtp_provider)" class="mt-3">
+                                    <div x-show="['mailgun', 'ses', 'postmark', 'mailchimp'].includes($wire.smtp_provider)" class="mt-3">
                                         <div class="alert alert-success">
                                             <i class="fas fa-check-circle"></i>
                                             {{__('settings.transactional_webhook_note')}}
@@ -397,7 +441,7 @@
                                     </div>
 
                                     <!-- Webhook Configuration Section -->
-                                    <div x-show="['mailgun', 'ses', 'postmark'].includes($wire.smtp_provider)" class="mt-4">
+                                    <div x-show="['mailgun', 'ses', 'postmark', 'mailchimp'].includes($wire.smtp_provider)" class="mt-4">
                                         <div class="card-title h5 pt-3">{{__('settings.webhook_configuration')}} </div>
                                         <hr>
                                         <div class="alert alert-info">
@@ -407,12 +451,12 @@
                                         </div>
 
                                         <div class="form-group mb-3">
-                                            <label class="form-label">{{__('settings.webhook_url')}}:</label>
+                                            <label class="form-label">{{__('settings.webhook_url')}}: <small class="text-muted">({{ __('common.optional') }})</small></label>
                                             <div class="input-group">
                                                 <input type="text"
                                                     class="form-control"
                                                     readonly
-                                                    x-bind:value="getWebhookUrl($wire.smtp_provider)">
+                                                    x-bind:value="getWebhookUrl($wire.smtp_provider)" placeholder="{{__('settings.webhook_url')}}">
                                                 <button class="btn btn-outline-secondary"
                                                     type="button"
                                                     onclick="navigator.clipboard.writeText(getWebhookUrl(document.querySelector('select[id=&quot;smtp_provider&quot;]').value))">
@@ -448,6 +492,16 @@
                                                 <li>{{__('settings.postmark_webhook_step_3')}}</li>
                                             </ol>
                                         </div>
+
+                                        <div x-show="$wire.smtp_provider === 'mailchimp'" class="mb-3">
+                                            <h6 class="text-primary">{{__('settings.mailchimp_webhook_setup')}}</h6>
+                                            <ol class="text-sm">
+                                                <li>{{__('settings.mailchimp_webhook_step_1')}}</li>
+                                                <li>{{__('settings.mailchimp_webhook_step_2')}}</li>
+                                                <li>{{__('settings.mailchimp_webhook_step_3')}}</li>
+                                                <li>{{__('settings.mailchimp_webhook_step_4')}}</li>
+                                            </ol>
+                                        </div>
                                     </div>
 
                                     <div class="mt-4 mb-0 form-group d-flex justify-content-end">
@@ -467,12 +521,12 @@
                         <div class="mb-4 text-muted text-xs text-center">{{__('settings.test_email_setup_instructions')}}.</div>
                         <x-form-items.form wire:submit="sendTestEmail" class="px-4 ">
                                     <div class="form-group mb-2">
-                                        <label for="test_email_address">{{ __('settings.enter_email_address') }}</label>
-                                        <input wire:model="test_email_address" id="test_email_address" type="email" class="form-control w-100 @error('test_email_address') is-invalid @enderror" required autofocus>
+                                        <label for="test_email_address">{{ __('settings.enter_email_address') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="test_email_address" id="test_email_address" type="email" class="form-control w-100 @error('test_email_address') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_address') }}">
                                     </div>
                                     <div class="form-group mb-2">
-                                        <label for="test_email_message">{{ __('settings.enter_email_message') }}</label>
-                                        <textarea wire:model="test_email_message" id="test_email_message" type="text" class="form-control w-100 @error('test_email_message') is-invalid @enderror" required autofocus></textarea>
+                                        <label for="test_email_message">{{ __('settings.enter_email_message') }} <span class="text-danger">*</span></label>
+                                        <textarea wire:model="test_email_message" id="test_email_message" type="text" class="form-control w-100 @error('test_email_message') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_message') }}"></textarea>
                                     </div>
                                     <div class="mt-3 mb-0 form-group d-flex justify-content-end">
                                         <button type="submit" id="send-test-email-btn" wire:click.prevent="sendTestEmail" class="btn btn-primary" wire:loading.attr="disabled">
@@ -494,23 +548,23 @@
                                 <x-form-items.form wire:submit="saveSmtpConfig">
 
                                     <div class="form-group mb-2">
-                                        <label for="email_subject_en">{{ __('settings.enter_email_subject_english') }}</label>
-                                        <input wire:model="email_subject_en" id="email_subject_en" type="text" class="form-control w-100 @error('email_subject_en') is-invalid @enderror" required autofocus>
+                                        <label for="email_subject_en">{{ __('settings.enter_email_subject_english') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="email_subject_en" id="email_subject_en" type="text" class="form-control w-100 @error('email_subject_en') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_subject_english') }}">
                                     </div>
 
                                     <div class="form-group mb-2" wire:ignore>
-                                        <label for="email_content_en">{{ __('settings.enter_email_content_english') }}</label>
-                                        <textarea wire:model="email_content_en" id="email_content_en" class="email_content_en form-control w-100 @error('email_content_en') is-invalid @enderror">
+                                        <label for="email_content_en">{{ __('settings.enter_email_content_english') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                        <textarea wire:model="email_content_en" id="email_content_en" class="email_content_en form-control w-100 @error('email_content_en') is-invalid @enderror" placeholder="{{ __('settings.enter_email_content_english') }}">
                                                 {!! $email_content_en !!}
                                             </textarea>
                                     </div>
                                     <div class="form-group mb-2">
-                                        <label for="welcome_email_subject_fr">{{ __('settings.enter_email_subject_french') }}</label>
-                                        <input wire:model="email_subject_fr" id="email_subject_fr" type="text" class="form-control w-100 @error('email_subject_fr') is-invalid @enderror" required autofocus>
+                                        <label for="welcome_email_subject_fr">{{ __('settings.enter_email_subject_french') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="email_subject_fr" id="email_subject_fr" type="text" class="form-control w-100 @error('email_subject_fr') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_subject_french') }}">
                                     </div>
                                     <div class=" form-group mb-2" wire:ignore>
-                                        <label for="email_content_fr">{{ __('settings.enter_email_content_french') }}</label>
-                                        <textarea wire:model="email_content_fr" id="email_content_fr" class="email_content_fr form-control w-100 @error('email_content_fr') is-invalid @enderror">
+                                        <label for="email_content_fr">{{ __('settings.enter_email_content_french') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                        <textarea wire:model="email_content_fr" id="email_content_fr" class="email_content_fr form-control w-100 @error('email_content_fr') is-invalid @enderror" placeholder="{{ __('settings.enter_email_content_french') }}">
                                                      {!! $email_content_fr !!}
                                             </textarea>
                                     </div>
@@ -534,23 +588,23 @@
                                 <div class="card-title h5 ">{{__('settings.welcome_email_configuration')}} </div>
                                 <x-form-items.form wire:submit="saveSmtpConfig">
                                     <div class="form-group mb-2">
-                                        <label for="welcome_email_subject_en">{{ __('settings.enter_welcome_email_subject_english') }}</label>
-                                        <input wire:model="welcome_email_subject_en" id="welcome_email_subject_en" type="text" class="form-control w-100 @error('welcome_email_subject_en') is-invalid @enderror" required autofocus>
+                                        <label for="welcome_email_subject_en">{{ __('settings.enter_welcome_email_subject_english') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="welcome_email_subject_en" id="welcome_email_subject_en" type="text" class="form-control w-100 @error('welcome_email_subject_en') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_welcome_email_subject_english') }}">
                                     </div>
 
                                     <div class="form-group mb-2" wire:ignore>
-                                        <label for="welcome_email_content_en">{{ __('settings.enter_welcome_email_content_english') }}</label>
-                                        <textarea wire:model="welcome_email_content_en" id="welcome_email_content_en" class="welcome_email_content_en form-control w-100 @error('welcome_email_content_en') is-invalid @enderror">
+                                        <label for="welcome_email_content_en">{{ __('settings.enter_welcome_email_content_english') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                        <textarea wire:model="welcome_email_content_en" id="welcome_email_content_en" class="welcome_email_content_en form-control w-100 @error('welcome_email_content_en') is-invalid @enderror" placeholder="{{ __('settings.enter_welcome_email_content_english') }}">
                                                 {!! $welcome_email_content_en !!}
                                             </textarea>
                                     </div>
                                     <div class="form-group mb-2">
-                                        <label for="welcome_email_subject_fr">{{ __('settings.enter_welcome_email_subject_french') }}</label>
-                                        <input wire:model="welcome_email_subject_fr" id="welcome_email_subject_fr" type="text" class="form-control w-100 @error('welcome_email_subject_fr') is-invalid @enderror" required autofocus>
+                                        <label for="welcome_email_subject_fr">{{ __('settings.enter_welcome_email_subject_french') }} <span class="text-danger">*</span></label>
+                                        <input wire:model="welcome_email_subject_fr" id="welcome_email_subject_fr" type="text" class="form-control w-100 @error('welcome_email_subject_fr') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_welcome_email_subject_french') }}">
                                     </div>
                                     <div class=" form-group mb-2" wire:ignore>
-                                        <label for="welcome_email_content_fr">{{ __('settings.enter_welcome_email_content_french') }}</label>
-                                        <textarea wire:model="welcome_email_content_fr" id="welcome_email_content_fr" class="welcome_email_content_fr form-control w-100 @error('welcome_email_content_fr') is-invalid @enderror">
+                                        <label for="welcome_email_content_fr">{{ __('settings.enter_welcome_email_content_french') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                        <textarea wire:model="welcome_email_content_fr" id="welcome_email_content_fr" class="welcome_email_content_fr form-control w-100 @error('welcome_email_content_fr') is-invalid @enderror" placeholder="{{ __('settings.enter_welcome_email_content_french') }}">
                                                      {!! $welcome_email_content_fr !!}
                                             </textarea>
                                     </div>
@@ -572,9 +626,20 @@
         </div>
     </div>
 
+    <!-- Feature Configuration Section -->
+    <div class='pb-0 mt-4'>
+        <div class="row">
+            <div class="col-lg-12">
+                @include('livewire.portal.settings.partials.feature-configuration')
+            </div>
+        </div>
+    </div>
+
     @include('livewire.portal.settings.partials.sms-provider-guide-modal')
 
     @include('livewire.portal.settings.partials.email-provider-guide-modal')
+
+    @include('livewire.partials.delete-modal')
 
     @push('scripts')
     <script>
@@ -604,7 +669,5 @@
         // Make function available globally for onclick handler
         window.getWebhookUrl = getWebhookUrl;
     </script>
-
-</div>
 @endpush
 </div>

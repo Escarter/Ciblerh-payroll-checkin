@@ -19,7 +19,14 @@ class AbsenceObserver
             auth()->user(),
             'absence_created',
             'web',
-            __('Created an absence with date '). $absence->absence_date
+            'created_absence',
+            $absence,
+            [],
+            [],
+            [
+                'translation_key' => 'created_absence',
+                'translation_params' => ['date' => $absence->absence_date],
+            ]
         );
     }
 
@@ -33,18 +40,29 @@ class AbsenceObserver
     {
         
         if ($absence->approval_status !== $absence->getOriginal('approval_status')) {
-            $changes = ($absence->approval_status == 1 ? __('common.approved') : __('common.rejected') ). " ". __(' the absence from '). $absence->user->name . __(' with date ') . $absence->absence_date; 
+            $translationKey = $absence->approval_status == 1 ? 'approved_absence' : 'rejected_absence';
+            $translationParams = ['user' => $absence->user->name, 'date' => $absence->absence_date];
+            $changes = $absence->approval_status == 1 ? 'approved_absence' : 'rejected_absence';
             $status = "absence_". ($absence->approval_status == 1 ? "approved" : "rejected");
         }else{
             $status = "absence_updated";
-            $changes = __('Updated the absence from '). $absence->user->name . __(' with date ') . $absence->absence_date; 
+            $translationKey = 'updated_absence';
+            $translationParams = ['user' => $absence->user->name, 'date' => $absence->absence_date];
+            $changes = 'updated_absence'; 
         }
     
         auditLog(
             auth()->user(),
             $status,
             'web',
-            $changes
+            $changes,
+            $absence,
+            [],
+            [],
+            [
+                'translation_key' => $translationKey,
+                'translation_params' => $translationParams,
+            ]
         );
     }
 
@@ -60,7 +78,14 @@ class AbsenceObserver
             auth()->user(),
             'absence_deleted',
             'web',
-            __('Deleted absence from ') . $absence->user->name . __(' with date ') . $absence->absence_date 
+            'deleted_absence',
+            $absence,
+            [],
+            [],
+            [
+                'translation_key' => 'deleted_absence',
+                'translation_params' => ['user' => $absence->user->name, 'date' => $absence->absence_date],
+            ] 
         );
     }
 

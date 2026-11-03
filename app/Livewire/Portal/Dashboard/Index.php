@@ -55,7 +55,14 @@ class Index extends Component
                 break;
             case 'supervisor':
                 $this->companies = [];
-                $this->departments = Department::whereIn('id', auth()->user()->supDepartments->pluck('department_id'))->get();
+                $this->departments = Department::supervisor()->orderBy('created_at', 'desc')->get();
+                // Ensure selectedDepartmentId is valid for supervisor
+                if ($this->selectedDepartmentId !== 'all' && $this->selectedDepartmentId !== null) {
+                    $validDepartmentIds = $this->departments->pluck('id')->toArray();
+                    if (!in_array($this->selectedDepartmentId, $validDepartmentIds)) {
+                        $this->selectedDepartmentId = 'all';
+                    }
+                }
                 break;
             default:
                 $this->companies = [];
@@ -71,13 +78,26 @@ class Index extends Component
     public function updatedSelectedCompanyId($company_id)
     {
         if (!is_null($company_id)) {
-            $this->departments = Department::where('company_id', $company_id)->get();
+            if ($this->role === 'supervisor') {
+                $this->departments = Department::supervisor()->where('company_id', $company_id)->get();
+            } else {
+                $this->departments = Department::where('company_id', $company_id)->get();
+            }
         }
         $this->clearCache();
     }
 
     public function updatedSelectedDepartmentId($department_id)
     {
+        // Validate supervisor can only select their managed departments
+        if ($this->role === 'supervisor' && $department_id !== 'all' && $department_id !== null) {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($department_id, $validDepartmentIds)) {
+                $this->selectedDepartmentId = 'all';
+                $this->dispatch("showToast", message: __('common.unauthorized_department_access'), type: "danger");
+                return;
+            }
+        }
         $this->clearCache();
     }
 
@@ -152,6 +172,14 @@ class Index extends Component
     {
         $query = Payslip::query()
             ->when(
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
+            )
+            ->when(
+                $this->role === 'manager',
+                fn($q) => $q->manager()
+            )
+            ->when(
                 $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                 fn($q) => $q->where('company_id', $this->selectedCompanyId)
             )
@@ -163,11 +191,12 @@ class Index extends Component
         $connection = DB::getDriverName();
 
         if ($groupBy === 'week') {
+            // Payslips are sent in monthly batches, so group by month over the last 12 months
             $periodFunction = $connection === 'sqlite'
-                ? "strftime('%W', created_at)"
-                : 'WEEK(created_at)';
+                ? "strftime('%Y-%m-01', created_at)"
+                : "DATE_FORMAT(created_at, '%Y-%m-01')";
 
-            return $query->selectRaw("
+            return $query->where('created_at', '>=', now()->subMonths(11)->startOfMonth())->selectRaw("
                     {$periodFunction} as period,
                     email_sent_status,
                     sms_sent_status,
@@ -197,7 +226,16 @@ class Index extends Component
 
     public function prepareWeeklyChart($stats)
     {
-        return $this->prepareChart($stats, fn($period) => 'Wk - ' . $period);
+        $seed = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $seed[] = now()->startOfMonth()->subMonths($i)->format('Y-m-d');
+        }
+
+        return $this->prepareChart(
+            $stats,
+            fn($period) => Carbon::parse($period)->locale(app()->getLocale())->isoFormat('MMM YY'),
+            $seed
+        );
     }
 
     public function prepareDailyChart($stats)
@@ -205,7 +243,7 @@ class Index extends Component
         return $this->prepareChart($stats, fn($period) => Carbon::parse($period)->format('D'));
     }
 
-    protected function prepareChart($stats, $periodFormatter)
+    protected function prepareChart($stats, $periodFormatter, array $seedPeriods = [])
     {
         $periods = [];
         $success = [];
@@ -216,6 +254,15 @@ class Index extends Component
 
         // Group stats by period for processing
         $groupedStats = [];
+        foreach ($seedPeriods as $seed) {
+            $groupedStats[$periodFormatter($seed)] = [
+                'success' => 0,
+                'failed' => 0,
+                'pending' => 0,
+                'sms_disabled' => 0,
+                'encryption_failed' => 0
+            ];
+        }
         foreach ($stats as $stat) {
             $periodLabel = $periodFormatter($stat->period);
             if (!isset($groupedStats[$periodLabel])) {
@@ -292,9 +339,17 @@ class Index extends Component
             [$startDate, $endDate] = $dateFilter;
 
             $totalEmployees = User::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -307,9 +362,17 @@ class Index extends Component
             if ($expectedCheckins <= 0) return 0;
 
             $actualCheckins = Ticking::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -336,9 +399,17 @@ class Index extends Component
     {
         return $this->cache('leave_utilization', function () {
             $totalAllocatedDays = User::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -348,9 +419,17 @@ class Index extends Component
             if ($totalAllocatedDays <= 0) return 0;
 
             $totalUsedDays = Leave::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -367,21 +446,53 @@ class Index extends Component
     {
         return $this->cache('department_performance', function () {
             return Department::when(
-                $this->selectedCompanyId && $this->selectedCompanyId != 'all',
-                fn($q) => $q->where('company_id', $this->selectedCompanyId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedCompanyId && $this->selectedCompanyId != 'all',
+                    fn($q) => $q->where('company_id', $this->selectedCompanyId)
+                )
                 ->withCount('employees')
                 ->get()
                 ->map(function ($dept) {
-                    $totalCheckins = Ticking::where('department_id', $dept->id)
+                    $totalCheckins = Ticking::when(
+                        $this->role === 'supervisor',
+                        fn($q) => $q->supervisor()
+                    )
+                        ->when(
+                            $this->role === 'manager',
+                            fn($q) => $q->manager()
+                        )
+                        ->where('department_id', $dept->id)
                         ->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()])
                         ->count();
 
                     $dept->total_checkins = $totalCheckins;
-                    $dept->total_leaves = Leave::where('department_id', $dept->id)
+                    $dept->total_leaves = Leave::when(
+                        $this->role === 'supervisor',
+                        fn($q) => $q->supervisor()
+                    )
+                        ->when(
+                            $this->role === 'manager',
+                            fn($q) => $q->manager()
+                        )
+                        ->where('department_id', $dept->id)
                         ->whereBetween('start_date', [now()->startOfMonth(), now()->endOfMonth()])
                         ->count();
-                    $dept->total_overtimes = Overtime::where('department_id', $dept->id)
+                    $dept->total_overtimes = Overtime::when(
+                        $this->role === 'supervisor',
+                        fn($q) => $q->supervisor()
+                    )
+                        ->when(
+                            $this->role === 'manager',
+                            fn($q) => $q->manager()
+                        )
+                        ->where('department_id', $dept->id)
                         ->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()])
                         ->count();
 
@@ -398,9 +509,17 @@ class Index extends Component
     {
         return $this->cache('pending_approvals', function () {
             $pendingCheckins = Ticking::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -411,9 +530,17 @@ class Index extends Component
                 })->count();
 
             $pendingLeaves = Leave::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -424,9 +551,17 @@ class Index extends Component
                 })->count();
 
             $pendingOvertimes = Overtime::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -435,9 +570,17 @@ class Index extends Component
                 ->count();
 
             $pendingAdvances = AdvanceSalary::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -459,19 +602,43 @@ class Index extends Component
     {
         return $this->cache('top_performers', function () {
             return User::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
                 )
                 ->withCount([
                     'tickings as monthly_checkins' => function ($query) {
-                        $query->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()]);
+                        $query->when(
+                            $this->role === 'supervisor',
+                            fn($q) => $q->supervisor()
+                        )
+                            ->when(
+                                $this->role === 'manager',
+                                fn($q) => $q->manager()
+                            )
+                            ->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()]);
                     },
                     'overtimes as monthly_overtimes' => function ($query) {
-                        $query->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()])
+                        $query->when(
+                            $this->role === 'supervisor',
+                            fn($q) => $q->supervisor()
+                        )
+                            ->when(
+                                $this->role === 'manager',
+                                fn($q) => $q->manager()
+                            )
+                            ->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()])
                             ->where('approval_status', Overtime::APPROVAL_STATUS_APPROVED);
                     }
                 ])->orderBy('monthly_checkins', 'desc')->limit(5)->get();
@@ -487,9 +654,17 @@ class Index extends Component
             for ($i = 0; $i < 30; $i++) {
                 $date = $startDate->copy()->addDays($i);
                 $checkins = Ticking::when(
-                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    $this->role === 'supervisor',
+                    fn($q) => $q->supervisor()
                 )
+                    ->when(
+                        $this->role === 'manager',
+                        fn($q) => $q->manager()
+                    )
+                    ->when(
+                        $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                        fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    )
                     ->when(
                         $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                         fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -497,9 +672,17 @@ class Index extends Component
                     ->whereDate('start_time', $date)->count();
 
                 $totalEmployees = User::when(
-                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    $this->role === 'supervisor',
+                    fn($q) => $q->supervisor()
                 )
+                    ->when(
+                        $this->role === 'manager',
+                        fn($q) => $q->manager()
+                    )
+                    ->when(
+                        $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                        fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    )
                     ->when(
                         $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                         fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -531,17 +714,12 @@ class Index extends Component
 
     private function getWorkingDaysInPeriod($startDate, $endDate)
     {
-        $workingDays = 0;
-        $current = $startDate->copy();
+        $companyId = $this->selectedCompanyId && $this->selectedCompanyId !== 'all'
+            ? (int) $this->selectedCompanyId
+            : null;
 
-        while ($current->lte($endDate)) {
-            if ($current->isWeekday()) {
-                $workingDays++;
-            }
-            $current->addDay();
-        }
-
-        return $workingDays;
+        return app(\App\Services\WorkingDayService::class)
+            ->getWorkingDaysInPeriod($startDate, $endDate, $companyId);
     }
 
     // Additional chart methods for richer visualizations
@@ -549,9 +727,17 @@ class Index extends Component
     {
         return $this->cache('approval_pie_chart', function () {
             $pendingCheckins = Ticking::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -562,9 +748,17 @@ class Index extends Component
                 })->count();
 
             $approvedCheckins = Ticking::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -574,9 +768,17 @@ class Index extends Component
                 ->count();
 
             $rejectedCheckins = Ticking::when(
-                $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -598,6 +800,14 @@ class Index extends Component
     {
         return $this->cache('payslip_status_pie_chart', function () {
             $query = Payslip::query()
+                ->when(
+                    $this->role === 'supervisor',
+                    fn($q) => $q->supervisor()
+                )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
                 ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -666,6 +876,14 @@ class Index extends Component
         return $this->cache('comprehensive_status_chart', function () {
             $query = Payslip::query()
                 ->when(
+                    $this->role === 'supervisor',
+                    fn($q) => $q->supervisor()
+                )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
                     $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                     fn($q) => $q->where('company_id', $this->selectedCompanyId)
                 )
@@ -722,9 +940,17 @@ class Index extends Component
     {
         return $this->cache('department_comparison', function () {
             $departments = Department::when(
-                $this->selectedCompanyId && $this->selectedCompanyId != 'all',
-                fn($q) => $q->where('company_id', $this->selectedCompanyId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedCompanyId && $this->selectedCompanyId != 'all',
+                    fn($q) => $q->where('company_id', $this->selectedCompanyId)
+                )
                 ->withCount('employees')->get();
 
             $labels = [];
@@ -735,11 +961,27 @@ class Index extends Component
             foreach ($departments as $dept) {
                 $labels[] = substr($dept->name, 0, 10); // Truncate long names
 
-                $checkins = Ticking::where('department_id', $dept->id)
+                $checkins = Ticking::when(
+                    $this->role === 'supervisor',
+                    fn($q) => $q->supervisor()
+                )
+                    ->when(
+                        $this->role === 'manager',
+                        fn($q) => $q->manager()
+                    )
+                    ->where('department_id', $dept->id)
                     ->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()])
                     ->count();
 
-                $overtimes = Overtime::where('department_id', $dept->id)
+                $overtimes = Overtime::when(
+                    $this->role === 'supervisor',
+                    fn($q) => $q->supervisor()
+                )
+                    ->when(
+                        $this->role === 'manager',
+                        fn($q) => $q->manager()
+                    )
+                    ->where('department_id', $dept->id)
                     ->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()])
                     ->count();
 
@@ -776,9 +1018,17 @@ class Index extends Component
                 $endOfMonth = $month->copy()->endOfMonth();
 
                 $checkins = Ticking::when(
-                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    $this->role === 'supervisor',
+                    fn($q) => $q->supervisor()
                 )
+                    ->when(
+                        $this->role === 'manager',
+                        fn($q) => $q->manager()
+                    )
+                    ->when(
+                        $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                        fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    )
                     ->when(
                         $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                         fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -786,9 +1036,17 @@ class Index extends Component
                     ->whereBetween('start_time', [$startOfMonth, $endOfMonth])->count();
 
                 $overtimes = Overtime::when(
-                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    $this->role === 'supervisor',
+                    fn($q) => $q->supervisor()
                 )
+                    ->when(
+                        $this->role === 'manager',
+                        fn($q) => $q->manager()
+                    )
+                    ->when(
+                        $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                        fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    )
                     ->when(
                         $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                         fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -796,9 +1054,17 @@ class Index extends Component
                     ->whereBetween('start_time', [$startOfMonth, $endOfMonth])->count();
 
                 $leaves = Leave::when(
-                    $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
-                    fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    $this->role === 'supervisor',
+                    fn($q) => $q->supervisor()
                 )
+                    ->when(
+                        $this->role === 'manager',
+                        fn($q) => $q->manager()
+                    )
+                    ->when(
+                        $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
+                        fn($q) => $q->where('department_id', $this->selectedDepartmentId)
+                    )
                     ->when(
                         $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                         fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -823,13 +1089,29 @@ class Index extends Component
     {
         return $this->cache('top_departments', function () {
             return Department::when(
-                $this->selectedCompanyId && $this->selectedCompanyId != 'all',
-                fn($q) => $q->where('company_id', $this->selectedCompanyId)
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
             )
+                ->when(
+                    $this->role === 'manager',
+                    fn($q) => $q->manager()
+                )
+                ->when(
+                    $this->selectedCompanyId && $this->selectedCompanyId != 'all',
+                    fn($q) => $q->where('company_id', $this->selectedCompanyId)
+                )
                 ->withCount('employees')
                 ->get()
                 ->map(function ($dept) {
-                    $checkins = Ticking::where('department_id', $dept->id)
+                    $checkins = Ticking::when(
+                        $this->role === 'supervisor',
+                        fn($q) => $q->supervisor()
+                    )
+                        ->when(
+                            $this->role === 'manager',
+                            fn($q) => $q->manager()
+                        )
+                        ->where('department_id', $dept->id)
                         ->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()])
                         ->count();
 
@@ -846,6 +1128,14 @@ class Index extends Component
     public function getFailureDetails($failureType = 'all')
     {
         $query = Payslip::with('employee')
+            ->when(
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
+            )
+            ->when(
+                $this->role === 'manager',
+                fn($q) => $q->manager()
+            )
             ->when(
                 $this->selectedCompanyId && $this->selectedCompanyId != 'all',
                 fn($q) => $q->where('company_id', $this->selectedCompanyId)
@@ -1000,19 +1290,22 @@ class Index extends Component
             default => [],
         };
 
-        // Get audit logs based on role
+        // Get audit logs based on role (with user relationship for enhanced display)
         $logs = match ($this->role) {
-            "supervisor" => AuditLog::whereUserId(auth()->user()->id)
+            "supervisor" => AuditLog::with('user')
+                ->whereUserId(auth()->user()->id)
                 ->orderBy('created_at', 'desc')
                 ->dateFilter('created_at', $this->period)
                 ->get()->take(10),
 
-            "manager" => AuditLog::manager()
+            "manager" => AuditLog::with('user')
+                ->manager()
                 ->orderBy('created_at', 'desc')
                 ->dateFilter('created_at', $this->period)
                 ->get()->take(10),
 
-            "admin" => AuditLog::orderBy('created_at', 'desc')
+            "admin" => AuditLog::with('user')
+                ->orderBy('created_at', 'desc')
                 ->dateFilter('created_at', $this->period)
                 ->get()->take(10),
 
@@ -1022,6 +1315,14 @@ class Index extends Component
         // Get payslips
         $payslips = Payslip::select('id', 'email_sent_status', 'department_id', 'created_at')
             ->when(
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
+            )
+            ->when(
+                $this->role === 'manager',
+                fn($q) => $q->manager()
+            )
+            ->when(
                 $this->selectedDepartmentId && $this->selectedDepartmentId != 'all',
                 fn($q) => $q->where('department_id', $this->selectedDepartmentId)
             )
@@ -1030,11 +1331,27 @@ class Index extends Component
 
         // Calculate payslip stats
         $payslips_last_month_count = Payslip::select('id', 'email_sent_status', 'created_at')
+            ->when(
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
+            )
+            ->when(
+                $this->role === 'manager',
+                fn($q) => $q->manager()
+            )
             ->whereIn('email_sent_status', [Payslip::STATUS_FAILED, Payslip::STATUS_SUCCESSFUL])
             ->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])
             ->count();
 
         $payslips_last_month_success_count = Payslip::select('id', 'email_sent_status', 'created_at')
+            ->when(
+                $this->role === 'supervisor',
+                fn($q) => $q->supervisor()
+            )
+            ->when(
+                $this->role === 'manager',
+                fn($q) => $q->manager()
+            )
             ->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
             ->whereBetween('created_at', [now()->startOfMonth()->subMonthNoOverflow(), now()->endOfMonth()])
             ->count();

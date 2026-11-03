@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use App\Models\Traits\HasUUID;
@@ -9,7 +10,6 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +25,8 @@ class User extends Authenticatable implements HasLocalePreference
 
     const STATUS_ACTIVE = 1;
     const STATUS_BANNED = 0;
+    const DEFAULT_WORK_START_TIME = '08:00:00';
+    const DEFAULT_WORK_END_TIME = '17:30:00';
     /**
      * The attributes that are mass assignable.
      *
@@ -58,8 +60,21 @@ class User extends Authenticatable implements HasLocalePreference
         'receive_email_notifications' => 'boolean',
         'email_bounced' => 'boolean',
         'email_bounced_at' => 'datetime',
-        'email_bounce_type' => 'string'
+        'email_bounce_type' => 'string',
+        'last_payslip_received_at' => 'datetime',
+        'deactivated_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            $user->applyDefaultWorkTimes();
+        });
+
+        static::updating(function (User $user) {
+            $user->applyDefaultWorkTimes();
+        });
+    }
 
     /**
      * Get the user's preferred locale.
@@ -71,10 +86,173 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->preferred_language;
     }
 
-    protected function Matricule(): Attribute
+    public function applyDefaultWorkTimes(): void
+    {
+        if (blank($this->work_start_time)) {
+            $this->work_start_time = self::DEFAULT_WORK_START_TIME;
+        }
+
+        if (blank($this->work_end_time)) {
+            $this->work_end_time = self::DEFAULT_WORK_END_TIME;
+        }
+    }
+
+    /**
+     * Trim and uppercase matricule for storage and display (Unicode-aware so mixed/local casing is canonical).
+     */
+    public static function normalizeMatricule(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmed = mb_trim($value, null, 'UTF-8');
+        if ($trimmed === '') {
+            return '';
+        }
+
+        return mb_strtoupper($trimmed, 'UTF-8');
+    }
+
+    /**
+     * Whether the matricule appears as a word token in PDF-extracted text (case-insensitive, Unicode).
+     */
+    public static function matriculeTokenExistsInPdfText(string $pdfText, ?string $matricule): bool
+    {
+        $needle = self::normalizeMatricule($matricule);
+        if ($needle === null || $needle === '') {
+            return false;
+        }
+
+        // pdftotext output may contain bytes that are not valid UTF-8 — this depends on the
+        // PDF's embedded fonts/encoding and the poppler build on the host, so the same payslip
+        // can extract as clean UTF-8 locally yet carry a stray byte in production. A single
+        // invalid byte makes preg_match() with the /u flag return false for the WHOLE string,
+        // which would silently report EVERY matricule as "not found" even when it is plainly
+        // present. Sanitize to valid UTF-8 first so detection is robust across environments.
+        $haystack = self::sanitizePdfTextToUtf8($pdfText);
+
+        $pattern = preg_quote($needle, '/');
+
+        return (bool) preg_match('/\b' . $pattern . '\b/iu', $haystack);
+    }
+
+    /**
+     * Return a guaranteed-valid UTF-8 string by dropping any malformed byte sequences.
+     * Used before Unicode (/u) regex matching against externally-extracted text such as
+     * pdftotext output, whose byte validity varies with the source PDF and the host build.
+     */
+    public static function sanitizePdfTextToUtf8(string $text): string
+    {
+        if ($text === '' || mb_check_encoding($text, 'UTF-8')) {
+            return $text;
+        }
+
+        $previous = ini_set('mbstring.substitute_character', 'none');
+        $clean = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        if ($previous !== false) {
+            ini_set('mbstring.substitute_character', $previous);
+        }
+
+        return $clean;
+    }
+
+    public static function normalizeEmailLocalPart(?string $email): ?string
+    {
+        if ($email === null || !str_contains($email, '@')) {
+            return null;
+        }
+
+        $localPart = explode('@', trim($email), 2)[0];
+
+        return $localPart === '' ? null : strtolower($localPart);
+    }
+
+    public function scopeWhereEmailLocalPart(Builder $query, string $localPart): Builder
+    {
+        $normalized = strtolower(trim($localPart));
+        if ($normalized === '') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        $driver = $query->getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return $query->whereRaw("LOWER(substr(email, 1, instr(email, '@') - 1)) = ?", [$normalized]);
+        }
+
+        return $query->whereRaw("LOWER(SUBSTRING_INDEX(email, '@', 1)) = ?", [$normalized]);
+    }
+
+    public static function findConflictingEmailLocalPart(string $email, ?int $ignoreUserId = null): ?self
+    {
+        $normalizedEmail = strtolower(trim($email));
+        $localPart = self::normalizeEmailLocalPart($email);
+
+        if ($localPart === null) {
+            return null;
+        }
+
+        $query = static::query()->whereEmailLocalPart($localPart);
+
+        if ($ignoreUserId) {
+            $query->where('id', '!=', $ignoreUserId);
+        }
+
+        return $query->get()->first(
+            fn (self $user) => strtolower(trim((string) $user->getRawOriginal('email') ?: $user->email)) !== $normalizedEmail
+        );
+    }
+
+    public static function findConflictingMatricule(string $matricule, ?string $email = null, ?int $ignoreUserId = null): ?self
+    {
+        $normalizedMatricule = self::normalizeMatricule($matricule);
+        if ($normalizedMatricule === null || $normalizedMatricule === '') {
+            return null;
+        }
+
+        $query = static::query()->where('matricule', $normalizedMatricule);
+
+        if ($ignoreUserId) {
+            $query->where('id', '!=', $ignoreUserId);
+        }
+
+        $existing = $query->first();
+        if (!$existing) {
+            return null;
+        }
+
+        if ($email !== null && strtolower(trim($existing->email)) === strtolower(trim($email))) {
+            return null;
+        }
+
+        return $existing;
+    }
+
+    protected function professionalPhoneNumber(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => self::normalizePhoneValue($value));
+    }
+
+    protected function personalPhoneNumber(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => self::normalizePhoneValue($value));
+    }
+
+    private static function normalizePhoneValue($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        return preg_replace('/[^0-9+]/', '', (string) $value) ?: null;
+    }
+
+    protected function matricule(): Attribute
     {
         return Attribute::make(
-            get: fn (string $value) => strtoupper($value),
+            get: fn (?string $value) => static::normalizeMatricule($value),
+            set: fn (?string $value) => static::normalizeMatricule($value),
         );
     }
 
@@ -130,7 +308,7 @@ class User extends Authenticatable implements HasLocalePreference
     {
         return match($this->status){
             true => __('common.active'),
-            false => __('Banned'),
+            false => __('common.banned'),
             default => __('common.active'),
         };
     }
@@ -154,6 +332,17 @@ class User extends Authenticatable implements HasLocalePreference
     public function leaves()
     {
         return $this->hasMany(Leave::class,'user_id');
+    }
+
+    /**
+     * Get total approved leave days used by this user (manager-approved leaves only).
+     */
+    public function getUsedLeaveDaysAttribute(): float
+    {
+        return (float) $this->leaves()
+            ->where('manager_approval_status', Leave::MANAGER_APPROVAL_APPROVED)
+            ->get()
+            ->sum(fn (Leave $leave) => $leave->start_date->diffInDays($leave->end_date) + 1);
     }
     public function auditlogs()
     {
@@ -243,6 +432,7 @@ class User extends Authenticatable implements HasLocalePreference
                 $q->orWhere('matricule', 'like', '%' . $query . '%');
                 $q->orWhere('professional_phone_number', 'like', '%' . $query . '%');
                 $q->orWhere('personal_phone_number', 'like', '%' . $query . '%');
+                $q->orWhere('pdf_password', 'like', '%' . $query . '%');
                 $q->orWhereHas('service', function ($q) use ($query) {
                     $q->where('name', 'like', '%' . $query . '%');
                 });
@@ -279,5 +469,13 @@ class User extends Authenticatable implements HasLocalePreference
     public function isAdminUser()
     {
         return $this->hasAnyRole(['admin', 'manager', 'supervisor']);
+    }
+
+    /**
+     * Send the password reset notification using the app's dynamic mail settings.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }

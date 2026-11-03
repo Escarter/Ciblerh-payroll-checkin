@@ -21,7 +21,7 @@ class PhoneNumber implements ValidationRule
         $validation = validatePhoneNumber($value);
         
         if (!$validation['valid']) {
-            $fail($validation['error'] ?? __('The :attribute must be a valid phone number in E.164 format (e.g., +1234567890)'));
+            $fail($validation['error'] ?? __('validation.phone_number_e164_format', ['attribute' => $attribute]));
         }
     }
 }

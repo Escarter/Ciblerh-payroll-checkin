@@ -11,6 +11,7 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use App\Exports\DepartmentExport;
 use App\Imports\DepartmentImport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\DB;
 use App\Models\SupervisorDepartment;
@@ -19,7 +20,9 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends BaseImportComponent
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     protected $importType = 'departments';
     protected $importPermission = 'department-create';
@@ -43,6 +46,9 @@ class Index extends BaseImportComponent
     public $activeTab = 'active';
     public $selectedDepartments = [];
     public $selectAll = false;
+
+    // Notification modal properties
+    public $smsDepartmentActionId;
 
     //Update & Store Rules
     protected array $rules = [
@@ -82,9 +88,7 @@ class Index extends BaseImportComponent
     }
     public function store()
     {
-        if (!Gate::allows('department-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-create');
         $this->validate([
             'name' => 'required',
         ]);
@@ -114,9 +118,7 @@ class Index extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('department-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-update');
         // $this->validate([
         //     // 'department_id' => 'required'
         // ]);
@@ -167,9 +169,7 @@ class Index extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('department-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-delete');
 
         if (!empty($this->department)) {
             $this->department->delete(); // Soft delete
@@ -181,9 +181,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('department-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-restore');
 
         $department = Department::withTrashed()->findOrFail($this->department_id);
         $department->restore();
@@ -191,10 +189,20 @@ class Index extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('departments.department_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($departmentId)
+    public function forceDelete($departmentId = null)
     {
-        if (!Gate::allows('department-delete')) {
-            return abort(401);
+        $this->authorizeAbility('department-delete');
+
+        // If no departmentId provided, try to get it from selectedDepartments
+        if (!$departmentId) {
+            if (!empty($this->selectedDepartments) && is_array($this->selectedDepartments)) {
+                $departmentId = $this->selectedDepartments[0] ?? null;
+            } elseif ($this->department_id) {
+                $departmentId = $this->department_id;
+            } else {
+                $this->showToast(__('departments.no_department_selected'), 'danger');
+                return;
+            }
         }
 
         $department = Department::withTrashed()->findOrFail($departmentId);
@@ -210,18 +218,57 @@ class Index extends BaseImportComponent
         
         $department->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($departmentId, $this->selectedDepartments ?? [])) {
+            $this->selectedDepartments = array_diff($this->selectedDepartments, [$departmentId]);
+        }
+        $this->department_id = null;
+
         $this->closeModalAndFlashMessage(__('departments.department_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('department-delete')) {
-            return abort(401);
+        $this->authorizeAbility('department-bulkdelete');
+
+        $targetIds = $this->selectedDepartments ?? [];
+        $departments = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $departments = Department::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $departments->map(function ($department) {
+                return [
+                    'id' => $department->id,
+                    'name' => $department->name,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedDepartments)) {
-            Department::whereIn('id', $this->selectedDepartments)->delete(); // Soft delete
+        if (!empty($targetIds)) {
+            Department::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedDepartments = [];
+
+            if ($departments->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'department_bulk_deleted',
+                    'web',
+                    'bulk_deleted_departments',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_deleted_departments',
+                        'translation_params' => ['count' => $departments->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $departments->count(),
+                        'affected_ids' => $departments->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('departments.selected_departments_moved_to_trash'), 'BulkDeleteModal');
@@ -229,13 +276,46 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('department-delete')) {
-            return abort(401);
+        $this->authorizeAbility('department-bulkrestore');
+
+        $targetIds = $this->selectedDepartments ?? [];
+        $departments = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $departments = Department::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $departments->map(function ($department) {
+                return [
+                    'id' => $department->id,
+                    'name' => $department->name,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedDepartments)) {
-            Department::withTrashed()->whereIn('id', $this->selectedDepartments)->restore();
+        if (!empty($targetIds)) {
+            Department::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedDepartments = [];
+
+            if ($departments->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'department_bulk_restored',
+                    'web',
+                    'bulk_restored_departments',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_departments',
+                        'translation_params' => ['count' => $departments->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $departments->count(),
+                        'affected_ids' => $departments->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('departments.selected_departments_restored'), 'BulkRestoreModal');
@@ -243,13 +323,12 @@ class Index extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('department-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-delete');
 
         if (!empty($this->selectedDepartments)) {
             $departments = Department::withTrashed()->whereIn('id', $this->selectedDepartments)->get();
             $departmentsWithRelatedRecords = [];
+            $affectedRecords = [];
             
             foreach ($departments as $department) {
                 $hasRelatedRecords = $department->services()->count() > 0 ||
@@ -257,6 +336,11 @@ class Index extends BaseImportComponent
                 
                 if ($hasRelatedRecords) {
                     $departmentsWithRelatedRecords[] = $department->name;
+                } else {
+                    $affectedRecords[] = [
+                        'id' => $department->id,
+                        'name' => $department->name,
+                    ];
                 }
             }
             
@@ -270,6 +354,27 @@ class Index extends BaseImportComponent
                 $department->forceDelete();
             }
             
+            if (!empty($affectedRecords)) {
+                auditLog(
+                    auth()->user(),
+                    'department_bulk_force_deleted',
+                    'web',
+                    'bulk_force_deleted_departments',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_departments',
+                        'translation_params' => ['count' => count($affectedRecords)],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => count($affectedRecords),
+                        'affected_ids' => array_column($affectedRecords, 'id'),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
+
             $this->selectedDepartments = [];
         }
 
@@ -279,31 +384,17 @@ class Index extends BaseImportComponent
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedDepartments = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            $this->selectedDepartments = $this->getDepartments()->pluck('id')->toArray();
-        } else {
-            $this->selectedDepartments = [];
-        }
+        return [
+            'active' => ['selectedDepartments', 'selectAll'],
+        ];
     }
 
-    public function toggleDepartmentSelection($departmentId)
-    {
-        if (in_array($departmentId, $this->selectedDepartments)) {
-            $this->selectedDepartments = array_diff($this->selectedDepartments, [$departmentId]);
-        } else {
-            $this->selectedDepartments[] = $departmentId;
-        }
-        
-        $this->selectAll = count($this->selectedDepartments) === $this->getDepartments()->count();
-    }
-
-    private function getDepartments()
+    protected function bulkQuery()
     {
         if ($this->role === 'supervisor') {
             // For supervisors, show only their managed departments
@@ -325,7 +416,12 @@ class Index extends BaseImportComponent
             $query->manager();
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getDepartments()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function import()
@@ -340,16 +436,21 @@ class Index extends BaseImportComponent
             auth()->user(),
             'department_exported',
             'web',
-            __('departments.exported_excel_file_for_departments') . $this->company->name
+            'exported_departments_for_company',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'exported_departments_for_company',
+                'translation_params' => ['company' => $this->company->name],
+            ]
         );
         return (new DepartmentExport($this->company, $this->query))->download(ucfirst($this->company->name) . '-Department-' . Str::random(5) . '.xlsx');
     }
 
     public function render()
     {
-        if (!Gate::allows('department-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-read');
 
         $departments = $this->getDepartments();
 
@@ -588,4 +689,82 @@ class Index extends BaseImportComponent
         parent::clearFields();
         $this->department_file = null;
     }
+
+    public function openDepartmentNotificationsModal()
+    {
+        $this->authorizeAbility('department-update');
+
+        $this->dispatch('open-modal', 'DepartmentSmsToggleModal');
+    }
+
+    /**
+     * Bulk toggle SMS notifications for all employees in a department
+     */
+    public function bulkToggleDepartmentSmsNotifications(bool $enabled)
+    {
+        if (!Gate::allows('department-update')) {
+            $this->showToast(__('departments.bulk_sms_department_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $targetDepartmentId = $this->smsDepartmentActionId;
+
+        if (!$targetDepartmentId) {
+            $this->showToast(__('departments.bulk_sms_select_department_first'), 'danger');
+            return;
+        }
+
+        $department = Department::find($targetDepartmentId);
+        if (!$department) {
+            $this->showToast(__('departments.bulk_sms_department_not_found'), 'danger');
+            return;
+        }
+
+        // Update all active employees in the department
+        $affectedCount = User::query()
+            ->where('department_id', $department->id)
+            ->whereNull('deleted_at')
+            ->where('receive_sms_notifications', '!=', $enabled)
+            ->update(['receive_sms_notifications' => $enabled]);
+
+        $message = $enabled 
+            ? __('departments.bulk_sms_enabled_for_department', ['department' => $department->name, 'count' => $affectedCount])
+            : __('departments.bulk_sms_disabled_for_department', ['department' => $department->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
+    }
+
+    public function bulkToggleDepartmentEmailNotifications(bool $enabled)
+    {
+        if (!Gate::allows('department-update')) {
+            $this->showToast(__('departments.bulk_sms_department_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $targetDepartmentId = $this->smsDepartmentActionId;
+
+        if (!$targetDepartmentId) {
+            $this->showToast(__('departments.bulk_sms_select_department_first'), 'danger');
+            return;
+        }
+
+        $department = Department::find($targetDepartmentId);
+        if (!$department) {
+            $this->showToast(__('departments.bulk_sms_department_not_found'), 'danger');
+            return;
+        }
+
+        $affectedCount = User::query()
+            ->where('department_id', $department->id)
+            ->whereNull('deleted_at')
+            ->where('receive_email_notifications', '!=', $enabled)
+            ->update(['receive_email_notifications' => $enabled]);
+
+        $message = $enabled
+            ? __('departments.bulk_email_enabled_for_department', ['department' => $department->name, 'count' => $affectedCount])
+            : __('departments.bulk_email_disabled_for_department', ['department' => $department->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
+    }
 }
+

@@ -3,7 +3,10 @@
 namespace App\Livewire\Portal\AdvanceSalaries;
 
 use App\Exports\AdvanceSalaryExport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
+use App\Mail\AdvanceSalaryManagerApprovalNotification;
+use Illuminate\Support\Facades\Mail;
 use PDF;
 use Livewire\Component;
 use Illuminate\Support\Str;
@@ -15,7 +18,9 @@ use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
 
@@ -30,11 +35,16 @@ class Index extends Component
     public ?string $net_salary = null;
     public ?int $approval_status = 1;
     public ?string $approval_reason = null;
+    public ?int $supervisor_approval_status = null;
+    public ?string $supervisor_approval_reason = null;
+    public ?int $manager_approval_status = null;
+    public ?string $manager_approval_reason = null;
     public ?int $advance_salary_id = null;
     public ?string $user = null;
     public ?string $company = null;
     public ?AdvanceSalary $advance_salary = null;
     public $bulk_approval_status = true;
+    public ?string $repayment_amount = null;
 
 
     //Multiple Selection props
@@ -50,8 +60,12 @@ class Index extends Component
 
     //Update & Store Rules
     protected array $rules = [
-        'approval_status' => 'required',
+        'approval_status' => 'required_unless:role,supervisor',
         'approval_reason' => 'required',
+        'supervisor_approval_status' => 'required_if:role,supervisor',
+        'supervisor_approval_reason' => 'nullable',
+        'manager_approval_status' => 'required_if:role,manager',
+        'manager_approval_reason' => 'nullable',
     ];
 
     public function mount()
@@ -59,22 +73,7 @@ class Index extends Component
         $this->role = auth()->user()->getRoleNames()->first();
     }
     //Toggle the $bulkDisabled on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedAdvanceSalaries = match($this->role) {
-                "manager" => AdvanceSalary::search($this->query)->manager()->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "admin" => AdvanceSalary::search($this->query)->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "supervisor" => [],
-               default => [],
-            };
-            $this->updatedselectedAdvanceSalaries();
-        } else {
-            $this->selectedAdvanceSalaries = [];
-            $this->updatedselectedAdvanceSalaries();
-        }
-    }
-    //Toggle the $bulkDisabled on or off based on the count of selected posts
+        //Toggle the $bulkDisabled on or off based on the count of selected posts
     public function updatedselectedAdvanceSalaries()
     {
         $this->bulkDisabled = count($this->selectedAdvanceSalaries) < 2;
@@ -100,16 +99,35 @@ class Index extends Component
         $this->advance_salary_id = $advance_salary->id;
         $this->user = $advance_salary->user->name;
         $this->company = $advance_salary->company->name;
+        $this->repayment_amount = null;
+
+        if ($this->role === 'supervisor') {
+            $this->supervisor_approval_status = $advance_salary->supervisor_approval_status ?? AdvanceSalary::APPROVAL_STATUS_PENDING;
+            $this->supervisor_approval_reason = $advance_salary->supervisor_approval_reason;
+        } else {
+            $this->manager_approval_status = $advance_salary->manager_approval_status ?? AdvanceSalary::APPROVAL_STATUS_PENDING;
+            $this->manager_approval_reason = $advance_salary->manager_approval_reason;
+        }
     }
 
     //Set Approval type
     public function initDataBulk($approval_type)
     {
         if ($approval_type == 'approve') {
-            $this->approval_status = AdvanceSalary::APPROVAL_STATUS_APPROVED;
+            if ($this->role === 'supervisor') {
+                $this->supervisor_approval_status = AdvanceSalary::APPROVAL_STATUS_APPROVED;
+            } else {
+                $this->manager_approval_status = AdvanceSalary::APPROVAL_STATUS_APPROVED;
+                $this->approval_status = AdvanceSalary::APPROVAL_STATUS_APPROVED;
+            }
             $this->bulk_approval_status = true;
         } else {
-            $this->approval_status = AdvanceSalary::APPROVAL_STATUS_REJECTED;
+            if ($this->role === 'supervisor') {
+                $this->supervisor_approval_status = AdvanceSalary::APPROVAL_STATUS_REJECTED;
+            } else {
+                $this->manager_approval_status = AdvanceSalary::APPROVAL_STATUS_REJECTED;
+                $this->approval_status = AdvanceSalary::APPROVAL_STATUS_REJECTED;
+            }
             $this->bulk_approval_status = false;
         }
     }
@@ -117,25 +135,82 @@ class Index extends Component
     //Bulk update
     public function bulkApproval()
     {
-        AdvanceSalary::whereIn('id', $this->selectedAdvanceSalaries)->update([
-            'approval_status' => $this->approval_status,
-            'approval_reason' => $this->approval_reason,
-        ]);
+        // Check permission based on approval status
+        if ($this->bulk_approval_status) {
+            $this->authorizeAbility('advance_salary-bulkapproval');
+        } else {
+            $this->authorizeAbility('advance_salary-bulkrejection');
+        }
+
+        // Fetch records before updating for audit logging
+        $advanceSalaries = AdvanceSalary::whereIn('id', $this->selectedAdvanceSalaries)->with('user')->get();
+        
+        // Capture old values for all records
+        $affectedRecords = [];
+        foreach ($advanceSalaries as $advanceSalary) {
+            $affectedRecords[] = [
+                'id' => $advanceSalary->id,
+                'user_name' => $advanceSalary->user->name ?? 'User',
+                'amount' => number_format($advanceSalary->amount) . 'XAF',
+                'old_approval_status' => $advanceSalary->approval_status,
+                'old_approval_reason' => $advanceSalary->approval_reason,
+            ];
+        }
+
+        $updateData = $this->role === 'supervisor'
+            ? [
+                'supervisor_approval_status' => $this->supervisor_approval_status,
+                'supervisor_approval_reason' => $this->approval_reason,
+            ]
+            : [
+                'manager_approval_status' => $this->manager_approval_status,
+                'manager_approval_reason' => $this->approval_reason,
+                'approval_status' => $this->bulk_approval_status ? AdvanceSalary::APPROVAL_STATUS_APPROVED : AdvanceSalary::APPROVAL_STATUS_REJECTED,
+                'approval_reason' => $this->approval_reason,
+            ];
+        AdvanceSalary::whereIn('id', $this->selectedAdvanceSalaries)->update($updateData);
+
+        if ($this->role === 'supervisor' && $this->bulk_approval_status) {
+            foreach ($advanceSalaries as $as) {
+                $this->notifyManagers($as);
+            }
+        }
+
+        // Create a single audit log entry for the bulk operation
+        $actionType = $this->bulk_approval_status ? 'advanceSalary_approved' : 'advanceSalary_rejected';
+        $user = auth()->user();
+        
+        auditLog(
+            $user,
+            $actionType,
+            'web',
+            $this->bulk_approval_status ? 'bulk_approved_advance_salaries' : 'bulk_rejected_advance_salaries',
+            null, // No single model for bulk operations
+            [], // Old values aggregated in metadata
+            ['approval_status' => $this->approval_status, 'approval_reason' => $this->approval_reason],
+            [
+                'translation_key' => $this->bulk_approval_status ? 'bulk_approved_advance_salaries' : 'bulk_rejected_advance_salaries',
+                'translation_params' => ['count' => count($advanceSalaries)],
+                'bulk_operation' => true,
+                'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
+                'affected_count' => count($advanceSalaries),
+                'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                'affected_records' => $affectedRecords,
+                'new_approval_status' => $this->approval_status,
+                'new_approval_reason' => $this->approval_reason,
+            ]
+        );
+
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Advance salaries successfully updated!'), 'EditBulkAdvanceSalaryModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salaries_bulk_updated'), 'EditBulkAdvanceSalaryModal');
     }
 
 
     public function update()
     {
-        if (!Gate::allows('ticking-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-update');
         $this->validate();
-        $this->advance_salary->update([
-            'approval_status' => $this->approval_status,
-            'amount' => $this->amount,
-            'approval_reason' => $this->approval_reason,
+        $updateData = [
             'reason' => $this->reason,
             'repayment_from_month' => $this->repayment_from_month,
             'repayment_to_month' => $this->repayment_to_month,
@@ -143,53 +218,138 @@ class Index extends Component
             'beneficiary_mobile_money_number' => $this->beneficiary_mobile_money_number,
             'beneficiary_id_card_number' => $this->beneficiary_id_card_number,
             'net_salary' => $this->net_salary,
-        ]);
+        ];
+        if ($this->role === 'supervisor') {
+            $updateData['supervisor_approval_status'] = $this->supervisor_approval_status;
+            $updateData['supervisor_approval_reason'] = $this->supervisor_approval_reason;
+            if ($this->supervisor_approval_status === AdvanceSalary::APPROVAL_STATUS_REJECTED) {
+                $updateData['approval_status'] = AdvanceSalary::APPROVAL_STATUS_REJECTED;
+                $updateData['approval_reason'] = $this->supervisor_approval_reason;
+            }
+            if ($this->advance_salary->canSupervisorEditAmount()) {
+                $updateData['amount'] = $this->amount;
+            }
+            $this->advance_salary->update($updateData);
+            if ($this->supervisor_approval_status === AdvanceSalary::APPROVAL_STATUS_APPROVED) {
+                $this->notifyManagers($this->advance_salary);
+            }
+        } else {
+            $updateData['manager_approval_status'] = $this->manager_approval_status;
+            $updateData['manager_approval_reason'] = $this->manager_approval_reason;
+            $updateData['approval_status'] = $this->approval_status;
+            $updateData['approval_reason'] = $this->approval_reason;
+            $updateData['amount'] = $this->amount;
+            $this->advance_salary->update($updateData);
+        }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Advance salary successfully updated!'), 'EditAdvanceSalaryModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_single_updated'), 'EditAdvanceSalaryModal');
     }
+
+    public function recordRepayment()
+    {
+        $this->authorizeAbility('advance_salary-update');
+        if (!$this->advance_salary || $this->advance_salary->type !== AdvanceSalary::TYPE_LOAN) {
+            $this->showToast(__('employees.repayment_only_for_loans'), 'danger');
+            return;
+        }
+        if ($this->advance_salary->is_fully_repaid) {
+            $this->showToast(__('employees.loan_already_fully_repaid'), 'danger');
+            return;
+        }
+        $amount = (int) preg_replace('/[^0-9]/', '', $this->repayment_amount ?? '0');
+        if ($amount <= 0) {
+            $this->addError('repayment_amount', __('employees.repayment_amount_required'));
+            return;
+        }
+        $newRepaid = $this->advance_salary->amount_repaid + $amount;
+        $isFullyRepaid = $newRepaid >= $this->advance_salary->amount;
+        $this->advance_salary->update([
+            'amount_repaid' => min($newRepaid, $this->advance_salary->amount),
+            'is_fully_repaid' => $isFullyRepaid,
+        ]);
+        $this->repayment_amount = null;
+        $this->advance_salary->refresh();
+        $this->showToast(__('employees.repayment_recorded_successfully'), 'success');
+    }
+
     public function delete()
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-delete');
 
         if (!empty($this->advance_salary)) {
             $this->advance_salary->delete(); // Already using soft delete
         }
 
         $this->clearFields();
-        $this->closeModalAndFlashMessage(__('Advance salary successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_moved_to_trash'), 'DeleteModal');
     }
 
     public function restore($advanceSalaryId)
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-restore');
 
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
         $advanceSalary->restore();
 
-        $this->closeModalAndFlashMessage(__('Advance salary successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($advanceSalaryId)
+    public function forceDelete($advanceSalaryId = null)
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
+        $this->authorizeAbility('ticking-delete');
+
+        // If no advanceSalaryId provided, try to get it from selectedAdvanceSalariesForDelete
+        if (!$advanceSalaryId) {
+            if (!empty($this->selectedAdvanceSalariesForDelete) && is_array($this->selectedAdvanceSalariesForDelete)) {
+                $advanceSalaryId = $this->selectedAdvanceSalariesForDelete[0] ?? null;
+            } elseif ($this->advance_salary_id) {
+                $advanceSalaryId = $this->advance_salary_id;
+            } else {
+                $this->showToast(__('employees.no_advance_salary_selected'), 'danger');
+                return;
+            }
         }
 
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
         $advanceSalary->forceDelete();
 
-        $this->closeModalAndFlashMessage(__('Advance salary permanently deleted!'), 'ForceDeleteModal');
+        // Clear selection after deletion
+        if (in_array($advanceSalaryId, $this->selectedAdvanceSalariesForDelete ?? [])) {
+            $this->selectedAdvanceSalariesForDelete = array_diff($this->selectedAdvanceSalariesForDelete, [$advanceSalaryId]);
+        }
+        $this->advance_salary_id = null;
+
+        $this->closeModalAndFlashMessage(__('employees.advance_salary_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('advance_salary-delete')) {
-            return abort(401);
+        $this->authorizeAbility('advance_salary-bulkdelete');
+
+        $targetIds = [];
+        $operation = 'soft_delete';
+        if (!empty($this->selectedAdvanceSalaries)) {
+            $targetIds = $this->selectedAdvanceSalaries;
+            $operation = 'soft_delete_active';
+        } elseif (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $targetIds = $this->selectedAdvanceSalariesForDelete;
+            $operation = 'soft_delete_deleted_tab';
+        }
+
+        $advanceSalaries = collect();
+        $affectedRecords = [];
+        if (!empty($targetIds)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()->whereIn('id', $targetIds)->with('user')->get();
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'user_name' => $as->user->name ?? 'User',
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                    'approval_reason' => $as->approval_reason,
+                ];
+            })->toArray();
         }
 
         // Handle both active tab (selectedAdvanceSalaries) and deleted tab (selectedAdvanceSalariesForDelete)
@@ -204,13 +364,47 @@ class Index extends Component
             $this->selectedAdvanceSalariesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected advance salary records moved to trash!'), 'BulkDeleteModal');
+        if ($advanceSalaries->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'advance_salary_bulk_deleted',
+                'web',
+                'bulk_deleted_advance_salaries',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'bulk_deleted_advance_salaries',
+                    'translation_params' => ['count' => $advanceSalaries->count()],
+                    'bulk_operation' => true,
+                    'operation_type' => $operation,
+                    'affected_count' => $advanceSalaries->count(),
+                    'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
+        $this->closeModalAndFlashMessage(__('employees.selected_advance_salaries_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
+        $this->authorizeAbility('advance_salary-bulkrestore');
+
+        $advanceSalaries = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()->whereIn('id', $this->selectedAdvanceSalariesForDelete)->with('user')->get();
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'user_name' => $as->user->name ?? 'User',
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                    'approval_reason' => $as->approval_reason,
+                ];
+            })->toArray();
         }
 
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
@@ -218,13 +412,47 @@ class Index extends Component
             $this->selectedAdvanceSalariesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected advance salary records restored!'), 'BulkRestoreModal');
+        if ($advanceSalaries->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'advance_salary_bulk_restored',
+                'web',
+                'bulk_restored_advance_salaries',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'bulk_restored_advance_salaries',
+                    'translation_params' => ['count' => $advanceSalaries->count()],
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $advanceSalaries->count(),
+                    'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
+        $this->closeModalAndFlashMessage(__('employees.selected_advance_salaries_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
+        $this->authorizeAbility('advance_salary-delete');
+
+        $advanceSalaries = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedAdvanceSalariesForDelete)) {
+            $advanceSalaries = AdvanceSalary::withTrashed()->whereIn('id', $this->selectedAdvanceSalariesForDelete)->with('user')->get();
+            $affectedRecords = $advanceSalaries->map(function ($as) {
+                return [
+                    'id' => $as->id,
+                    'user_name' => $as->user->name ?? 'User',
+                    'amount' => $as->amount,
+                    'approval_status' => $as->approval_status,
+                    'approval_reason' => $as->approval_reason,
+                ];
+            })->toArray();
         }
 
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
@@ -232,68 +460,71 @@ class Index extends Component
             $this->selectedAdvanceSalariesForDelete = [];
         }
 
-        $this->closeModalAndFlashMessage(__('Selected advance salary records permanently deleted!'), 'BulkForceDeleteModal');
+        if ($advanceSalaries->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'advance_salary_bulk_force_deleted',
+                'web',
+                'bulk_force_deleted_advance_salaries',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'bulk_force_deleted_advance_salaries',
+                    'translation_params' => ['count' => $advanceSalaries->count()],
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $advanceSalaries->count(),
+                    'affected_ids' => $advanceSalaries->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
+        $this->closeModalAndFlashMessage(__('employees.selected_advance_salaries_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedAdvanceSalariesForDelete = [];
-        $this->selectAllForDelete = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAllForDelete()
+    private function notifyManagers(AdvanceSalary $advanceSalary): void
     {
-        if ($this->selectAllForDelete) {
-            $this->selectedAdvanceSalariesForDelete = $this->getAdvanceSalaries()->pluck('id')->toArray();
-        } else {
-            $this->selectedAdvanceSalariesForDelete = [];
+        try {
+            $company = $advanceSalary->company;
+            foreach ($company->managers as $manager) {
+                if ($manager->email) {
+                    Mail::to($manager->email)->send(
+                        new AdvanceSalaryManagerApprovalNotification($advanceSalary, $advanceSalary->user, $manager)
+                    );
+                }
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send advance salary manager notification', [
+                'advance_salary_id' => $advanceSalary->id,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 
-    public function toggleAdvanceSalarySelectionForDelete($advanceSalaryId)
+    protected function bulkSelectionChanged(string $tab): void
     {
-        if (in_array($advanceSalaryId, $this->selectedAdvanceSalariesForDelete)) {
-            $this->selectedAdvanceSalariesForDelete = array_diff($this->selectedAdvanceSalariesForDelete, [$advanceSalaryId]);
-        } else {
-            $this->selectedAdvanceSalariesForDelete[] = $advanceSalaryId;
+        if ($tab === 'active') {
+            $this->updatedselectedAdvanceSalaries();
         }
-
-        $this->selectAllForDelete = count($this->selectedAdvanceSalariesForDelete) === $this->getAdvanceSalaries()->count();
     }
 
-    public function selectAllVisible()
+    protected function bulkSelectionMap(): array
     {
-        $this->selectedAdvanceSalaries = $this->getAdvanceSalaries()->pluck('id')->toArray();
+        return [
+            'active' => ['selectedAdvanceSalaries', 'selectAll'],
+            'deleted' => ['selectedAdvanceSalariesForDelete', 'selectAllForDelete'],
+        ];
     }
 
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedAdvanceSalariesForDelete = $this->getAdvanceSalaries()->pluck('id')->toArray();
-    }
-
-    public function selectAllAdvanceSalaries()
-    {
-        $this->selectedAdvanceSalaries = match ($this->role) {
-            'supervisor' => AdvanceSalary::search($this->query)->supervisor()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => AdvanceSalary::search($this->query)->manager()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => AdvanceSalary::search($this->query)->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-        $this->updatedselectedAdvanceSalaries();
-    }
-
-    public function selectAllDeletedAdvanceSalaries()
-    {
-        $this->selectedAdvanceSalariesForDelete = match ($this->role) {
-            'supervisor' => AdvanceSalary::search($this->query)->supervisor()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => AdvanceSalary::search($this->query)->manager()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => AdvanceSalary::search($this->query)->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-    }
-
-    private function getAdvanceSalaries()
+    protected function bulkQuery()
     {
         $query = AdvanceSalary::search($this->query)->with(['user', 'company']);
 
@@ -305,14 +536,19 @@ class Index extends Component
         }
 
         // Add role-based filtering
-        match($this->role){
-            "manager" => $query->manager(),
-            "admin" => null, // No additional filtering for admin
-            "supervisor" => [], // Supervisor not supported for advance salaries
+        match ($this->role) {
+            'supervisor' => $query->supervisor(),
+            'manager' => $query->manager(),
+            'admin' => null,
             default => [],
         };
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getAdvanceSalaries()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function export()
@@ -331,6 +567,7 @@ class Index extends Component
             'reason',
             'repayment_from_month',
             'repayment_to_month',
+            'repayment_amount',
             'beneficiary_name',
             'beneficiary_mobile_money_number',
             'beneficiary_id_card_number',
@@ -362,46 +599,61 @@ class Index extends Component
     }
     public function render()
     {
-        if (!Gate::allows('advance_salary-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-read');
 
         $advance_salaries = $this->getAdvanceSalaries();
 
+        $supervisorScope = fn ($q) => $q->supervisor();
+        $managerScope = fn ($q) => $q->manager();
+
         // Get counts for active advance salary records (non-deleted)
-        $active_advance_salaries = match($this->role){
-            "manager" => AdvanceSalary::search($this->query)->manager()->whereNull('deleted_at')->count(),
-            "admin" => AdvanceSalary::search($this->query)->whereNull('deleted_at')->count(),
-            "supervisor" => 0, // Supervisor not supported for advance salaries
-           default => 0,
+        $active_advance_salaries = match ($this->role) {
+            'supervisor' => AdvanceSalary::search($this->query)->supervisor()->whereNull('deleted_at')->count(),
+            'manager' => AdvanceSalary::search($this->query)->manager()->whereNull('deleted_at')->count(),
+            'admin' => AdvanceSalary::search($this->query)->whereNull('deleted_at')->count(),
+            default => 0,
         };
 
         // Get counts for deleted advance salary records
-        $deleted_advance_salaries = match($this->role){
-            "manager" => AdvanceSalary::search($this->query)->manager()->withTrashed()->whereNotNull('deleted_at')->count(),
-            "admin" => AdvanceSalary::search($this->query)->withTrashed()->whereNotNull('deleted_at')->count(),
-            "supervisor" => 0, // Supervisor not supported for advance salaries
-           default => 0,
+        $deleted_advance_salaries = match ($this->role) {
+            'supervisor' => AdvanceSalary::search($this->query)->supervisor()->withTrashed()->whereNotNull('deleted_at')->count(),
+            'manager' => AdvanceSalary::search($this->query)->manager()->withTrashed()->whereNotNull('deleted_at')->count(),
+            'admin' => AdvanceSalary::search($this->query)->withTrashed()->whereNotNull('deleted_at')->count(),
+            default => 0,
         };
 
-        // Get approval status counts for active records only
-        $pending_advance_salaries_count = match($this->role){
-            "manager" => AdvanceSalary::manager()->whereNull('deleted_at')->where('approval_status', AdvanceSalary::APPROVAL_STATUS_PENDING)->count(),
-            "admin" => AdvanceSalary::whereNull('deleted_at')->where('approval_status', AdvanceSalary::APPROVAL_STATUS_PENDING)->count(),
-            "supervisor" => 0, // Supervisor not supported for advance salaries
-           default => 0,
+        // Pending = supervisor sees pending their approval; manager/admin see pending manager approval
+        $pending_advance_salaries_count = match ($this->role) {
+            'supervisor' => AdvanceSalary::supervisor()->whereNull('deleted_at')
+                ->where(function ($q) {
+                    $q->whereNull('supervisor_approval_status')
+                        ->orWhere('supervisor_approval_status', AdvanceSalary::APPROVAL_STATUS_PENDING);
+                })->count(),
+            'manager' => AdvanceSalary::manager()->whereNull('deleted_at')
+                ->where('supervisor_approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)
+                ->where(function ($q) {
+                    $q->whereNull('manager_approval_status')
+                        ->orWhere('manager_approval_status', AdvanceSalary::APPROVAL_STATUS_PENDING);
+                })->count(),
+            'admin' => AdvanceSalary::whereNull('deleted_at')
+                ->where('supervisor_approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)
+                ->where(function ($q) {
+                    $q->whereNull('manager_approval_status')
+                        ->orWhere('manager_approval_status', AdvanceSalary::APPROVAL_STATUS_PENDING);
+                })->count(),
+            default => 0,
         };
-        $approved_advance_salaries_count = match($this->role){
-            "manager" => AdvanceSalary::manager()->whereNull('deleted_at')->where('approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)->count(),
-            "admin" => AdvanceSalary::whereNull('deleted_at')->where('approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)->count(),
-            "supervisor" => 0, // Supervisor not supported for advance salaries
-           default => 0,
+        $approved_advance_salaries_count = match ($this->role) {
+            'supervisor' => AdvanceSalary::supervisor()->whereNull('deleted_at')->where('supervisor_approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)->count(),
+            'manager' => AdvanceSalary::manager()->whereNull('deleted_at')->where('manager_approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)->count(),
+            'admin' => AdvanceSalary::whereNull('deleted_at')->where('manager_approval_status', AdvanceSalary::APPROVAL_STATUS_APPROVED)->count(),
+            default => 0,
         };
-        $rejected_advance_salaries_count = match($this->role){
-            "manager" => AdvanceSalary::manager()->whereNull('deleted_at')->where('approval_status', AdvanceSalary::APPROVAL_STATUS_REJECTED)->count(),
-            "admin" => AdvanceSalary::whereNull('deleted_at')->where('approval_status', AdvanceSalary::APPROVAL_STATUS_REJECTED)->count(),
-            "supervisor" => 0, // Supervisor not supported for advance salaries
-           default => 0,
+        $rejected_advance_salaries_count = match ($this->role) {
+            'supervisor' => AdvanceSalary::supervisor()->whereNull('deleted_at')->where('supervisor_approval_status', AdvanceSalary::APPROVAL_STATUS_REJECTED)->count(),
+            'manager' => AdvanceSalary::manager()->whereNull('deleted_at')->where('manager_approval_status', AdvanceSalary::APPROVAL_STATUS_REJECTED)->count(),
+            'admin' => AdvanceSalary::whereNull('deleted_at')->where('manager_approval_status', AdvanceSalary::APPROVAL_STATUS_REJECTED)->count(),
+            default => 0,
         };
 
         return view('livewire.portal.advance-salaries.index', [

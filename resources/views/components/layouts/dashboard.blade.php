@@ -1,10 +1,27 @@
 <x-layouts.app>
     <x-layouts.navigation.topbar />
     <x-layouts.navigation.sidebar />
+    <div class="rf-sb-backdrop"></div>
     <main class='content pb-4'>
         <x-layouts.navigation.navbar />
         {{$slot}}
     </main>
+
+    <script>
+        // Copies column headers onto cells so tables can render as cards on phones.
+        (function () {
+            const run = () => document.querySelectorAll('main.content table').forEach(t => {
+                const heads = [...t.querySelectorAll('thead th')].map(h => h.textContent.trim());
+                t.querySelectorAll('tbody tr').forEach(r => [...r.children].forEach((c, i) => {
+                    if (heads[i] && !c.hasAttribute('colspan') && c.dataset.label !== heads[i]) c.dataset.label = heads[i];
+                }));
+            });
+            let t;
+            new MutationObserver(() => { clearTimeout(t); t = setTimeout(run, 30); }).observe(document.documentElement, { childList: true, subtree: true });
+            document.addEventListener('livewire:navigated', run);
+            run();
+        })();
+    </script>
 
     <!-- Global Search Component -->
     @livewire('components.global-search')

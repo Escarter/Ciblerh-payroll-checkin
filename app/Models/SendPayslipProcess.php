@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\PayslipMatchingProposal;
 
 class SendPayslipProcess extends Model
 {
@@ -13,6 +14,16 @@ class SendPayslipProcess extends Model
     protected $guarded  = [];
 
 
+    public function getMonthAttribute($value)
+    {
+        return normalizeMonthToEnglishName($value) ?? $value;
+    }
+
+    public function setMonthAttribute($value): void
+    {
+        $this->attributes['month'] = normalizeMonthToEnglishName($value) ?? $value;
+    }
+
     public function company()
     {
         return $this->belongsTo(Company::class);
@@ -20,6 +31,11 @@ class SendPayslipProcess extends Model
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+
+    public function departmentWithTrashed()
+    {
+        return $this->belongsTo(Department::class)->withTrashed();
     }
     
     public function scopeSupervisor($query)
@@ -44,5 +60,13 @@ class SendPayslipProcess extends Model
     public function payslips()
     {
         return $this->hasMany(Payslip::class, 'send_payslip_process_id');
+    }
+
+    /**
+     * The SFTP matching proposal that triggered this delivery process (nullable for non-SFTP uploads).
+     */
+    public function sftpProposal()
+    {
+        return $this->belongsTo(PayslipMatchingProposal::class, 'sftp_proposal_id');
     }
 }

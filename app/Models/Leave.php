@@ -31,7 +31,7 @@ class Leave extends Model
 
     public function getPeriodAttribute()
     {
-        return $this->start_date->diffInDays($this->end_date) .__(' days');
+        return $this->start_date->diffInDays($this->end_date) . __('common.days');
     }
 
     public function leaveType()

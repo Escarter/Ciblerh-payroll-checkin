@@ -15,6 +15,7 @@ return [
     'failed' => 'Ces identifiants ne correspondent pas à nos enregistrements.',
     'password' => 'Le mot de passe fourni est incorrect.',
     'throttle' => 'Trop de tentatives de connexion. Veuillez réessayer dans :seconds secondes.',
+    'password_placeholder' => 'Entrez votre mot de passe',
 
     /*
     |--------------------------------------------------------------------------
@@ -54,9 +55,36 @@ return [
 
     // Branding
     'ciberh' => 'CibeRH',
+    'password_label' => 'Mot de passe',
+    'show_password' => 'Afficher le mot de passe',
+    'welcome_back' => 'Bon retour',
+    'welcome_sub' => 'Connectez-vous pour accéder à vos bulletins, pointages et documents RH.',
+    'hero_kicker' => 'VOTRE RH, SIMPLIFIÉE',
+    'hero_title' => 'Tout le RH, en un seul endroit sécurisé.',
+    'hero_text' => 'Un espace sécurisé pour vos bulletins de paie, déclarations annuelles, congés et présences.',
+    'feature_1' => 'Vos bulletins et déclarations annuelles',
+    'feature_2' => 'Demandes de congés et présences',
+    'feature_3' => 'Sécurisé, privé et toujours disponible',
+    'rights' => 'Tous droits réservés.',
     'hr' => 'RH',
     'e_mail_address' => 'Adresse e-mail',
     'language' => 'Langue',
     'fr' => 'FR',
     'en' => 'EN',
+
+    // Vérification d'email
+    'verify_email_address' => 'Vérifiez votre adresse email',
+    'fresh_verification_link_sent' => 'Un nouveau lien de vérification a été envoyé à votre adresse email.',
+    'check_email_for_verification_link' => 'Avant de continuer, veuillez vérifier votre email pour un lien de vérification.',
+    'if_did_not_receive_email' => 'Si vous n\'avez pas reçu l\'email',
+    'click_here_to_request_another' => 'cliquez ici pour en demander un autre',
+    'please_confirm_password' => 'Veuillez confirmer votre mot de passe avant de continuer.',
+
+    // Email de test
+    'test_email_subject' => 'Email de test Wima HR',
+
+    // Additional translation keys
+    'e-mail_address' => 'Adresse e-mail',
+    'name' => 'Nom',
+    'register' => 'S\'inscrire',
 ];

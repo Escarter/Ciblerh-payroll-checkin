@@ -14,14 +14,14 @@
                         </div>
                         <div class="form-group row mb-4">
                             <div class='col-md-6'>
-                                <label for="start_time">{{__('common.start_time')}}</label>
+                                <label for="start_time">{{__('common.start_time')}} <span class="text-danger">*</span></label>
                                 <input wire:model="start_time" id="start_time" type="datetime-local" class="form-control  @error('start_time') is-invalid @enderror" required="" name="start_time">
                                 @error('start_time')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6'>
-                                <label for="end_time">{{__('common.end_time')}}</label>
+                                <label for="end_time">{{__('common.end_time')}} <span class="text-danger">*</span></label>
                                 <input wire:model="end_time" id="end_time" type="datetime-local" class="form-control  @error('end_time') is-invalid @enderror" required="" name="end_time">
                                 @error('end_time')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -29,8 +29,8 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="reason">{{__('common.reason')}}</label>
-                            <textarea wire:model="reason" id="reason" name="reason" class="form-control  @error('reason') is-invalid @enderror" cols='3' rows='3'></textarea>
+                            <label for="reason">{{__('common.reason')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <textarea wire:model="reason" id="reason" name="reason" class="form-control  @error('reason') is-invalid @enderror" cols='3' rows='3' placeholder="{{__('common.reason')}}"></textarea>
                             @error('reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
@@ -38,7 +38,7 @@
                         <h3 class="fw-bold fs-5">{{__('common.approval_section')}}</h3>
                         <hr>
                         <div class='form-group mb-4'>
-                            <label for="approval_status">{{__('employees.approval_status')}}</label>
+                            <label for="approval_status">{{__('employees.approval_status')}} <span class="text-danger">*</span></label>
                             <select wire:model="approval_status" id="approval_status" name="approval_status" class="form-select  @error('approval_status') is-invalid @enderror" required>
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.approve')}}</option>
@@ -49,8 +49,8 @@
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="approval_reason">{{__('common.approval_rejection_reason')}}</label>
-                            <textarea wire:model="approval_reason" id="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='3' rows="3"></textarea>
+                            <label for="approval_reason">{{__('common.approval_rejection_reason')}} <span class="text-danger">*</span></label>
+                            <textarea wire:model="approval_reason" id="approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='3' rows="3" placeholder="{{__('common.approval_rejection_reason')}}"></textarea>
                             @error('approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

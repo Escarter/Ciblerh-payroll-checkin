@@ -3,6 +3,7 @@
 namespace App\Jobs\DownloadJobs;
 
 use App\Models\DownloadJob;
+use App\Jobs\Traits\SafeFileOperations;
 use App\Models\Payslip;
 use App\Exports\PayslipReportExport;
 use Illuminate\Bus\Queueable;
@@ -16,7 +17,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class PayslipReportJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, SafeFileOperations;
 
     /**
      * The queue connection name
@@ -75,7 +76,7 @@ class PayslipReportJob implements ShouldQueue
                 'completed_at' => now(),
                 'file_path' => $filePath,
                 'file_name' => $filename,
-                'file_size' => Storage::disk('public')->size($filePath),
+                'file_size' => $this->safeGetFileSize($filePath),
                 'mime_type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'processed_records' => $totalRecords
             ]);

@@ -67,6 +67,12 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']]
     //Payslip
     Route::prefix('payslips')->group(function () {
         Route::get('/', App\Livewire\Employee\Payslip\Index::class)->name('employee.payslips');
+        Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('employee.payslip.view-pdf');
+    });
+    //Annual declarations
+    Route::prefix('annual-declarations')->group(function () {
+        Route::get('/', App\Livewire\Employee\AnnualDeclarations\Index::class)->name('employee.annual-declarations');
+        Route::get('/{id}/view-pdf', [App\Http\Controllers\AnnualDeclarationViewController::class, 'viewPdf'])->name('employee.annual-declaration.view-pdf');
     });
     //Leaves
     Route::prefix('leaves')->group(function () {
@@ -147,6 +153,15 @@ Route::group(
             Route::get('/', App\Livewire\Portal\Payslips\Index::class)->name('portal.payslips.index');
             Route::get('/{id}/details', App\Livewire\Portal\Payslips\Details::class)->name('portal.payslips.details');
             Route::get('/history', App\Livewire\Portal\Payslips\All::class)->name('portal.payslips.history');
+            Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('portal.payslips.view-pdf');
+            Route::get('/sftp/validator', App\Livewire\Portal\Payslips\SftpPayslipValidator::class)->name('portal.payslips.sftp-validator')->middleware('can:manage-payslips');
+        });
+
+        //Annual declarations
+        Route::prefix('annual-declarations')->group(function () {
+            Route::get('/', App\Livewire\Portal\AnnualDeclarations\Index::class)->name('portal.annual-declarations.index');
+            Route::get('/{id}/details', App\Livewire\Portal\AnnualDeclarations\Details::class)->name('portal.annual-declarations.details');
+            Route::get('/{id}/view-pdf', [App\Http\Controllers\AnnualDeclarationViewController::class, 'viewPdf'])->name('portal.annual-declarations.view-pdf');
         });
 
         //Leave Management
@@ -167,7 +182,11 @@ Route::group(
         //Setting
         Route::prefix('settings')->group(function () {
             Route::get('/', App\Livewire\Portal\Settings\Index::class)->name('portal.settings.index');
+            Route::get('/appearance', App\Livewire\Portal\Settings\Appearance::class)->name('portal.settings.appearance');
         });
+
+        // Holidays
+        Route::get('/holidays', App\Livewire\Portal\Holidays\Index::class)->name('portal.holidays.index');
 
         //Checklog management
         Route::prefix('reports')->group(function () {
@@ -182,6 +201,8 @@ Route::group(
 
         //Import Jobs
         Route::get('/import-jobs', App\Livewire\Portal\ImportJobs\Index::class)->name('portal.import-jobs.index');
+        Route::get('/import-wizard', App\Livewire\ImportWizard::class)->name('portal.import-wizard');
+        Route::get('/export-wizard', App\Livewire\ExportWizard::class)->name('portal.export-wizard');
         Route::get('/download-template/{filename}', function($filename) {
             $path = public_path('templates/' . $filename);
             if (!file_exists($path)) {
@@ -217,4 +238,9 @@ Route::prefix('webhooks/email')->group(function () {
     Route::post('mailgun', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'mailgun']);
     Route::post('ses', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'ses']);
     Route::post('postmark', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'postmark']);
+    Route::post('mailchimp', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'mailchimp']);
 });
+
+// Orange Cameroun SMS delivery-report (DR) callback (no auth; protected by optional shared token)
+Route::post('webhooks/orange-sms/dr', [App\Http\Controllers\Webhooks\OrangeSmsWebhookController::class, 'deliveryReport'])
+    ->name('webhooks.orange-sms.dr');

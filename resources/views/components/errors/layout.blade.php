@@ -7,9 +7,9 @@
 
     <meta name="theme-color" content="#1F2937">
 
-    <link rel="icon" href="{{ asset('img/fav.jpg') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('img/fav.jpg') }}" type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{ asset('img/fav.jpg') }}">
+    <link rel="icon" href="{{ \App\Support\Branding::get('favicon') }}">
+    <link rel="shortcut icon" href="{{ \App\Support\Branding::get('favicon') }}">
+    <link rel="apple-touch-icon" href="{{ \App\Support\Branding::get('favicon') }}">
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -24,7 +24,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom Theme CSS -->
-    <link type="text/css" href="{{ asset('css/theme.css')}}" rel="stylesheet">
+    @vite('resources/css/main.css')
 
     <style>
         * {

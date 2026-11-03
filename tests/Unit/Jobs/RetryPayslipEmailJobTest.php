@@ -162,7 +162,7 @@ test('it uses alternative email when primary email is empty', function () {
         'employee_id' => $user->id,
         'file' => 'test.pdf',
         'email_sent_status' => Payslip::STATUS_FAILED,
-        'month' => 'January', // Ensure month is set
+        'month' => 1, // January - Ensure month is set
     ]);
     
     Storage::disk('modified')->put($payslip->file, 'fake content');

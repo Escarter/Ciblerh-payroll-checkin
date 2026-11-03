@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Webhooks;
 use App\Http\Controllers\Controller;
 use App\Models\Payslip;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Hash;
 
 class EmailWebhookController extends Controller
 {
@@ -28,7 +28,10 @@ class EmailWebhookController extends Controller
     }
 
     /**
-     * Handle SES webhooks
+     * Handle SES webhooks (delivered via AWS SNS).
+     *
+     * SNS always sends a SubscriptionConfirmation first.
+     * We must GET the SubscribeURL it provides or deliveries will never arrive.
      */
     public function ses(Request $request)
     {
@@ -36,6 +39,24 @@ class EmailWebhookController extends Controller
 
         if ($payload && isset($payload['Type'])) {
             switch ($payload['Type']) {
+                case 'SubscriptionConfirmation':
+                    $subscribeUrl = $payload['SubscribeURL'] ?? null;
+                    if ($subscribeUrl) {
+                        try {
+                            Http::get($subscribeUrl);
+                            Log::info('SES/SNS subscription confirmed', [
+                                'topic_arn' => $payload['TopicArn'] ?? 'unknown',
+                            ]);
+                        } catch (\Throwable $e) {
+                            Log::error('SES/SNS subscription confirmation failed', [
+                                'error'         => $e->getMessage(),
+                                'subscribe_url' => $subscribeUrl,
+                                'topic_arn'     => $payload['TopicArn'] ?? 'unknown',
+                            ]);
+                        }
+                    }
+                    break;
+
                 case 'Notification':
                     $message = json_decode($payload['Message'], true);
                     $eventType = $message['eventType'] ?? null;
@@ -45,6 +66,12 @@ class EmailWebhookController extends Controller
                         $this->processEmailEvent($eventType, $recipient, null, 'ses', $message);
                     }
                     break;
+
+                case 'UnsubscribeConfirmation':
+                    Log::info('SES/SNS unsubscribe confirmation received', [
+                        'topic_arn' => $payload['TopicArn'] ?? 'unknown',
+                    ]);
+                    break;
             }
         }
 
@@ -52,19 +79,46 @@ class EmailWebhookController extends Controller
     }
 
     /**
-     * Handle Postmark webhooks
+     * Handle Postmark webhooks.
+     *
+     * Postmark sends one JSON object per request, not an array.
+     * Each object has a top-level RecordType field (e.g. "Delivery", "Bounce").
      */
     public function postmark(Request $request)
     {
-        $events = $request->all();
+        $event     = $request->all();
+        $eventType = $event['RecordType'] ?? null;
+        $recipient = $event['Recipient'] ?? null;
+        $messageId = $event['MessageID'] ?? null;
+
+        if ($eventType && $recipient) {
+            $this->processEmailEvent($eventType, $recipient, $messageId, 'postmark', $event);
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Handle Mailchimp Transactional (Mandrill) webhooks
+     */
+    public function mailchimp(Request $request)
+    {
+        if (!$this->verifyMailchimpSignature($request)) {
+            Log::warning('Mailchimp webhook signature verification failed');
+            return response()->json(['status' => 'unauthorized'], 401);
+        }
+
+        $eventsRaw = $request->input('mandrill_events', '[]');
+        $events = json_decode($eventsRaw, true) ?: [];
 
         foreach ($events as $event) {
-            $eventType = $event['RecordType'] ?? null;
-            $recipient = $event['Recipient'] ?? null;
-            $messageId = $event['MessageID'] ?? null;
+            $eventType = $event['event'] ?? null;
+            $msg       = $event['msg'] ?? [];
+            $recipient = $msg['email'] ?? null;
+            $messageId = $msg['_id'] ?? null;
 
             if ($eventType && $recipient) {
-                $this->processEmailEvent($eventType, $recipient, $messageId, 'postmark', $event);
+                $this->processEmailEvent($eventType, $recipient, $messageId, 'mailchimp', $event);
             }
         }
 
@@ -84,9 +138,10 @@ class EmailWebhookController extends Controller
             return;
         }
 
-        // Find payslip by recipient email and recent sends
+        // Find payslip by recipient email (primary or alternative) and recent sends
         $payslip = Payslip::whereHas('employee', function($query) use ($recipient) {
-            $query->where('email', $recipient);
+            $query->where('email', $recipient)
+                  ->orWhere('alternative_email', $recipient);
         })
         ->where('email_delivery_status', '!=', Payslip::DELIVERY_STATUS_DELIVERED)
         ->where('email_sent_at', '>', now()->subDays(7)) // Only check recent sends
@@ -141,9 +196,16 @@ class EmailWebhookController extends Controller
                 'Complaint' => Payslip::DELIVERY_STATUS_COMPLAINED,
             ],
             'postmark' => [
-                'Delivered' => Payslip::DELIVERY_STATUS_DELIVERED,
-                'Bounced' => Payslip::DELIVERY_STATUS_BOUNCED,
+                'Delivered'    => Payslip::DELIVERY_STATUS_DELIVERED,
+                'Bounced'      => Payslip::DELIVERY_STATUS_BOUNCED,
                 'SpamComplaint' => Payslip::DELIVERY_STATUS_COMPLAINED,
+            ],
+            'mailchimp' => [
+                // Mandrill has no true "delivered" event; hard/soft bounce and spam are trackable
+                'hard_bounce'  => Payslip::DELIVERY_STATUS_BOUNCED,
+                'soft_bounce'  => Payslip::DELIVERY_STATUS_BOUNCED,
+                'spam'         => Payslip::DELIVERY_STATUS_COMPLAINED,
+                'reject'       => Payslip::DELIVERY_STATUS_BOUNCED,
             ],
         ];
 
@@ -151,24 +213,72 @@ class EmailWebhookController extends Controller
     }
 
     /**
-     * Verify Mailgun webhook signature
+     * Verify Mailchimp Transactional (Mandrill) webhook signature.
+     *
+     * Mandrill signs using HMAC-SHA1 where the signed string is:
+     * webhook_url + sorted POST key/value pairs concatenated.
      */
-    private function verifyMailgunSignature(Request $request)
+    private function verifyMailchimpSignature(Request $request): bool
     {
-        $apiKey = config('services.mailgun.secret');
+        $apiKey = \App\Models\Setting::value('mailchimp_api_key');
         if (!$apiKey) {
             return true; // Skip verification if not configured
         }
 
-        $signature = $request->header('X-Mailgun-Signature');
-        $timestamp = $request->header('X-Mailgun-Timestamp');
-        $token = $request->header('X-Mailgun-Token');
-
-        if (!$signature || !$timestamp || !$token) {
+        $signature = $request->header('X-Mandrill-Signature');
+        if (!$signature) {
             return false;
         }
 
-        $expectedSignature = hash_hmac('sha256', $timestamp . $token, $apiKey);
+        $webhookUrl  = $request->url();
+        $postParams  = $request->post();
+        ksort($postParams);
+
+        $signedString = $webhookUrl;
+        foreach ($postParams as $key => $value) {
+            $signedString .= $key . $value;
+        }
+
+        $expectedSignature = base64_encode(hash_hmac('sha1', $signedString, $apiKey, true));
+
+        return hash_equals($expectedSignature, $signature);
+    }
+
+    /**
+     * Verify Mailgun webhook signature.
+     *
+     * Mailgun v3 webhooks embed signature data in the JSON body under the
+     * "signature" key — NOT in HTTP headers.
+     * Signing key = Mailgun Webhook Signing Key (stored in settings or env).
+     * Docs: https://documentation.mailgun.com/docs/mailgun/user-manual/webhooks/#webhook-security
+     */
+    private function verifyMailgunSignature(Request $request): bool
+    {
+        // Prefer the key saved in settings; fall back to environment
+        $signingKey = \App\Models\Setting::value('mailgun_secret') ?: config('services.mailgun.secret');
+        if (!$signingKey) {
+            return true; // Skip verification if not configured
+        }
+
+        // All three fields live in the JSON body, not in HTTP headers
+        $timestamp = $request->input('signature.timestamp');
+        $token     = $request->input('signature.token');
+        $signature = $request->input('signature.signature');
+
+        if (!$timestamp || !$token || !$signature) {
+            Log::warning('Mailgun webhook missing signature fields in request body');
+            return false;
+        }
+
+        // Reject requests older than 10 minutes to prevent replay attacks
+        if (abs(time() - (int) $timestamp) > 600) {
+            Log::warning('Mailgun webhook timestamp too old (possible replay)', [
+                'timestamp' => $timestamp,
+            ]);
+            return false;
+        }
+
+        $expectedSignature = hash_hmac('sha256', $timestamp . $token, $signingKey);
 
         return hash_equals($expectedSignature, $signature);
     }

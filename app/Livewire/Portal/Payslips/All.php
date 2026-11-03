@@ -7,11 +7,14 @@ use App\Models\SendPayslipProcess;
 use App\Models\Payslip;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 
 class All extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
    public ?SendPayslipProcess $send_payslip_process;
    public ?SendPayslipProcess $selectedProcess = null;
@@ -36,12 +39,32 @@ class All extends Component
    public $selectAll = false;
 
     public function initData($job_id) {
-        $this->send_payslip_process = SendPayslipProcess::findOrFail($job_id);
+        $process = SendPayslipProcess::findOrFail($job_id);
+        
+        // Validate supervisor access
+        $role = auth()->user()->getRoleNames()->first();
+        if ($role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($process->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
+        
+        $this->send_payslip_process = $process;
     }
 
     public function downloadPayslip($payslip_id)
     {
         $payslip = Payslip::findOrFail($payslip_id);
+        
+        // Validate supervisor access
+        $role = auth()->user()->getRoleNames()->first();
+        if ($role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($payslip->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
         
         // Check if the file exists
         if (!Storage::disk('modified')->exists($payslip->file)) {
@@ -62,11 +85,20 @@ class All extends Component
 
      public function delete($jobId = null)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $job = $jobId ? SendPayslipProcess::findOrFail($jobId) : $this->send_payslip_process;
+        
+        // Validate supervisor access
+        if ($job) {
+            $role = auth()->user()->getRoleNames()->first();
+            if ($role === 'supervisor') {
+                $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+                if (!in_array($job->department_id, $validDepartmentIds)) {
+                    abort(403, __('common.unauthorized_department_access'));
+                }
+            }
+        }
 
         if(!empty($job))
         {
@@ -78,32 +110,42 @@ class All extends Component
                     'month' => $job->month,
                     'year' => $job->year,
                     'datetime' => now()->format('Y-m-d H:i:s')
-                ])
+                ]),
+                $job, // Pass model for enhanced tracking
+                $job->getAttributes(), // Old values before deletion
+                [], // No new values for deletes
+                ['process_id' => $job->id, 'month' => $job->month, 'year' => $job->year] // Metadata
             );
 
             $job->delete(); // Soft delete
         }
         $this->reset(['send_payslip_process']);
-        $this->closeModalAndFlashMessage(__('Payslip Process successfully moved to trash!'), 'DeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_process_moved_to_trash'), 'DeleteModal');
     }
 
     public function restore()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-restore');
 
         $job = SendPayslipProcess::withTrashed()->findOrFail($this->job_id);
+        
+        // Validate supervisor access
+        $role = auth()->user()->getRoleNames()->first();
+        if ($role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($job->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
+        
         $job->restore();
 
-        $this->closeModalAndFlashMessage(__('Payslip Process successfully restored!'), 'RestoreModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_process_restored'), 'RestoreModal');
     }
 
     public function forceDelete($jobId)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $job = SendPayslipProcess::withTrashed()->findOrFail($jobId);
         
@@ -115,31 +157,66 @@ class All extends Component
                 'month' => $job->month,
                 'year' => $job->year,
                 'datetime' => now()->format('Y-m-d H:i:s')
-            ])
+            ]),
+            $job, // Pass model for enhanced tracking
+            $job->getAttributes(), // Old values before deletion
+            [], // No new values for force deletes
+            ['process_id' => $job->id, 'month' => $job->month, 'year' => $job->year] // Metadata
         );
 
         $job->payslips()->forceDelete(); // Permanently delete related payslips
         $job->forceDelete(); // Permanently delete the process
 
-        $this->closeModalAndFlashMessage(__('Payslip Process permanently deleted!'), 'ForceDeleteModal');
+        $this->closeModalAndFlashMessage(__('payslips.payslip_process_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkdelete');
 
-        $jobs = SendPayslipProcess::whereIn('id', $this->selectedJobs)->get();
+        $query = SendPayslipProcess::whereIn('id', $this->selectedJobs);
+        
+        // Validate supervisor access - only allow deleting processes from their departments
+        $role = auth()->user()->getRoleNames()->first();
+        if ($role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            $query->whereIn('department_id', $validDepartmentIds);
+        }
+        
+        $jobs = $query->get();
+        $affectedRecords = $jobs->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'month' => $job->month,
+                'year' => $job->year,
+                'department_id' => $job->department_id,
+                'status' => $job->status,
+            ];
+        })->toArray();
         
         foreach ($jobs as $job) {
+            $job->delete(); // Soft delete
+        }
+
+        if ($jobs->count() > 0) {
             auditLog(
                 auth()->user(),
-                'bulk_delete_payslip_process',
+                'payslip_process_bulk_deleted',
                 'web',
-                __('Bulk delete Payslip process for ') . $job->month . "-" . $job->year . " @ " . now()
+                'bulk_deleted_payslip_processes',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_deleted_payslip_processes',
+                        'translation_params' => ['count' => $jobs->count()],
+                        'bulk_operation' => true,
+                    'operation_type' => 'soft_delete',
+                    'affected_count' => $jobs->count(),
+                    'affected_ids' => $jobs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
             );
-            $job->delete(); // Soft delete
         }
 
         $this->selectedJobs = [];
@@ -149,14 +226,51 @@ class All extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkrestore');
 
-        $jobs = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedJobs)->get();
+        $query = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedJobs);
+        
+        // Validate supervisor access - only allow restoring processes from their departments
+        $role = auth()->user()->getRoleNames()->first();
+        if ($role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            $query->whereIn('department_id', $validDepartmentIds);
+        }
+        
+        $jobs = $query->get();
+        $affectedRecords = $jobs->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'month' => $job->month,
+                'year' => $job->year,
+                'department_id' => $job->department_id,
+                'status' => $job->status,
+            ];
+        })->toArray();
         
         foreach ($jobs as $job) {
             $job->restore();
+        }
+
+        if ($jobs->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'payslip_process_bulk_restored',
+                'web',
+                'bulk_restored_payslip_processes',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_payslip_processes',
+                        'translation_params' => ['count' => $jobs->count()],
+                        'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $jobs->count(),
+                    'affected_ids' => $jobs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->selectedJobs = [];
@@ -166,21 +280,52 @@ class All extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
-        $jobs = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedJobs)->get();
+        $query = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedJobs);
+        
+        // Validate supervisor access - only allow force deleting processes from their departments
+        $role = auth()->user()->getRoleNames()->first();
+        if ($role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            $query->whereIn('department_id', $validDepartmentIds);
+        }
+        
+        $jobs = $query->get();
+        $affectedRecords = $jobs->map(function ($job) {
+            return [
+                'id' => $job->id,
+                'month' => $job->month,
+                'year' => $job->year,
+                'department_id' => $job->department_id,
+                'status' => $job->status,
+            ];
+        })->toArray();
         
         foreach ($jobs as $job) {
-            auditLog(
-                auth()->user(),
-                'bulk_force_delete_payslip_process',
-                'web',
-                __('Bulk permanently delete Payslip process for ') . $job->month . "-" . $job->year . " @ " . now()
-            );
             $job->payslips()->forceDelete(); // Permanently delete related payslips
             $job->forceDelete(); // Permanently delete the process
+        }
+
+        if ($jobs->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'payslip_process_bulk_force_deleted',
+                'web',
+                'bulk_force_deleted_payslip_processes',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_payslip_processes',
+                        'translation_params' => ['count' => $jobs->count()],
+                        'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $jobs->count(),
+                    'affected_ids' => $jobs->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->selectedJobs = [];
@@ -191,82 +336,48 @@ class All extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedJobs = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkQuery()
     {
-        if ($this->selectAll) {
-            $this->selectedJobs = $this->getAllJobs()->pluck('id')->toArray();
+        $query = match (auth()->user()->getRoleNames()->first()) {
+            'manager' => SendPayslipProcess::manager(),
+            'supervisor' => SendPayslipProcess::supervisor(),
+            'admin' => SendPayslipProcess::query(),
+            default => SendPayslipProcess::query(),
+        };
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
         } else {
-            $this->selectedJobs = [];
+            $query->whereNull('deleted_at');
         }
+
+        return $query->with('department')->orderBy($this->orderBy, $this->orderAsc);
     }
 
-    public function toggleJobSelection($jobId)
+    protected function bulkSelectionMap(): array
     {
-        if (in_array($jobId, $this->selectedJobs)) {
-            $this->selectedJobs = array_diff($this->selectedJobs, [$jobId]);
-        } else {
-            $this->selectedJobs[] = $jobId;
-        }
-        
-        // Update selectAll state
-        $allJobs = $this->getAllJobs();
-        $this->selectAll = count($this->selectedJobs) === $allJobs->count() && $allJobs->count() > 0;
+        return ['active' => ['selectedJobs', 'selectAll']];
     }
 
     private function getJobs()
     {
-        $query = match (auth()->user()->getRoleNames()->first()) {
-            'manager' => SendPayslipProcess::manager(),
-            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id')),
-            'admin' => SendPayslipProcess::query(),
-            default => SendPayslipProcess::query(),
-        };
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        return $query->with('department')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
-    }
-
-    private function getAllJobs()
-    {
-        $query = match (auth()->user()->getRoleNames()->first()) {
-            'manager' => SendPayslipProcess::manager(),
-            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id')),
-            'admin' => SendPayslipProcess::query(),
-            default => SendPayslipProcess::query(),
-        };
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        return $query->with('department')->orderBy($this->orderBy, $this->orderAsc)->get();
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function render()
     {
-        if (!Gate::allows('payslip-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-read');
 
         $jobs = $this->getJobs();
 
         // Get counts for active jobs (non-deleted)
         $active_jobs = match (auth()->user()->getRoleNames()->first()) {
             'manager' => SendPayslipProcess::manager()->whereNull('deleted_at')->count(),
-            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->whereNull('deleted_at')->count(),
+            'supervisor' => SendPayslipProcess::supervisor()->whereNull('deleted_at')->count(),
             'admin' => SendPayslipProcess::whereNull('deleted_at')->count(),
             default => 0,
         };
@@ -274,7 +385,7 @@ class All extends Component
         // Get counts for deleted jobs
         $deleted_jobs = match (auth()->user()->getRoleNames()->first()) {
             'manager' => SendPayslipProcess::manager()->withTrashed()->whereNotNull('deleted_at')->count(),
-            'supervisor' => SendPayslipProcess::whereIn('author_id', auth()->user()->supDepartments->pluck('id'))->withTrashed()->whereNotNull('deleted_at')->count(),
+            'supervisor' => SendPayslipProcess::supervisor()->withTrashed()->whereNotNull('deleted_at')->count(),
             'admin' => SendPayslipProcess::withTrashed()->whereNotNull('deleted_at')->count(),
             default => 0,
         };
@@ -290,7 +401,18 @@ class All extends Component
     // Modal methods for task details
     public function showTaskDetails($processId)
     {
-        $this->selectedProcess = SendPayslipProcess::with(['department', 'owner', 'payslips'])->findOrFail($processId);
+        $process = SendPayslipProcess::with(['department', 'owner', 'payslips'])->findOrFail($processId);
+        
+        // Validate supervisor access
+        $role = auth()->user()->getRoleNames()->first();
+        if ($role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($process->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
+        
+        $this->selectedProcess = $process;
 
         // Clear cached statistics when loading a new process
         $this->cachedTaskStatistics = null;
@@ -312,7 +434,21 @@ class All extends Component
     {
         // Refresh the selected process data if modal is open
         if ($this->selectedProcess) {
-            $this->selectedProcess = SendPayslipProcess::with(['department', 'owner', 'payslips'])->find($this->selectedProcess->id);
+            $process = SendPayslipProcess::with(['department', 'owner', 'payslips'])->find($this->selectedProcess->id);
+            
+            // Validate supervisor access
+            if ($process) {
+                $role = auth()->user()->getRoleNames()->first();
+                if ($role === 'supervisor') {
+                    $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+                    if (!in_array($process->department_id, $validDepartmentIds)) {
+                        $this->selectedProcess = null;
+                        return;
+                    }
+                }
+            }
+            
+            $this->selectedProcess = $process;
 
             // Clear cached statistics to force recalculation
             $this->cachedTaskStatistics = null;
@@ -608,9 +744,12 @@ class All extends Component
         $timeline = [];
 
         // Process creation
+        $scopeName = $this->selectedProcess->department_id 
+            ? ($this->selectedProcess->department?->name ?? __('payslips.department_deleted'))
+            : ($this->selectedProcess->company?->name ?? __('payslips.company_deleted'));
         $timeline[] = [
             'title' => __('payslips.task_created'),
-            'description' => __('payslips.payslip_task_initiated', ['department' => $this->selectedProcess->department?->name ?? __('common.unknown')]),
+            'description' => __('payslips.payslip_task_initiated', ['department' => $scopeName]),
             'time' => $this->selectedProcess->created_at->diffForHumans(),
             'type' => 'info'
         ];
@@ -741,11 +880,18 @@ class All extends Component
 
     public function cancelTask($processId)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $process = SendPayslipProcess::findOrFail($processId);
+        
+        // Validate supervisor access
+        $role = auth()->user()->getRoleNames()->first();
+        if ($role === 'supervisor') {
+            $validDepartmentIds = auth()->user()->supDepartments->pluck('department_id')->toArray();
+            if (!in_array($process->department_id, $validDepartmentIds)) {
+                abort(403, __('common.unauthorized_department_access'));
+            }
+        }
 
         if ($process->status === 'processing') {
             $process->update(['status' => 'cancelled']);
@@ -754,10 +900,25 @@ class All extends Component
                 auth()->user(),
                 'cancel_payslip_process',
                 'web',
-                __('payslips.payslip_process_cancelled') . $process->month . "-" . $process->year . " @ " . now()
+                'cancel_payslip_process_for',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'cancel_payslip_process_for',
+                    'translation_params' => [
+                        'month' => $process->month,
+                        'year' => $process->year,
+                        'time' => now()->format('Y-m-d H:i:s')
+                    ],
+                    'entity' => 'payslip_process',
+                    'process_id' => $process->id,
+                    'month' => $process->month,
+                    'year' => $process->year,
+                ]
             );
 
-            session()->flash('message', __('payslips.task_cancelled_successfully'));
+            $this->showToast(__('payslips.task_cancelled_successfully'), 'success');
             $this->closeTaskDetailsModal();
             return $this->redirect(route('portal.payslips.index'), navigate: true);
         }

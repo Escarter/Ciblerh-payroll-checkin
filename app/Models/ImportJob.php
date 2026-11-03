@@ -44,6 +44,7 @@ class ImportJob extends Model
     const TYPE_SERVICES = 'services';
     const TYPE_LEAVE_TYPES = 'leave_types';
     const TYPE_SUP_MGR = 'sup_mgr';
+    const TYPE_HOLIDAYS = 'holidays';
 
     // Status Constants
     const STATUS_PENDING = 'pending';
@@ -81,7 +82,8 @@ class ImportJob extends Model
             self::TYPE_COMPANIES => __('common.companies'),
             self::TYPE_SERVICES => __('common.services'),
             self::TYPE_LEAVE_TYPES => __('common.leave_types'),
-            default => __('Unknown Import Type')
+            self::TYPE_HOLIDAYS => __('common.holidays'),
+            default => __('import_jobs.unknown_import_type')
         };
     }
 
@@ -101,11 +103,11 @@ class ImportJob extends Model
     {
         return match($this->status) {
             self::STATUS_PENDING => __('common.pending'),
-            self::STATUS_PROCESSING => __('Processing'),
-            self::STATUS_COMPLETED => __('Completed'),
+            self::STATUS_PROCESSING => __('common.processing'),
+            self::STATUS_COMPLETED => __('common.completed'),
             self::STATUS_FAILED => __('common.failed'),
-            self::STATUS_CANCELLED => __('Cancelled'),
-            default => __('Unknown')
+            self::STATUS_CANCELLED => __('common.cancelled'),
+            default => __('common.unknown')
         };
     }
 
@@ -118,11 +120,11 @@ class ImportJob extends Model
         $duration = $this->started_at->diffInSeconds($this->completed_at);
 
         if ($duration < 60) {
-            return $duration . ' ' . __('seconds');
+            return $duration . ' ' . __('common.seconds');
         } elseif ($duration < 3600) {
-            return round($duration / 60) . ' ' . __('minutes');
+            return round($duration / 60) . ' ' . __('common.minutes');
         } else {
-            return round($duration / 3600) . ' ' . __('hours');
+            return round($duration / 3600) . ' ' . __('common.hours');
         }
     }
 

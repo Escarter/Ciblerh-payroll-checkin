@@ -81,7 +81,14 @@ class Payslip extends Component
             auth()->user(),
             'payslip_report',
             'web',
-            ucfirst(auth()->user()->name) . __('reports.report_generate_for_payslips')
+            'report_generated_for_payslips',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'report_generated_for_payslips',
+                'translation_params' => ['user' => auth()->user()->name],
+            ]
         );
 
         // Create job using the service
