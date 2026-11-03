@@ -72,6 +72,8 @@ a:not(.btn):not(.nav-link):not(.dropdown-item):not(.page-link):not(.sidebar a) {
 .navbar.bg-primary.d-md-none .navbar-toggler-icon { filter: invert(.8); }
 
 /* ---------- Top bar ---------- */
+/* overflow:hidden on .content would break position:sticky; clip keeps the clipping without it */
+main.content { overflow: visible; overflow-x: clip; }
 nav.navbar-top {
     background: rgba(247, 248, 251, .85) !important;
     backdrop-filter: saturate(180%) blur(12px);
