@@ -191,6 +191,12 @@
                                 @endif
                             </p>
                             <div class="card-title">{{__('settings.sms_balance')}}</div>
+                            <div class="mb-2">
+                                <button type="button" wire:click="refreshSmsBalance(null, true)" wire:loading.attr="disabled" wire:target="refreshSmsBalance" class="btn btn-sm btn-outline-secondary">
+                                    <span wire:loading.remove wire:target="refreshSmsBalance">{{ __('settings.refresh_sms_balance') }}</span>
+                                    <span wire:loading wire:target="refreshSmsBalance">...</span>
+                                </button>
+                            </div>
                             <div class="mb-2 text-muted text-xs">
                                 @if($sms_provider === 'orange_cm')
                                     {{ __('settings.sms_balance_orange_cm_help') }}

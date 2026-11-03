@@ -5,6 +5,7 @@ namespace App\Livewire\Portal\Settings;
 use App\Mail\TestEmail;
 use App\Models\Setting;
 use App\Services\Nexah;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use App\Services\TwilioSMS;
 use App\Services\AwsSnsSMS;
@@ -173,6 +174,7 @@ class Index extends Component
         $this->log_channel = !empty($this->setting) ? $this->setting->log_channel :'';
         $this->mailchimp_api_key = !empty($this->setting) ? $this->setting->mailchimp_api_key :'';
         $this->sms_balance = $this->setting ? $this->setting->sms_balance : null;
+        $this->refreshSmsBalance($this->setting);
 
         $this->sms_content_en = !empty($this->setting) ? (!empty($this->setting->sms_content_en) ? $this->setting->sms_content_en  : "Mr/Mrs :name:, your pay slip for the month of :month:-:year: has been sent to your mailbox. Please use the following password: :pdf_password: to view it.") :'';
         $this->sms_content_fr = !empty($this->setting) ? (!empty($this->setting->sms_content_fr) ? $this->setting->sms_content_fr : "M./Mme :name:, votre fiche de paie du mois de :month:-:year: a été envoyée dans votre boîte mail. Merci d'utiliser le mot de passe suivant : :pdf_password: pour la consulter."):'';
@@ -377,39 +379,44 @@ class Index extends Component
               
             ]);
 
-        if (!empty($setting)) {
-
-            if (!empty($setting->sms_provider_username) && !empty($setting->sms_provider_password)) {
-
-                $sms_client = match ($setting->sms_provider) {
-                    'twilio' => new TwilioSMS($setting),
-                    'nexah' =>  new Nexah($setting),
-                    'aws_sns' => new AwsSnsSMS($setting),
-                    'orange_cm' => new OrangeCameroonSMS($setting),
-                    default => new Nexah($setting)
-                };
-
-                $response = match ($setting->sms_provider) {
-                    'twilio' => ['responsecode' => 0],
-                    'nexah' =>  $sms_client->getBalance(),
-                    'aws_sns' => $sms_client->getBalance(),
-                    'orange_cm' => $sms_client->getBalance(),
-                    default => ['responsecode' => 0]
-                };
-
-                $credit = $response['responsecode'] === 1 ? ($response['credit'] ?? null) : 0;
-                $this->sms_balance = $credit;
-
-                $setting->update([
-                    'sms_balance' => $response['responsecode'] === 1 ? $credit : 0,
-                ]);
-                
-            }
-        }
+        $this->refreshSmsBalance($setting);
 
         $this->showToast(__('settings.setting_for_sms_successfully_added'), 'success');
 
     }
+    public function refreshSmsBalance($setting = null, bool $notify = false)
+    {
+        $setting = $setting instanceof Setting ? $setting : Setting::first();
+
+        if (empty($setting) || empty($setting->sms_provider_username) || empty($setting->sms_provider_password)) {
+            return;
+        }
+
+        try {
+            $sms_client = match ($setting->sms_provider) {
+                'twilio' => new TwilioSMS($setting),
+                'aws_sns' => new AwsSnsSMS($setting),
+                'orange_cm' => new OrangeCameroonSMS($setting),
+                default => new Nexah($setting)
+            };
+
+            $response = $setting->sms_provider === 'twilio' ? ['responsecode' => 0] : $sms_client->getBalance();
+            $credit = ($response['responsecode'] ?? 0) === 1 ? ($response['credit'] ?? null) : 0;
+
+            $this->sms_balance = $credit;
+            $setting->update(['sms_balance' => $credit ?? 0]);
+
+            if ($notify) {
+                $this->showToast(__('settings.sms_balance_refreshed'), 'success');
+            }
+        } catch (\Throwable $e) {
+            Log::warning('SMS balance refresh failed', ['error' => $e->getMessage()]);
+            if ($notify) {
+                $this->showToast($e->getMessage(), 'danger');
+            }
+        }
+    }
+
     public function saveSmtpConfig()
     {
         $setting = Setting::updateOrCreate(

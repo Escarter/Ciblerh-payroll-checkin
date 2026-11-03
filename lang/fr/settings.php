@@ -660,4 +660,6 @@ return [
     'radius_soft' => 'Doux',
     'radius_round' => 'Arrondi',
     'employee_portal_hint' => 'S\'applique aux barres et à la bannière du portail employé ; l\'arrière-plan et l\'arrondi s\'appliquent à toute l\'application.',
+    'refresh_sms_balance' => 'Actualiser le solde',
+    'sms_balance_refreshed' => 'Solde actualisé',
 ];

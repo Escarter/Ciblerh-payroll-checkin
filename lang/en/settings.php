@@ -661,4 +661,6 @@ return [
     'radius_soft' => 'Soft',
     'radius_round' => 'Round',
     'employee_portal_hint' => 'Applies to the employee portal bars and banner; background and roundness apply across the whole app.',
+    'refresh_sms_balance' => 'Refresh balance',
+    'sms_balance_refreshed' => 'Balance refreshed',
 ];
