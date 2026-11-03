@@ -213,7 +213,7 @@
 
 
         <!-- Tab Buttons (Right) -->
-        @if(auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore'))
+        @if(auth()->user()->hasAnyRole(['admin','manager']) || (auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore')))
         <div class="d-flex gap-2">
             <button id="active-employees-tab" class="btn {{ $activeTab === 'active' ? 'btn-primary' : 'btn-outline-primary' }}"
                 wire:click="switchTab('active')"

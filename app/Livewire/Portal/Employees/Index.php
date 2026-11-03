@@ -704,6 +704,11 @@ class Index extends BaseImportComponent
             })->where('company_id', $this->company->id),
             default => User::where('id', 0), // Return empty query for unknown roles
         };
+    }
+
+    private function getEmployees()
+    {
+        $baseQuery = $this->scopedQuery();
 
         if ($this->activeTab === 'deleted') {
             $this->selectedEmployees = $baseQuery->withTrashed()
@@ -746,9 +751,9 @@ class Index extends BaseImportComponent
             ->toArray();
     }
 
-    private function getEmployees()
+    private function scopedQuery()
     {
-        $baseQuery = match ($this->auth_role) {
+        return match ($this->auth_role) {
             'supervisor' => User::search($this->query)->supervisor(),
             'manager' => User::search($this->query)->whereHas('roles', function($query) {
                 $query->whereIn('name', ['employee', 'supervisor']);
@@ -1339,6 +1344,11 @@ class Index extends BaseImportComponent
         $this->clearFields();
         $this->isEditMode = false;
     }
+    private function countByStatus(bool $status): int
+    {
+        return $this->scopedQuery()->where('status', $status)->count();
+    }
+
     public function render()
     {
         abort_unless(
@@ -1347,30 +1357,8 @@ class Index extends BaseImportComponent
         );
         $employees = $this->getEmployees()->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
 
-        $employees_count = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->where('status',true)->count(),
-            'manager' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor'])])->whereDoesntHave('roles', function($query) {
-                $query->where('name', 'admin');
-            })->where('company_id', $this->company->id)->where('status',true)->count(),
-            'admin' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor','manager'])])->where('company_id', $this->company->id)->where('status',true)->count(),
-            default => [],
-        };
-        $active_employees = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->where('status', true)->count(),
-            'manager' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor'])])->whereDoesntHave('roles', function($query) {
-                $query->where('name', 'admin');
-            })->where('company_id', $this->company->id)->where('status', true)->count(),
-            'admin' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor', 'manager'])])->where('status', true)->where('company_id', $this->company->id)->where('status',true)->count(),
-            default => [],
-        };
-        $banned_employees = match ($this->auth_role) {
-            'supervisor' => User::supervisor()->where('status', false)->count(),
-            'manager' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor'])])->whereDoesntHave('roles', function($query) {
-                $query->where('name', 'admin');
-            })->where('company_id', $this->company->id)->where('status', false)->count(),
-            'admin' => User::with(['roles' => fn($query) => $query->whereIn('name', ['employee', 'supervisor', 'manager'])])->where('status', false)->where('company_id', $this->company->id)->where('status',true)->count(),
-            default => [],
-        };
+        $employees_count = $active_employees = $this->countByStatus(true);
+        $banned_employees = $this->countByStatus(false);
 
         // Calculate deleted employees count
         $deleted_employees = match ($this->auth_role) {
