@@ -515,3 +515,12 @@ html[data-theme="dark"] .import-wizard .option-switch:hover { background: var(--
 html[data-theme="dark"] .import-wizard .step-connector { background: var(--rf-line); }
 html[data-theme="dark"] .import-wizard .step-circle.active { background: var(--rf-brand); border-color: var(--rf-brand); color: #0b1220; box-shadow: 0 0 0 4px var(--rf-brand-ring); }
 html[data-theme="dark"] .import-wizard .step-circle.pending { background: var(--rf-surface-2); border-color: var(--rf-line); color: var(--rf-muted); }
+
+/* Softer separators on settings */
+html[data-theme="dark"] main.content hr {
+    border: 0 !important;
+    border-top: 1px solid color-mix(in srgb, var(--rf-line) 55%, transparent) !important;
+    background: none !important;
+    opacity: 1 !important;
+    height: 0;
+}

@@ -1321,3 +1321,12 @@ span.rf-auth-mobile-logo { font-weight: 700; font-size: 1.4rem; color: var(--rf-
 .sidebar .nav-link > .sidebar-text-contracted { display: none !important; }
 html.sb-collapsed .sidebar .nav-link > .sidebar-text-contracted, .sidebar.contracted .nav-link > .sidebar-text-contracted { display: inline !important; }
 .sidebar .nav .nav .nav-link { justify-content: flex-start; }
+
+/* Softer separators */
+html:not([data-theme="dark"]) main.content hr {
+    border: 0 !important;
+    border-top: 1px solid rgba(15, 23, 42, .07) !important;
+    background: none !important;
+    opacity: 1 !important;
+    height: 0;
+}
