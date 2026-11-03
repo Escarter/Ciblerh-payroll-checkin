@@ -563,7 +563,7 @@
                     <tr>
                         <td colspan="9" class="text-center">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                                 <p>{{__('common.no_employee_found')}}</p>
                             </div>
                         </td>

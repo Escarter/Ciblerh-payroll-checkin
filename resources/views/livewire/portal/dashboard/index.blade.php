@@ -855,7 +855,7 @@
                             </div>
                             @empty
                             <div class="text-center text-gray-800 mt-4">
-                                <h4 class="fs-4 fw-bold">{{__('common.no_data_available')}} &#128540;</h4>
+                                <h4 class="fs-4 fw-bold">{{__('common.no_data_available')}}</h4>
                                 <p>{{__('dashboard.no_department_performance_data')}}</p>
                             </div>
                             @endforelse
@@ -957,7 +957,7 @@
                                     <tr>
                                         <td colspan="5" class="text-center">
                                             <div class="text-center text-gray-800 mt-2">
-                                                <h4 class="fs-4 fw-bold">{{__('common.no_data_available')}} &#128540;</h4>
+                                                <h4 class="fs-4 fw-bold">{{__('common.no_data_available')}}</h4>
                                                 <p>{{__('common.no_performance_data_found')}}</p>
                                             </div>
                                         </td>
@@ -1035,7 +1035,7 @@
                             <tr>
                                 <td colspan="9" class="text-center">
                                     <div class="text-center text-gray-800 mt-2">
-                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}} &#128540;</h4>
+                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}}</h4>
                                         <p>{{__('common.no_employee_found')}}</p>
                                     </div>
                                 </td>
@@ -1096,7 +1096,7 @@
                             <tr>
                                 <td colspan="7" class="text-center">
                                     <div class="text-center text-gray-800 mt-2">
-                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}} &#128540;</h4>
+                                        <h4 class="fs-4 fw-bold">{{__('common.opps_nothing_here')}}</h4>
                                         <p>{{__('common.no_record_found')}}</p>
                                     </div>
                                 </td>

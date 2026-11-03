@@ -524,3 +524,9 @@ html[data-theme="dark"] main.content hr {
     opacity: 1 !important;
     height: 0;
 }
+
+/* Empty-state copy next to the empty.svg illustration */
+html[data-theme="dark"] img[src*="empty.svg"] + div h4,
+html[data-theme="dark"] img[src*="empty.svg"] + div .text-gray-800,
+html[data-theme="dark"] img[src*="empty.svg"] + div .text-gray-700 { color: var(--rf-ink) !important; }
+html[data-theme="dark"] img[src*="empty.svg"] + div p { color: var(--rf-muted) !important; }

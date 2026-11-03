@@ -381,7 +381,7 @@ return [
     'month' => 'Mois',
     'sent_date' => 'Date d\'envoi',
     'download' => 'Télécharger',
-    'record_payslip_message' => 'Enregistrez une fiche de paie pour la voir ici!',
+    'record_payslip_message' => 'Vos fiches de paie apparaîtront ici dès qu\'elles seront disponibles.',
 
     // Traductions des modales
     'create_an_absence' => 'Créer une absence',

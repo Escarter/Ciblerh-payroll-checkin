@@ -33,7 +33,7 @@ return [
     'page_unmatched' => 'Non associée',
     'page_empty' => 'Page vide',
     'employee_intro' => 'Vos déclarations annuelles de revenus',
-    'no_declarations_yet' => 'Aucune déclaration annuelle disponible',
+    'no_declarations_yet' => 'Vos déclarations annuelles apparaîtront ici dès qu\'elles seront disponibles.',
     'email_subject' => 'Votre déclaration annuelle de revenus :year',
     'email_content' => 'Bonjour :name, veuillez trouver ci-joint votre déclaration annuelle de revenus :year. Le document est protégé par votre mot de passe PDF.',
     'sms_content' => 'Bonjour :name, votre déclaration annuelle :year a été envoyée par e-mail. Mot de passe PDF : :pdf_password',

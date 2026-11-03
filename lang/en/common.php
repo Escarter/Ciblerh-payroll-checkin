@@ -222,7 +222,7 @@ return [
 
     // Empty states
     'nothing_here' => 'Nothing here',
-    'oops_nothing_here' => 'Oops nothing here',
+    'oops_nothing_here' => 'Nothing here yet',
     'oops_something_is_not_alright' => 'Oops something is not alright',
     'empty_set' => 'Empty set.',
     'empty' => 'Empty',

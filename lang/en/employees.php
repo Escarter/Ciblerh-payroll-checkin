@@ -381,7 +381,7 @@ return [
     'month' => 'Month',
     'sent_date' => 'Sent Date',
     'download' => 'Download',
-    'record_payslip_message' => 'Record payslip to see them here!',
+    'record_payslip_message' => 'Your payslips will appear here as soon as they are available.',
 
     // Modal translations
     'create_an_absence' => 'Create an Absence',

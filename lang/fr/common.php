@@ -220,7 +220,7 @@ return [
 
     // Empty states
     'nothing_here' => 'Rien ici',
-    'oops_nothing_here' => 'Oups rien ici',
+    'oops_nothing_here' => 'Rien à afficher pour le moment',
     'empty_set' => 'Ensemble vide.',
     'empty' => 'Vide',
     'welcome_back_user' => 'Bienvenue ! :user',

@@ -33,7 +33,7 @@ return [
     'page_unmatched' => 'Unmatched',
     'page_empty' => 'Empty page',
     'employee_intro' => 'Your annual income declarations',
-    'no_declarations_yet' => 'No annual declaration available yet',
+    'no_declarations_yet' => 'Your annual declarations will appear here once they are available.',
     'email_subject' => 'Your annual income declaration :year',
     'email_content' => 'Dear :name, please find attached your annual income declaration for :year. The document is protected with your PDF password.',
     'sms_content' => 'Dear :name, your annual declaration :year was sent to your email. PDF password: :pdf_password',

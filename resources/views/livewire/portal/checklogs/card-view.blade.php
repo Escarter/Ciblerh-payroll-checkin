@@ -92,7 +92,7 @@
     <div class="col-12">
         <div class='border-prim rounded p-5 d-flex justify-content-center align-items-center flex-column text-center'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("common.nothing_here")}}' class="mb-3" style="width: 120px; opacity: 0.6;">
-            <h4 class="fs-4 fw-bold text-gray-700">{{__('common.oops_nothing_here')}} &#128540;</h4>
+            <h4 class="fs-4 fw-bold text-gray-700">{{__('common.oops_nothing_here')}}</h4>
             <p class="text-gray-600">{{__('employees.record_checkin_message')}}</p>
         </div>
     </div>

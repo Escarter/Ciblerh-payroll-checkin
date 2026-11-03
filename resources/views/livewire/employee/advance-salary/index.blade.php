@@ -374,7 +374,7 @@
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("common.nothing_here")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                 <p>{{__('employees.request_advance_salary_message')}}</p>
             </div>
         </div>

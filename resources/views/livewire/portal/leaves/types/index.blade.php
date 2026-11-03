@@ -371,7 +371,7 @@
                     <tr>
                         <td colspan="8">
                             <div class="text-center text-gray-800 mt-2">
-                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                                 <p>{{__('leaves.no_leave_type_found')}}</p>
                             </div>
                         </td>
