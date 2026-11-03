@@ -23,18 +23,18 @@
                         </div>
 
                         <div class="col-12 col-lg-6">
-                            <div class="border rounded-3 p-3 h-100">
+                            <div class="rf-notify-card">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div>
                                         <h2 class="h6 mb-1">{{ __('common.sms') }}</h2>
                                         <p class="small text-muted mb-0">{{ __('departments.bulk_sms_department_help') }}</p>
                                     </div>
                                 </div>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <button wire:click="bulkToggleDepartmentSmsNotifications(false)" type="button" class="btn btn-sm btn-danger {{ $smsDepartmentActionId ? '' : 'disabled' }}">
+                                <div class="rf-notify-actions">
+                                    <button wire:click="bulkToggleDepartmentSmsNotifications(false)" type="button" class="btn rf-btn-soft-danger {{ $smsDepartmentActionId ? '' : 'disabled' }}">
                                         {{ __('departments.bulk_sms_disable_action') }}
                                     </button>
-                                    <button wire:click="bulkToggleDepartmentSmsNotifications(true)" type="button" class="btn btn-sm btn-success {{ $smsDepartmentActionId ? '' : 'disabled' }}">
+                                    <button wire:click="bulkToggleDepartmentSmsNotifications(true)" type="button" class="btn rf-btn-soft-success {{ $smsDepartmentActionId ? '' : 'disabled' }}">
                                         {{ __('departments.bulk_sms_enable_action') }}
                                     </button>
                                 </div>
@@ -42,18 +42,18 @@
                         </div>
 
                         <div class="col-12 col-lg-6">
-                            <div class="border rounded-3 p-3 h-100">
+                            <div class="rf-notify-card">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div>
                                         <h2 class="h6 mb-1">{{ __('common.email') }}</h2>
                                         <p class="small text-muted mb-0">{{ __('departments.bulk_email_department_help') }}</p>
                                     </div>
                                 </div>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <button wire:click="bulkToggleDepartmentEmailNotifications(false)" type="button" class="btn btn-sm btn-danger {{ $smsDepartmentActionId ? '' : 'disabled' }}">
+                                <div class="rf-notify-actions">
+                                    <button wire:click="bulkToggleDepartmentEmailNotifications(false)" type="button" class="btn rf-btn-soft-danger {{ $smsDepartmentActionId ? '' : 'disabled' }}">
                                         {{ __('departments.bulk_email_disable_action') }}
                                     </button>
-                                    <button wire:click="bulkToggleDepartmentEmailNotifications(true)" type="button" class="btn btn-sm btn-success {{ $smsDepartmentActionId ? '' : 'disabled' }}">
+                                    <button wire:click="bulkToggleDepartmentEmailNotifications(true)" type="button" class="btn rf-btn-soft-success {{ $smsDepartmentActionId ? '' : 'disabled' }}">
                                         {{ __('departments.bulk_email_enable_action') }}
                                     </button>
                                 </div>

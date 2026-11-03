@@ -532,7 +532,7 @@ class Index extends BaseImportComponent
             return;
         }
 
-        $targetCompanyId = $this->smsCompanyActionId;
+        $targetCompanyId = is_array($this->smsCompanyActionId) ? ($this->smsCompanyActionId[0] ?? null) : $this->smsCompanyActionId;
 
         if (!$targetCompanyId) {
             $this->showToast(__('companies.bulk_sms_select_company_first'), 'danger');
@@ -566,7 +566,7 @@ class Index extends BaseImportComponent
             return;
         }
 
-        $targetCompanyId = $this->smsCompanyActionId;
+        $targetCompanyId = is_array($this->smsCompanyActionId) ? ($this->smsCompanyActionId[0] ?? null) : $this->smsCompanyActionId;
 
         if (!$targetCompanyId) {
             $this->showToast(__('companies.bulk_sms_select_company_first'), 'danger');

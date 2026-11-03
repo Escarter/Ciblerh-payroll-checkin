@@ -22,6 +22,12 @@
                     noChoicesText: 'No options available',
                 });
                 el.setAttribute('data-rf-select', '1');
+                // Choices emits a CustomEvent whose detail Livewire would read as the value; swap it for a plain event.
+                el.addEventListener('change', (e) => {
+                    if (!(e instanceof CustomEvent)) return;
+                    e.stopImmediatePropagation();
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }, true);
                 if (el.disabled) instance.disable();
             } catch (e) { /* leave the native select in place */ }
         });

@@ -20,9 +20,16 @@ class AssignManager extends Component
 
     public function assignManager()
     {
+        foreach (['company_id', 'manager_id'] as $field) {
+            if (is_array($this->$field)) {
+                $this->$field = $this->$field[0] ?? null;
+            }
+            $this->$field = $this->$field === '' ? null : $this->$field;
+        }
+
         $this->validate([
-            'company_id' => 'required|integer|exists:companies,id',
-            'manager_id' => 'required|integer|exists:users,id',
+            'company_id' => 'required|exists:companies,id',
+            'manager_id' => 'required|exists:users,id',
         ]);
 
         $company = Company::findOrFail($this->company_id);

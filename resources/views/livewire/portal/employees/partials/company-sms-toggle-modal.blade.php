@@ -23,16 +23,16 @@
                         </div>
 
                         <div class="col-12 col-lg-6">
-                            <div class="border rounded-3 p-3 h-100">
+                            <div class="rf-notify-card">
                                 <div class="mb-3">
                                     <h2 class="h6 mb-1">{{ __('common.sms') }}</h2>
                                     <p class="small text-muted mb-0">{{ __('employees.bulk_sms_company_help') }}</p>
                                 </div>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <button wire:click="bulkToggleCompanySmsNotifications(false)" type="button" class="btn btn-sm btn-danger {{ $smsCompanyActionId ? '' : 'disabled' }}">
+                                <div class="rf-notify-actions">
+                                    <button wire:click="bulkToggleCompanySmsNotifications(false)" type="button" class="btn rf-btn-soft-danger {{ $smsCompanyActionId ? '' : 'disabled' }}">
                                         {{ __('employees.bulk_sms_disable_action') }}
                                     </button>
-                                    <button wire:click="bulkToggleCompanySmsNotifications(true)" type="button" class="btn btn-sm btn-success {{ $smsCompanyActionId ? '' : 'disabled' }}">
+                                    <button wire:click="bulkToggleCompanySmsNotifications(true)" type="button" class="btn rf-btn-soft-success {{ $smsCompanyActionId ? '' : 'disabled' }}">
                                         {{ __('employees.bulk_sms_enable_action') }}
                                     </button>
                                 </div>
@@ -40,16 +40,16 @@
                         </div>
 
                         <div class="col-12 col-lg-6">
-                            <div class="border rounded-3 p-3 h-100">
+                            <div class="rf-notify-card">
                                 <div class="mb-3">
                                     <h2 class="h6 mb-1">{{ __('common.email') }}</h2>
                                     <p class="small text-muted mb-0">{{ __('employees.bulk_email_company_help') }}</p>
                                 </div>
-                                <div class="d-flex gap-2 flex-wrap">
-                                    <button wire:click="bulkToggleCompanyEmailNotifications(false)" type="button" class="btn btn-sm btn-danger {{ $smsCompanyActionId ? '' : 'disabled' }}">
+                                <div class="rf-notify-actions">
+                                    <button wire:click="bulkToggleCompanyEmailNotifications(false)" type="button" class="btn rf-btn-soft-danger {{ $smsCompanyActionId ? '' : 'disabled' }}">
                                         {{ __('employees.bulk_email_disable_action') }}
                                     </button>
-                                    <button wire:click="bulkToggleCompanyEmailNotifications(true)" type="button" class="btn btn-sm btn-success {{ $smsCompanyActionId ? '' : 'disabled' }}">
+                                    <button wire:click="bulkToggleCompanyEmailNotifications(true)" type="button" class="btn rf-btn-soft-success {{ $smsCompanyActionId ? '' : 'disabled' }}">
                                         {{ __('employees.bulk_email_enable_action') }}
                                     </button>
                                 </div>
