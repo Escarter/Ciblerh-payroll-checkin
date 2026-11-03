@@ -316,7 +316,7 @@
                 {{-- Template Download --}}
                 @if($entitySlug)
                 <div class="template-banner">
-                    <svg width="32" height="32" fill="none" stroke="#4361ee" viewBox="0 0 24 24" class="flex-shrink-0">
+                    <svg width="32" height="32" fill="none" stroke="var(--rf-brand, #4361ee)" viewBox="0 0 24 24" class="flex-shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                     <div class="flex-fill">
