@@ -382,7 +382,7 @@
                             <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.model') }}</th>
                             <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.description') }}</th>
                             <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.date') }}</th>
-                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.actions') }}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('common.action') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -401,76 +401,69 @@
                                 @endphp
                                 @if($userModel || $log->getAttribute('user'))
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar bg-primary text-white me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 10%;">
-                                        {{ initials($userName) }}
-                                    </div>
-                                    <div>
-                                        <div class="fw-bold">{{ $userName }}</div>
+                                    <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{ initials($userName) }}</span></div>
+                                    <div class="d-block"><span class="fw-bold">{{ $userName }}</span>
                                         @if($userEmail)
-                                        <small class="text-muted">{{ $userEmail }}</small>
+                                        <div class="small text-gray">{{ $userEmail }}</div>
                                         @endif
                                     </div>
                                 </div>
                                 @else
-                                <span class="text-muted">{{ __('audit_logs.system') }}</span>
+                                <span class="fw-bold">{{ __('audit_logs.system') }}</span>
                                 @endif
                             </td>
                             <td>
-                                <span class="badge badge-lg bg-{{$log->action_color}} text-white">
+                                <span class="fw-normal badge super-badge badge-lg bg-{{$log->action_color}} rounded">
                                     {{ $log->translated_action_type }}
                                 </span>
                             </td>
                             <td>
                                 @if($log->model_type)
-                                <span class="text-muted small">{{ class_basename($log->model_type) }}</span>
+                                <span class="fw-bold">{{ class_basename($log->model_type) }}</span>
                                 @if($log->model_name)
-                                <br><small>{{ \Illuminate\Support\Str::limit($log->model_name, 30) }}</small>
+                                <div class="small text-gray">{{ \Illuminate\Support\Str::limit($log->model_name, 30) }}</div>
                                 @endif
                                 @else
-                                <span class="text-muted small">-</span>
+                                <span class="fw-normal">-</span>
                                 @endif
                             </td>
                             <td>
-                                <div class="small">{{ \Illuminate\Support\Str::limit(strip_tags($log->translated_action_perform), 50) }}</div>
+                                <span class="fs-normal">{{ \Illuminate\Support\Str::limit(strip_tags($log->translated_action_perform), 50) }}</span>
                             </td>
                             <td>
-                                <div class="text-muted small">{{ $log->created_at->isoFormat('MMM D, YYYY HH:mm') }}</div>
+                                <span class="fw-normal">{{ $log->created_at->isoFormat('LL, HH:mm') }}</span>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center justify-content-center gap-1">
-                                    @if($activeTab === 'active')
-                                        <!-- Active View Actions -->
-                                        <button class="btn btn-link p-0 text-primary" wire:click="openDetailModal({{ $log->id }})" title="{{__('common.view_details')}}">
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                            </svg>
-                                        </button>
-                                        @can('audit_log-delete')
-                                        <button class="btn btn-link p-0 text-danger" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#DeleteAuditLogModal" title="{{__('common.delete')}}">
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                        </button>
-                                        @endcan
-                                    @else
-                                        <!-- Deleted View Actions -->
-                                        @can('audit_log-restore')
-                                        <button class="btn btn-link p-0 text-success" wire:click.prevent="$set('audit_log_id', {{ $log->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('common.restore')}}">
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                            </svg>
-                                        </button>
-                                        @endcan
-                                        @can('audit_log-delete')
-                                        <button class="btn btn-link p-0 text-danger" wire:click="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#ForceDeleteAuditLogModal" title="{{__('common.delete_forever')}}">
-                                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                        </button>
-                                        @endcan
-                                    @endif
-                                </div>
+                            @if($activeTab === 'active')
+                            <a href="#" wire:click.prevent="openDetailModal({{ $log->id }})" title="{{__('common.view_details')}}" class="me-2">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </a>
+                            @can('audit_log-delete')
+                            <a href="#" wire:click.prevent="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#DeleteAuditLogModal" title="{{__('common.delete')}}">
+                                <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                            @endcan
+                            @else
+                            @can('audit_log-restore')
+                            <a href="#" wire:click.prevent="$set('audit_log_id', {{ $log->id }})" data-bs-toggle="modal" data-bs-target="#RestoreModal" class="text-success me-2" title="{{__('common.restore')}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                            </a>
+                            @endcan
+                            @can('audit_log-delete')
+                            <a href="#" wire:click.prevent="initData({{ $log->id }})" data-bs-toggle="modal" data-bs-target="#ForceDeleteAuditLogModal" class="text-danger" title="{{__('common.delete_forever')}}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                            @endcan
+                            @endif
                             </td>
                         </tr>
                         @empty
