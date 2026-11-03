@@ -31,12 +31,13 @@
     // Bare icon links in table rows and card footers become round icon buttons.
     function enhanceIconLinks(root) {
         (root || document).querySelectorAll('td a, td button, .item-card-footer a, .item-card-footer button').forEach((el) => {
-            if (el.classList.contains('btn') || el.classList.contains('rf-icon-btn') || el.closest('.modal, .dropdown-menu, .pagination')) return;
+            if ((el.classList.contains('btn') && !el.classList.contains('btn-link')) || el.classList.contains('rf-icon-btn') || el.closest('.modal, .dropdown-menu, .pagination')) return;
             if (el.matches('[data-no-collapse], .btn-close') || el.querySelector('input, img, .badge')) return;
             const svg = el.querySelector(':scope > svg');
             if (!svg || el.children.length !== 1 || el.textContent.trim()) return;
-            const m = (svg.getAttribute('class') || '').match(/text-(primary|success|warning|danger|info)/);
+            const m = ((svg.getAttribute('class') || '') + ' ' + el.className).match(/text-(primary|success|warning|danger|info)/);
             el.classList.add('rf-icon-btn');
+            el.classList.remove('btn', 'btn-link', 'p-0', ...Array.from(el.classList).filter((c) => /^text-/.test(c)));
             if (m) el.classList.add('rf-icon-btn-' + (m[1] === 'info' ? 'primary' : m[1]));
             svg.classList.remove(...Array.from(svg.classList).filter((c) => /^text-/.test(c)));
         });

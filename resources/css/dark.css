@@ -532,3 +532,7 @@ html[data-theme="dark"] .form-check-input[type="checkbox"], html[data-theme="dar
 html[data-theme="dark"] .form-check-input[type="checkbox"]:hover:not(:disabled), html[data-theme="dark"] .rf-check input[type="checkbox"]:hover:not(:disabled) { background-color: #26334a; border-color: var(--rf-brand); }
 html[data-theme="dark"] .form-check-input[type="checkbox"]:checked, html[data-theme="dark"] .form-check-input[type="checkbox"]:indeterminate, html[data-theme="dark"] .rf-check input[type="checkbox"]:checked { background-color: var(--rf-brand); border-color: var(--rf-brand); }
 html[data-theme="dark"] .form-check-input[type="checkbox"]:disabled { background-color: #1a2438; border-color: #2c3a52; }
+
+html[data-theme="dark"] .form-switch .form-check-input[type="checkbox"] { background-color: #2a374e; border-color: #4b5d7a; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%2394a3b8'/%3e%3c/svg%3e"); }
+html[data-theme="dark"] .form-switch .form-check-input[type="checkbox"]:hover:not(:disabled) { background-color: #33425b; }
+html[data-theme="dark"] .form-switch .form-check-input[type="checkbox"]:checked { background-color: var(--rf-brand); border-color: var(--rf-brand); background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e"); }
