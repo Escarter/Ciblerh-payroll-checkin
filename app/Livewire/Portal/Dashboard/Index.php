@@ -191,12 +191,12 @@ class Index extends Component
         $connection = DB::getDriverName();
 
         if ($groupBy === 'week') {
-            // Monday of the week, limited to the last 8 weeks
+            // Payslips are sent in monthly batches, so group by month over the last 12 months
             $periodFunction = $connection === 'sqlite'
-                ? "date(created_at, 'weekday 0', '-6 days')"
-                : 'DATE_SUB(DATE(created_at), INTERVAL WEEKDAY(created_at) DAY)';
+                ? "strftime('%Y-%m-01', created_at)"
+                : "DATE_FORMAT(created_at, '%Y-%m-01')";
 
-            return $query->where('created_at', '>=', now()->subWeeks(7)->startOfWeek())->selectRaw("
+            return $query->where('created_at', '>=', now()->subMonths(11)->startOfMonth())->selectRaw("
                     {$periodFunction} as period,
                     email_sent_status,
                     sms_sent_status,
@@ -227,13 +227,13 @@ class Index extends Component
     public function prepareWeeklyChart($stats)
     {
         $seed = [];
-        for ($i = 7; $i >= 0; $i--) {
-            $seed[] = now()->subWeeks($i)->startOfWeek()->format('Y-m-d');
+        for ($i = 11; $i >= 0; $i--) {
+            $seed[] = now()->startOfMonth()->subMonths($i)->format('Y-m-d');
         }
 
         return $this->prepareChart(
             $stats,
-            fn($period) => Carbon::parse($period)->locale(app()->getLocale())->isoFormat('D MMM'),
+            fn($period) => Carbon::parse($period)->locale(app()->getLocale())->isoFormat('MMM YY'),
             $seed
         );
     }
