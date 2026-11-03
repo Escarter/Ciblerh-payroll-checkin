@@ -400,14 +400,14 @@
                                     $userEmail = $userModel ? $userModel->email : null;
                                 @endphp
                                 @if($userModel || $log->getAttribute('user'))
-                                <div class="d-flex align-items-center">
+                                <a href="#" class="d-flex align-items-center">
                                     <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{ initials($userName) }}</span></div>
                                     <div class="d-block"><span class="fw-bold">{{ $userName }}</span>
                                         @if($userEmail)
                                         <div class="small text-gray">{{ $userEmail }}</div>
                                         @endif
                                     </div>
-                                </div>
+                                </a>
                                 @else
                                 <span class="fw-bold">{{ __('audit_logs.system') }}</span>
                                 @endif
