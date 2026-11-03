@@ -1310,3 +1310,9 @@ span.rf-auth-mobile-logo { font-weight: 700; font-size: 1.4rem; color: var(--rf-
 .form-switch .form-check-input[type="checkbox"]:checked:hover:not(:disabled) { background-color: var(--rf-brand-hover, var(--rf-brand)); }
 .form-switch .form-check-input[type="checkbox"]:active:not(:disabled) { transform: none; }
 .form-switch .form-check-input[type="checkbox"]:disabled { opacity: .5; }
+
+/* Compact copy-to-clipboard button */
+.copy-pdf-pwd, td .copy-pdf-pwd { width: 1.6rem !important; height: 1.6rem !important; min-width: 0; padding: 0 !important; margin: 0 0 0 .35rem !important; border-radius: .5rem !important; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; border: 1px solid var(--rf-line) !important; background: transparent !important; color: var(--rf-muted) !important; box-shadow: none !important; transform: none !important; transition: background .15s, color .15s, border-color .15s; }
+.copy-pdf-pwd:hover, .copy-pdf-pwd:focus, .copy-pdf-pwd:focus-visible { background: var(--rf-brand-soft) !important; color: var(--rf-brand) !important; border-color: var(--rf-brand) !important; outline: 0; box-shadow: 0 0 0 .18rem var(--rf-brand-ring) !important; }
+.copy-pdf-pwd:active { transform: scale(.94) !important; }
+.copy-pdf-pwd svg, .copy-pdf-pwd .icon { width: .9rem; height: .9rem; color: inherit !important; stroke: currentColor; }

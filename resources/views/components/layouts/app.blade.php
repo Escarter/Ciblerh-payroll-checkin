@@ -465,12 +465,31 @@
     </script>
     <script>
         (function () {
+            function copyText(text) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(text);
+                }
+                return new Promise(function (resolve, reject) {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+                    var host = document.querySelector('.modal.show') || document.body;
+                    host.appendChild(ta);
+                    ta.select();
+                    var ok = false;
+                    try { ok = document.execCommand('copy'); } catch (err) {}
+                    ta.remove();
+                    ok ? resolve() : reject();
+                });
+            }
             function copyPdfPwdHandler(e) {
                 var btn = e.target.closest('.copy-pdf-pwd');
                 if (!btn) return;
+                e.preventDefault();
                 var pwd = btn.getAttribute('data-password');
                 if (!pwd) return;
-                navigator.clipboard.writeText(pwd).then(function () {
+                copyText(pwd).then(function () {
                     var svg = btn.querySelector('svg');
                     if (svg) svg.style.display = 'none';
                     btn.insertAdjacentHTML('beforeend', '<span class="copy-ok text-success" style="font-size:11px">✓</span>');
@@ -479,7 +498,7 @@
                         if (ok) ok.remove();
                         if (svg) svg.style.display = '';
                     }, 1500);
-                });
+                }).catch(function () {});
             }
             document.addEventListener('click', copyPdfPwdHandler);
         })();
