@@ -8,7 +8,7 @@
                         <div class="bg-white shadow-soft border rounded border-light px-4 pt-3 pb-4 px-lg-5  pt-lg-3  pb-lg-5  w-100 fmxw-500">
 
                             <div class=" mb-2 mt-md-0 text-center">
-                                <img src='/img/logo.jpg' class="w-75 h-auto" alt=''>
+                                <img src='{{ \App\Support\Branding::get('logo') }}' class="w-75 h-auto" alt=''>
                                 <!-- <div class="mb-0  py-3"> <span class="text-xl fs-3 fw-bold">{{ __('auth.ciberh')}}</span> <span class="text-primary h3 bg-secondary p-2 rounded">{{__('auth.hr')}}</span></div> -->
                             </div>
                             <x-form-items.form method="POST" action="{{ route('login') }}" class="mt-1 form-modal needs-validation" id="">

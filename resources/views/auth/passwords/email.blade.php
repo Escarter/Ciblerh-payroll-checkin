@@ -12,7 +12,7 @@
                 <div class="col-12 d-flex align-items-center justify-content-center">
                     <div class="signin-inner my-1 my-lg-0 bg-white shadow border-0 rounded p-5 p-lg-5 w-100 fmxw-500">
                         <div class="mb-1 mt-md-0">
-                            <img src='/img/logo.jpg' class="w-50 h-auto" alt=''>
+                            <img src='{{ \App\Support\Branding::get('logo') }}' class="w-50 h-auto" alt=''>
 
                             <h1 class="h4">{{__('auth.forgot_password')}}?</h1>
                         </div>

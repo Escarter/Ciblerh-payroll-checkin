@@ -182,6 +182,7 @@ Route::group(
         //Setting
         Route::prefix('settings')->group(function () {
             Route::get('/', App\Livewire\Portal\Settings\Index::class)->name('portal.settings.index');
+            Route::get('/appearance', App\Livewire\Portal\Settings\Appearance::class)->name('portal.settings.appearance');
         });
 
         // Holidays

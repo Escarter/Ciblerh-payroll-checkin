@@ -70,7 +70,7 @@ class Index extends Component
         if (!Gate::allows('overtime-create')) {
             return abort(401);
         }
-        $useQuick = $this->use_quick_add && $this->quick_hours && $this->quick_date;
+        $useQuick = (bool) $this->use_quick_add;
         if ($useQuick) {
             $this->validate([
                 'quick_hours' => 'required|numeric|min:0.5|max:24',

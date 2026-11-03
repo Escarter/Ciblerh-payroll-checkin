@@ -49,6 +49,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (!app()->runningInConsole() || app()->runningUnitTests()) {
+            try {
+                if ($tz = \App\Support\Branding::get('timezone')) {
+                    config(['app.timezone' => $tz]);
+                    date_default_timezone_set($tz);
+                }
+            } catch (\Throwable $e) {
+                // settings table not available yet (fresh install / migrations)
+            }
+        }
+
 
         // Register missing Laravel core Blade directives (upgrade issue)
         $directives = \Blade::getCustomDirectives();

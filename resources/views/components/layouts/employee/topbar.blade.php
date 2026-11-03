@@ -36,9 +36,9 @@
     $svg = fn ($k, $cls = 'emp-ico') => '<svg class="' . $cls . '" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="' . $ico[$k] . '"/></svg>';
 @endphp
 
-<header class="emp-topbar">
+<header class="emp-topbar emp-portal">
     <div class="emp-topbar-inner">
-        <a href="{{ route('employee.dashboard') }}" wire:navigate class="emp-brand"><img src="{{ asset('img/logo.jpg') }}" alt="CibleRH"></a>
+        <a href="{{ route('employee.dashboard') }}" wire:navigate class="emp-brand"><img src="{{ \App\Support\Branding::get('logo') }}" alt="CibleRH"></a>
 
         <nav class="emp-links" aria-label="Employee navigation">
             @foreach($groups as $g)

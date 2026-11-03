@@ -9,7 +9,7 @@
                 <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
             </svg>
         </button>
-        <a href="{{ route('portal.dashboard') }}" wire:navigate class="emp-brand d-lg-none"><img src="{{ asset('img/logo.jpg') }}" alt="CibleRH"></a>
+        <a href="{{ route('portal.dashboard') }}" wire:navigate class="emp-brand d-lg-none"><img src="{{ \App\Support\Branding::get('logo') }}" alt="CibleRH"></a>
 
         @auth
         <button type="button" class="emp-pill d-none d-md-inline-flex" onclick="Livewire.dispatch('openGlobalSearch')" title="Search (Ctrl+K)">

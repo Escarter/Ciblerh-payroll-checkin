@@ -21,8 +21,8 @@ class AssignManager extends Component
     public function assignManager()
     {
         $this->validate([
-            'company_id' => 'required|exists:companies,id',
-            'manager_id' => 'required|exists:users,id',
+            'company_id' => 'required|integer|exists:companies,id',
+            'manager_id' => 'required|integer|exists:users,id',
         ]);
 
         $company = Company::findOrFail($this->company_id);
