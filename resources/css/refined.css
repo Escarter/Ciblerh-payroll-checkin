@@ -1316,3 +1316,8 @@ span.rf-auth-mobile-logo { font-weight: 700; font-size: 1.4rem; color: var(--rf-
 .copy-pdf-pwd:hover, .copy-pdf-pwd:focus, .copy-pdf-pwd:focus-visible { background: var(--rf-brand-soft) !important; color: var(--rf-brand) !important; border-color: var(--rf-brand) !important; outline: 0; box-shadow: 0 0 0 .18rem var(--rf-brand-ring) !important; }
 .copy-pdf-pwd:active { transform: scale(.94) !important; }
 .copy-pdf-pwd svg, .copy-pdf-pwd .icon { width: .9rem; height: .9rem; color: inherit !important; stroke: currentColor; }
+
+/* Sub-menu links: hide the collapsed-state initial when expanded, keep labels left-aligned */
+.sidebar .nav-link > .sidebar-text-contracted { display: none !important; }
+html.sb-collapsed .sidebar .nav-link > .sidebar-text-contracted, .sidebar.contracted .nav-link > .sidebar-text-contracted { display: inline !important; }
+.sidebar .nav .nav .nav-link { justify-content: flex-start; }
