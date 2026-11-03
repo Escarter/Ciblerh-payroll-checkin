@@ -1619,7 +1619,7 @@
     .line-chart .ct-series-pending .ct-area {
         stroke: #ffc107 !important;
         /* pending - warning/yellow */
-        fill: rgba(255, 193, 7, 0.3) !important;
+        fill: rgba(255, 193, 7, 0.06) !important;
     }
 
     .line-chart .ct-series-failed .ct-line,
@@ -1627,7 +1627,7 @@
     .line-chart .ct-series-failed .ct-area {
         stroke: #dc3545 !important;
         /* failed - danger/red */
-        fill: rgba(220, 53, 69, 0.3) !important;
+        fill: rgba(220, 53, 69, 0.06) !important;
     }
 
     .line-chart .ct-series-success .ct-line,
@@ -1635,7 +1635,7 @@
     .line-chart .ct-series-success .ct-area {
         stroke: #28a745 !important;
         /* success - success/green */
-        fill: rgba(40, 167, 69, 0.3) !important;
+        fill: rgba(40, 167, 69, 0.18) !important;
     }
 
     .bar-chart .ct-series-pending .ct-bar {
@@ -1983,48 +1983,36 @@
                 const chartData = @json($chart_data);
                 console.log('Line chart data:', chartData);
 
+                const lineSeries = [
+                    {name: 'success', data: chartData.success || [], className: 'ct-series-success'},
+                    {name: 'failed', data: chartData.failed || [], className: 'ct-series-failed'},
+                    {name: 'pending', data: chartData.pending || [], className: 'ct-series-pending'},
+                    {name: 'sms_disabled', data: chartData.sms_disabled || [], className: 'ct-series-sms-disabled'},
+                    {name: 'encryption_issues', data: chartData.encryption_issues || [], className: 'ct-series-encryption-issues'}
+                ].filter(s => s.data.some(v => v > 0) || s.name === 'success');
+
                 chartInstances.payslipLine = new Chartist.Line('.line-chart', {
                     labels: chartData.periods || [],
-                    series: [{
-                            name: 'pending',
-                            data: chartData.pending || [],
-                            className: 'ct-series-pending'
-                        },
-                        {
-                            name: 'failed',
-                            data: chartData.failed || [],
-                            className: 'ct-series-failed'
-                        },
-                        {
-                            name: 'success',
-                            data: chartData.success || [],
-                            className: 'ct-series-success'
-                        },
-                        {
-                            name: 'sms_disabled',
-                            data: chartData.sms_disabled || [],
-                            className: 'ct-series-sms-disabled'
-                        },
-                        {
-                            name: 'encryption_issues',
-                            data: chartData.encryption_issues || [],
-                            className: 'ct-series-encryption-issues'
-                        }
-                    ]
+                    series: lineSeries
                 }, {
                     low: 0,
-                    scaleMinSpace: 10,
                     showArea: true,
                     fullWidth: true,
+                    lineSmooth: Chartist.Interpolation.monotoneCubic({fillHoles: false}),
+                    chartPadding: {top: 15, right: 25, bottom: 5, left: 5},
                     plugins: [
                         Chartist.plugins.tooltip()
                     ],
                     axisX: {
-                        position: 'end'
+                        position: 'end',
+                        showGrid: false
                     },
                     axisY: {
                         showGrid: true,
                         showLabel: true,
+                        onlyInteger: true,
+                        offset: 40,
+                        scaleMinSpace: 30
                     }
                 });
                 console.log('Line chart created:', chartInstances.payslipLine);

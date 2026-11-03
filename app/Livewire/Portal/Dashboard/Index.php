@@ -191,11 +191,12 @@ class Index extends Component
         $connection = DB::getDriverName();
 
         if ($groupBy === 'week') {
+            // Monday of the week, limited to the last 8 weeks
             $periodFunction = $connection === 'sqlite'
-                ? "strftime('%W', created_at)"
-                : 'WEEK(created_at)';
+                ? "date(created_at, 'weekday 0', '-6 days')"
+                : 'DATE_SUB(DATE(created_at), INTERVAL WEEKDAY(created_at) DAY)';
 
-            return $query->selectRaw("
+            return $query->where('created_at', '>=', now()->subWeeks(7)->startOfWeek())->selectRaw("
                     {$periodFunction} as period,
                     email_sent_status,
                     sms_sent_status,
@@ -225,7 +226,16 @@ class Index extends Component
 
     public function prepareWeeklyChart($stats)
     {
-        return $this->prepareChart($stats, fn($period) => 'Wk - ' . $period);
+        $seed = [];
+        for ($i = 7; $i >= 0; $i--) {
+            $seed[] = now()->subWeeks($i)->startOfWeek()->format('Y-m-d');
+        }
+
+        return $this->prepareChart(
+            $stats,
+            fn($period) => Carbon::parse($period)->locale(app()->getLocale())->isoFormat('D MMM'),
+            $seed
+        );
     }
 
     public function prepareDailyChart($stats)
@@ -233,7 +243,7 @@ class Index extends Component
         return $this->prepareChart($stats, fn($period) => Carbon::parse($period)->format('D'));
     }
 
-    protected function prepareChart($stats, $periodFormatter)
+    protected function prepareChart($stats, $periodFormatter, array $seedPeriods = [])
     {
         $periods = [];
         $success = [];
@@ -244,6 +254,15 @@ class Index extends Component
 
         // Group stats by period for processing
         $groupedStats = [];
+        foreach ($seedPeriods as $seed) {
+            $groupedStats[$periodFormatter($seed)] = [
+                'success' => 0,
+                'failed' => 0,
+                'pending' => 0,
+                'sms_disabled' => 0,
+                'encryption_failed' => 0
+            ];
+        }
         foreach ($stats as $stat) {
             $periodLabel = $periodFormatter($stat->period);
             if (!isset($groupedStats[$periodLabel])) {
