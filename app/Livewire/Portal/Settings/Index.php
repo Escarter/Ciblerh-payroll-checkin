@@ -518,6 +518,7 @@ class Index extends Component
                     ? __('settings.test_sms_queued_orange_cm')
                     : __('settings.test_sms_sent_successfully');
                 $this->showToast($toast, 'success');
+                $this->refreshSmsBalance($setting);
             } else {
                 $errorMessage = $response['error'] ?? __('settings.test_sms_failed');
                 $this->showToast($errorMessage, 'danger');
