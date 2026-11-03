@@ -195,12 +195,12 @@
         <x-alert />
         <div class="row pb-3">
             <div class="col-md-3">
-                <label for="search">{{__('common.search')}}: </label>
+                <label for="search">{{__('common.search')}}:</label>
                 <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3">
-                <label for="orderBy">{{__('common.order_by')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}:</label>
                 <select wire:model.live="orderBy" id="orderBy" class="form-select">
                     <option value="first_name">{{__('employees.first_name')}}</option>
                     <option value="last_name">{{__('employees.last_name')}}</option>
@@ -209,7 +209,7 @@
             </div>
 
             <div class="col-md-3">
-                <label for="direction">{{__('common.order_direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}:</label>
                 <select wire:model.live="orderAsc" id="direction" class="form-select">
                     <option value="asc">{{__('common.ascending')}}</option>
                     <option value="desc">{{__('common.descending')}}</option>
@@ -217,7 +217,7 @@
             </div>
 
             <div class="col-md-3">
-                <label for="perPage">{{__('common.items_per_page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}:</label>
                 <select wire:model.live="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -235,7 +235,7 @@
         <!-- Status Filters Row -->
         <div class="row pb-3">
             <div class="col-md-3">
-                <label for="overallStatus">{{__('payslips.overall_status')}}: </label>
+                <label for="overallStatus">{{__('payslips.overall_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model.live="overallStatus" id="overallStatus" class="form-select">
                     <option value="all">{{__('common.all')}}</option>
                     <option value="success">{{__('common.successful')}}</option>
@@ -244,7 +244,7 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="encryptionStatus">{{__('payslips.encryption_status')}}: </label>
+                <label for="encryptionStatus">{{__('payslips.encryption_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model.live="encryptionStatus" id="encryptionStatus" class="form-select">
                     <option value="all">{{__('common.all')}}</option>
                     <option value="0">{{__('common.pending')}}</option>
@@ -253,7 +253,7 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="emailStatus">{{__('payslips.email_status')}}: </label>
+                <label for="emailStatus">{{__('payslips.email_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model.live="emailStatus" id="emailStatus" class="form-select">
                     <option value="all">{{__('common.all')}}</option>
                     <option value="0">{{__('common.pending')}}</option>
@@ -263,7 +263,7 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="smsStatus">{{__('payslips.sms_status')}}: </label>
+                <label for="smsStatus">{{__('payslips.sms_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model.live="smsStatus" id="smsStatus" class="form-select">
                     <option value="all">{{__('common.all')}}</option>
                     <option value="0">{{__('common.pending')}}</option>

@@ -8,14 +8,14 @@
             <div class="modal-body">
                 <p class="text-muted small">{{ __('holidays.bulk_import_help') }}</p>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('holidays.import_file') }}</label>
+                    <label class="form-label">{{ __('holidays.import_file') }} <span class="text-danger">*</span></label>
                     <input type="file" wire:model="import_file" class="form-control @error('import_file') is-invalid @enderror" accept=".csv,.txt">
                     @error('import_file')
                     <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">{{ __('companies.company') }}</label>
+                    <label class="form-label">{{ __('companies.company') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select wire:model="company_id" class="form-select">
                         <option value="">{{ __('holidays.global') }}</option>
                         @foreach($companies ?? [] as $company)

@@ -69,6 +69,11 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']]
         Route::get('/', App\Livewire\Employee\Payslip\Index::class)->name('employee.payslips');
         Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('employee.payslip.view-pdf');
     });
+    //Annual declarations
+    Route::prefix('annual-declarations')->group(function () {
+        Route::get('/', App\Livewire\Employee\AnnualDeclarations\Index::class)->name('employee.annual-declarations');
+        Route::get('/{id}/view-pdf', [App\Http\Controllers\AnnualDeclarationViewController::class, 'viewPdf'])->name('employee.annual-declaration.view-pdf');
+    });
     //Leaves
     Route::prefix('leaves')->group(function () {
         Route::get('/', App\Livewire\Employee\Leaves\Index::class)->name('employee.leaves');
@@ -150,6 +155,13 @@ Route::group(
             Route::get('/history', App\Livewire\Portal\Payslips\All::class)->name('portal.payslips.history');
             Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('portal.payslips.view-pdf');
             Route::get('/sftp/validator', App\Livewire\Portal\Payslips\SftpPayslipValidator::class)->name('portal.payslips.sftp-validator')->middleware('can:manage-payslips');
+        });
+
+        //Annual declarations
+        Route::prefix('annual-declarations')->group(function () {
+            Route::get('/', App\Livewire\Portal\AnnualDeclarations\Index::class)->name('portal.annual-declarations.index');
+            Route::get('/{id}/details', App\Livewire\Portal\AnnualDeclarations\Details::class)->name('portal.annual-declarations.details');
+            Route::get('/{id}/view-pdf', [App\Http\Controllers\AnnualDeclarationViewController::class, 'viewPdf'])->name('portal.annual-declarations.view-pdf');
         });
 
         //Leave Management

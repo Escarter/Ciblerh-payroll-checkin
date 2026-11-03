@@ -27,7 +27,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="reportFormat" class="form-label">{{__('Format')}}</label>
+                                <label for="reportFormat" class="form-label">{{__('Format')}} <span class="text-danger">*</span></label>
                                 <select wire:model.live="newReport.format" class="form-select" id="reportFormat">
                                     <option value="xlsx">{{__('download_jobs.excel_xlsx')}}</option>
                                     <option value="pdf">{{__('download_jobs.pdf')}}</option>
@@ -43,7 +43,7 @@
                         <h6>{{__('download_jobs.report_filters')}}</h6>
                         <div class="row">
                             <div class="col-md-6">
-                                <label class="form-label">{{__('companies.company')}}</label>
+                                <label class="form-label">{{__('companies.company')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <select wire:model.live="newReport.filters.selectedCompanyId" class="form-select" id="filterCompany">
                                     <option value="all">{{__('download_jobs.all_companies')}}</option>
                                     @foreach($companies as $company)
@@ -106,7 +106,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">{{__('common.status')}}</label>
+                                <label class="form-label">{{__('common.status')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <select wire:model.live="newReport.filters.status" class="form-select">
                                     <option value="all">{{__('common.all_statuses')}}</option>
                                     <option value="approved">{{__('common.approved')}}</option>
@@ -120,13 +120,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">{{__('download_jobs.start_date')}}</label>
+                                <label class="form-label">{{__('download_jobs.start_date')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <input wire:model.live="newReport.filters.start_date" type="date" class="form-control">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">{{__('download_jobs.end_date')}}</label>
+                                <label class="form-label">{{__('download_jobs.end_date')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <input wire:model.live="newReport.filters.end_date" type="date" class="form-control">
                             </div>
                         </div>
@@ -137,7 +137,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">{{__('download_jobs.email_status')}}</label>
+                                <label class="form-label">{{__('download_jobs.email_status')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <select wire:model.live="newReport.filters.email_status" class="form-select">
                                     <option value="">{{__('download_jobs.all_email_statuses')}}</option>
                                     <option value="successful">{{__('common.successful')}}</option>
@@ -148,7 +148,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">{{__('download_jobs.sms_status')}}</label>
+                                <label class="form-label">{{__('download_jobs.sms_status')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <select wire:model.live="newReport.filters.sms_status" class="form-select">
                                     <option value="">{{__('download_jobs.all_sms_statuses')}}</option>
                                     <option value="successful">{{__('common.successful')}}</option>
@@ -161,7 +161,7 @@
                     @endif
 
                     <div class="mb-3">
-                        <label class="form-label">{{__('download_jobs.search_query')}}</label>
+                        <label class="form-label">{{__('download_jobs.search_query')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                         <input wire:model.live="newReport.filters.query_string" type="text" class="form-control" placeholder="{{__('download_jobs.search_in_records')}}">
                     </div>
                     @endif
@@ -233,7 +233,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">{{__('scheduled_reports.day_of_month')}} <span class="text-danger">*</span></label>
-                                            <input wire:model="newReport.day_of_month" type="number" class="form-control" min="1" max="28" required>
+                                            <input wire:model="newReport.day_of_month" type="number" class="form-control" min="1" max="28" required placeholder="{{__('scheduled_reports.day_of_month')}}">
                                             @error('newReport.day_of_month') <span class="text-danger">{{$message}}</span> @enderror
                                         </div>
                                     </div>

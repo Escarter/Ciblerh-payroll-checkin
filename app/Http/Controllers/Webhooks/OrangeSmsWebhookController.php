@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Http\Controllers\Controller;
+use App\Models\AnnualDeclaration;
 use App\Models\Payslip;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -101,7 +102,7 @@ class OrangeSmsWebhookController extends Controller
             return false;
         }
 
-        $payslip = $this->findPayslip($txnId, $clientTxnId);
+        $payslip = $this->findPayslip($txnId, $clientTxnId) ?? $this->findAnnualDeclaration($txnId, $clientTxnId);
         if (! $payslip) {
             Log::warning('Orange SMS DR webhook: no payslip matched the delivery report', [
                 'txn_id' => $txnId,
@@ -135,6 +136,20 @@ class OrangeSmsWebhookController extends Controller
         ]);
 
         return true;
+    }
+
+    protected function findAnnualDeclaration(?string $txnId, ?string $clientTxnId): ?AnnualDeclaration
+    {
+        $query = AnnualDeclaration::query()->where(function ($q) use ($txnId, $clientTxnId) {
+            if ($txnId !== null) {
+                $q->orWhere('sms_txn_id', $txnId);
+            }
+            if ($clientTxnId !== null) {
+                $q->orWhere('sms_client_txn_id', $clientTxnId);
+            }
+        });
+
+        return $query->latest('sms_sent_at')->first();
     }
 
     protected function findPayslip(?string $txnId, ?string $clientTxnId): ?Payslip

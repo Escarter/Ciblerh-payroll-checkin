@@ -550,6 +550,9 @@ return [
     'roles_permissions' => 'Roles & Permissions',
     'settings' => 'Settings',
     'profile' => 'Profile',
+    'requests' => 'Requests',
+    'documents' => 'Documents',
+    'more' => 'More',
     'audit_logs' => 'Audit Logs',
     'support' => 'Support',
 

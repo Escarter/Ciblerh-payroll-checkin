@@ -21,35 +21,54 @@
                         <li class="breadcrumb-item active" aria-current="page">{{__('payslips.payslips_management')}}</li>
                     </ol>
                 </nav>
-                <h1 class="h4">
-                    <svg class="icon me-1" fill="none" stroke="currentColor" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                    </svg>
+                <h1 class="h4 d-flex align-items-center">
+                    <span class="icon-shape icon-shape-primary rounded me-2" style="width:2.25rem;height:2.25rem;">
+                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </span>
                     {{__('payslips.payslips_management')}}
                 </h1>
-                <p class="mb-0">{{__('payslips.manage_payslips_processes')}}</p>
+                <p class="mb-0 text-muted">{{__('payslips.manage_payslips_processes')}}</p>
             </div>
         </div>
     </div>
 
+    <div class="row mb-2">
+        @foreach ([
+            [__('common.successful'), $status_counts['successful'] ?? 0, 'success', 'M5 13l4 4L19 7'],
+            [__('common.processing'), $status_counts['processing'] ?? 0, 'warning', 'M12 8v4l3 3'],
+            [__('common.failed'), $status_counts['failed'] ?? 0, 'danger', 'M6 18L18 6M6 6l12 12'],
+        ] as [$label, $value, $tone, $path])
+            <div class="col-12 col-md-4 mb-3">
+                <div class="card border-0 shadow h-100">
+                    <div class="card-body d-flex align-items-center">
+                        <div class="icon-shape icon-shape-{{ $tone }} rounded me-3">
+                            <svg class="icon icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $path }}"></path></svg>
+                        </div>
+                        <div>
+                            <div class="small text-muted text-uppercase fw-bold">{{ $label }}</div>
+                            <div class="h3 fw-extrabold mb-0">{{ number_format($value, 0, ',', ' ') }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+
     <div class="row">
         <div class="col-md-4">
-            <div class="card p-3 p-lg-4">
-                <div class="text-center text-md-center mb-4 mt-md-0">
-                    <h1 class="mb-0 h4">{{__('payslips.send_payslips')}}</h1>
+            <div class="card border-0 shadow">
+                <div class="card-header border-bottom bg-transparent py-3">
+                    <h2 class="h6 mb-0">{{__('payslips.send_payslips')}}</h2>
                 </div>
+                <div class="card-body">
 
                 <!-- Fixed form structure -->
                 <form wire:submit="send">
                     @hasanyrole('manager|admin')
                     <div class="form-group mb-4">
-                        <label for="company">{{__('companies.company')}}</label>
-                        <select wire:model.live="company_id" class="form-select @error('company_id') is-invalid @enderror" id="company">
-                            <option value=''>{{__('payslips.select_company')}}</option>
-                            @foreach ($companies as $company)
-                            <option value='{{$company->id}}' wire:key="company-{{ $company->id }}">{{$company->name . __('payslips.company_with_departments', ['count' => count($company->departments)])}}</option>
-                            @endforeach
-                        </select>
+                        <label class="form-label small fw-bold" for="company">{{__('companies.company')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                        <x-input.search-select model="company_id" id="company" :invalid="$errors->has('company_id')" :placeholder="__('payslips.select_company')" :selected="$company_id"
+                            :options="collect($companies)->mapWithKeys(fn($c) => [$c->id => $c->name . __('payslips.company_with_departments', ['count' => count($c->departments)])])->all()" />
                         <div>
                             @error('company_id')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -59,13 +78,9 @@
                     @endhasanyrole
 
                     <div class="form-group mb-4">
-                        <label for="department">{{__('departments.department')}}</label>
-                        <select wire:model.live="department_id" class="form-select @error('department_id') is-invalid @enderror" id="department">
-                            <option value=''>{{__('payslips.select_department')}}</option>
-                            @foreach ($departments as $department)
-                            <option value='{{$department->id}}' wire:key="department-{{ $department->id }}">{{$department->name ." - with ". count($department->employees) ." employees"}}</option>
-                            @endforeach
-                        </select>
+                        <label class="form-label small fw-bold" for="department">{{__('departments.department')}} <span class="text-danger">*</span></label>
+                        <x-input.search-select model="department_id" id="department" :invalid="$errors->has('department_id')" :placeholder="__('payslips.select_department')" :selected="$department_id" :disabled="auth()->user()->hasAnyRole(['admin','manager']) && blank($company_id)"
+                            :options="collect($departments)->mapWithKeys(fn($d) => [$d->id => $d->name . ' - with ' . count($d->employees) . ' employees'])->all()" />
                         <div>
                             @error('department_id')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -74,22 +89,9 @@
                     </div>
 
                     <div class='form-group mb-4'>
-                        <label for="month">{{__('common.month')}}</label>
-                        <select wire:model.live="month" class="form-select @error('month') is-invalid @enderror">
-                            <option value=''>{{__('common.--select_month--')}}</option>
-                            <option value='1'>{{__('common.january')}}</option>
-                            <option value='2'>{{__('common.february')}}</option>
-                            <option value='3'>{{__('common.march')}}</option>
-                            <option value='4'>{{__('common.april')}}</option>
-                            <option value='5'>{{__('common.may')}}</option>
-                            <option value='6'>{{__('common.june')}}</option>
-                            <option value='7'>{{__('common.july')}}</option>
-                            <option value='8'>{{__('common.august')}}</option>
-                            <option value='9'>{{__('common.september')}}</option>
-                            <option value='10'>{{__('common.october')}}</option>
-                            <option value='11'>{{__('common.november')}}</option>
-                            <option value='12'>{{__('common.december')}}</option>
-                        </select>
+                        <label class="form-label small fw-bold" for="month">{{__('common.month')}} <span class="text-danger">*</span></label>
+                        <x-input.search-select model="month" id="month" :invalid="$errors->has('month')" :placeholder="__('common.--select_month--')" :selected="$month"
+                            :options="[1 => __('common.january'), 2 => __('common.february'), 3 => __('common.march'), 4 => __('common.april'), 5 => __('common.may'), 6 => __('common.june'), 7 => __('common.july'), 8 => __('common.august'), 9 => __('common.september'), 10 => __('common.october'), 11 => __('common.november'), 12 => __('common.december')]" />
                         <div>
                             @error('month')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -98,12 +100,9 @@
                     </div>
 
                     <div class='form-group mb-4'>
-                        <label for="year">{{__('common.year')}}</label>
-                        <select wire:model.live="year" class="form-select @error('year') is-invalid @enderror">
-                            @for($y = now()->year; $y >= now()->year - 5; $y--)
-                                <option value="{{ $y }}" {{ $y == $year ? 'selected' : '' }}>{{ $y }}</option>
-                            @endfor
-                        </select>
+                        <label class="form-label small fw-bold" for="year">{{__('common.year')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                        <x-input.search-select model="year" id="year" :invalid="$errors->has('year')" :selected="$year"
+                            :options="collect(range(now()->year, now()->year - 5))->mapWithKeys(fn($y) => [$y => $y])->all()" />
                         <div>
                             @error('year')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -112,28 +111,40 @@
                     </div>
 
                     <div class="form-group mb-4">
-                        <label for="payslip_file" class="form-label">{{__('payslips.select_payslip')}}</label>
-
-                        <div x-data="{ uploading: false, progress: 0 }" x-on:livewire-upload-start="uploading = true" x-on:livewire-upload-finish="uploading = false" x-on:livewire-upload-error="uploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress">
-                            <!-- File Input -->
-                            <input class="form-control  @error('payslip_file') is-invalid @enderror" type="file" wire:model.live="payslip_file" id="payslip_file">
-
-                            <!-- Progress Bar -->
-                            <div x-show="uploading">
-                                <progress max="100" x-bind:value="progress"></progress>
+                        <label class="form-label small fw-bold">{{__('payslips.select_payslip')}} <span class="text-danger">*</span></label>
+                        <div x-data="{ uploading: false, progress: 0, dragging: false }"
+                             x-on:livewire-upload-start="uploading = true; progress = 0"
+                             x-on:livewire-upload-finish="uploading = false"
+                             x-on:livewire-upload-error="uploading = false"
+                             x-on:livewire-upload-progress="progress = $event.detail.progress">
+                            <label for="payslip_file"
+                                   class="rf-dropzone w-100"
+                                   :class="dragging ? 'is-dragging' : ''"
+                                   x-on:dragover.prevent="dragging = true" x-on:dragleave.prevent="dragging = false"
+                                   x-on:drop.prevent="dragging = false; $refs.file.files = $event.dataTransfer.files; $refs.file.dispatchEvent(new Event('change', { bubbles: true }))">
+                                @if ($payslip_file)
+                                    <svg class="icon icon-md text-success mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <div class="fw-bold text-break">{{ $payslip_file->getClientOriginalName() }}</div>
+                                    <div class="small text-muted">{{ number_format($payslip_file->getSize() / 1048576, 2) }} MB · {{ __('annual_declarations.click_to_replace') }}</div>
+                                @else
+                                    <svg class="icon icon-md text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                    <div class="fw-bold">{{ __('annual_declarations.drop_pdf_here') }}</div>
+                                    <div class="small text-muted">{{ __('annual_declarations.pdf_hint') }}</div>
+                                @endif
+                                <input x-ref="file" id="payslip_file" type="file" wire:model.live="payslip_file" class="d-none">
+                            </label>
+                            <div x-show="uploading" x-cloak class="progress mt-2" style="height:6px;">
+                                <div class="progress-bar" role="progressbar" :style="`width:${progress}%`"></div>
                             </div>
                         </div>
-                        <div>
-                            @error('payslip_file')
-                            <div class="invalid-feedback">{{$message}}</div>
-                            @enderror
-                        </div>
+                        @error('payslip_file') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                     </div>
 
                     <div class="d-flex justify-content-end">
                         <button type="submit" wire:click.prevent="send" wire:loading.attr="disabled" class="btn btn-gray-800" {{empty($payslip_file) ? "disabled" : '' }}>{{__('payslips.start_processing')}}</button>
                     </div>
                 </form>
+                </div>
             </div>
         </div>
 
@@ -237,11 +248,11 @@
             </div>
             @endif
 
-            <div class="card">
+            <div class="card border-0 shadow">
                 @if(count($jobs)>0)
-                <div class="table-responsive pb-4">
-                    <table class="table user-table table-bordered table-hover align-items-center dataTable">
-                        <thead class="">
+                <div class="table-responsive pb-2">
+                    <table class="table table-centered table-hover align-items-center mb-0">
+                        <thead class="thead-light">
                             <tr>
                                 <th class="border-0 px-4 py-2 text-muted fw-medium">
                                     <div class="form-check d-flex justify-content-center align-items-center">
@@ -293,23 +304,11 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <div class="d-flex flex-column">
-                                        <div class="mb-1">
-                                            <span class="fw-bold text-primary">{{__('payslips.target')}}:</span>
-                                            <span class="ms-1">{{!is_null($job->department) ? count($job->department->employees) : 0 }} {{__('common.employees')}}</span>
-                                        </div>
-                                        <div class="mb-1">
-                                            <span class="fw-bold text-primary">{{__('common.period')}}:</span>
-                                            <span class="ms-1">{{ getMonthName($job->month) }} - {{$job->year}}</span>
-                                        </div>
-                                        <div>
-                                            <span class="fw-bold text-primary">{{__('common.date_created')}}:</span>
-                                            <span class="ms-1">{{$job->created_at->diffForHumans()}}</span>
-                                        </div>
-                                        <div>
-                                            <span class="fw-bold text-primary">{{__('By')}}:</span>
-                                            <span class="ms-1">{{!is_null($job->owner) ? $job->owner->first_name : ''}}</span>
-                                        </div>
+                                    <div class="fw-bold">{{ getMonthName($job->month) }} {{ $job->year }}</div>
+                                    <div class="small text-muted">
+                                        {{ !is_null($job->department) ? count($job->department->employees) : 0 }} {{__('common.employees')}}
+                                        · {{ $job->created_at->diffForHumans() }}
+                                        @if(!is_null($job->owner)) · {{ $job->owner->first_name }} @endif
                                     </div>
                                 </td>
                                 <td>
@@ -318,7 +317,7 @@
                                     @elseif($job->status == 'failed')
                                     <span class="badge badge-lg text-md bg-danger">{{__('common.failed')}}</span>
                                     @else
-                                    <span class="badge badge-lg text-md bg-warning">{{__('common.processing')}}</span>
+                                    <span class="badge badge-lg text-md bg-warning text-dark">{{__('common.processing')}}</span>
                                     @endif
                                 </td>
                                 <td class="text-center">

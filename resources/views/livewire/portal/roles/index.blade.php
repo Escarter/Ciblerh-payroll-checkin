@@ -41,7 +41,7 @@
                 @endcan
 
                 @can('role-export')
-                <div class="mx-2" wire:loading.remove>
+                <div class="mx-2" wire:loading.remove wire:target="export">
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center {{count($roles) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -63,7 +63,7 @@
         <div class='pb-4'>
             <div class="row">
                 <div class="col-md-3">
-                    <label for="orderBy">{{__('common.order_by')}}: </label>
+                    <label for="orderBy">{{__('common.order_by')}}:</label>
                     <select wire:model="orderBy" id="orderBy" class="form-select">
                         <option value="name">{{__('common.name')}}</option>
                         <option value="created_at">{{__('common.date_creation')}}</option>
@@ -71,7 +71,7 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label for="direction">{{__('common.direction')}}: </label>
+                    <label for="direction">{{__('common.direction')}}:</label>
                     <select wire:model="orderAsc" id="direction" class="form-select">
                         <option value="asc">{{__('common.ascending')}}</option>
                         <option value="desc">{{__('common.descending')}}</option>
@@ -79,7 +79,7 @@
                 </div>
 
                 <div class="col-md-2">
-                    <label for="perPage">{{__('common.items_per_page')}}: </label>
+                    <label for="perPage">{{__('common.items_per_page')}}:</label>
                     <select wire:model="perPage" id="perPage" class="form-select">
                         <option value="5">5</option>
                         <option value="10">10</option>

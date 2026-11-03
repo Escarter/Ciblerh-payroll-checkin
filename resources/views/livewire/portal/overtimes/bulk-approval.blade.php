@@ -10,8 +10,8 @@
                     <x-form-items.form wire:submit="bulkApproval">
 
                         <div class="form-group mb-4">
-                            <label for="approval_reason">{{$bulk_approval_status ? __('overtime.approval') : __('overtime.rejection')}} {{__('common.reason')}}</label>
-                            <textarea wire:model="approval_reason" id="bulk_approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='3' rows="3"></textarea>
+                            <label for="approval_reason">{{$bulk_approval_status ? __('overtime.approval') : __('overtime.rejection')}} {{__('common.reason')}} <span class="text-danger">*</span></label>
+                            <textarea wire:model="approval_reason" id="bulk_approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='3' rows="3" placeholder="{{$bulk_approval_status ? __('overtime.approval') : __('overtime.rejection')}} {{__('common.reason')}}"></textarea>
                             @error('approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

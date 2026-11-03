@@ -212,7 +212,7 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-12 col-md-6 col-lg-4">
-                    <label class="form-label small text-muted fw-medium">{{__('common.search')}}</label>
+                    <label class="form-label small text-muted fw-medium">{{__('common.search')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <div class="position-relative">
                         <svg class="position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -223,7 +223,7 @@
                 </div>
                 @if(count($users) > 0)
                 <div class="col-12 col-md-6 col-lg-2">
-                    <label class="form-label small text-muted fw-medium">{{__('common.user')}}</label>
+                    <label class="form-label small text-muted fw-medium">{{__('common.user')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select class="form-select" wire:model.live="userFilter">
                         <option value="">{{__('common.all_users')}}</option>
                         @foreach($users as $user)
@@ -233,7 +233,7 @@
                 </div>
                 @endif
                 <div class="col-12 col-md-6 col-lg-3">
-                    <label class="form-label small text-muted fw-medium">{{__('common.action_type')}}</label>
+                    <label class="form-label small text-muted fw-medium">{{__('common.action_type')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select class="form-select" wire:model.live="actionFilter">
                         <option value="">{{__('common.all_actions')}}</option>
                         @foreach($actionOptions as $value => $label)
@@ -242,15 +242,15 @@
                     </select>
                 </div>
                 <div class="col-12 col-md-6 col-lg-2">
-                    <label class="form-label small text-muted fw-medium">{{__('common.date_from')}}</label>
+                    <label class="form-label small text-muted fw-medium">{{__('common.date_from')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input type="date" class="form-control" wire:model.live="dateFrom">
                 </div>
                 <div class="col-12 col-md-6 col-lg-2">
-                    <label class="form-label small text-muted fw-medium">{{__('common.date_to')}}</label>
+                    <label class="form-label small text-muted fw-medium">{{__('common.date_to')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input type="date" class="form-control" wire:model.live="dateTo">
                 </div>
                 <div class="col-12 col-md-6 col-lg-2">
-                    <label class="form-label small text-muted fw-medium">{{__('common.items_per_page')}}</label>
+                    <label class="form-label small text-muted fw-medium">{{__('common.items_per_page')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select class="form-select" wire:model.live="perPage">
                         <option value="5">5</option>
                         <option value="10">10</option>

@@ -11,7 +11,7 @@
                         <h5 class="pb-0 mb-n2">{{__('common.request_details')}}</h5>
                         <hr class="mb-3">
                         <div class="form-group mb-4">
-                            <label for="type">{{__('employees.advance_type')}}</label>
+                            <label for="type">{{__('employees.advance_type')}} <span class="text-danger">*</span></label>
                             <select wire:model.live="type" id="type" class="form-select @error('type') is-invalid @enderror">
                                 <option value="advance">{{__('employees.advance_payment')}}</option>
                                 <option value="loan">{{__('employees.loan')}}</option>
@@ -22,7 +22,7 @@
                         </div>
                         @if($type === 'advance')
                         <div class="form-group mb-4">
-                            <label for="advance_for_month">{{__('employees.advance_for_month')}}</label>
+                            <label for="advance_for_month">{{__('employees.advance_for_month')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <input wire:model.defer="advance_for_month" type="month" class="form-control @error('advance_for_month') is-invalid @enderror" min="{{now()->startOfMonth()->format('Y-m')}}" value="">
                             @error('advance_for_month')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -32,7 +32,7 @@
                         @endif
                         @if($type === 'loan')
                         <div class="form-group mb-4">
-                            <label for="attachment">{{__('employees.supporting_documentation')}}</label>
+                            <label for="attachment">{{__('employees.supporting_documentation')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <input wire:model="attachment" type="file" class="form-control @error('attachment') is-invalid @enderror" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx">
                             @error('attachment')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -41,28 +41,28 @@
                         </div>
                         @endif
                         <div class="form-group mb-4">
-                            <label for="amount">{{__('common.amount')}}</label>
+                            <label for="amount">{{__('common.amount')}} <span class="text-danger">*</span></label>
                             <input wire:model.defer="amount" type="money" class="form-control  @error('amount') is-invalid @enderror" placeholder="{{__('employees.amount_placeholder')}}" value="" required="">
                             @error('amount')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="reason">{{__('common.reason')}}</label>
+                            <label for="reason">{{__('common.reason')}} <span class="text-danger">*</span></label>
                             <textarea wire:model.defer="reason" class="form-control  @error('reason') is-invalid @enderror" id='' cols='3' rows="3" placeholder="{{__('employees.reason_placeholder')}}"></textarea>
                             @error('reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="repayment_from_month">{{__('employees.repayment_from_month')}}</label>
+                            <label for="repayment_from_month">{{__('employees.repayment_from_month')}} <span class="text-danger">*</span></label>
                             <input wire:model.defer="repayment_from_month" type="month" class="form-control  @error('repayment_from_month') is-invalid @enderror" min="{{now()->startOfMonth()->format('Y-m')}}" value="" required="">
                             @error('repayment_from_month')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="repayment_to_month">{{__('employees.repayment_to_month')}}</label>
+                            <label for="repayment_to_month">{{__('employees.repayment_to_month')}} <span class="text-danger">*</span></label>
                             <input wire:model.defer="repayment_to_month" type="month" class="form-control  @error('repayment_to_month') is-invalid @enderror" min="{{now()->startOfMonth()->format('Y-m')}}" value="" required="">
                             @error('repayment_to_month')
                             <div class="invalid-feedback">{{$message}}</div>
@@ -77,21 +77,21 @@
                         <h5 class="pb-0 mb-n2">{{__('common.beneficiary_details')}}</h5>
                         <hr class="mb-3">
                         <div class="form-group mb-4">
-                            <label for="beneficiary_name">{{__('employees.beneficiary_name')}}</label>
+                            <label for="beneficiary_name">{{__('employees.beneficiary_name')}} <span class="text-danger">*</span></label>
                             <input wire:model.defer="beneficiary_name" type="text" class="form-control  @error('beneficiary_name') is-invalid @enderror" placeholder="{{__('employees.beneficiary_name_placeholder')}}" value="" required="">
                             @error('beneficiary_name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="beneficiary_mobile_money_number">{{__('employees.beneficiary_mobile_money_number')}}</label>
+                            <label for="beneficiary_mobile_money_number">{{__('employees.beneficiary_mobile_money_number')}} <span class="text-danger">*</span></label>
                             <input wire:model.defer="beneficiary_mobile_money_number" type="text" class="form-control  @error('beneficiary_mobile_money_number') is-invalid @enderror" placeholder="{{__('employees.mobile_money_placeholder')}}" value="" required="">
                             @error('beneficiary_mobile_money_number')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="beneficiary_id_card_number">{{__('employees.beneficiary_id_card_number')}}</label>
+                            <label for="beneficiary_id_card_number">{{__('employees.beneficiary_id_card_number')}} <span class="text-danger">*</span></label>
                             <input wire:model.defer="beneficiary_id_card_number" type="text" class="form-control  @error('beneficiary_id_card_number') is-invalid @enderror" placeholder="{{__('employees.id_card_placeholder')}}" value="" required="">
                             @error('beneficiary_id_card_number')
                             <div class="invalid-feedback">{{$message}}</div>

@@ -35,11 +35,11 @@
                             <!-- Server host/port (used when generating OS scripts) -->
                             <div class="row g-2 mb-3">
                                 <div class="col-sm-7">
-                                    <label class="form-label small mb-1" for="sftp_server_host">{{ __('settings.sftp_server_host_label') }}</label>
+                                    <label class="form-label small mb-1" for="sftp_server_host">{{ __('settings.sftp_server_host_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <input wire:model="sftp_server_host" id="sftp_server_host" type="text" class="form-control form-control-sm" placeholder="portail.example.com">
                                 </div>
                                 <div class="col-sm-3">
-                                    <label class="form-label small mb-1" for="sftp_server_port">{{ __('settings.sftp_server_port_label') }}</label>
+                                    <label class="form-label small mb-1" for="sftp_server_port">{{ __('settings.sftp_server_port_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <input wire:model="sftp_server_port" id="sftp_server_port" type="number" min="1" max="65535" class="form-control form-control-sm" placeholder="22">
                                 </div>
                             </div>
@@ -200,7 +200,7 @@
                             <div class="row g-3">
                                 <!-- Frequency type -->
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_scan_frequency_label') }}</label>
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_scan_frequency_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <select class="form-select" wire:model.live="sftp_push_scan_frequency">
                                         <optgroup label="{{ __('settings.sftp_push_scan_group_minutes') }}">
                                             <option value="everyMinute">{{ __('settings.sftp_push_scan_every_minute') }}</option>
@@ -227,7 +227,7 @@
                                 <!-- Time picker (shown for daily and custom_days) -->
                                 @if(in_array($sftp_push_scan_frequency, ['daily', 'custom_days']))
                                 <div class="col-md-3">
-                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_scan_time_label') }}</label>
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_scan_time_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <input type="time" class="form-control" wire:model="sftp_push_scan_time">
                                 </div>
                                 @endif
@@ -264,7 +264,7 @@
 
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_frequency_label') }}</label>
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_frequency_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <select class="form-select" wire:model.live="sftp_push_archive_frequency">
                                         <option value="">{{ __('settings.sftp_push_archive_frequency_follow_scan') }}</option>
                                         <optgroup label="{{ __('settings.sftp_push_scan_group_minutes') }}">
@@ -291,14 +291,14 @@
 
                                 @if(in_array($sftp_push_archive_frequency, ['daily', 'custom_days']))
                                 <div class="col-md-3">
-                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_time_label') }}</label>
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_time_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <input type="time" class="form-control" wire:model="sftp_push_archive_time">
                                 </div>
                                 @endif
 
                                 <div class="col-md-3">
-                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_min_age_label') }}</label>
-                                    <input type="number" min="0" class="form-control" wire:model="sftp_push_archive_min_age_minutes">
+                                    <label class="form-label fw-semibold">{{ __('settings.sftp_push_archive_min_age_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                    <input type="number" min="0" class="form-control" wire:model="sftp_push_archive_min_age_minutes" placeholder="{{ __('settings.sftp_push_archive_min_age_label') }}">
                                     <small class="text-muted">{{ __('settings.sftp_push_archive_min_age_help') }}</small>
                                 </div>
                             </div>
@@ -479,7 +479,7 @@
                                 <div class="form-group mb-3">
                                     <label for="sftp_auto_match_threshold">
                                         {{ __('settings.sftp_auto_match_threshold_label', ['value' => $sftp_auto_match_threshold]) }}
-                                    </label>
+                                     <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <input type="range" class="form-range" min="50" max="100" step="1"
                                         wire:model.live="sftp_auto_match_threshold" id="sftp_auto_match_threshold">
                                     <small class="text-muted">{{ __('settings.sftp_auto_match_threshold_help') }}</small>
@@ -487,7 +487,7 @@
 
                                 <!-- Minimum strategy -->
                                 <div class="form-group mb-3">
-                                    <label for="sftp_auto_match_min_strategy">{{ __('settings.sftp_auto_match_min_strategy_label') }}</label>
+                                    <label for="sftp_auto_match_min_strategy">{{ __('settings.sftp_auto_match_min_strategy_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <select wire:model="sftp_auto_match_min_strategy" id="sftp_auto_match_min_strategy" class="form-control w-100">
                                         <option value="partial_match">{{ __('settings.sftp_auto_match_strategy_partial') }}</option>
                                         <option value="reverse_partial_match">{{ __('settings.sftp_auto_match_strategy_reverse') }}</option>
@@ -498,7 +498,7 @@
 
                                 <!-- Notification email -->
                                 <div class="form-group mb-3">
-                                    <label for="sftp_auto_match_notification_email">{{ __('settings.sftp_auto_match_email_label') }}</label>
+                                    <label for="sftp_auto_match_notification_email">{{ __('settings.sftp_auto_match_email_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <textarea wire:model="sftp_auto_match_notification_email"
                                         id="sftp_auto_match_notification_email"
                                         rows="3"
@@ -518,7 +518,7 @@
 
                                 @if ($sftp_match_created_notification_enabled)
                                 <div class="form-group mb-3">
-                                    <label for="sftp_match_created_notification_email">{{ __('settings.sftp_match_created_email_label') }}</label>
+                                    <label for="sftp_match_created_notification_email">{{ __('settings.sftp_match_created_email_label') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                     <textarea wire:model="sftp_match_created_notification_email"
                                         id="sftp_match_created_notification_email"
                                         rows="3"
@@ -567,7 +567,7 @@
                         <h6 class="text-primary mb-3">{{ __('settings.deactivation_settings') }}</h6>
                         <div class="form-group mb-3">
                             <label for="inactivity_months">{{ __('settings.inactivity_months_threshold') }}<span class="text-danger">*</span></label>
-                            <input wire:model="inactivity_months_threshold" id="inactivity_months" type="number" min="1" max="24" class="form-control w-100 @error('inactivity_months_threshold') is-invalid @enderror">
+                            <input wire:model="inactivity_months_threshold" id="inactivity_months" type="number" min="1" max="24" class="form-control w-100 @error('inactivity_months_threshold') is-invalid @enderror" placeholder="{{ __('settings.inactivity_months_threshold') }}">
                             <small class="d-block text-muted mt-2">{{ __('settings.inactivity_months_threshold_help') }}</small>
                             @error('inactivity_months_threshold')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>

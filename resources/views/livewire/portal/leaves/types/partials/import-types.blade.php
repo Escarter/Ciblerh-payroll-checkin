@@ -50,7 +50,7 @@
                          </div>
 
                              <div class="mb-4">
-                                 <label for="leave_type_file" class="form-label">{{__('common.select_file')}}</label>
+                                 <label for="leave_type_file" class="form-label">{{__('common.select_file')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                  <input wire:model="leave_type_file" class="form-control @error('leave_type_file') is-invalid @enderror" type="file" name="leave_type_file" id="formFile" accept=".csv,.xlsx,.xls,.txt" required="">
                                  <div class="form-text">
                                      {{__('common.max_file_size_info', ['size' => '5MB'])}}

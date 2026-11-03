@@ -24,7 +24,7 @@
                 <p class="mt-n1 mx-2">{{__('reports.generate_weekly_employees_overtime_reports')}} &#x1F4DD; </p>
             </div>
             <div class="mb-2 mx-3">
-                <div class="btn-toolbar " wire:loading.remove>
+                <div class="btn-toolbar " wire:loading.remove wire:target="generateReport">
                     <a href="#" id="generate-overtime-report-btn" wire:click.prevent="generateReport()" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center  {{count($overtimes) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -53,7 +53,7 @@
     <div class="row py-3">
         @hasanyrole('manager|admin')
         <div class="col">
-            <label for="company">{{__('companies.company')}}: </label>
+            <label for="company">{{__('companies.company')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
             <select wire:model.live="selectedCompanyId" id="selectedCompanyId" class="form-select">
                 <option value="all" selected>{{__('common.select_company')}}</option>
                 @foreach ($companies as $company)
@@ -63,7 +63,7 @@
         </div>
         @endhasanyrole
         <div class="col">
-            <label for="selectedDepartmentId">{{__('departments.department')}}: </label>
+            <label for="selectedDepartmentId">{{__('departments.department')}}:  <span class="text-danger">*</span></label>
             <select wire:model.live="selectedDepartmentId" id="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror">
                 <option value="" selected>{{__('common.select')}} {{__('departments.departments')}}</option>
                 @foreach ($departments as $department)
@@ -76,7 +76,7 @@
         </div>
         <div class="col">
             <div>
-                <label for="orderBy">{{__('employees.employee')}}: </label>
+                <label for="orderBy">{{__('employees.employee')}}:</label>
                 <select wire:model.live="employee_id" class="form-select">
                     <option value="all" selected>{{__('employees.all_employees')}}</option>
                     @foreach ($employees as $employee)
@@ -86,7 +86,7 @@
             </div>
         </div>
         <div class="col">
-            <label for="status">{{__('common.status')}}: </label>
+            <label for="status">{{__('common.status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
             <select wire:model.live="status" class="form-select">
                 <option value="all" selected>{{__('common.select_status')}}</option>
                 <option value="approved">{{__('common.approved')}}</option>
@@ -95,7 +95,7 @@
             </select>
         </div>
         <div class="col">
-            <label for="period">{{__('common.period')}}: </label>
+            <label for="period">{{__('common.period')}}:  <span class="text-danger">*</span></label>
             <select wire:model.live="period" id="period" class="form-select  @error('period') is-invalid @enderror">
                 <option value="" selected>{{__('common.select_period')}}</option>
                 @foreach ($periods as $key => $period)

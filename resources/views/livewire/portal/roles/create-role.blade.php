@@ -14,7 +14,7 @@
                         <div class="fv-row mb-3 fv-plugins-icon-container">
                             <label class="form-label mb-2 fw-semibold">
                                 <span class="required">{{__('roles.role_name')}}</span>
-                            </label>
+                             <span class="text-danger">*</span></label>
                             <input class="form-control form-control-solid" 
                                    placeholder="{{__('roles.enter_role_name')}}" 
                                    wire:model="roleName">
@@ -190,7 +190,7 @@
                         <div class="fv-row mb-3 fv-plugins-icon-container">
                             <label class="form-label mb-2 fw-semibold">
                                 <span class="required">{{__('roles.role_name')}}</span>
-                            </label>
+                             <span class="text-danger">*</span></label>
                             <input class="form-control form-control-solid" 
                                    placeholder="{{__('roles.enter_role_name')}}" 
                                    wire:model="roleName">

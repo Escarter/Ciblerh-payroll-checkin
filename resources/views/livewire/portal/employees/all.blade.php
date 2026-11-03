@@ -55,7 +55,7 @@
                 </a>
                 @endcan
                 @can('employee-export')
-                <div class="mx-2" wire:loading.remove>
+                <div class="mx-2" wire:loading.remove wire:target="export">
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center  {{count($employees) > 0 ? '' :'disabled'}}">
 
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -173,7 +173,7 @@
 
     <div class="row pt-2 pb-3">
         <div class="col-md-3">
-            <label for="orderBy">{{__('common.order_by')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}:</label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
                 <option value="first_name">{{__('employees.first_name')}}</option>
                 <option value="last_name">{{__('employees.last_name')}}</option>
@@ -182,7 +182,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('common.order_direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}:</label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>
@@ -190,7 +190,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('common.items_per_page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}:</label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -203,7 +203,7 @@
         @hasrole('admin')
         @if($companies->isNotEmpty())
         <div class="col-md-3">
-            <label for="filterCompany">{{__('companies.company')}}: </label>
+            <label for="filterCompany">{{__('companies.company')}}:</label>
             <select wire:model.live="filterCompany" id="filterCompany" class="form-select">
                 <option value="">{{__('companies.all_companies')}}</option>
                 @foreach($companies as $company)

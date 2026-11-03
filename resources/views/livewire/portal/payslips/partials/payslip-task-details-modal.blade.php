@@ -141,7 +141,7 @@
         aria-hidden="true"
         wire:ignore.self>
 
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 800px;">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
 
                 {{-- ================= HEADER ================= --}}
@@ -197,7 +197,7 @@
                                     <div class="row g-4">
                                         {{-- Total Payslips --}}
                                         <div class="col-lg-6 col-md-12">
-                                            <div class="d-flex align-items-center p-3 bg-primary bg-opacity-5 rounded-3 border border-primary border-opacity-10">
+                                            <div class="d-flex align-items-center p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-10">
                                                 <div class="flex-shrink-0 me-3">
                                                     <div class="bg-primary rounded-circle p-3">
                                                         <svg class="icon icon-lg text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,7 +216,7 @@
 
                                         {{-- Target Employees --}}
                                         <div class="col-lg-6 col-md-12">
-                                            <div class="d-flex align-items-center p-3 bg-success bg-opacity-5 rounded-3 border border-success border-opacity-10">
+                                            <div class="d-flex align-items-center p-3 bg-success bg-opacity-10 rounded-3 border border-success border-opacity-10">
                                                 <div class="flex-shrink-0 me-3">
                                                     <div class="bg-success rounded-circle p-3">
                                                         <svg class="icon icon-lg text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,7 +405,7 @@
                                     {{-- Enhanced Stats Dashboard --}}
                                     <div class="row g-3 mb-4">
                                         {{-- Total Payslips --}}
-                                        <div class="col-lg-3 col-md-6">
+                                        <div class="col-6 col-xxl-3">
                                             <div class="card h-100 border-2 border-primary border-opacity-25 card-stats">
                                                 <div class="card-body text-center p-4">
                                                     <div class="d-flex align-items-center justify-content-center mb-2">
@@ -420,7 +420,7 @@
                                         </div>
 
                                         {{-- Delivered Successfully --}}
-                                        <div class="col-lg-3 col-md-6">
+                                        <div class="col-6 col-xxl-3">
                                             <div class="card h-100 border-2 border-success border-opacity-25 card-stats">
                                                 <div class="card-body text-center p-4">
                                                     <div class="d-flex align-items-center justify-content-center mb-2">
@@ -441,7 +441,7 @@
                                         </div>
 
                                         {{-- Failed --}}
-                                        <div class="col-lg-3 col-md-6">
+                                        <div class="col-6 col-xxl-3">
                                             <div class="card h-100 border-2 {{ ($stats['failed_percentage'] ?? 0) > 10 ? 'border-danger border-opacity-50 bg-light' : 'border-danger border-opacity-25' }} card-stats">
                                                 <div class="card-body text-center p-4">
                                                     <div class="d-flex align-items-center justify-content-center mb-2">
@@ -462,7 +462,7 @@
                                         </div>
 
                                         {{-- Pending/Processing --}}
-                                        <div class="col-lg-3 col-md-6">
+                                        <div class="col-6 col-xxl-3">
                                             <div class="card h-100 border-2 border-warning border-opacity-25 card-stats">
                                                 <div class="card-body text-center p-4">
                                                     <div class="d-flex align-items-center justify-content-center mb-2">

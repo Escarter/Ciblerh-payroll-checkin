@@ -17,12 +17,12 @@
                         @if($use_quick_add)
                         <div class="form-group row mb-4">
                             <div class="col-md-6">
-                                <label for="quick_date">{{ __('holidays.date') }}</label>
+                                <label for="quick_date">{{ __('holidays.date') }} <span class="text-danger">*</span></label>
                                 <input wire:model="quick_date" type="date" class="form-control @error('quick_date') is-invalid @enderror" id="quick_date">
                                 @error('quick_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-6">
-                                <label for="quick_hours">{{ __('employees.overtime_hours') }}</label>
+                                <label for="quick_hours">{{ __('employees.overtime_hours') }} <span class="text-danger">*</span></label>
                                 <input wire:model="quick_hours" type="number" step="0.5" min="0.5" max="24" class="form-control @error('quick_hours') is-invalid @enderror" placeholder="2" id="quick_hours">
                                 @error('quick_hours')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 <small class="text-muted">{{ __('employees.quick_hours_help') }}</small>
@@ -31,14 +31,14 @@
                         @else
                         <div class="form-group row mb-4">
                             <div class='col-md-6'>
-                                <label for="start_time">{{__('common.start_time')}}</label>
+                                <label for="start_time">{{__('common.start_time')}} <span class="text-danger">*</span></label>
                                 <input wire:model.defer="start_time" type="datetime-local" class="form-control  @error('start_time') is-invalid @enderror" required="" name="start_time">
                                 @error('start_time')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6'>
-                                <label for="end_time">{{__('common.end_time')}}</label>
+                                <label for="end_time">{{__('common.end_time')}} <span class="text-danger">*</span></label>
                                 <input wire:model.defer="end_time" type="datetime-local" class="form-control  @error('end_time') is-invalid @enderror" required="" name="end_time">
                                 @error('end_time')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -47,8 +47,8 @@
                         </div>
                         @endif
                         <div class="form-group mb-4">
-                            <label for="reason">{{__('common.reason')}}</label>
-                            <textarea wire:model.defer="reason" name="reason" class="form-control  @error('reason') is-invalid @enderror" id='' cols='3' rows='3'></textarea>
+                            <label for="reason">{{__('common.reason')}} <span class="text-danger">*</span></label>
+                            <textarea wire:model.defer="reason" name="reason" class="form-control  @error('reason') is-invalid @enderror" id='' cols='3' rows='3' placeholder="{{__('common.reason')}}"></textarea>
                             @error('reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

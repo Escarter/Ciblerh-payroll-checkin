@@ -147,11 +147,11 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.search')}}</label>
+                    <label class="form-label">{{__('common.search')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input type="text" class="form-control" wire:model.live.debounce.300ms="searchQuery" placeholder="{{__('common.search')}}...">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.import_type')}}</label>
+                    <label class="form-label">{{__('common.import_type')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select class="form-select" wire:model.live="importTypeFilter">
                         <option value="">{{__('import_jobs.all_import_types')}}</option>
                         @foreach($availableImportTypes as $key => $type)
@@ -160,7 +160,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.status')}}</label>
+                    <label class="form-label">{{__('common.status')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select class="form-select" wire:model.live="statusFilter">
                         <option value="">{{__('common.all')}}</option>
                         <option value="pending">{{__('common.pending')}}</option>
@@ -171,13 +171,13 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.date_from')}}</label>
+                    <label class="form-label">{{__('common.date_from')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input type="date" class="form-control" wire:model.live="dateFrom">
                 </div>
             </div>
             <div class="row g-3 mt-1">
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.date_to')}}</label>
+                    <label class="form-label">{{__('common.date_to')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input type="date" class="form-control" wire:model.live="dateTo">
                 </div>
             </div>

@@ -147,7 +147,7 @@
         <div class="card-body py-3">
             <div class="row g-2 align-items-end">
                 <div class="col-12 col-md-3">
-                    <label class="form-label form-label-sm mb-1 text-muted">{{ __('common.search_filename') }}</label>
+                    <label class="form-label form-label-sm mb-1 text-muted">{{ __('common.search_filename') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <div class="input-group input-group-sm">
                         <span class="input-group-text border-end-0">
                             <svg class="icon icon-xs text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,7 +160,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label form-label-sm mb-1 text-muted">{{ __('common.company') }}</label>
+                    <label class="form-label form-label-sm mb-1 text-muted">{{ __('common.company') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select wire:model.live="filterCompany" class="form-select form-select-sm">
                         <option value="">{{ __('common.all_companies') }}</option>
                         @foreach ($companies as $company)
@@ -169,7 +169,7 @@
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
-                    <label class="form-label form-label-sm mb-1 text-muted">{{ __('common.department') }}</label>
+                    <label class="form-label form-label-sm mb-1 text-muted">{{ __('common.department') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select wire:model.live="filterDepartment" class="form-select form-select-sm" {{ empty($filterCompany) ? 'disabled' : '' }}>
                         <option value="">{{ empty($filterCompany) ? __('payslips.select_company_first') : __('common.all_departments') }}</option>
                         @foreach ($departmentsForFilter as $dept)
@@ -255,7 +255,11 @@
 
                             {{-- File name --}}
                             <td>
-                                <div class="fw-semibold small">{{ $proposal->file_name }}</div>
+                                <div class="fw-semibold small">{{ $proposal->file_name }}
+                                    @if($proposal->isAnnualDeclaration())
+                                        <span class="badge bg-info ms-1">{{ __('annual_declarations.annual_declaration') }}</span>
+                                    @endif
+                                </div>
                                 <div class="text-muted" style="font-size:11px">
                                     {{ $proposal->file_timestamp?->format('d/m/Y H:i') ?? '-' }}
                                     @if ($proposal->file_size)
@@ -812,6 +816,7 @@
 
                         {{-- Period --}}
                         <div class="row g-2">
+                            @unless($editingIsAnnual)
                             <div class="col-6">
                                 <label for="editMonth" class="form-label">
                                     {{ __('payslips.month') }}<span class="text-danger ms-1">*</span>
@@ -827,6 +832,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                            @endunless
                             <div class="col-6">
                                 <label for="editYear" class="form-label">
                                     {{ __('payslips.year') }}<span class="text-danger ms-1">*</span>

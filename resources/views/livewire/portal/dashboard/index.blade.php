@@ -17,7 +17,7 @@
                 <div class="row gap-1">
                     @hasanyrole('manager|admin')
                     <div class="col">
-                        <label for="company">{{__('employees.company')}}: </label>
+                        <label for="company">{{__('employees.company')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                         <select wire:model.live="selectedCompanyId" id="selectedCompanyId" class="form-select">
                             <option value="all" selected>{{__('companies.all_companies')}}</option>
                             @foreach ($companies as $company)
@@ -27,7 +27,7 @@
                     </div>
                     @endhasanyrole
                     <div class="col">
-                        <label for="selectedDepartmentId">{{__('employees.department')}}: </label>
+                        <label for="selectedDepartmentId">{{__('employees.department')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                         <select wire:model.live="selectedDepartmentId" id="selectedDepartmentId" class="form-select">
                             <option value="all" selected>{{__('dashboard.all_departments')}}</option>
                             @foreach ($departments as $department)
@@ -36,7 +36,7 @@
                         </select>
                     </div>
                     <div class="col">
-                        <label for="period">{{__('dashboard.period')}}: </label>
+                        <label for="period">{{__('dashboard.period')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                         <select wire:model.live="period" id="period" class="form-select  @error('period') is-invalid @enderror">
                             <option value="all_time" selected>{{__('dashboard.all_time')}}</option>
                             <option value="last_15_days">{{__('dashboard.last_15_days')}}</option>

@@ -101,12 +101,12 @@
 
         <div class="row py-2 text-gray-500 mt-3">
             <div class="col-md-3 mb-2">
-                <label for="search">{{__('common.search')}}: </label>
+                <label for="search">{{__('common.search')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <input wire:model="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="orderBy">{{__('common.order_by')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model="orderBy" id="orderBy" class="form-select">
                     <option value="start_time">{{__('employees.checkin_time')}}</option>
                     <option value="end_time">{{__('employees.checkout_time')}}</option>
@@ -117,7 +117,7 @@
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="direction">{{__('common.order_direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model="orderAsc" id="direction" class="form-select">
                     <option value="asc">{{__('common.ascending')}}</option>
                     <option value="desc">{{__('common.descending')}}</option>
@@ -125,7 +125,7 @@
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="perPage">{{__('common.items_per_page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>

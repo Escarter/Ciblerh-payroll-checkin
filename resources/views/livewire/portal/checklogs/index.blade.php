@@ -33,7 +33,7 @@
             </div>
             <div class="mb-2 mx-3">
                 @can('ticking-export')
-                <div class="mx-2" wire:loading.remove>
+                <div class="mx-2" wire:loading.remove wire:target="export">
                     <a wire:click="export()" class="btn btn-sm btn-gray-500  py-2 d-inline-flex align-items-center {{count($checklogs) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -165,18 +165,18 @@
     <div class='pt-1'>
     </div>
     @endcan
-    <div class="row py-3 gap-3">
-        <div class="col-md-2">
-            <label for="search">{{__('common.search')}}: </label>
+    <div class="row py-3 g-3 filter-row">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="search">{{__('common.search')}}:</label>
             <input wire:model.live="query" id="checklogs-search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info mt-1" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
-        <div class="col-md-2">
-            <label for="filterEmployeeName">{{__('employees.employee')}}: </label>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="filterEmployeeName">{{__('employees.employee')}}:</label>
             <input wire:model.live="filterEmployeeName" id="filterEmployeeName" type="text" placeholder="Name..." class="form-control">
         </div>
-        <div class="col-md-2">
-            <label for="filterEmployeeId">{{__('employees.employee')}} {{__('common.select')}}: </label>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="filterEmployeeId">{{__('employees.employee')}} {{__('common.select')}}:</label>
             <select wire:model.live="filterEmployeeId" id="filterEmployeeId" class="form-select">
                 <option value="">{{__('common.all')}}</option>
                 @foreach($filterEmployees as $emp)
@@ -184,8 +184,8 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-2">
-            <label for="filterDepartmentId">{{__('departments.department')}}: </label>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="filterDepartmentId">{{__('departments.department')}}:</label>
             <select wire:model.live="filterDepartmentId" id="filterDepartmentId" class="form-select">
                 <option value="">{{__('common.all')}}</option>
                 @foreach($filterDepartments as $dept)
@@ -193,8 +193,8 @@
                 @endforeach
             </select>
         </div>
-        <div class="col-md-2">
-            <label for="orderBy">{{__('common.order_by')}}: </label>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="orderBy">{{__('common.order_by')}}:</label>
             <select wire:model.live="orderBy" id="checklogs-order-by" class="form-select">
                 <option value="company_name">{{__('companies.company')}}</option>
                 <option value="department_name">{{__('departments.department')}}</option>
@@ -206,8 +206,8 @@
                 <option value="created_at">{{__('common.created_date')}}</option>
             </select>
         </div>
-        <div class="col-md-2">
-            <label for="direction">{{__('common.order_direction')}}: </label>
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-2">
+            <label for="direction">{{__('common.order_direction')}}:</label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>

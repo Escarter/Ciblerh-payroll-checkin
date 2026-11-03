@@ -25,6 +25,7 @@
 
     <!-- Custom Theme CSS -->
     <link type="text/css" href="{{ asset('css/theme.css')}}" rel="stylesheet">
+    <link type="text/css" href="{{ asset('css/theme-refined.css')}}?v={{ @filemtime(public_path('css/theme-refined.css')) }}" rel="stylesheet">
 
     <style>
         * {

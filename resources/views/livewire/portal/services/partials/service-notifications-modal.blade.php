@@ -13,7 +13,7 @@
 
                     <div class="row g-3 align-items-end">
                         <div class="col-12">
-                            <label class="form-label">{{ __('services.bulk_sms_select_service') }}</label>
+                            <label class="form-label">{{ __('services.bulk_sms_select_service') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model.live="smsServiceActionId" class="form-select">
                                 <option value="">{{ __('services.bulk_sms_select_service') }}</option>
                                 @foreach($services as $service)

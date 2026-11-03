@@ -548,6 +548,9 @@ return [
     'roles_permissions' => 'Rôles et permissions',
     'settings' => 'Paramètres',
     'profile' => 'Profil',
+    'requests' => 'Demandes',
+    'documents' => 'Documents',
+    'more' => 'Plus',
     'audit_logs' => 'Journaux d\'audit',
     'support' => 'Support',
 

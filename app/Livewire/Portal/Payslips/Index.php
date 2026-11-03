@@ -1273,7 +1273,17 @@ class Index extends Component
             default => 0,
         };
 
+        $scoped = match (auth()->user()->getRoleNames()->first()) {
+            'manager' => SendPayslipProcess::manager(),
+            'supervisor' => SendPayslipProcess::supervisor(),
+            'admin' => SendPayslipProcess::query(),
+            default => SendPayslipProcess::query()->whereRaw('1 = 0'),
+        };
+        $status_counts = $scoped->whereNull('deleted_at')
+            ->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+
         return view('livewire.portal.payslips.index', [
+            'status_counts' => $status_counts,
             'jobs' => $jobs,
             'active_processes' => $active_processes,
             'deleted_processes' => $deleted_processes,

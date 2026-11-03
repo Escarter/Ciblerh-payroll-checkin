@@ -21,7 +21,7 @@
 
     <div class="row mb-3">
         <div class="col-md-4">
-            <label>{{ __('companies.company') }}</label>
+            <label>{{ __('companies.company') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
             <select wire:model.live="company_id" class="form-select">
                 <option value="">{{ __('common.all') }}</option>
                 @foreach($companies as $company)

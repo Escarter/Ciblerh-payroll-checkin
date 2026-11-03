@@ -9,7 +9,7 @@
                     </div>
                     <x-form-items.form wire:submit.prevent="update" class="form-modal">
                         <div class="form-group mb-4">
-                            <label for="leave_type_id">{{__('leaves.leave_type')}}</label>
+                            <label for="leave_type_id">{{__('leaves.leave_type')}} <span class="text-danger">*</span></label>
                             <select wire:model.defer="leave_type_id" class="form-control  @error('leave_type_id') is-invalid @enderror" required="">
                                 <option value=''>{{__('employees.select')}}</option>
                                 @foreach($types as $type)
@@ -22,14 +22,14 @@
                         </div>
                         <div class='form-group row mb-4'>
                             <div class="col ">
-                                <label for="start_date">{{__('employees.leave_start_date')}}</label>
+                                <label for="start_date">{{__('employees.leave_start_date')}} <span class="text-danger">*</span></label>
                                 <input type="date" wire:model.live="start_date" class="form-control  @error('start_date') is-invalid @enderror" required="">
                                 @error('start_date')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class="col">
-                                <label for="end_date">{{__('employees.leave_end_date')}}</label>
+                                <label for="end_date">{{__('employees.leave_end_date')}} <span class="text-danger">*</span></label>
                                 <input type="date" wire:model.live="end_date" class="form-control  @error('end_date') is-invalid @enderror" required="">
                                 @error('end_date')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -37,8 +37,8 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="leave_reason">{{__('employees.leave_reason')}}</label>
-                            <textarea wire:model.defer="leave_reason" class="form-control  @error('leave_reason') is-invalid @enderror" id='' cols='5' rows="5"></textarea>
+                            <label for="leave_reason">{{__('employees.leave_reason')}} <span class="text-danger">*</span></label>
+                            <textarea wire:model.defer="leave_reason" class="form-control  @error('leave_reason') is-invalid @enderror" id='' cols='5' rows="5" placeholder="{{__('employees.leave_reason')}}"></textarea>
                             @error('leave_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

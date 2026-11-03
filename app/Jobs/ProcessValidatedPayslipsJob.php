@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Models\PayslipMatchingProposal;
 use App\Models\SendPayslipProcess;
+use App\Models\SendAnnualDeclarationProcess;
+use App\Jobs\Plan\AnnualDeclarationSendingPlan;
 use App\Models\User;
 use App\Jobs\Plan\PayslipSendingPlan;
 use App\Services\PayslipProcessGuardService;
@@ -114,6 +116,11 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
                 return;
             }
 
+            if ($this->proposal->isAnnualDeclaration()) {
+                $this->startAnnualDeclarationProcess($rawFilePath);
+                return;
+            }
+
             // Create SendPayslipProcess record
             // This triggers the standard splitting/encryption/sending pipeline
             $guard = app(PayslipProcessGuardService::class);
@@ -216,6 +223,40 @@ class ProcessValidatedPayslipsJob implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    private function startAnnualDeclarationProcess(string $rawFilePath): void
+    {
+        $year = (int) $this->proposal->matched_year;
+        $blocking = SendAnnualDeclarationProcess::blockingProcessFor(
+            (int) $this->proposal->matched_to_company_id,
+            $this->proposal->matched_to_department_id ? (int) $this->proposal->matched_to_department_id : null,
+            $year
+        );
+
+        if ($blocking) {
+            $this->proposal->update(['rejection_reason' => __('annual_declarations.process_already_running_or_completed')]);
+            \Log::warning("[" . self::FAIL_PERIOD_ALREADY_HANDLED . "] Blocked duplicate annual declaration process for proposal {$this->proposal->id}", [
+                'existing_process_id' => $blocking->id,
+            ]);
+            return;
+        }
+
+        $process = SendAnnualDeclarationProcess::create([
+            'user_id' => auth()->id() ?? $this->proposal->matched_by_user_id ?? 1,
+            'company_id' => $this->proposal->matched_to_company_id,
+            'department_id' => $this->proposal->matched_to_department_id,
+            'raw_file' => $rawFilePath,
+            'destination_directory' => 'annual_' . $this->proposal->matched_to_company_id . '_' . $year . '_' . date('YmdHis'),
+            'year' => $year,
+            'sftp_proposal_id' => $this->proposal->id,
+            'status' => SendAnnualDeclarationProcess::STATUS_PROCESSING,
+            'percentage_completion' => 0,
+        ]);
+
+        AnnualDeclarationSendingPlan::start($process);
+
+        \Log::info("SFTP annual declaration {$this->proposal->file_name} queued. Process ID: {$process->id}");
     }
 
     /**

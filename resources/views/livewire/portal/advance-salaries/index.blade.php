@@ -33,7 +33,7 @@
             </div>
             <div class="mb-2 mx-3">
                 @can('advance_salary-export')
-                <div class="btn-toolbar" wire:loading.remove>
+                <div class="btn-toolbar" wire:loading.remove wire:target="export">
                     <a id="export-advance-salaries-btn" wire:click="export()" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -165,12 +165,12 @@
     <x-alert />
     <div class="row py-3">
         <div class="col-md-3">
-            <label for="search">{{__('common.search')}}: </label>
+            <label for="search">{{__('common.search')}}:</label>
             <input wire:model.live="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
             <p class="badge badge-info" wire:model.live="resultCount">{{$resultCount}}</p>
         </div>
         <div class="col-md-3">
-            <label for="orderBy">{{__('common.order_by')}}: </label>
+            <label for="orderBy">{{__('common.order_by')}}:</label>
             <select wire:model.live="orderBy" id="orderBy" class="form-select">
                 <option value="beneficiary_name">{{__('employees.beneficiary_name')}}</option>
                 <option value="amount">{{__('common.amount')}}</option>
@@ -180,7 +180,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="direction">{{__('common.order_direction')}}: </label>
+            <label for="direction">{{__('common.order_direction')}}:</label>
             <select wire:model.live="orderAsc" id="direction" class="form-select">
                 <option value="asc">{{__('common.ascending')}}</option>
                 <option value="desc">{{__('common.descending')}}</option>
@@ -188,7 +188,7 @@
         </div>
 
         <div class="col-md-3">
-            <label for="perPage">{{__('common.items_per_page')}}: </label>
+            <label for="perPage">{{__('common.items_per_page')}}:</label>
             <select wire:model.live="perPage" id="perPage" class="form-select">
                 <option value="5">5</option>
                 <option value="10">10</option>
@@ -465,7 +465,7 @@
                         <td>
                             @if($activeTab === 'active')
                             @can('advance_salary-export')
-                            <a href='#' class="text-info" wire:click="generatePDF({{ $advance_salary->id }})" wire:loading.remove>
+                            <a href='#' class="text-info" wire:click="generatePDF({{ $advance_salary->id }})" wire:loading.remove wire:target="generatePDF">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                 </svg>

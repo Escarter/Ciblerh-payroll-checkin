@@ -130,7 +130,7 @@
 
                         @if(in_array($entitySlug, ['employees', 'departments', 'services', 'leaves', 'absences', 'overtimes', 'payslips', 'tickings', 'advance_salaries']))
                         <div class="mb-3">
-                            <label class="form-label small text-muted">{{ __('export.filter_company') }}</label>
+                            <label class="form-label small text-muted">{{ __('export.filter_company') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model.live="selectedCompanyId" class="form-select form-select-sm">
                                 <option value="">{{ __('export.all_companies') }}</option>
                                 @foreach($companies as $company)
@@ -142,7 +142,7 @@
 
                         @if($selectedCompanyId && in_array($entitySlug, ['employees', 'services', 'leaves', 'overtimes', 'payslips', 'tickings']))
                         <div class="mb-3">
-                            <label class="form-label small text-muted">{{ __('export.filter_department') }}</label>
+                            <label class="form-label small text-muted">{{ __('export.filter_department') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model.live="selectedDepartmentId" class="form-select form-select-sm">
                                 <option value="">{{ __('export.all_departments') }}</option>
                                 @foreach($departments as $dept)
@@ -154,7 +154,7 @@
 
                         @if($selectedDepartmentId && in_array($entitySlug, ['employees', 'tickings']))
                         <div class="mb-0">
-                            <label class="form-label small text-muted">{{ __('services.service') }}</label>
+                            <label class="form-label small text-muted">{{ __('services.service') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model.live="selectedServiceId" class="form-select form-select-sm">
                                 <option value="">{{ __('import.all_services') }}</option>
                                 @foreach($services as $svc)

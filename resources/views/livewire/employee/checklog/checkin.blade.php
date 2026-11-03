@@ -9,22 +9,22 @@
                     </div>
                     <x-form-items.form wire:submit.prevent="store" enctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-4">
-                            <label for="start_time">{{__('employees.checkin_time')}}</label>
+                            <label for="start_time">{{__('employees.checkin_time')}} <span class="text-danger">*</span></label>
                             <input wire:model.defer="start_time" type="datetime-local" class="form-control  @error('start_time') is-invalid @enderror" value="{{now()->format('Y-m-d\TH:i')}}" min="{{now()->subMonths(1)->format('Y-m-d\TH:i')}}" max="{{now()->format('Y-m-d\TH:i')}}" required="">
                             @error('start_time')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="end_time">{{__('employees.checkout_time')}}</label>
+                            <label for="end_time">{{__('employees.checkout_time')}} <span class="text-danger">*</span></label>
                             <input wire:model.defer="end_time" type="datetime-local" class="form-control  @error('end_time') is-invalid @enderror" value="{{now()->format('Y-m-d\TH:i')}}" min="{{now()->subMonths(1)->format('Y-m-d\TH:i')}}" max="{{now()->format('Y-m-d\TH:i')}}" required="">
                             @error('end_time')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="comments">{{__('employees.comments')}}</label>
-                            <textarea wire:model.defer="comments" class="form-control  @error('comments') is-invalid @enderror" id='' cols='30' rows='10'></textarea>
+                            <label for="comments">{{__('employees.comments')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <textarea wire:model.defer="comments" class="form-control  @error('comments') is-invalid @enderror" id='' cols='30' rows='10' placeholder="{{__('employees.comments')}}"></textarea>
                             @error('comments')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

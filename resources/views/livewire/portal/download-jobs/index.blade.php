@@ -149,7 +149,7 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label">{{__('download_jobs.report_type')}}</label>
+                    <label class="form-label">{{__('download_jobs.report_type')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select wire:model.live="jobTypeFilter" class="form-select">
                         <option value="">{{__('download_jobs.all_report_types')}}</option>
                         @foreach($availableJobTypes as $type => $label)
@@ -158,7 +158,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.status')}}</label>
+                    <label class="form-label">{{__('common.status')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select wire:model.live="statusFilter" class="form-select">
                         <option value="">{{__('common.all_statuses')}}</option>
                         <option value="pending">{{__('common.pending')}}</option>
@@ -169,15 +169,15 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">{{__('download_jobs.date_from')}}</label>
+                    <label class="form-label">{{__('download_jobs.date_from')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input wire:model.live="dateFrom" type="date" class="form-control">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">{{__('download_jobs.date_to')}}</label>
+                    <label class="form-label">{{__('download_jobs.date_to')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input wire:model.live="dateTo" type="date" class="form-control">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">{{__('common.search')}}</label>
+                    <label class="form-label">{{__('common.search')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input id="download-jobs-search" wire:model.live.debounce.300ms="searchQuery" type="text" class="form-control" placeholder="{{__('common.search_placeholder')}}">
                 </div>
             </div>

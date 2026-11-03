@@ -24,7 +24,7 @@
                 <p class="mt-n1 mx-2">{{__('reports.generate_payslips_reports')}} &#x1F4DD; </p>
             </div>
             <div class="mb-2 mx-3">
-                <div class="btn-toolbar " wire:loading.remove>
+                <div class="btn-toolbar " wire:loading.remove wire:target="generateReport">
                     <a href="#" id="generate-payslip-report-btn" wire:click.prevent="generateReport()" class="btn btn-sm btn-gray-800 d-inline-flex align-items-center  {{count($payslips) > 0 ? '' :'disabled'}}">
                         <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -58,12 +58,12 @@
 
     <div class="row py-3">
         <div class="col">
-            <label for="search">{{__('common.search')}}: </label>
+            <label for="search">{{__('common.search')}}:</label>
             <input wire:model.live="query_string" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
         </div>
         @hasanyrole('manager|admin')
         <div class="col">
-            <label for="company">{{__('companies.company')}}: </label>
+            <label for="company">{{__('companies.company')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
             <select wire:model.live="selectedCompanyId" id="selectedCompanyId" class="form-select">
                 <option value="" selected>{{__('common.select_company')}}</option>
                 <option value="all">{{__('common.all_companies')}}</option>
@@ -74,7 +74,7 @@
         </div>
         @endhasanyrole
         <div class="col">
-            <label for="selectedDepartmentId">{{__('departments.department')}}: </label>
+            <label for="selectedDepartmentId">{{__('departments.department')}}:  <span class="text-danger">*</span></label>
             <select wire:model.live="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror">
                 <option value="" selected>{{__('common.select_department')}}</option>
                 <option value="all">{{__('common.all_name',['name'=>__('departments.departments')])}}</option>
@@ -88,7 +88,7 @@
         </div>
         <div class="col">
             <div>
-                <label for="orderBy">{{__('employees.employee')}}: </label>
+                <label for="orderBy">{{__('employees.employee')}}:</label>
                 <select wire:model.live="employee_id" class="form-select">
                     <option value="" selected>{{__('common.select_employees')}}</option>
                     <option value="all">{{__('employees.all_employees')}}</option>
@@ -102,7 +102,7 @@
     </div>
     <div class='row pb-3'>
         <div class="col">
-            <label for="sms_status">{{__('common.sms_status')}}: </label>
+            <label for="sms_status">{{__('common.sms_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
             <select wire:model.live="sms_status" class="form-select">
                 <option value="">{{__('common.select_status')}}</option>
                 <option value="all" selected>{{__('common.select_all')}}</option>
@@ -113,7 +113,7 @@
             </select>
         </div>
         <div class="col">
-            <label for="email_status">{{__('common.email_status')}}: </label>
+            <label for="email_status">{{__('common.email_status')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
             <select wire:model.live="email_status" class="form-select">
                 <option value="">{{__('common.select_status')}}</option>
                 <option value="all" selected>{{__('common.select_all')}}</option>
@@ -124,11 +124,11 @@
         </div>
 
         <div class="col">
-            <label for="start_date">{{__('common.start_date')}}: </label>
+            <label for="start_date">{{__('common.start_date')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
             <input wire:model.live="start_date" id="start_date" type="date" class="form-control">
         </div>
         <div class="col">
-            <label for="end_date">{{__('common.end_date')}}: </label>
+            <label for="end_date">{{__('common.end_date')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
             <input wire:model.live="end_date" id="end_date" type="date" class="form-control">
         </div>
     </div>

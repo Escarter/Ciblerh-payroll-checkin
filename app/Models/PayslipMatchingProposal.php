@@ -20,6 +20,7 @@ class PayslipMatchingProposal extends Model
         'file_path',
         'local_file_path',
         'file_name',
+        'document_type',
         'file_fingerprint',
         'file_size',
         'file_timestamp',
@@ -52,6 +53,14 @@ class PayslipMatchingProposal extends Model
     const STATUS_PROCESSED = 'processed';
     const STATUS_REJECTED = 'rejected';
     const STATUS_FAILED = 'failed';
+
+    const TYPE_PAYSLIP = 'payslip';
+    const TYPE_ANNUAL_DECLARATION = 'annual_declaration';
+
+    public function isAnnualDeclaration(): bool
+    {
+        return $this->document_type === self::TYPE_ANNUAL_DECLARATION;
+    }
 
     /**
      * Relationships

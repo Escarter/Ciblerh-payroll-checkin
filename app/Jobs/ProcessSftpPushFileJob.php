@@ -152,6 +152,10 @@ class ProcessSftpPushFileJob implements ShouldQueue
         ];
 
         // ── Create the proposal ──────────────────────────────────────────────
+        $annualParser = app(\App\Services\AnnualDeclarationParser::class);
+        $annualData = $annualParser->parseText((string) ($metadata['raw_text_preview'] ?? ''));
+        $isAnnualDeclaration = $annualData['is_declaration'];
+
         $payload = [
             'file_path'               => $this->absoluteFilePath,
             'local_file_path'         => $this->absoluteFilePath,
@@ -161,8 +165,11 @@ class ProcessSftpPushFileJob implements ShouldQueue
             'proposed_match'          => $proposedMatch,
             'matched_to_company_id'   => $bestCompany?->id,
             'matched_to_department_id'=> $bestDepartment?->id,
-            'matched_month'           => $metadata['month'],
-            'matched_year'            => $metadata['year'],
+            'matched_month'           => $isAnnualDeclaration ? null : $metadata['month'],
+            'matched_year'            => $isAnnualDeclaration ? ($annualData['year'] ?? $metadata['year']) : $metadata['year'],
+            'document_type'           => $isAnnualDeclaration
+                ? PayslipMatchingProposal::TYPE_ANNUAL_DECLARATION
+                : PayslipMatchingProposal::TYPE_PAYSLIP,
             'download_status'         => 'downloaded',
             'status'                  => PayslipMatchingProposal::STATUS_PENDING,
         ];
@@ -175,6 +182,43 @@ class ProcessSftpPushFileJob implements ShouldQueue
 
         // ── Send proposal creation notification (if enabled) ──────────────────
         $this->sendProposalCreatedNotification($proposal);
+
+        // Annual declarations: same auto-match rules as payslips, but department is optional (null = whole company)
+        // and the month does not apply.
+        if ($isAnnualDeclaration) {
+            $annualConfig = FeatureConfigurationService::getSftpAutoMatchConfig();
+            $annualBest = !empty($candidates) ? $candidates[0] : null;
+            $annualEmails = $annualConfig['notification_email'] ?? '';
+            $canAutoProcess = $annualBest !== null
+                && $bestCompany
+                && $proposal->matched_year
+                && (bool) ($annualConfig['enabled'] ?? false)
+                && FeatureConfigurationService::canAutoMatch($annualBest, $annualConfig);
+
+            if ($canAutoProcess) {
+                $proposal->update([
+                    'status'          => PayslipMatchingProposal::STATUS_VALIDATED,
+                    'is_auto_matched' => true,
+                    'matched_at'      => now(),
+                ]);
+
+                try {
+                    ProcessValidatedPayslipsJob::dispatchSync($proposal);
+                    $kind = $proposal->fresh()->rejection_reason ? 'processing_failed' : 'auto_validated';
+                } catch (\Throwable $e) {
+                    \Log::error('ProcessSftpPushFileJob: Annual declaration auto-process failed.', ['proposal_id' => $proposal->id, 'error' => $e->getMessage()]);
+                    $kind = 'processing_failed';
+                }
+            } else {
+                $kind = 'manual_review';
+            }
+
+            if (!empty(trim($annualEmails))) {
+                $this->notifyEmailsSafely($annualEmails, new SftpAutoMatchNotification($proposal, $kind));
+            }
+
+            return;
+        }
 
         // ── Match routing ─────────────────────────────────────────────────────
         // Business rule:

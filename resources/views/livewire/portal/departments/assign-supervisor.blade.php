@@ -10,7 +10,7 @@
                     <x-form-items.form wire:submit="assignSupervisor">
 
                         <div class='form-group mb-4'>
-                            <label for="department_id">{{__('departments.department')}}</label>
+                            <label for="department_id">{{__('departments.department')}} <span class="text-danger">*</span></label>
                             <select wire:model="department_id" name="department_id" class="form-select  @error('department_id') is-invalid @enderror">
                                 <option value="">{{__('common.select')}} {{__('departments.department')}}</option>
                                 @foreach ($departments as $department)
@@ -22,7 +22,7 @@
                             @enderror
                         </div>
                         <div class='form-group mb-4'>
-                            <label for="supervisor_id">{{__('common.supervisor')}}</label>
+                            <label for="supervisor_id">{{__('common.supervisor')}} <span class="text-danger">*</span></label>
                             <select wire:model="supervisor_id" name="supervisor_id" class="form-select  @error('supervisor_id') is-invalid @enderror">
                                 <option value="">{{__('departments.select_supervisor')}}</option>
                                 @foreach ($supervisors as $supervisor)

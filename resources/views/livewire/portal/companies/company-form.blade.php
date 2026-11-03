@@ -10,15 +10,15 @@
                     <x-form-items.form wire:submit="{{ $isEditMode ? 'update' : 'store' }}">
                         <div class="form-group row mb-4">
                             <div class='col-md-6'>
-                                <label for="name">{{__('common.name')}}</label>
-                                <input wire:model="name" id="company-name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
+                                <label for="name">{{__('common.name')}} <span class="text-danger">*</span></label>
+                                <input wire:model="name" id="company-name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name" placeholder="{{__('common.name')}}">
                                 @error('name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6'>
-                                <label for="code">{{__('companies.code')}}</label>
-                                <input wire:model="code" id="company-code" type="text" class="form-control  @error('code') is-invalid @enderror" required="" value="" name="code">
+                                <label for="code">{{__('companies.code')}} <span class="text-danger">*</span></label>
+                                <input wire:model="code" id="company-code" type="text" class="form-control  @error('code') is-invalid @enderror" required="" value="" name="code" placeholder="{{__('companies.code')}}">
                                 @error('code')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -27,7 +27,7 @@
                         @if(!$isEditMode)
                         @hasrole('admin')
                         <div class="form-group mb-4">
-                            <label for="assign_manager">{{__('companies.assign_manager')}}</label>
+                            <label for="assign_manager">{{__('companies.assign_manager')}} <span class="text-danger">*</span></label>
                             <select wire:model="manager_id" name="manager_id" class="form-select">
                                 <option value="">{{__('employees.select_manager')}}</option>
                                 @foreach($managers as $manager)
@@ -38,15 +38,15 @@
                         @endhasrole
                         @endif
                         <div class='form-group mb-4'>
-                            <label for="sector">{{__('Sector')}}</label>
-                            <input wire:model="sector" id="company-sector" type="text" class="form-control  @error('sector') is-invalid @enderror" required="" name="sector">
+                            <label for="sector">{{__('Sector')}} <span class="text-danger">*</span></label>
+                            <input wire:model="sector" id="company-sector" type="text" class="form-control  @error('sector') is-invalid @enderror" required="" name="sector" placeholder="{{__('Sector')}}">
                             @error('sector')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="description">{{__('common.description')}}</label>
-                            <textarea wire:model="description" id="company-description" name="description" class="form-control  @error('description') is-invalid @enderror" cols='3' rows='3'></textarea>
+                            <label for="description">{{__('common.description')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <textarea wire:model="description" id="company-description" name="description" class="form-control  @error('description') is-invalid @enderror" cols='3' rows='3' placeholder="{{__('common.description')}}"></textarea>
                             @error('description')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

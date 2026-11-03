@@ -32,6 +32,7 @@ class SftpPayslipValidator extends Component
     public $editingDepartmentId = '';
     public $editingCompanyId = '';
     public $editingMonth = '';
+    public bool $editingIsAnnual = false;
     public $editingYear = '';
     public $editingReason = '';
 
@@ -381,6 +382,7 @@ class SftpPayslipValidator extends Component
         $this->editingCompanyId = $proposal->matched_to_company_id;
         $this->editingMonth = $proposal->matched_month;
         $this->editingYear = $proposal->matched_year;
+        $this->editingIsAnnual = $proposal->isAnnualDeclaration();
 
         $this->dispatch('openEditModal');
     }
@@ -390,10 +392,12 @@ class SftpPayslipValidator extends Component
      */
     public function validateMatch()
     {
+        $isAnnual = PayslipMatchingProposal::findOrFail($this->editingProposalId)->isAnnualDeclaration();
+
         $this->validate([
             'editingCompanyId'   => 'required|integer|exists:companies,id',
             'editingDepartmentId'=> 'nullable|integer|exists:departments,id',
-            'editingMonth'       => 'required|integer|min:1|max:12',
+            'editingMonth'       => $isAnnual ? 'nullable' : 'required|integer|min:1|max:12',
             'editingYear'        => 'required|integer|min:2020|max:2099',
         ]);
 
@@ -402,7 +406,7 @@ class SftpPayslipValidator extends Component
         $proposal->update([
             'matched_to_department_id' => $this->editingDepartmentId ?: null,
             'matched_to_company_id' => $this->editingCompanyId,
-            'matched_month' => $this->editingMonth,
+            'matched_month' => $isAnnual ? null : $this->editingMonth,
             'matched_year' => $this->editingYear,
             'matched_by_user_id' => auth()->id(),
             'matched_at' => now(),

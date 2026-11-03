@@ -35,42 +35,38 @@
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/medium-editor.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/themes/default.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('css/theme.css')}}" rel="stylesheet">
+    <link type="text/css" href="{{ asset('css/theme-refined.css')}}?v={{ @filemtime(public_path('css/theme-refined.css')) }}" rel="stylesheet">
     <style>
         * {
             font-family: 'Poppins', sans-serif;
         }
 
-        /* Custom sidebar and content layout adjustments */
-        @media (min-width: 768px) {
-            .sidebar {
-                width: 100%;
-                max-width: 320px !important;
-            }
-        }
-
-        @media (min-width: 992px) {
-            .content {
-                margin-left: 320px !important;
-            }
-        }
-
-        /* Ensure sidebar stays within viewport on smaller screens */
-        @media (max-width: 991.98px) {
-            .sidebar {
-                width: 100% !important;
-            }
-
-            main.content {
-                margin-left: 0 !important;
-                width: 100% !important;
-            }
-        }
+        /* Sidebar and content layout live in css/theme-refined.css */
     </style>
     @livewireStyles
 
     <!-- Alpine.js Choices Multi-Select Component -->
     <script>
         document.addEventListener('alpine:init', () => {
+            Alpine.data('searchSelect', (model) => ({
+                choices: null,
+                init() {
+                    const el = this.$refs.select;
+                    this.choices = new window.Choices(el, {
+                        searchEnabled: true,
+                        searchPlaceholderValue: 'Search…',
+                        shouldSort: false,
+                        itemSelectText: '',
+                        allowHTML: false,
+                        placeholder: true,
+                        noResultsText: 'No results found',
+                        noChoicesText: 'No options available',
+                    });
+                    el.addEventListener('change', () => this.$wire.set(model, el.value));
+                },
+                destroy() { this.choices && this.choices.destroy(); },
+            }));
+
             Alpine.data('choicesMultiSelect', (prettyname, wireModel, selected) => {
                 return {
                     selectInstance: null,
@@ -335,8 +331,44 @@
     <script src="{{ asset('vendor/choices.js/public/assets/scripts/choices.min.js')}}"></script>
     <!-- Choices.js CDN JS -->
     <script src="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/scripts/choices.min.js"></script>
+    <script src="{{ asset('js/rf-select.js') }}?v={{ @filemtime(public_path('js/rf-select.js')) }}"></script>
     <script src="{{ asset('vendor/medium-editor/js/medium-editor.js')}}"></script>
     <script src="{{ asset('js/theme.js')}}"></script>
+    <script>
+        // Sidebar: collapsed on desktop, off-canvas drawer on small screens. Delegated so it survives wire:navigate.
+        (function () {
+            if (window.__rfSidebar) return;
+            window.__rfSidebar = true;
+            const root = document.documentElement;
+            const wide = () => window.matchMedia('(min-width: 992px)').matches;
+            const apply = () => {
+                root.classList.toggle('sb-collapsed', localStorage.getItem('rf.sidebar') === '1');
+                const sb = document.getElementById('sidebarMenu');
+                if (sb) sb.classList.remove('contracted');
+            };
+            apply();
+            document.addEventListener('livewire:navigated', () => { root.classList.remove('sb-open'); apply(); });
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('#sidebar-toggle')) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    if (wide()) {
+                        const on = !root.classList.contains('sb-collapsed');
+                        root.classList.toggle('sb-collapsed', on);
+                        localStorage.setItem('rf.sidebar', on ? '1' : '0');
+                    } else {
+                        root.classList.toggle('sb-open');
+                    }
+                    return;
+                }
+                if (e.target.closest('.rf-sb-backdrop, #sidebarMenu .collapse-close') || (!wide() && e.target.closest('#sidebarMenu a[href]:not([data-bs-toggle])'))) {
+                    root.classList.remove('sb-open');
+                }
+            }, true);
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') root.classList.remove('sb-open'); });
+        })();
+    </script>
+
 
 
 

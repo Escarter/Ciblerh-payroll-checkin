@@ -54,7 +54,7 @@
                                 </ol>
                              </div>
                              <div class="mb-4">
-                                 <label for="company_file" class="form-label">{{__('common.select_file')}}</label>
+                                 <label for="company_file" class="form-label">{{__('common.select_file')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                  <input wire:model="company_file" class="form-control @error('company_file') is-invalid @enderror" type="file" name="company_file" id="formFile" accept=".csv,.xlsx,.xls,.txt">
                                  @error('company_file')
                                  <div class="invalid-feedback">{{$message}}</div>

@@ -173,12 +173,28 @@ class FetchSftpPayslipsJob implements ShouldQueue
                         \Log::error("Error downloading {$file['basename']}: {$downloadError}");
                     }
 
+                    $annualData = null;
+                    if ($downloadStatus === 'downloaded' && $localFilePath && is_readable($localFilePath)) {
+                        try {
+                            $annualParser = app(\App\Services\AnnualDeclarationParser::class);
+                            $firstPage = \Escarter\PopplerPhp\PdfToText::getText($localFilePath, config('ciblerh.pdftotext_path'), ['f 1', 'l 1']);
+                            $parsed = $annualParser->parseText($firstPage);
+                            $annualData = $parsed['is_declaration'] ? $parsed : null;
+                        } catch (\Throwable $e) {
+                            \Log::warning("Annual declaration detection failed for {$file['basename']}: {$e->getMessage()}");
+                        }
+                    }
+
                     // Create a proposal for this payslip FILE
                     // File is already downloaded locally - ready for processing after validation
                     PayslipMatchingProposal::create([
                         'file_path' => $file['path'],  // Original SFTP path (for reference)
                         'local_file_path' => $localFilePath,  // Local storage path
                         'file_name' => $file['basename'],
+                        'document_type' => $annualData
+                            ? PayslipMatchingProposal::TYPE_ANNUAL_DECLARATION
+                            : PayslipMatchingProposal::TYPE_PAYSLIP,
+                        'matched_year' => $annualData['year'] ?? null,
                         'file_size' => $file['size'],
                         'file_timestamp' => $file['timestamp'],
                         'proposed_match' => $matches,  // Contains candidate departments/companies

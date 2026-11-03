@@ -103,7 +103,7 @@
                                  @enderror
                              </div>
                              <div class="mb-3">
-                                 <label for="selectedDepartmentId" class="form-label">{{__('departments.select_department')}}</label>
+                                 <label for="selectedDepartmentId" class="form-label">{{__('departments.select_department')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                  <select wire:model.live="selectedDepartmentId" class="form-select @error('selectedDepartmentId') is-invalid @enderror" id="selectedDepartmentId">
                                      <option value="">{{__('common.select_option')}}</option>
                                      @if($company ?? null)
@@ -122,7 +122,7 @@
                                  @enderror
                              </div>
                              <div class="mb-3">
-                                 <label for="service_id" class="form-label">{{__('services.select_service')}}</label>
+                                 <label for="service_id" class="form-label">{{__('services.select_service')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                  <select wire:model.live="service_id" class="form-select @error('service_id') is-invalid @enderror" id="service_id">
                                      <option value="">{{__('common.select_option')}}</option>
                                      @if($selectedDepartmentId ?? null)
@@ -137,7 +137,7 @@
                                  @enderror
                              </div>
                              <div class="mb-4">
-                                 <label for="employee_file" class="form-label">{{__('common.select_file')}}</label>
+                                 <label for="employee_file" class="form-label">{{__('common.select_file')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                  <input wire:model="employee_file" class="form-control @error('employee_file') is-invalid @enderror" type="file" name="employee_file" id="formFile" accept=".csv,.xlsx,.xls,.txt">
                                  <div class="form-text">
                                      {{__('common.max_file_size_info', ['size' => '5MB'])}}

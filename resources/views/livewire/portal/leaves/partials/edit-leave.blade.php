@@ -33,14 +33,14 @@
                         </div>
                         <div class="form-group row mb-4">
                             <div class='col-md-6'>
-                                <label for="start_date">{{__('employees.start_date')}}</label>
+                                <label for="start_date">{{__('employees.start_date')}} <span class="text-danger">*</span></label>
                                 <input wire:model="start_date" id="start_date" type="date" class="form-control  @error('start_date') is-invalid @enderror" required="" name="start_date">
                                 @error('start_date')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6'>
-                                <label for="end_date">{{__('employees.end_date')}}</label>
+                                <label for="end_date">{{__('employees.end_date')}} <span class="text-danger">*</span></label>
                                 <input wire:model="end_date" id="end_date" type="date" class="form-control  @error('end_date') is-invalid @enderror" required="" name="end_date">
                                 @error('end_date')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -48,8 +48,8 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="leave_reason">{{__('employees.leave_reason')}}</label>
-                            <textarea wire:model="leave_reason" id="leave_reason" name="leave_reason" class="form-control  @error('leave_reason') is-invalid @enderror" cols='3' rows='3'></textarea>
+                            <label for="leave_reason">{{__('employees.leave_reason')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <textarea wire:model="leave_reason" id="leave_reason" name="leave_reason" class="form-control  @error('leave_reason') is-invalid @enderror" cols='3' rows='3' placeholder="{{__('employees.leave_reason')}}"></textarea>
                             @error('leave_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
@@ -72,7 +72,7 @@
                         <hr>
                         @if($role === "supervisor")
                         <div class='form-group mb-4'>
-                            <label for="supervisor_approval_status">{{__('employees.approval_status')}}</label>
+                            <label for="supervisor_approval_status">{{__('employees.approval_status')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model="supervisor_approval_status" id="supervisor_approval_status" name="supervisor_approval_status" class="form-select  @error('supervisor_approval_status') is-invalid @enderror" required="required">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.approve')}}</option>
@@ -83,15 +83,15 @@
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="supervisor_approval_reason">{{__('common.approval_rejection_reason')}}</label>
-                            <textarea wire:model="supervisor_approval_reason" id="supervisor_approval_reason" name="supervisor_approval_reason" class="form-control  @error('supervisor_approval_reason') is-invalid @enderror" cols='3' rows="3"></textarea>
+                            <label for="supervisor_approval_reason">{{__('common.approval_rejection_reason')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <textarea wire:model="supervisor_approval_reason" id="supervisor_approval_reason" name="supervisor_approval_reason" class="form-control  @error('supervisor_approval_reason') is-invalid @enderror" cols='3' rows="3" placeholder="{{__('common.approval_rejection_reason')}}"></textarea>
                             @error('supervisor_approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         @else
                         <div class='form-group mb-4'>
-                            <label for="manager_approval_status">{{__('employees.approval_status')}}</label>
+                            <label for="manager_approval_status">{{__('employees.approval_status')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model="manager_approval_status" id="manager_approval_status" name="manager_approval_status" class="form-select  @error('manager_approval_status') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.approve')}}</option>
@@ -102,8 +102,8 @@
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="manager_approval_reason">{{__('common.approval_rejection_reason')}}</label>
-                            <textarea wire:model="manager_approval_reason" id="manager_approval_reason" name="manager_approval_reason" class="form-control  @error('manager_approval_reason') is-invalid @enderror" cols='3' rows="3"></textarea>
+                            <label for="manager_approval_reason">{{__('common.approval_rejection_reason')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                            <textarea wire:model="manager_approval_reason" id="manager_approval_reason" name="manager_approval_reason" class="form-control  @error('manager_approval_reason') is-invalid @enderror" cols='3' rows="3" placeholder="{{__('common.approval_rejection_reason')}}"></textarea>
                             @error('manager_approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
