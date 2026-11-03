@@ -7,6 +7,7 @@ use App\Models\LeaveType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use App\Imports\LeaveTypeImport;
 use App\Exports\LeaveTypeExport;
@@ -15,7 +16,7 @@ use Livewire\WithFileUploads;
 
 class Index extends BaseImportComponent
 {
-    use WithDataTable, WithFileUploads;
+    use WithBulkSelection, WithDataTable, WithFileUploads;
 
     protected $importType = 'leave_types';
     protected $importPermission = 'leave_type-create';
@@ -313,31 +314,17 @@ class Index extends BaseImportComponent
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedLeaveTypes = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            $this->selectedLeaveTypes = $this->getLeaveTypes()->pluck('id')->toArray();
-        } else {
-            $this->selectedLeaveTypes = [];
-        }
+        return [
+            'active' => ['selectedLeaveTypes', 'selectAll'],
+        ];
     }
 
-    public function toggleLeaveTypeSelection($leaveTypeId)
-    {
-        if (in_array($leaveTypeId, $this->selectedLeaveTypes)) {
-            $this->selectedLeaveTypes = array_diff($this->selectedLeaveTypes, [$leaveTypeId]);
-        } else {
-            $this->selectedLeaveTypes[] = $leaveTypeId;
-        }
-        
-        $this->selectAll = count($this->selectedLeaveTypes) === $this->getLeaveTypes()->count();
-    }
-
-    private function getLeaveTypes()
+    protected function bulkQuery()
     {
         $query = LeaveType::search($this->query);
 
@@ -348,7 +335,12 @@ class Index extends BaseImportComponent
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getLeaveTypes()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function import()

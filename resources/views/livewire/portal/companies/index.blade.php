@@ -323,7 +323,7 @@
         <div class='col-md-6 col-xl-4'>
             <div id="company-card-{{$company->id}}" class="card card-flush item-card h-100 {{ in_array($company->id, $selectedCompanies) ? 'is-selected' : '' }} {{ $company->is_active ? '' : 'is-inactive' }}"
                 draggable="false"
-                wire:click="toggleCompanySelection({{ $company->id }})">
+                wire:click="toggleSelection({{ $company->id }})">
                 <!-- Selection indicator -->
                 @if(in_array($company->id, $selectedCompanies))
                 <div class="item-card-check">

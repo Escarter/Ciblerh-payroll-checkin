@@ -16,12 +16,13 @@ use App\Services\OrangeCameroonSMS;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
 
 class History extends Component
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
     public $employee;
 
@@ -552,8 +553,7 @@ class History extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedPayslips = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
     public function resetFilters()
@@ -788,46 +788,14 @@ class History extends Component
         return 'processing';
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            $this->selectedPayslips = $this->getPayslips()->pluck('id')->toArray();
-        } else {
-            $this->selectedPayslips = [];
-        }
+        return [
+            'active' => ['selectedPayslips', 'selectAll'],
+        ];
     }
 
-    public function selectAllVisible()
-    {
-        $this->selectedPayslips = $this->getPayslips()->pluck('id')->toArray();
-    }
-
-    public function selectAllPayslips()
-    {
-        $query = Payslip::where('employee_id', $this->employee->id);
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        $this->selectedPayslips = $query->pluck('id')->toArray();
-    }
-
-    public function togglePayslipSelection($payslipId)
-    {
-        if (in_array($payslipId, $this->selectedPayslips)) {
-            $this->selectedPayslips = array_diff($this->selectedPayslips, [$payslipId]);
-        } else {
-            $this->selectedPayslips[] = $payslipId;
-        }
-        
-        $this->selectAll = count($this->selectedPayslips) === $this->getPayslips()->count();
-    }
-
-    private function getPayslips()
+    protected function bulkQuery()
     {
         $query = Payslip::search($this->query)->where('employee_id', $this->employee->id);
 
@@ -898,7 +866,12 @@ class History extends Component
             });
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getPayslips()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function render()

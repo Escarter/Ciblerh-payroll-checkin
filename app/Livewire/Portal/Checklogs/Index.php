@@ -7,13 +7,14 @@ use Livewire\Component;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use App\Exports\ChecklogExport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
 
     //Create, Edit, Delete, View Post props
@@ -65,23 +66,7 @@ class Index extends Component
 
     
     //Toggle the $bulkDisabled on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if($value){
-            $this->selectedChecklogs = match($this->role){
-                "supervisor" => Ticking::search($this->query)->supervisor()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "manager" => Ticking::search($this->query)->manager()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "admin" => Ticking::search($this->query)->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "default"=> [],
-            };
-            $this->updatedselectedChecklogs();
-        }else{
-            $this->selectedChecklogs = [];
-            $this->updatedselectedChecklogs();
-
-        }
-    }
-    //Toggle the $bulkDisabled on or off based on the count of selected posts
+        //Toggle the $bulkDisabled on or off based on the count of selected posts
     public function updatedselectedChecklogs()
     {
         $this->bulkDisabled = count($this->selectedChecklogs) < 2;
@@ -470,62 +455,25 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedChecklogsForDelete = [];
-        $this->selectAllForDelete = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAllForDelete()
+    protected function bulkSelectionChanged(string $tab): void
     {
-        if ($this->selectAllForDelete) {
-            $this->selectedChecklogsForDelete = $this->getChecklogs()->pluck('id')->toArray();
-        } else {
-            $this->selectedChecklogsForDelete = [];
+        if ($tab === 'active') {
+            $this->updatedselectedChecklogs();
         }
     }
 
-    public function toggleChecklogSelectionForDelete($checklogId)
+    protected function bulkSelectionMap(): array
     {
-        if (in_array($checklogId, $this->selectedChecklogsForDelete)) {
-            $this->selectedChecklogsForDelete = array_diff($this->selectedChecklogsForDelete, [$checklogId]);
-        } else {
-            $this->selectedChecklogsForDelete[] = $checklogId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedChecklogsForDelete) === $this->getChecklogs()->count();
+        return [
+            'active' => ['selectedChecklogs', 'selectAll'],
+            'deleted' => ['selectedChecklogsForDelete', 'selectAllForDelete'],
+        ];
     }
 
-    public function selectAllVisible()
-    {
-        $this->selectedChecklogs = $this->getChecklogs()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedChecklogsForDelete = $this->getChecklogs()->pluck('id')->toArray();
-    }
-
-    public function selectAllChecklogs()
-    {
-        $this->selectedChecklogs = match ($this->role) {
-            'supervisor' => Ticking::search($this->query)->supervisor()->with(['user'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => Ticking::search($this->query)->manager()->with(['user'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => Ticking::search($this->query)->with(['user'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-        $this->updatedselectedChecklogs();
-    }
-
-    public function selectAllDeletedChecklogs()
-    {
-        $this->selectedChecklogsForDelete = match ($this->role) {
-            'supervisor' => Ticking::search($this->query)->supervisor()->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => Ticking::search($this->query)->manager()->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => Ticking::search($this->query)->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-    }
-
-    private function getChecklogs()
+    protected function bulkQuery()
     {
         $query = Ticking::search($this->query)->with(['user']);
 
@@ -560,7 +508,12 @@ class Index extends Component
             $query->where('department_id', $this->filterDepartmentId);
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getChecklogs()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function export()

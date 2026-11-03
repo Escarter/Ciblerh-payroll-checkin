@@ -254,7 +254,7 @@
                         </button>
                         <ul class="dropdown-menu shadow" style="z-index: 1050;">
                             <li><button class="dropdown-item" wire:click.prevent="selectAllVisible" type="button">{{__('absences.select_all_visible')}}</button></li>
-                            <li><button class="dropdown-item" wire:click.prevent="selectAllEmployees" type="button">{{__('employees.select_all_employees')}}</button></li>
+                            <li><button class="dropdown-item" wire:click.prevent="selectAllMatching" type="button">{{__('employees.select_all_employees')}}</button></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><button class="dropdown-item" wire:click.prevent="$set('selectedEmployees', [])" type="button">{{__('absences.deselect_all')}}</button></li>
                         </ul>
@@ -272,8 +272,8 @@
                             @endif
                         </button>
                         <ul class="dropdown-menu shadow" style="z-index: 1050;">
-                            <li><button class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" type="button">{{__('absences.select_all_visible')}}</button></li>
-                            <li><button class="dropdown-item" wire:click.prevent="selectAllDeletedEmployees" type="button">{{__('employees.select_all_deleted_employees')}}</button></li>
+                            <li><button class="dropdown-item" wire:click.prevent="selectAllVisible" type="button">{{__('absences.select_all_visible')}}</button></li>
+                            <li><button class="dropdown-item" wire:click.prevent="selectAllMatching" type="button">{{__('employees.select_all_deleted_employees')}}</button></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><button class="dropdown-item" wire:click.prevent="$set('selectedEmployeesForDelete', [])" type="button">{{__('absences.deselect_all')}}</button></li>
                         </ul>
@@ -346,7 +346,6 @@
                                 id="select-all-employees"
                                 wire:key="select-all-{{ $activeTab }}"
                                 wire:model.live="selectAll"
-                                wire:change="toggleSelectAll"
                                 class="form-check-input">
                         </th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
@@ -365,7 +364,7 @@
                         <td>
                             <input type="checkbox"
                                 id="employee-checkbox-{{ $employee->id }}"
-                                wire:click="toggleEmployeeSelection({{ $employee->id }})"
+                                wire:click="toggleSelection({{ $employee->id }})"
                                 {{ in_array($employee->id, $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees) ? 'checked' : '' }}
                                 class="form-check-input">
                         </td>

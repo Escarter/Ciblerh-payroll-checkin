@@ -8,13 +8,14 @@ use Livewire\Component;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use App\Exports\AbsencesExport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
 
@@ -54,55 +55,13 @@ class Index extends Component
     }
 
     //Toggle the $bulkDisabled on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedAbsences = match ($this->role) {
-                'supervisor' => Absence::search($this->query)->supervisor()->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                'manager' => Absence::search($this->query)->manager()->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                'admin' => Absence::search($this->query)->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                default => [],
-            };
-                 $this->updatedselectedAbsences();
-        } else {
-            $this->selectedAbsences = [];
-            $this->updatedselectedAbsences();
-        }
-    }
-    //Toggle the $bulkDisabled on or off based on the count of selected posts
+        //Toggle the $bulkDisabled on or off based on the count of selected posts
     public function updatedselectedAbsences()
     {
         $this->bulkDisabled = count($this->selectedAbsences) < 2;
     }
 
     // Enhanced selection methods
-    public function selectAllVisible()
-    {
-        $this->selectedAbsences = $this->getAbsences()->pluck('id')->toArray();
-        $this->updatedselectedAbsences();
-    }
-
-    public function selectAllAbsences()
-    {
-        $this->selectedAbsences = match ($this->role) {
-            'supervisor' => Absence::search($this->query)->supervisor()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => Absence::search($this->query)->manager()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => Absence::search($this->query)->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-        $this->updatedselectedAbsences();
-    }
-
-    public function selectAllDeletedAbsences()
-    {
-        $this->selectedAbsencesForDelete = match ($this->role) {
-            'supervisor' => Absence::search($this->query)->supervisor()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => Absence::search($this->query)->manager()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => Absence::search($this->query)->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-    }
-
     //Get & assign selected absence props
     public function initData($absence_id)
     {
@@ -457,31 +416,25 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedAbsencesForDelete = [];
-        $this->selectAllForDelete = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAllForDelete()
+    protected function bulkSelectionChanged(string $tab): void
     {
-        if ($this->selectAllForDelete) {
-            $this->selectedAbsencesForDelete = $this->getAbsences()->pluck('id')->toArray();
-        } else {
-            $this->selectedAbsencesForDelete = [];
+        if ($tab === 'active') {
+            $this->updatedselectedAbsences();
         }
     }
 
-    public function toggleAbsenceSelectionForDelete($absenceId)
+    protected function bulkSelectionMap(): array
     {
-        if (in_array($absenceId, $this->selectedAbsencesForDelete)) {
-            $this->selectedAbsencesForDelete = array_diff($this->selectedAbsencesForDelete, [$absenceId]);
-        } else {
-            $this->selectedAbsencesForDelete[] = $absenceId;
-        }
-        
-        $this->selectAllForDelete = count($this->selectedAbsencesForDelete) === $this->getAbsences()->count();
+        return [
+            'active' => ['selectedAbsences', 'selectAll'],
+            'deleted' => ['selectedAbsencesForDelete', 'selectAllForDelete'],
+        ];
     }
 
-    private function getAbsences()
+    protected function bulkQuery()
     {
         $query = Absence::search($this->query)->with(['user', 'company']);
 
@@ -500,7 +453,12 @@ class Index extends Component
             default => [],
         };
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getAbsences()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
   
     public function clearFields()

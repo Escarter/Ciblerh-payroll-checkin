@@ -11,6 +11,7 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use App\Exports\DepartmentExport;
 use App\Imports\DepartmentImport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\DB;
 use App\Models\SupervisorDepartment;
@@ -19,7 +20,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends BaseImportComponent
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
     protected $importType = 'departments';
     protected $importPermission = 'department-create';
@@ -397,31 +398,17 @@ class Index extends BaseImportComponent
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedDepartments = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            $this->selectedDepartments = $this->getDepartments()->pluck('id')->toArray();
-        } else {
-            $this->selectedDepartments = [];
-        }
+        return [
+            'active' => ['selectedDepartments', 'selectAll'],
+        ];
     }
 
-    public function toggleDepartmentSelection($departmentId)
-    {
-        if (in_array($departmentId, $this->selectedDepartments)) {
-            $this->selectedDepartments = array_diff($this->selectedDepartments, [$departmentId]);
-        } else {
-            $this->selectedDepartments[] = $departmentId;
-        }
-        
-        $this->selectAll = count($this->selectedDepartments) === $this->getDepartments()->count();
-    }
-
-    private function getDepartments()
+    protected function bulkQuery()
     {
         if ($this->role === 'supervisor') {
             // For supervisors, show only their managed departments
@@ -443,7 +430,12 @@ class Index extends BaseImportComponent
             $query->manager();
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getDepartments()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function import()

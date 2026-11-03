@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Portal\Roles;
 
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Livewire\Component;
 use App\Models\Role;
@@ -10,7 +11,7 @@ use Spatie\Permission\Models\Permission;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
     // Modal visibility
     public $showCreateModal = false;
@@ -476,35 +477,17 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedRoles = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            // Deselect all
-            $this->selectedRoles = [];
-            $this->selectAll = false;
-        } else {
-            // Select all roles from current page
-            $this->selectedRoles = $this->getRoles()->pluck('id')->toArray();
-            $this->selectAll = true;
-        }
+        return [
+            'active' => ['selectedRoles', 'selectAll'],
+        ];
     }
 
-    public function toggleRoleSelection($roleId)
-    {
-        if (in_array($roleId, $this->selectedRoles)) {
-            $this->selectedRoles = array_diff($this->selectedRoles, [$roleId]);
-        } else {
-            $this->selectedRoles[] = $roleId;
-        }
-        
-        $this->selectAll = count($this->selectedRoles) === $this->getRoles()->count();
-    }
-
-    private function getRoles()
+    protected function bulkQuery()
     {
         $query = Role::with(['permissions'])->withCount('users');
 
@@ -515,7 +498,12 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getRoles()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     /**

@@ -14,6 +14,7 @@ use Livewire\WithFileUploads;
 use App\Events\EmployeeCreated;
 use App\Exports\EmployeeExport;
 use App\Imports\EmployeeImport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use App\Livewire\Traits\WithImportPreview;
 use App\Support\EmployeeIdentityRules;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class Index extends BaseImportComponent
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
     use \App\Livewire\Traits\WithTestSms;
 
     private const DEFAULT_WORK_START_TIME = '08:00';
@@ -641,107 +642,20 @@ class Index extends BaseImportComponent
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedEmployees = [];
-        $this->selectedEmployeesForDelete = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        $key = $this->activeTab === 'deleted' ? 'selectedEmployeesForDelete' : 'selectedEmployees';
-
-        $this->{$key} = $this->selectAll
-            ? $this->getEmployees()->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->map(fn($id) => (string) $id)->toArray()
-            : [];
+        return [
+            'active' => ['selectedEmployees', 'selectAll'],
+            'deleted' => ['selectedEmployeesForDelete', 'selectAllForDelete'],
+        ];
     }
 
-    public function toggleEmployeeSelection($employeeId)
+    protected function bulkAcrossPages(): bool
     {
-        if ($this->activeTab === 'deleted') {
-            if (in_array($employeeId, $this->selectedEmployeesForDelete)) {
-                $this->selectedEmployeesForDelete = array_diff($this->selectedEmployeesForDelete, [$employeeId]);
-            } else {
-                $this->selectedEmployeesForDelete[] = $employeeId;
-            }
-        } else {
-            if (in_array($employeeId, $this->selectedEmployees)) {
-                $this->selectedEmployees = array_diff($this->selectedEmployees, [$employeeId]);
-            } else {
-                $this->selectedEmployees[] = $employeeId;
-            }
-
-            // Update selectAll based on current selection (current page employees only)
-            $currentPageEmployees = $this->getEmployees()
-                ->orderBy($this->orderBy, $this->orderAsc)
-                ->paginate($this->perPage);
-            $this->selectAll = count($this->selectedEmployees) === $currentPageEmployees->count();
-        }
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selectedEmployees = $this->getEmployees()
-            ->orderBy($this->orderBy, $this->orderAsc)
-            ->paginate($this->perPage)
-            ->pluck('id')
-            ->toArray();
-        $this->selectAll = true;
-    }
-
-    public function selectAllEmployees()
-    {
-        $baseQuery = match ($this->auth_role) {
-            'supervisor' => User::search($this->query)->supervisor(),
-            'manager' => User::search($this->query)->whereHas('roles', function($query) {
-                $query->whereIn('name', ['employee', 'supervisor']);
-            })->whereDoesntHave('roles', function($query) {
-                $query->where('name', 'admin');
-            })->where('company_id', $this->company->id),
-            'admin' => User::search($this->query)->whereHas('roles', function($query) {
-                $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
-            })->where('company_id', $this->company->id),
-            default => User::where('id', 0), // Return empty query for unknown roles
-        };
-
-        if ($this->activeTab === 'deleted') {
-            $this->selectedEmployees = $baseQuery->withTrashed()
-                ->whereNotNull('deleted_at')
-                ->pluck('id')
-                ->toArray();
-        } else {
-            $this->selectedEmployees = $baseQuery->pluck('id')->toArray();
-        }
-        $this->selectAll = true;
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedEmployeesForDelete = $this->getEmployees()
-            ->orderBy($this->orderBy, $this->orderAsc)
-            ->paginate($this->perPage)
-            ->pluck('id')
-            ->toArray();
-    }
-
-    public function selectAllDeletedEmployees()
-    {
-        $baseQuery = match ($this->auth_role) {
-            'supervisor' => User::search($this->query)->supervisor(),
-            'manager' => User::search($this->query)->whereHas('roles', function($query) {
-                $query->whereIn('name', ['employee', 'supervisor']);
-            })->whereDoesntHave('roles', function($query) {
-                $query->where('name', 'admin');
-            })->where('company_id', $this->company->id),
-            'admin' => User::search($this->query)->whereHas('roles', function($query) {
-                $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
-            })->where('company_id', $this->company->id),
-            default => User::where('id', 0), // Return empty query for unknown roles
-        };
-
-        $this->selectedEmployeesForDelete = $baseQuery->withTrashed()
-            ->whereNotNull('deleted_at')
-            ->pluck('id')
-            ->toArray();
+        return true;
     }
 
     private function scopedQuery()
@@ -758,6 +672,11 @@ class Index extends BaseImportComponent
             })->where('company_id', $this->company->id),
             default => User::where('id', 0), // Return empty query for unknown roles
         };
+    }
+
+    protected function bulkQuery()
+    {
+        return $this->getEmployees()->orderBy($this->orderBy, $this->orderAsc);
     }
 
     private function getEmployees()

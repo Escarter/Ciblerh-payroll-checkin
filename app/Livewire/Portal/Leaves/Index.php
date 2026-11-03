@@ -9,11 +9,12 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
 
     //Create, Edit, Delete, View Post props
@@ -59,22 +60,7 @@ class Index extends Component
 
 
     //Toggle the $bulkDisabled on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedLeaves = match ($this->role) {
-                "supervisor" => Leave::search($this->query)->supervisor()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "manager" => Leave::search($this->query)->manager()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "admin" => Leave::search($this->query)->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "default" => [],
-            };
-            $this->updatedselectedLeaves();
-        } else {
-            $this->selectedLeaves = [];
-            $this->updatedselectedLeaves();
-        }
-    }
-    //Toggle the $bulkDisabled on or off based on the count of selected posts
+        //Toggle the $bulkDisabled on or off based on the count of selected posts
     public function updatedselectedLeaves()
     {
         $this->bulkDisabled = count($this->selectedLeaves) < 2;
@@ -491,62 +477,25 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedLeavesForDelete = [];
-        $this->selectAllForDelete = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAllForDelete()
+    protected function bulkSelectionChanged(string $tab): void
     {
-        if ($this->selectAllForDelete) {
-            $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
-        } else {
-            $this->selectedLeavesForDelete = [];
+        if ($tab === 'active') {
+            $this->updatedselectedLeaves();
         }
     }
 
-    public function toggleLeaveSelectionForDelete($leaveId)
+    protected function bulkSelectionMap(): array
     {
-        if (in_array($leaveId, $this->selectedLeavesForDelete)) {
-            $this->selectedLeavesForDelete = array_diff($this->selectedLeavesForDelete, [$leaveId]);
-        } else {
-            $this->selectedLeavesForDelete[] = $leaveId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedLeavesForDelete) === $this->getLeaves()->count();
+        return [
+            'active' => ['selectedLeaves', 'selectAll'],
+            'deleted' => ['selectedLeavesForDelete', 'selectAllForDelete'],
+        ];
     }
 
-    public function selectAllVisible()
-    {
-        $this->selectedLeaves = $this->getLeaves()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
-    }
-
-    public function selectAllLeaves()
-    {
-        $this->selectedLeaves = match ($this->role) {
-            'supervisor' => Leave::search($this->query)->supervisor()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => Leave::search($this->query)->manager()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => Leave::search($this->query)->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-        $this->updatedselectedLeaves();
-    }
-
-    public function selectAllDeletedLeaves()
-    {
-        $this->selectedLeavesForDelete = match ($this->role) {
-            'supervisor' => Leave::search($this->query)->supervisor()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => Leave::search($this->query)->manager()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => Leave::search($this->query)->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-    }
-
-    private function getLeaves()
+    protected function bulkQuery()
     {
         $query = Leave::search($this->query)->with(['user']);
 
@@ -565,7 +514,12 @@ class Index extends Component
             default => [],
         };
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getLeaves()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function export()

@@ -11,13 +11,14 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use App\Exports\ServiceExport;
 use App\Imports\ServiceImport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends BaseImportComponent
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
     protected $importType = 'services';
     protected $importPermission = 'service-create';
@@ -330,31 +331,17 @@ class Index extends BaseImportComponent
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedServices = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            $this->selectedServices = $this->getServices()->pluck('id')->toArray();
-        } else {
-            $this->selectedServices = [];
-        }
+        return [
+            'active' => ['selectedServices', 'selectAll'],
+        ];
     }
 
-    public function toggleServiceSelection($serviceId)
-    {
-        if (in_array($serviceId, $this->selectedServices)) {
-            $this->selectedServices = array_diff($this->selectedServices, [$serviceId]);
-        } else {
-            $this->selectedServices[] = $serviceId;
-        }
-        
-        $this->selectAll = count($this->selectedServices) === $this->getServices()->count();
-    }
-
-    private function getServices()
+    protected function bulkQuery()
     {
         $query = Service::search($this->query)->with(['department','company'])->where('department_id', $this->department->id);
 
@@ -365,7 +352,12 @@ class Index extends BaseImportComponent
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getServices()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
 

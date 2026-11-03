@@ -201,7 +201,6 @@
                             <input type="checkbox"
                                 id="select-all-roles"
                                 wire:model.live="selectAll"
-                                wire:change="toggleSelectAll"
                                 class="form-check-input">
                         </th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('roles.role')}}</th>
@@ -219,7 +218,7 @@
                         <td>
                             <input type="checkbox"
                                 id="role-checkbox-{{ $role->id }}"
-                                wire:click="toggleRoleSelection({{ $role->id }})"
+                                wire:click="toggleSelection({{ $role->id }})"
                                 {{ in_array($role->id, $selectedRoles) ? 'checked' : '' }}
                                 class="form-check-input">
                         </td>

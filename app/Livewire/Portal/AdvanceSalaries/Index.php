@@ -3,6 +3,7 @@
 namespace App\Livewire\Portal\AdvanceSalaries;
 
 use App\Exports\AdvanceSalaryExport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use App\Mail\AdvanceSalaryManagerApprovalNotification;
 use Illuminate\Support\Facades\Mail;
@@ -17,7 +18,7 @@ use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
 
@@ -70,22 +71,7 @@ class Index extends Component
         $this->role = auth()->user()->getRoleNames()->first();
     }
     //Toggle the $bulkDisabled on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedAdvanceSalaries = match($this->role) {
-                "manager" => AdvanceSalary::search($this->query)->manager()->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "admin" => AdvanceSalary::search($this->query)->with(['user', 'company'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "supervisor" => [],
-               default => [],
-            };
-            $this->updatedselectedAdvanceSalaries();
-        } else {
-            $this->selectedAdvanceSalaries = [];
-            $this->updatedselectedAdvanceSalaries();
-        }
-    }
-    //Toggle the $bulkDisabled on or off based on the count of selected posts
+        //Toggle the $bulkDisabled on or off based on the count of selected posts
     public function updatedselectedAdvanceSalaries()
     {
         $this->bulkDisabled = count($this->selectedAdvanceSalaries) < 2;
@@ -519,61 +505,7 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedAdvanceSalariesForDelete = [];
-        $this->selectAllForDelete = false;
-    }
-
-    public function toggleSelectAllForDelete()
-    {
-        if ($this->selectAllForDelete) {
-            $this->selectedAdvanceSalariesForDelete = $this->getAdvanceSalaries()->pluck('id')->toArray();
-        } else {
-            $this->selectedAdvanceSalariesForDelete = [];
-        }
-    }
-
-    public function toggleAdvanceSalarySelectionForDelete($advanceSalaryId)
-    {
-        if (in_array($advanceSalaryId, $this->selectedAdvanceSalariesForDelete)) {
-            $this->selectedAdvanceSalariesForDelete = array_diff($this->selectedAdvanceSalariesForDelete, [$advanceSalaryId]);
-        } else {
-            $this->selectedAdvanceSalariesForDelete[] = $advanceSalaryId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedAdvanceSalariesForDelete) === $this->getAdvanceSalaries()->count();
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selectedAdvanceSalaries = $this->getAdvanceSalaries()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedAdvanceSalariesForDelete = $this->getAdvanceSalaries()->pluck('id')->toArray();
-    }
-
-    public function selectAllAdvanceSalaries()
-    {
-        $base = AdvanceSalary::search($this->query)->with(['user', 'company'])->whereNull('deleted_at');
-        $this->selectedAdvanceSalaries = match ($this->role) {
-            'supervisor' => (clone $base)->supervisor()->pluck('id')->toArray(),
-            'manager' => (clone $base)->manager()->pluck('id')->toArray(),
-            'admin' => $base->pluck('id')->toArray(),
-            default => [],
-        };
-        $this->updatedselectedAdvanceSalaries();
-    }
-
-    public function selectAllDeletedAdvanceSalaries()
-    {
-        $base = AdvanceSalary::search($this->query)->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at');
-        $this->selectedAdvanceSalariesForDelete = match ($this->role) {
-            'supervisor' => (clone $base)->supervisor()->pluck('id')->toArray(),
-            'manager' => (clone $base)->manager()->pluck('id')->toArray(),
-            'admin' => $base->pluck('id')->toArray(),
-            default => [],
-        };
+        $this->resetBulkSelection();
     }
 
     private function notifyManagers(AdvanceSalary $advanceSalary): void
@@ -595,7 +527,22 @@ class Index extends Component
         }
     }
 
-    private function getAdvanceSalaries()
+    protected function bulkSelectionChanged(string $tab): void
+    {
+        if ($tab === 'active') {
+            $this->updatedselectedAdvanceSalaries();
+        }
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return [
+            'active' => ['selectedAdvanceSalaries', 'selectAll'],
+            'deleted' => ['selectedAdvanceSalariesForDelete', 'selectAllForDelete'],
+        ];
+    }
+
+    protected function bulkQuery()
     {
         $query = AdvanceSalary::search($this->query)->with(['user', 'company']);
 
@@ -614,7 +561,12 @@ class Index extends Component
             default => [],
         };
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getAdvanceSalaries()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function export()

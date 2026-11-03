@@ -298,7 +298,7 @@
                 </button>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                    <li><a class="dropdown-item" wire:click.prevent="selectAllChecklogs" href="#">{{__('checklog.select_all_checklogs')}}</a></li>
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('checklog.select_all_checklogs')}}</a></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -373,8 +373,8 @@
                     @endif
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                    <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedChecklogs" href="#">{{__('checklog.select_all_deleted_checklogs')}}</a></li>
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                    <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('checklog.select_all_deleted_checklogs')}}</a></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -449,8 +449,7 @@
                                 <!-- For deleted tab, use soft delete selection -->
                                 <input class="form-check-input p-2"
                                     wire:model.live="selectAllForDelete"
-                                    type="checkbox"
-                                    wire:click="toggleSelectAllForDelete">
+                                    type="checkbox">
                                 @endif
                             </div>
                         </th>
@@ -477,7 +476,7 @@
                                 <!-- For deleted tab, use soft delete selection -->
                                 <input class="form-check-input"
                                     type="checkbox"
-                                    wire:click="toggleChecklogSelectionForDelete({{ $checklog->id }})"
+                                    wire:click="toggleSelection({{ $checklog->id }})"
                                     {{ in_array($checklog->id, $selectedChecklogsForDelete) ? 'checked' : '' }}>
                                 @endif
                             </div>

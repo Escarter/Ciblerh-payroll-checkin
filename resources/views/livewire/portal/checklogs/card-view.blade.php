@@ -21,7 +21,7 @@
                         @else
                         <input class="form-check-input"
                             type="checkbox"
-                            wire:click="toggleChecklogSelectionForDelete({{ $checklog->id }})"
+                            wire:click="toggleSelection({{ $checklog->id }})"
                             {{ in_array($checklog->id, $selectedChecklogsForDelete) ? 'checked' : '' }}>
                         @endif
                     </div>

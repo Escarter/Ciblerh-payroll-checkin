@@ -294,8 +294,7 @@
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 <input class="form-check-input p-2" 
                                     wire:model.live="selectAll" 
-                                    type="checkbox"
-                                    wire:click="toggleSelectAll">
+                                    type="checkbox">
                             </div>
                         </th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('leaves.leave_type_id')}}</th>
@@ -315,7 +314,7 @@
                             <div class="form-check d-flex justify-content-center align-items-center">
                                 <input class="form-check-input" 
                                     type="checkbox"
-                                    wire:click="toggleLeaveTypeSelection({{ $leave_type->id }})"
+                                    wire:click="toggleSelection({{ $leave_type->id }})"
                                     {{ in_array($leave_type->id, $selectedLeaveTypes) ? 'checked' : '' }}>
                             </div>
                         </td>

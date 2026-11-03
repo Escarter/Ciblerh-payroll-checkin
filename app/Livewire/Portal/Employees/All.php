@@ -14,6 +14,7 @@ use Livewire\WithFileUploads;
 use App\Events\EmployeeCreated;
 use App\Exports\EmployeeExport;
 use App\Imports\EmployeeImport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use App\Models\Role;
 use App\Rules\PhoneNumber;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 class All extends BaseImportComponent
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
     use \App\Livewire\Traits\WithTestSms;
 
     private const DEFAULT_WORK_START_TIME = '08:00';
@@ -822,71 +823,23 @@ class All extends BaseImportComponent
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedEmployees = [];
-        $this->selectedEmployeesForDelete = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    private function selectedKey(): string
+    protected function bulkSelectionMap(): array
     {
-        return $this->activeTab === 'deleted' ? 'selectedEmployeesForDelete' : 'selectedEmployees';
+        return [
+            'active' => ['selectedEmployees', 'selectAll'],
+            'deleted' => ['selectedEmployeesForDelete', 'selectAllForDelete'],
+        ];
     }
 
-    private function allScopedIds(): array
+    protected function bulkAcrossPages(): bool
     {
-        return $this->scopedQuery()->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        return true;
     }
 
-    public function toggleSelectAll()
-    {
-        $this->{$this->selectedKey()} = $this->selectAll ? $this->allScopedIds() : [];
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selectedEmployees = $this->getEmployees()->pluck('id')->map(fn($id) => (string) $id)->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedEmployeesForDelete = $this->getEmployees()->pluck('id')->map(fn($id) => (string) $id)->toArray();
-    }
-
-    public function selectAllEmployees()
-    {
-        $this->{$this->selectedKey()} = $this->allScopedIds();
-        $this->selectAll = true;
-    }
-
-    public function selectAllDeletedEmployees()
-    {
-        $this->activeTab = 'deleted';
-        $this->selectedEmployeesForDelete = $this->allScopedIds();
-        $this->selectAll = true;
-    }
-
-    public function toggleEmployeeSelection($employeeId)
-    {
-        $employeeId = (string)$employeeId; // Store as string for consistency
-        
-        if ($this->activeTab === 'deleted') {
-            if (in_array($employeeId, $this->selectedEmployeesForDelete, true)) {
-                $this->selectedEmployeesForDelete = array_values(array_diff($this->selectedEmployeesForDelete, [$employeeId]));
-            } else {
-                $this->selectedEmployeesForDelete[] = $employeeId;
-            }
-        } else {
-            if (in_array($employeeId, $this->selectedEmployees, true)) {
-                $this->selectedEmployees = array_values(array_diff($this->selectedEmployees, [$employeeId]));
-            } else {
-                $this->selectedEmployees[] = $employeeId;
-            }
-
-            $this->selectAll = count($this->selectedEmployees) === $this->getEmployees()->count();
-        }
-    }
-
-    private function scopedQuery()
+    protected function bulkQuery()
     {
         $query = User::search($this->query)->with([
             'company:id,name',
@@ -938,7 +891,7 @@ class All extends BaseImportComponent
     }
     private function getEmployees()
     {
-        return $this->scopedQuery()->paginate($this->perPage);
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function initDataManager($employee_id)

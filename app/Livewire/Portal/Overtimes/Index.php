@@ -8,13 +8,14 @@ use Illuminate\Support\Str;
 use Livewire\WithPagination;
 use Illuminate\Support\Carbon;
 use App\Exports\OvertimeExport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
 
@@ -46,22 +47,7 @@ class Index extends Component
         $this->role = auth()->user()->getRoleNames()->first();
     }
 
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedOvertimes = match($this->role){
-                "supervisor" => Overtime::search($this->query)->supervisor()->with(['user'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "manager" => Overtime::search($this->query)->manager()->with(['user'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "admin" => Overtime::search($this->query)->with(['user'])->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "default"=> [],
-            };
-            $this->updatedselectedOvertimes();
-        } else {
-            $this->selectedOvertimes = [];
-            $this->updatedselectedOvertimes();
-        }
-    }
-    //Toggle the $bulkDisabled on or off based on the count of selected posts
+        //Toggle the $bulkDisabled on or off based on the count of selected posts
     public function updatedselectedOvertimes()
     {
         $this->bulkDisabled = count($this->selectedOvertimes) < 2;
@@ -412,51 +398,25 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedOvertimesForDelete = [];
-        $this->selectAllForDelete = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAllForDelete()
+    protected function bulkSelectionChanged(string $tab): void
     {
-        if ($this->selectAllForDelete) {
-            $this->selectedOvertimesForDelete = $this->getOvertimes()->pluck('id')->toArray();
-        } else {
-            $this->selectedOvertimesForDelete = [];
+        if ($tab === 'active') {
+            $this->updatedselectedOvertimes();
         }
     }
 
-    public function toggleOvertimeSelectionForDelete($overtimeId)
+    protected function bulkSelectionMap(): array
     {
-        if (in_array($overtimeId, $this->selectedOvertimesForDelete)) {
-            $this->selectedOvertimesForDelete = array_diff($this->selectedOvertimesForDelete, [$overtimeId]);
-        } else {
-            $this->selectedOvertimesForDelete[] = $overtimeId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedOvertimesForDelete) === $this->getOvertimes()->count();
+        return [
+            'active' => ['selectedOvertimes', 'selectAll'],
+            'deleted' => ['selectedOvertimesForDelete', 'selectAllForDelete'],
+        ];
     }
 
-    public function selectAllVisible()
-    {
-        $this->selectedOvertimes = $this->getOvertimes()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedOvertimesForDelete = $this->getOvertimes()->pluck('id')->toArray();
-    }
-
-    public function selectAllDeletedOvertimes()
-    {
-        $this->selectedOvertimesForDelete = match ($this->role) {
-            'supervisor' => Overtime::search($this->query)->supervisor()->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => Overtime::search($this->query)->manager()->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => Overtime::search($this->query)->with(['user'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-    }
-
-    public function selectAllOvertimes()
+    protected function bulkQuery()
     {
         $query = Overtime::search($this->query)->with(['user']);
 
@@ -475,29 +435,12 @@ class Index extends Component
             default => [],
         };
 
-        $this->selectedOvertimes = $query->pluck('id')->toArray();
+        return $query->orderBy($this->orderBy, $this->orderAsc);
     }
 
     private function getOvertimes()
     {
-        $query = Overtime::search($this->query)->with(['user']);
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        // Add role-based filtering
-        match($this->role){
-            "supervisor" => $query->supervisor(),
-            "manager" => $query->manager(),
-            "admin" => null, // No additional filtering for admin
-            default => [],
-        };
-
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function export()

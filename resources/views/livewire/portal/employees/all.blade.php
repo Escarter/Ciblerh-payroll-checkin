@@ -267,7 +267,7 @@
                 </button>
                 <ul class="dropdown-menu shadow" style="z-index: 1050;">
                     <li><button class="dropdown-item" wire:click.prevent="selectAllVisible" type="button">{{__('absences.select_all_visible')}}</button></li>
-                    <li><button class="dropdown-item" wire:click.prevent="selectAllEmployees" type="button">{{__('employees.select_all_employees')}}</button></li>
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllMatching" type="button">{{__('employees.select_all_employees')}}</button></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -287,8 +287,8 @@
                     @endif
                 </button>
                 <ul class="dropdown-menu shadow" style="z-index: 1050;">
-                    <li><button class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" type="button">{{__('absences.select_all_visible')}}</button></li>
-                    <li><button class="dropdown-item" wire:click.prevent="selectAllDeletedEmployees" type="button">{{__('employees.select_all_deleted_employees')}}</button></li>
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllVisible" type="button">{{__('absences.select_all_visible')}}</button></li>
+                    <li><button class="dropdown-item" wire:click.prevent="selectAllMatching" type="button">{{__('employees.select_all_deleted_employees')}}</button></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -365,7 +365,6 @@
                             <input type="checkbox"
                                 wire:key="select-all-{{ $activeTab }}"
                                 wire:model.live="selectAll"
-                                wire:change="toggleSelectAll"
                                 class="form-check-input">
                         </th>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.employee')}}</th>
@@ -383,7 +382,7 @@
                     <tr>
                         <td>
                             <input type="checkbox"
-                                wire:click="toggleEmployeeSelection({{ $employee->id }})"
+                                wire:click="toggleSelection({{ $employee->id }})"
                                 {{ in_array((string)$employee->id, array_map('strval', $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees), true) ? 'checked' : '' }}
                                 class="form-check-input">
                         </td>

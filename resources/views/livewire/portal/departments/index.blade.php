@@ -313,7 +313,7 @@
         <div class='col-md-6 col-xl-4'>
             <div id="department-card-{{$department->id}}" class="card card-flush h-100 shadow-sm pb-4 pt-4 px-4 {{ in_array($department->id, $selectedDepartments) ? 'border-primary border-3' : 'border-0' }}"
                  draggable="false"
-                 wire:click="toggleDepartmentSelection({{ $department->id }})"
+                 wire:click="toggleSelection({{ $department->id }})"
                  style="cursor: pointer; transition: all 0.3s ease; min-height: 200px; border-radius: 12px;"
                  onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'"
                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">

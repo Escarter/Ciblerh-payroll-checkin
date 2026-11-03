@@ -294,7 +294,7 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                                <li><a class="dropdown-item" wire:click.prevent="selectAllPayslips" href="#">{{__('payslips.select_all_payslips')}}</a></li>
+                                <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('payslips.select_all_payslips')}}</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" wire:click.prevent="$set('selectedPayslips', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                             </ul>
@@ -342,7 +342,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllPayslips" href="#">{{__('payslips.select_all_payslips')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('payslips.select_all_payslips')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selectedPayslips', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -399,8 +399,7 @@
                                     <div class="form-check d-flex justify-content-center align-items-center">
                                         <input class="form-check-input p-2" 
                                             wire:model.live="selectAll" 
-                                            type="checkbox"
-                                            wire:click="toggleSelectAll">
+                                            type="checkbox">
                                     </div>
                                 </th>
                                 <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.name')}}</th>
@@ -421,7 +420,7 @@
                                     <div class="form-check d-flex justify-content-center align-items-center">
                                         <input class="form-check-input" 
                                             type="checkbox"
-                                            wire:click="togglePayslipSelection({{ $payslip->id }})"
+                                            wire:click="toggleSelection({{ $payslip->id }})"
                                             {{ in_array($payslip->id, $selectedPayslips) ? 'checked' : '' }}>
                                     </div>
                                 </td>

@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Livewire\BaseImportComponent;
 use Illuminate\Support\Str;
 use App\Imports\CompanyImport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ use Livewire\Attributes\Computed;
 
 class Index extends BaseImportComponent
 {
-    use WithDataTable;
+    use WithBulkSelection, WithDataTable;
 
     protected $importType = 'companies';
     protected $importPermission = 'company-create';
@@ -395,35 +396,17 @@ class Index extends BaseImportComponent
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedCompanies = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            // Deselect all
-            $this->selectedCompanies = [];
-            $this->selectAll = false;
-        } else {
-            // Select all companies from current page
-            $this->selectedCompanies = $this->getCompanies()->pluck('id')->toArray();
-            $this->selectAll = true;
-        }
+        return [
+            'active' => ['selectedCompanies', 'selectAll'],
+        ];
     }
 
-    public function toggleCompanySelection($companyId)
-    {
-        if (in_array($companyId, $this->selectedCompanies)) {
-            $this->selectedCompanies = array_diff($this->selectedCompanies, [$companyId]);
-        } else {
-            $this->selectedCompanies[] = $companyId;
-        }
-        
-        $this->selectAll = count($this->selectedCompanies) === $this->getCompanies()->count();
-    }
-
-    private function getCompanies()
+    protected function bulkQuery()
     {
         $query = Company::search($this->query)->with(['employees','departments','services']);
 
@@ -441,7 +424,12 @@ class Index extends BaseImportComponent
             default => [],
         };
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getCompanies()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function import()
