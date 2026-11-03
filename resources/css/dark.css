@@ -496,3 +496,22 @@ html[data-theme="dark"] .import-wizard .template-banner .btn-dark {
     color: #0b1220 !important;
 }
 html[data-theme="dark"] .import-wizard .mapping-row:hover { background: var(--rf-surface-2) !important; }
+html[data-theme="dark"] .import-wizard .entity-card,
+html[data-theme="dark"] .import-wizard .mode-card { border-color: var(--rf-line) !important; background: transparent !important; }
+html[data-theme="dark"] .import-wizard .entity-card:hover,
+html[data-theme="dark"] .import-wizard .mode-card:hover { border-color: var(--rf-muted) !important; background: var(--rf-surface-2) !important; }
+html[data-theme="dark"] .import-wizard .entity-card.selected,
+html[data-theme="dark"] .import-wizard .mode-card.selected { border-color: var(--rf-brand) !important; background: var(--rf-brand-soft) !important; }
+html[data-theme="dark"] .import-wizard .entity-card,
+html[data-theme="dark"] .import-wizard .mode-card,
+html[data-theme="dark"] .import-wizard .entity-card *,
+html[data-theme="dark"] .import-wizard .mode-card .fw-semibold { color: var(--rf-ink); }
+html[data-theme="dark"] .import-wizard .mode-card .text-muted { color: var(--rf-muted) !important; }
+html[data-theme="dark"] .import-wizard .upload-zone { background: var(--rf-surface-2) !important; border-color: var(--rf-line) !important; }
+html[data-theme="dark"] .import-wizard .upload-zone:hover,
+html[data-theme="dark"] .import-wizard .upload-zone.dragging { background: var(--rf-brand-soft) !important; border-color: var(--rf-brand) !important; }
+html[data-theme="dark"] .import-wizard .upload-zone.has-file { background: rgba(28, 200, 138, .1) !important; border-color: #1cc88a !important; }
+html[data-theme="dark"] .import-wizard .option-switch:hover { background: var(--rf-surface-2) !important; }
+html[data-theme="dark"] .import-wizard .step-connector { background: var(--rf-line); }
+html[data-theme="dark"] .import-wizard .step-circle.active { background: var(--rf-brand); border-color: var(--rf-brand); color: #0b1220; box-shadow: 0 0 0 4px var(--rf-brand-ring); }
+html[data-theme="dark"] .import-wizard .step-circle.pending { background: var(--rf-surface-2); border-color: var(--rf-line); color: var(--rf-muted); }
