@@ -363,7 +363,8 @@
                     <tr>
                         <th class="border-0 px-4 py-2 text-muted fw-medium">
                             <input type="checkbox"
-                                wire:model="selectAll"
+                                wire:key="select-all-{{ $activeTab }}"
+                                wire:model.live="selectAll"
                                 wire:change="toggleSelectAll"
                                 class="form-check-input">
                         </th>

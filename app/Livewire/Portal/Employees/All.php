@@ -827,63 +827,19 @@ class All extends BaseImportComponent
         $this->selectAll = false;
     }
 
+    private function selectedKey(): string
+    {
+        return $this->activeTab === 'deleted' ? 'selectedEmployeesForDelete' : 'selectedEmployees';
+    }
+
+    private function allScopedIds(): array
+    {
+        return $this->scopedQuery()->pluck('id')->map(fn($id) => (string) $id)->toArray();
+    }
+
     public function toggleSelectAll()
     {
-        if ($this->selectAll) {
-            // Build the same query as getEmployees() but WITHOUT pagination
-            $query = User::search($this->query)->with([
-                'company:id,name',
-                'department:id,name',
-                'service:id,name',
-                'roles:id,name'
-            ])->when($this->auth_role === 'supervisor', function($query) {
-                $query->supervisor();
-            })->when($this->auth_role === 'manager', function($query) {
-                $query->whereIn('company_id', auth()->user()->managerCompanies->pluck('id'))
-                      ->whereHas('roles', function($query) {
-                          $query->whereIn('name', ['employee', 'supervisor']);
-                      })->whereDoesntHave('roles', function($query) {
-                          $query->where('name', 'admin');
-                      });
-            })->when($this->auth_role === 'admin', function($query) {
-                $query->whereHas('roles', function($query) {
-                    $query->whereIn('name', ['admin', 'employee', 'supervisor', 'manager']);
-                });
-            })->when($this->auth_role === 'employee', function($query) {
-                $query->whereHas('roles', function($query) {
-                    $query->where('name', 'employee');
-                })->whereDoesntHave('roles', function($query) {
-                    $query->whereIn('name', ['admin', 'manager', 'supervisor']);
-                });
-            });
-
-            // Add soft delete filtering based on active tab
-            if ($this->activeTab === 'deleted') {
-                $query->withTrashed()->whereNotNull('deleted_at');
-            } else {
-                $query->whereNull('deleted_at');
-            }
-
-            // Company filter (admin only)
-            if ($this->auth_role === 'admin' && $this->filterCompany !== '') {
-                $query->where('company_id', $this->filterCompany);
-            }
-
-            // Get all employees WITHOUT pagination - store in correct array based on active tab
-            $selectedIds = $query->orderBy($this->orderBy, $this->orderAsc)->pluck('id')->map(fn($id) => (string) $id)->toArray();
-            
-            if ($this->activeTab === 'deleted') {
-                $this->selectedEmployeesForDelete = $selectedIds;
-            } else {
-                $this->selectedEmployees = $selectedIds;
-            }
-        } else {
-            if ($this->activeTab === 'deleted') {
-                $this->selectedEmployeesForDelete = [];
-            } else {
-                $this->selectedEmployees = [];
-            }
-        }
+        $this->{$this->selectedKey()} = $this->selectAll ? $this->allScopedIds() : [];
     }
 
     public function selectAllVisible()
@@ -898,56 +854,15 @@ class All extends BaseImportComponent
 
     public function selectAllEmployees()
     {
-        $query = User::search($this->query)->with(['company', 'department', 'service']);
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        // Add role-based filtering
-        match($this->role){
-            "supervisor" => $query->whereHas('department', function ($q) {
-                $q->whereIn('id', auth()->user()->supDepartments->pluck('department_id'));
-            }),
-            "manager" => $query->whereHas('department', function ($q) {
-                $q->where('company_id', auth()->user()->company_id);
-            }),
-            "admin" => null, // No additional filtering for admin
-            default => [],
-        };
-
-        $selectedIds = $query->pluck('id')->map(fn($id) => (string) $id)->toArray();
-        
-        if ($this->activeTab === 'deleted') {
-            $this->selectedEmployeesForDelete = $selectedIds;
-        } else {
-            $this->selectedEmployees = $selectedIds;
-        }
+        $this->{$this->selectedKey()} = $this->allScopedIds();
+        $this->selectAll = true;
     }
 
     public function selectAllDeletedEmployees()
     {
-        $query = User::search($this->query)->with(['company', 'department', 'service']);
-
-        // Add soft delete filtering for deleted tab
-        $query->withTrashed()->whereNotNull('deleted_at');
-
-        // Add role-based filtering
-        match($this->role){
-            "supervisor" => $query->whereHas('department', function ($q) {
-                $q->whereIn('id', auth()->user()->supDepartments->pluck('department_id'));
-            }),
-            "manager" => $query->whereHas('department', function ($q) {
-                $q->where('company_id', auth()->user()->company_id);
-            }),
-            "admin" => null, // No additional filtering for admin
-            default => [],
-        };
-
-        $this->selectedEmployeesForDelete = $query->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        $this->activeTab = 'deleted';
+        $this->selectedEmployeesForDelete = $this->allScopedIds();
+        $this->selectAll = true;
     }
 
     public function toggleEmployeeSelection($employeeId)
@@ -971,7 +886,7 @@ class All extends BaseImportComponent
         }
     }
 
-    private function getEmployees()
+    private function scopedQuery()
     {
         $query = User::search($this->query)->with([
             'company:id,name',
@@ -1019,8 +934,13 @@ class All extends BaseImportComponent
             $query->where('company_id', $this->filterCompany);
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
     }
+    private function getEmployees()
+    {
+        return $this->scopedQuery()->paginate($this->perPage);
+    }
+
     public function initDataManager($employee_id)
     {
         $employee = User::findOrFail($employee_id);

@@ -642,20 +642,17 @@ class Index extends BaseImportComponent
     {
         $this->activeTab = $tab;
         $this->selectedEmployees = [];
+        $this->selectedEmployeesForDelete = [];
         $this->selectAll = false;
     }
 
     public function toggleSelectAll()
     {
-        if ($this->selectAll) {
-            $this->selectedEmployees = $this->getEmployees()
-                ->orderBy($this->orderBy, $this->orderAsc)
-                ->paginate($this->perPage)
-                ->pluck('id')
-                ->toArray();
-        } else {
-            $this->selectedEmployees = [];
-        }
+        $key = $this->activeTab === 'deleted' ? 'selectedEmployeesForDelete' : 'selectedEmployees';
+
+        $this->{$key} = $this->selectAll
+            ? $this->getEmployees()->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->map(fn($id) => (string) $id)->toArray()
+            : [];
     }
 
     public function toggleEmployeeSelection($employeeId)
