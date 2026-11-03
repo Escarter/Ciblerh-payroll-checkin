@@ -530,3 +530,23 @@ html[data-theme="dark"] img[src*="empty.svg"] + div h4,
 html[data-theme="dark"] img[src*="empty.svg"] + div .text-gray-800,
 html[data-theme="dark"] img[src*="empty.svg"] + div .text-gray-700 { color: var(--rf-ink) !important; }
 html[data-theme="dark"] img[src*="empty.svg"] + div p { color: var(--rf-muted) !important; }
+
+/* Auth pages: panel, inputs and controls follow the dark theme */
+html[data-theme="dark"] .rf-auth-split,
+html[data-theme="dark"] .rf-auth-panel { background: var(--rf-bg, #0b1220); }
+html[data-theme="dark"] .rf-auth-lang { background: var(--rf-surface); border-color: var(--rf-line); }
+html[data-theme="dark"] .rf-auth-lang a { color: var(--rf-muted); }
+html[data-theme="dark"] .rf-auth-lang a.on { color: #fff !important; }
+html[data-theme="dark"] .rf-input { background: var(--rf-surface-2); border-color: var(--rf-line); box-shadow: none; }
+html[data-theme="dark"] .rf-input > svg,
+html[data-theme="dark"] .rf-eye { color: var(--rf-muted); }
+html[data-theme="dark"] .rf-input input { color: var(--rf-ink); }
+html[data-theme="dark"] .rf-input input::placeholder { color: var(--rf-muted); opacity: .8; }
+html[data-theme="dark"] .rf-input:focus-within { border-color: var(--rf-brand); box-shadow: 0 0 0 .22rem var(--rf-brand-ring); }
+html[data-theme="dark"] .rf-field label,
+html[data-theme="dark"] .rf-check { color: var(--rf-text); }
+html[data-theme="dark"] .rf-auth-form h1 { color: var(--rf-ink); }
+html[data-theme="dark"] .rf-auth-sub { color: var(--rf-muted); }
+html[data-theme="dark"] .rf-check input[type="checkbox"] { background-color: var(--rf-surface-2); border-color: var(--rf-line); }
+html[data-theme="dark"] .rf-check input[type="checkbox"]:checked { background-color: var(--rf-brand); border-color: var(--rf-brand); }
+html[data-theme="dark"] .rf-auth-submit { color: #0b1220; }
