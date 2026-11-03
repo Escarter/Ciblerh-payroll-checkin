@@ -556,3 +556,17 @@ html[data-theme="dark"] .toast-container .toast .btn-close, html[data-theme="dar
 html[data-theme="dark"] .btn-outline-gray-500, html[data-theme="dark"] .btn-outline-tertiary { background: var(--rf-surface-2) !important; border-color: var(--rf-line) !important; color: var(--rf-text) !important; }
 html[data-theme="dark"] .btn-tertiary { background: var(--rf-surface-2) !important; border: 1px solid var(--rf-line) !important; color: var(--rf-text) !important; }
 html[data-theme="dark"] .btn-tertiary:hover { background: var(--rf-line) !important; }
+
+/* Import wizard */
+html[data-theme="dark"] .import-wizard .template-banner {
+    background: linear-gradient(135deg, #1b2236 0%, #161d30 100%) !important;
+    border: 1px solid rgba(255, 255, 255, .08);
+}
+html[data-theme="dark"] .import-wizard .template-banner .fw-semibold { color: #e5e9f4 !important; }
+html[data-theme="dark"] .import-wizard .template-banner .text-muted { color: #9aa5bd !important; }
+html[data-theme="dark"] .import-wizard .template-banner .btn-dark {
+    background: #4361ee !important;
+    border-color: #4361ee !important;
+    color: #fff !important;
+}
+html[data-theme="dark"] .import-wizard .mapping-row:hover { background: rgba(255, 255, 255, .04) !important; }
