@@ -328,4 +328,8 @@ return [
     // Title and Description
     'title' => 'Journaux d\'Audit',
     'description_page' => 'Voir et gérer tous les journaux d\'activité du système',
+    'select_all_visible' => 'Sélectionner les journaux visibles',
+    'select_all_logs' => 'Sélectionner tous les journaux correspondants',
+    'log' => 'journal',
+    'logs' => 'journaux',
 ];

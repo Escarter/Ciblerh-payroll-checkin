@@ -328,4 +328,8 @@ return [
     // Title and Description
     'title' => 'Audit Logs',
     'description_page' => 'View and manage all system activity logs',
+    'select_all_visible' => 'Select visible logs',
+    'select_all_logs' => 'Select all matching logs',
+    'log' => 'log',
+    'logs' => 'logs',
 ];
