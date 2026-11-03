@@ -5,6 +5,7 @@
     @include('livewire.portal.employees.others.import-employees')
     @include('livewire.partials.delete-modal')
     @include('livewire.partials.restore-modal')
+    @include('livewire.portal.employees.partials.test-sms-modal')
     @include('livewire.partials.bulk-restore-modal')
     @include('livewire.partials.bulk-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
@@ -503,6 +504,14 @@
                         @canany(['employee-delete','employee-update'])
                         <td>
                             @if($activeTab === 'active')
+                            @if($employee->personal_phone_number || $employee->professional_phone_number)
+                            <button wire:click="openTestSms({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#TestSmsModal"
+                                class="rf-icon-btn rf-icon-btn-secondary me-1" title="{{ __('employees.send_test_sms') }}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.4-3.7A7.6 7.6 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                            </button>
+                            @endif
                             @can('employee-view')
                             <button wire:click="$dispatch('showUserRoles', [{{$employee->id}}])"
                                 class="rf-icon-btn rf-icon-btn-secondary me-1"

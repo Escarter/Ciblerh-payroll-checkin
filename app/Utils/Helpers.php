@@ -305,6 +305,15 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                 $message = str_replace([':name:', ':month:', ':year:', ':pdf_password:'], [trim($emp->name), $month, $year, $emp->pdf_password], $setting->sms_content_fr);
             }
 
+            if (trim($message) === '') {
+                $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
+                $record->update([
+                    'sms_sent_status' => Payslip::STATUS_FAILED,
+                    'failure_reason' => $existingReason . __('payslips.failed_sending_sms') . ': SMS content template is empty in settings'
+                ]);
+                return;
+            }
+
             try {
                 $response = $sms_client->sendSMS([
                     'sms' =>  $message,
@@ -345,6 +354,10 @@ if (!function_exists('sendSmsAndUpdateRecord')) {
                                 'employee_id' => $emp->id
                             ]);
                         }
+                    }
+
+                    if (!empty($response['error'])) {
+                        $failureReason .= ': ' . $response['error'];
                     }
 
                     // Preserve existing failure reason if any

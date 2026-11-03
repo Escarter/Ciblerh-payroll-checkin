@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Collection;
 class All extends BaseImportComponent
 {
     use WithDataTable;
+    use \App\Livewire\Traits\WithTestSms;
 
     private const DEFAULT_WORK_START_TIME = '08:00';
     private const DEFAULT_WORK_END_TIME = '17:30';

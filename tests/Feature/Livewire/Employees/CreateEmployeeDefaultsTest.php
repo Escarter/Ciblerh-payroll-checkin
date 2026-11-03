@@ -88,3 +88,18 @@ test('all employees component stores default work times when inputs are blank', 
         ->and(substr((string) $employee->work_end_time, 0, 5))->toBe('17:30')
         ->and($employee->hasRole('employee'))->toBeTrue();
 });
+
+test('test sms modal lists recorded phones and rejects unrecorded numbers', function () {
+    $employee = User::factory()->create([
+        'professional_phone_number' => '+237600000201',
+        'personal_phone_number' => '+237600000202',
+    ]);
+
+    Livewire::test(All::class)
+        ->call('openTestSms', $employee->id)
+        ->assertSet('testSmsEmployeeId', $employee->id)
+        ->assertSet('testSmsPhone', '+237600000201')
+        ->set('testSmsPhone', '+237699999999')
+        ->call('sendTestSms')
+        ->assertHasErrors('testSmsPhone');
+});
