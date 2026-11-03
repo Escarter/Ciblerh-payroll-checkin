@@ -58,7 +58,7 @@ class OrangeCameroonSMS extends SmsProvider
                 throw new Exception('SMS message cannot be empty');
             }
 
-            $maxLen = (int) config('services.orange_cm.message_max_length', 160);
+            $maxLen = (int) config('services.orange_cm.message_max_length', 0);
             if ($maxLen > 0 && mb_strlen($message) > $maxLen) {
                 $message = mb_substr($message, 0, $maxLen);
             }

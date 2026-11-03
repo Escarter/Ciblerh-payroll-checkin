@@ -58,7 +58,7 @@ return [
         'dr_callback_auto' => filter_var(env('ORANGE_CM_DR_CALLBACK_AUTO', true), FILTER_VALIDATE_BOOL),
         // Shared secret appended to (and verified on) the DR callback URL. Strongly recommended.
         'dr_callback_token' => env('ORANGE_CM_DR_CALLBACK_TOKEN', ''),
-        'message_max_length' => env('ORANGE_CM_MESSAGE_MAX_LENGTH', 160),
+        'message_max_length' => env('ORANGE_CM_MESSAGE_MAX_LENGTH', 0),
         'default_country_code' => env('ORANGE_CM_DEFAULT_COUNTRY_CODE', '237'),
         // Fallback sender if none is configured in SMS settings.
         'default_sender' => env('ORANGE_CM_DEFAULT_SENDER', ''),
