@@ -24,6 +24,12 @@ abstract class SmsProvider {
         $this->senderid = !empty($setting->sms_provider_senderid) ? (string) $setting->sms_provider_senderid : '';
     }
     
+    /** Strip display separators (commas, spaces, dots, dashes, parentheses) from a phone number. */
+    public static function cleanPhone(?string $phone): string
+    {
+        return preg_replace('/[^0-9+]/', '', (string) $phone);
+    }
+
     abstract protected function sendSMS(array $data): array;
 
     /**

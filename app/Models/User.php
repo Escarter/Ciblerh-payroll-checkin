@@ -229,6 +229,25 @@ class User extends Authenticatable implements HasLocalePreference
         return $existing;
     }
 
+    protected function professionalPhoneNumber(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => self::normalizePhoneValue($value));
+    }
+
+    protected function personalPhoneNumber(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => self::normalizePhoneValue($value));
+    }
+
+    private static function normalizePhoneValue($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        return preg_replace('/[^0-9+]/', '', (string) $value) ?: null;
+    }
+
     protected function matricule(): Attribute
     {
         return Attribute::make(
