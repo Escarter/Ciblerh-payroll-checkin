@@ -224,7 +224,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
-    @if(auth()->user()->can('company-bulkdelete') && auth()->user()->can('company-bulkrestore'))
+    @if(auth()->user()->hasAnyRole(['admin','manager']) || (auth()->user()->can('company-bulkdelete') && auth()->user()->can('company-bulkrestore')))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
