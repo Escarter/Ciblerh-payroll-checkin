@@ -14,10 +14,10 @@ namespace App\Livewire\Traits;
  */
 trait WithBulkSelection
 {
-    // When true the header checkbox selects every matching row instead of the current page.
+    // The header checkbox selects every matching row (all pages); override to restrict it to the current page.
     protected function bulkAcrossPages(): bool
     {
-        return false;
+        return true;
     }
 
     protected function bulkPageSize(): int
@@ -76,7 +76,7 @@ trait WithBulkSelection
     protected function refreshBulkFlag(string $tab): void
     {
         [$property, $flag] = $this->bulkTarget($tab);
-        $ids = $this->bulkIds(false);
+        $ids = $this->bulkIds($this->bulkAcrossPages());
 
         $this->{$flag} = $ids !== [] && array_diff($ids, $this->bulkSelected($property)) === [];
     }

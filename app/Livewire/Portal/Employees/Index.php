@@ -639,11 +639,6 @@ class Index extends BaseImportComponent
         ];
     }
 
-    protected function bulkAcrossPages(): bool
-    {
-        return true;
-    }
-
     private function scopedQuery()
     {
         return match ($this->auth_role) {

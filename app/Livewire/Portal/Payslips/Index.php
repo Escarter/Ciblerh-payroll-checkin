@@ -310,6 +310,11 @@ class Index extends Component
         return $query->orderBy('created_at', 'desc');
     }
 
+    protected function bulkAcrossPages(): bool
+    {
+        return false;
+    }
+
     protected function bulkPageSize(): int
     {
         return 20;

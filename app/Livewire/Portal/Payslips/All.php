@@ -358,11 +358,6 @@ class All extends Component
         return $query->with('department')->orderBy($this->orderBy, $this->orderAsc);
     }
 
-    protected function bulkAcrossPages(): bool
-    {
-        return true;
-    }
-
     protected function bulkSelectionMap(): array
     {
         return ['active' => ['selectedJobs', 'selectAll']];

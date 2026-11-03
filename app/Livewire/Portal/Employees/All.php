@@ -812,11 +812,6 @@ class All extends BaseImportComponent
         ];
     }
 
-    protected function bulkAcrossPages(): bool
-    {
-        return true;
-    }
-
     protected function bulkQuery()
     {
         $query = User::search($this->query)->with([

@@ -26,6 +26,7 @@ beforeEach(function () {
 
 test('select all, toggle one row and clear work through the shared trait', function () {
     $companies = Company::factory()->count(3)->create();
+    Company::factory()->count(20)->create();
     $total = Company::count();
 
     $component = Livewire::test(Companies::class)
