@@ -483,7 +483,9 @@ class Index extends Component
     {
         $setting = Setting::first();
 
-        $this->validate(['test_phone_number'=>'required|string']);
+        $this->validate(['test_phone_number' => ['required', 'string', new \App\Rules\PhoneNumber()]]);
+
+        $phone = validatePhoneNumber($this->test_phone_number)['formatted'];
 
         if (empty($setting) || (empty($setting->sms_provider_username) && empty($setting->sms_provider_password))) {
             $this->showToast(__('settings.setting_for_sms_required'), 'danger');
@@ -501,7 +503,7 @@ class Index extends Component
 
             $response = $sms_client->sendSMS([
                 'sms' =>  $this->test_sms_message,
-                'mobiles' => $this->test_phone_number,
+                'mobiles' => $phone,
             ]);
 
             if ($response['responsecode'] === 1) {
