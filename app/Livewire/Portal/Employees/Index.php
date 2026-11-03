@@ -765,14 +765,19 @@ class Index extends BaseImportComponent
             })->where('company_id', $this->company->id),
             default => User::where('id', 0), // Return empty query for unknown roles
         };
+    }
+
+    private function getEmployees()
+    {
+        $baseQuery = $this->scopedQuery();
 
         if ($this->activeTab === 'deleted') {
             return $baseQuery->withTrashed()
                 ->whereNotNull('deleted_at')
                 ->with(['roles', 'company', 'department', 'service']);
-        } else {
-            return $baseQuery->with(['roles', 'company', 'department', 'service']);
         }
+
+        return $baseQuery->with(['roles', 'company', 'department', 'service']);
     }
 
     public function initData($employee_id)
