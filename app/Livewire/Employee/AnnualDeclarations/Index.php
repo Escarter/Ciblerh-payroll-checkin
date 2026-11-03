@@ -11,6 +11,12 @@ class Index extends Component
 {
     use WithDataTable;
 
+    public function mount(): void
+    {
+        $this->orderBy = 'year';
+        $this->orderAsc = 'desc';
+    }
+
     public function download(int $id)
     {
         $declaration = AnnualDeclaration::findOrFail($id);
@@ -33,8 +39,7 @@ class Index extends Component
     public function render()
     {
         $declarations = AnnualDeclaration::visibleToEmployee(auth()->user())
-            ->orderByDesc('year')
-            ->orderByDesc('created_at')
+            ->orderBy(in_array($this->orderBy, ['year', 'created_at'], true) ? $this->orderBy : 'year', $this->orderAsc === 'asc' ? 'asc' : 'desc')
             ->paginate($this->perPage);
 
         return view('livewire.employee.annual-declarations.index', compact('declarations'))
