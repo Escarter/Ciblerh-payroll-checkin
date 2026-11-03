@@ -38,7 +38,7 @@
 
 <header class="emp-topbar emp-portal">
     <div class="emp-topbar-inner">
-        <a href="{{ route('employee.dashboard') }}" wire:navigate class="emp-brand"><img src="{{ \App\Support\Branding::get('logo') }}" alt="CibleRH"></a>
+        <a href="{{ route('employee.dashboard') }}" wire:navigate class="emp-brand"><x-brand-logo /></a>
 
         <nav class="emp-links" aria-label="Employee navigation">
             @foreach($groups as $g)
@@ -62,6 +62,7 @@
         </nav>
 
         <div class="emp-actions">
+            <button type="button" class="emp-pill rf-theme-toggle" onclick="rfToggleTheme()" title="{{ __('common.toggle_dark_mode') }}" aria-label="{{ __('common.toggle_dark_mode') }}"><svg class="emp-ico emp-ico-sm rf-icon-moon" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><svg class="emp-ico emp-ico-sm rf-icon-sun" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg></button>
             <div class="emp-lang">
                 <a href="{{ route('language-switcher', ['locale' => 'fr']) }}" wire:navigate class="{{ \App::isLocale('fr') ? 'on' : '' }}">FR</a>
                 <a href="{{ route('language-switcher', ['locale' => 'en']) }}" wire:navigate class="{{ \App::isLocale('en') ? 'on' : '' }}">EN</a>

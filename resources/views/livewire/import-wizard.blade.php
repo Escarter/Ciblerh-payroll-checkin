@@ -45,7 +45,7 @@
         .import-wizard .upload-zone {
             border: 2px dashed #cbd5e0;
             border-radius: 1rem;
-            padding: 2.5rem 1.5rem;
+            padding: 1.5rem 1.25rem;
             text-align: center;
             cursor: pointer;
             transition: all .25s ease;
@@ -355,7 +355,7 @@
                     </div>
                 @else
                     <div class="mb-2">
-                        <svg width="48" height="48" fill="none" stroke="#93a5be" viewBox="0 0 24 24" class="mb-2">
+                        <svg width="34" height="34" fill="none" stroke="#93a5be" viewBox="0 0 24 24" class="mb-2">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                         </svg>
                     </div>
@@ -363,7 +363,7 @@
                     <div class="text-muted" style="font-size:.78rem">{{ __('import.accepted_formats') }}: XLSX, XLS, CSV, TXT ({{ __('common.max') }} 50MB)</div>
                 @endif
 
-                <input wire:model="file" type="file" id="importFile" accept=".xlsx,.xls,.csv,.txt">
+                <input data-no-dropzone wire:model="file" type="file" id="importFile" accept=".xlsx,.xls,.csv,.txt">
             </div>
             @error('file') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
 

@@ -1,7 +1,7 @@
 (function () {
     function enhance(root) {
         root.querySelectorAll('.modal .modal-content').forEach((content) => {
-            if (content.querySelector('[data-rf-close], .btn-close[data-bs-dismiss="modal"], .close[data-bs-dismiss="modal"]')) return;
+            if (content.classList.contains('rf-gsearch') || content.querySelector('[data-rf-close], .btn-close, .close[data-bs-dismiss="modal"]')) return;
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'rf-modal-close';

@@ -754,6 +754,7 @@ return [
     'thank_you' => 'Merci',
     'time_worked' => 'Temps travaillé',
     'unauthorized_access' => 'Accès non autorisé',
+    'toggle_dark_mode' => 'Basculer le mode sombre',
     'unknown_danger' => 'Erreur inconnue',
     'upload_signature' => 'Téléverser la signature',
     'upload_transparent_white_background_signature' => 'Téléversez une signature avec un fond transparent ou blanc',

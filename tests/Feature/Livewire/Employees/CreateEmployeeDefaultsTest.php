@@ -18,6 +18,7 @@ beforeEach(function () {
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+    Role::firstOrCreate(['name' => 'manager', 'guard_name' => 'web']);
     Role::firstOrCreate(['name' => 'employee', 'guard_name' => 'web']);
     Role::firstOrCreate(['name' => 'supervisor', 'guard_name' => 'web']);
 
@@ -31,6 +32,18 @@ beforeEach(function () {
     Gate::define('employee-read', fn () => true);
 
     Event::fake([EmployeeCreated::class]);
+});
+
+test('portal roles can view all employees without the employee-read permission', function () {
+    Gate::define('employee-read', fn () => false);
+
+    foreach (['admin', 'manager', 'supervisor'] as $role) {
+        $user = User::factory()->create();
+        $user->syncRoles([$role]);
+        actingAs($user);
+
+        Livewire::test(All::class)->assertOk();
+    }
 });
 
 test('company employee component stores default work times when inputs are blank', function () {

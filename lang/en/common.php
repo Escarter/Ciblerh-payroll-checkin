@@ -752,6 +752,7 @@ return [
     'thank_you' => 'Thank you',
     'time_worked' => 'Time worked',
     'unauthorized_access' => 'Unauthorized access',
+    'toggle_dark_mode' => 'Toggle dark mode',
     'unknown_danger' => 'Unknown error',
     'upload_signature' => 'Upload signature',
     'upload_transparent_white_background_signature' => 'Upload a signature with a transparent or white background',

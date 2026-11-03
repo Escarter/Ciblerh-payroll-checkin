@@ -1341,9 +1341,10 @@ class Index extends BaseImportComponent
     }
     public function render()
     {
-        if (!Gate::allows('employee-read')) {
-            return abort(401);
-        }
+        abort_unless(
+            auth()->user()?->hasAnyRole(['admin', 'manager', 'supervisor']) || Gate::allows('employee-read'),
+            403
+        );
         $employees = $this->getEmployees()->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
 
         $employees_count = match ($this->auth_role) {

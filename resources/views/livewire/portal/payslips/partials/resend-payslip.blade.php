@@ -1,12 +1,12 @@
 <div wire:ignore.self class="modal fade" id="resendPayslipModal" tabindex="-1" role="dialog" aria-labelledby="resendPayslipModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content border-0 shadow-lg">
+        <div class="modal-content rf-resend">
             <!-- Modal Header -->
-            <div class="modal-header border-0 pb-0">
+            <div class="modal-header border-0 pb-0 pe-5">
                 <div class="d-flex align-items-center w-100">
                     <div class="flex-shrink-0 me-3">
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                            <svg class="icon icon-lg text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <div class="rf-resend-icon d-inline-flex align-items-center justify-content-center">
+                            <svg class="icon icon-lg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                             </svg>
                         </div>
@@ -34,12 +34,12 @@
                     @endphp
                     
                     <!-- Employee Info Card -->
-                    <div class="card border mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                    <div class="card rf-resend-person mb-4">
                         <div class="card-body p-3">
                             <div class="d-flex align-items-center">
                                 <div class="flex-shrink-0">
-                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2 d-inline-flex align-items-center justify-content-center">
-                                        <svg class="icon icon-sm text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <div class="rf-resend-avatar d-inline-flex align-items-center justify-content-center">
+                                        <svg class="icon icon-sm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                         </svg>
                                     </div>
@@ -66,10 +66,7 @@
                             <div class="row g-3">
                                 <!-- Email Option -->
                                 <div class="col-12">
-                                    <div class="card border h-100" style="transition: all 0.3s ease; cursor: pointer;" 
-                                         onclick="document.getElementById('forceResendEmail').click()"
-                                         onmouseover="this.style.borderColor='#0d6efd'; this.style.boxShadow='0 0 0 0.2rem rgba(13, 110, 253, 0.1)'"
-                                         onmouseout="this.style.borderColor=''; this.style.boxShadow=''">
+                                    <div class="card rf-resend-option h-100" onclick="document.getElementById('forceResendEmail').click()">
                                         <div class="card-body p-3">
                                             <div class="form-check d-flex align-items-start">
                                                 <input class="form-check-input mt-1" type="checkbox" wire:model="forceResendEmail" id="forceResendEmail" 
@@ -84,21 +81,21 @@
                                                         </div>
                                                         <div>
                                                             @if($emailSuccessful)
-                                                                <span class="badge bg-success bg-opacity-10 text-white border border-success border-opacity-25 px-3 py-2">
+                                                                <span class="badge rf-resend-badge rf-resend-badge-success">
                                                                     <svg class="icon icon-xs me-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                                                     </svg>
                                                                     {{__('common.successful')}}
                                                                 </span>
                                                             @elseif($emailFailed)
-                                                                <span class="badge bg-danger bg-opacity-10 text-white border border-danger border-opacity-25 px-3 py-2">
+                                                                <span class="badge rf-resend-badge rf-resend-badge-danger">
                                                                     <svg class="icon icon-xs me-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                                                     </svg>
                                                                     {{__('common.failed')}}
                                                                 </span>
                                                             @elseif($emailPending)
-                                                                <span class="badge bg-warning bg-opacity-10 text-white border border-warning border-opacity-25 px-3 py-2">
+                                                                <span class="badge rf-resend-badge rf-resend-badge-warning">
                                                                     <svg class="icon icon-xs me-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                     </svg>
@@ -115,10 +112,7 @@
                                 
                                 <!-- SMS Option -->
                                 <div class="col-12">
-                                    <div class="card border h-100" style="transition: all 0.3s ease; cursor: pointer;" 
-                                         onclick="document.getElementById('forceResendSms').click()"
-                                         onmouseover="this.style.borderColor='#0d6efd'; this.style.boxShadow='0 0 0 0.2rem rgba(13, 110, 253, 0.1)'"
-                                         onmouseout="this.style.borderColor=''; this.style.boxShadow=''">
+                                    <div class="card rf-resend-option h-100" onclick="document.getElementById('forceResendSms').click()">
                                         <div class="card-body p-3">
                                             <div class="form-check d-flex align-items-start">
                                                 <input class="form-check-input mt-1" type="checkbox" wire:model="forceResendSms" id="forceResendSms"
@@ -133,21 +127,21 @@
                                                         </div>
                                                         <div>
                                                             @if($smsSuccessful)
-                                                                <span class="badge bg-success bg-opacity-10 text-white border border-success border-opacity-25 px-3 py-2">
+                                                                <span class="badge rf-resend-badge rf-resend-badge-success">
                                                                     <svg class="icon icon-xs me-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                                                                     </svg>
                                                                     {{__('common.successful')}}
                                                                 </span>
                                                             @elseif($smsFailed)
-                                                                <span class="badge bg-danger bg-opacity-10 text-white border border-danger border-opacity-25 px-3 py-2">
+                                                                <span class="badge rf-resend-badge rf-resend-badge-danger">
                                                                     <svg class="icon icon-xs me-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                                                     </svg>
                                                                     {{__('common.failed')}}
                                                                 </span>
                                                             @elseif($smsPending)
-                                                                <span class="badge bg-warning bg-opacity-10 text-white border border-warning border-opacity-25 px-3 py-2">
+                                                                <span class="badge rf-resend-badge rf-resend-badge-warning">
                                                                     <svg class="icon icon-xs me-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                                     </svg>
@@ -164,7 +158,7 @@
                             </div>
                             
                             <!-- Info Note -->
-                            <div class="alert alert-light border mt-3 mb-0 d-flex align-items-start" role="alert">
+                            <div class="rf-resend-note mt-3 mb-0 d-flex align-items-start" role="alert">
                                 <svg class="icon icon-sm text-info me-2 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
                                 </svg>
@@ -180,7 +174,7 @@
             
             <!-- Modal Footer -->
             <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal" wire:click="$set('forceResendEmail', false); $set('forceResendSms', false);">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" wire:click="$set('forceResendEmail', false); $set('forceResendSms', false);">
                     {{__('common.cancel')}}
                 </button>
                 <button type="button" wire:click="resendPayslip" class="btn btn-primary px-4" data-bs-dismiss="modal">

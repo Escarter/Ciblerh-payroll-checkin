@@ -56,6 +56,17 @@ return [
 
     // Branding
     'ciberh' => 'CibeRH',
+    'password_label' => 'Password',
+    'show_password' => 'Show password',
+    'welcome_back' => 'Welcome back',
+    'welcome_sub' => 'Sign in to access your payslips, check-ins and HR documents.',
+    'hero_kicker' => 'YOUR HR, SIMPLIFIED',
+    'hero_title' => 'Everything HR, in one secure place.',
+    'hero_text' => 'A secure space for your payslips, annual declarations, leave and attendance.',
+    'feature_1' => 'Your payslips and annual declarations',
+    'feature_2' => 'Leave requests and attendance',
+    'feature_3' => 'Secure, private and always available',
+    'rights' => 'All rights reserved.',
     'hr' => 'HR',
     'e_mail_address' => 'E-mail Address',
     'language' => 'Language',

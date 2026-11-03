@@ -32,7 +32,7 @@ class Branding
 
     public static function all(): array
     {
-        return Cache::remember(self::CACHE_KEY, 3600, function () {
+        return Cache::remember(self::CACHE_KEY . '.v2', 3600, function () {
             $row = null;
             try {
                 if (Schema::hasColumn('settings', 'brand_primary_color')) {
@@ -48,6 +48,7 @@ class Branding
             return [
                 'app_name' => $row?->brand_app_name ?: (config('app.name') ?: 'CibleRH'),
                 'logo' => self::fileUrl($row?->brand_logo_path) ?? asset('img/logo.jpg'),
+                'show_logo' => (bool) ($row?->brand_show_logo ?? true),
                 'favicon' => self::fileUrl($row?->brand_favicon_path) ?? asset('img/fav.jpg'),
                 'primary' => $primary,
                 'secondary' => self::validColor($row?->brand_secondary_color) ?? self::DEFAULT_SECONDARY,
@@ -70,6 +71,7 @@ class Branding
     public static function flush(): void
     {
         Cache::forget(self::CACHE_KEY);
+        Cache::forget(self::CACHE_KEY . '.v2');
     }
 
     public static function validColor(?string $color): ?string
@@ -121,9 +123,46 @@ class Branding
         return ":root{--rf-brand:{$p};--rf-brand-hover:" . self::darken($p, .15)
             . ";--rf-brand-2:" . self::lighten($p, .25)
             . ";--rf-brand-soft:color-mix(in srgb,{$p} 8%,transparent);--rf-brand-ring:color-mix(in srgb,{$p} 18%,transparent);--rf-accent:{$s};}"
-            . self::sidebarCss(self::get('sidebar'), $p)
-            . self::portalCss()
+            . self::alwaysCss()
+            . self::lightOnly(self::sidebarCss(self::get('sidebar'), $p) . self::portalCss())
+            . self::darkCss($p, $s)
             . "*{font-family:{$stack};}";
+    }
+
+    protected static function alwaysCss(): string
+    {
+        [$r, $rs] = self::RADII[self::get('radius')];
+        $hero = self::get('emp_hero');
+
+        return ":root{--rf-radius:{$r};--rf-radius-sm:{$rs};}"
+            . ".emp-hero{background:radial-gradient(120% 140% at 100% 0%," . self::lighten($hero, .2) . " 0%,transparent 55%),linear-gradient(135deg," . self::darken($hero, .2) . " 0%,{$hero} 60%," . self::lighten($hero, .12) . " 100%)!important;}";
+    }
+
+    // Custom surface colours (sidebar, top bar, page background) apply to the light theme only.
+    protected static function lightOnly(string $css): string
+    {
+        $scope = 'html:not([data-theme="dark"])';
+
+        return preg_replace_callback('/([^{}]+)\{([^{}]*)\}/', function ($m) use ($scope) {
+            $selectors = array_map(function ($sel) use ($scope) {
+                $sel = trim($sel);
+
+                return $sel === ':root' ? $scope : $scope . ' ' . $sel;
+            }, explode(',', $m[1]));
+
+            return implode(',', $selectors) . '{' . $m[2] . '}';
+        }, $css);
+    }
+
+    // Keep the chosen brand hue in dark mode, lightened so it stays readable on dark surfaces.
+    protected static function darkCss(string $primary, string $secondary): string
+    {
+        $brand = self::isDark($primary) ? self::lighten($primary, .45) : $primary;
+        $accent = self::isDark($secondary) ? self::lighten($secondary, .4) : $secondary;
+
+        return 'html[data-theme="dark"]{--rf-brand:' . $brand . ';--rf-brand-hover:' . self::lighten($brand, .15)
+            . ';--rf-brand-2:' . self::lighten($brand, .2)
+            . ';--rf-brand-soft:color-mix(in srgb,' . $brand . ' 16%,transparent);--rf-brand-ring:color-mix(in srgb,' . $brand . ' 28%,transparent);--rf-accent:' . $accent . ';}';
     }
 
     public static function isDark(string $hex): bool
@@ -136,11 +175,7 @@ class Branding
     protected static function portalCss(): string
     {
         $css = '';
-        [$r, $rs] = self::RADII[self::get('radius')];
-        $css .= ":root{--rf-radius:{$r};--rf-radius-sm:{$rs};--rf-bg:" . self::get('page_bg') . ';}';
-
-        $hero = self::get('emp_hero');
-        $css .= ".emp-hero{background:radial-gradient(120% 140% at 100% 0%," . self::lighten($hero, .2) . " 0%,transparent 55%),linear-gradient(135deg," . self::darken($hero, .2) . " 0%,{$hero} 60%," . self::lighten($hero, .12) . " 100%)!important;}";
+        $css .= ':root{--rf-bg:' . self::get('page_bg') . ';}';
 
         $nav = self::get('emp_nav');
         if ($nav !== self::DEFAULT_EMP_NAV) {
@@ -152,6 +187,11 @@ class Branding
                 . ".emp-portal .emp-pill{background:transparent;color:{$text}!important;border-color:{$line};}"
                 . ".emp-portal .emp-pill-danger{color:" . ($dark ? '#fecaca' : '#b91c1c') . "!important;}"
                 . ".emp-tab{color:" . ($dark ? '#a9b6cc' : '#94a3b8') . "!important;}.emp-tab.active{color:{$active}!important;}"
+                . ".emp-portal .emp-link{color:" . ($dark ? '#cbd5e1' : '#475569') . "!important;}"
+                . ".emp-portal .emp-link:hover{background:" . ($dark ? 'rgba(255,255,255,.12)' : '#f1f5f9') . ";color:" . ($dark ? '#fff' : '#0f172a') . "!important;}"
+                . ".emp-portal .emp-link.active{background:" . ($dark ? 'rgba(255,255,255,.18)' : 'var(--rf-brand-soft)') . ";color:{$active}!important;}"
+                . ".emp-portal .emp-brand .rf-brand-text{color:" . ($dark ? '#fff' : 'var(--rf-brand)') . ";}"
+                . ".emp-portal .emp-topbar-inner .dropdown-toggle,.emp-portal .emp-avatar,.emp-portal .emp-user{color:" . ($dark ? '#fff' : 'inherit') . "!important;}"
                 . ($dark ? ".emp-portal .emp-brand img{background:#fff;padding:.2rem .45rem;border-radius:.5rem;}" : '');
         }
 
@@ -168,7 +208,7 @@ class Branding
             $line = self::lighten($bg, .16);
 
             return ":root{--rf-sb-bg:{$bg};--rf-sb-text:#e2e8f0;--rf-sb-ink:#fff;--rf-sb-icon:#a9b6cc;--rf-sb-hover:{$hover};--rf-sb-line:{$line};--rf-sb-active-bg:rgba(255,255,255,.14);--rf-sb-active-text:#fff;}"
-                . "#sidebarMenu #fullLogo{background:#fff!important;padding:.35rem .6rem;border-radius:.6rem!important;}";
+                . "#sidebarMenu img#fullLogo{background:#fff!important;padding:.35rem .6rem;border-radius:.6rem!important;}#sidebarMenu span#fullLogo{color:#fff!important;}";
         }
         $hover = self::darken($bg, .05);
         $line = self::darken($bg, .1);

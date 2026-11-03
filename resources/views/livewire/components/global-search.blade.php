@@ -24,19 +24,10 @@
          @keydown.enter.prevent="$wire.selectItem()"
          @keydown.escape.prevent="$wire.closeSearch()">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content border-0 shadow-lg">
-                <!-- Modal Header with Close Button -->
-                <div class="modal-header border-bottom">
-                    <button type="button"
-                            class="btn-close ms-auto"
-                            @click="$wire.closeSearch()"
-                            aria-label="Close">
-                    </button>
-                </div>
-
+            <div class="modal-content rf-gsearch">
                 <!-- Search Input -->
-                <div class="p-4 border-bottom">
-                    <div class="position-relative">
+                <div class="rf-gsearch-bar">
+                    <div class="position-relative flex-grow-1">
                         <svg class="position-absolute top-50 translate-middle-y ms-3 text-muted" 
                              width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -44,7 +35,7 @@
                         </svg>
                         <input
                             type="text"
-                            class="form-control form-control-lg ps-5 border-0 bg-light"
+                            class="form-control form-control-lg ps-5"
                             placeholder="{{ __('common.search_pages_features') }}"
                             wire:model.live.debounce.300ms="search"
                             x-ref="searchInput"
@@ -58,12 +49,12 @@
                 </div>
 
                 <!-- Search Results -->
-                <div class="modal-body p-0" style="max-height: 400px; overflow-y: auto;">
+                <div class="modal-body p-0 rf-gsearch-body">
                     @if(count($results) > 0)
                         <div class="list-group list-group-flush">
                             @foreach($results as $index => $item)
                                 <button type="button" 
-                                        class="list-group-item list-group-item-action border-0 px-4 py-3 d-flex align-items-center
+                                        class="list-group-item list-group-item-action rf-gsearch-item d-flex align-items-center
                                                @if($selectedIndex === $index) active @endif"
                                         wire:click="selectItem({{ $index }})"
                                         wire:key="search-result-{{ $item['id'] }}">
@@ -90,7 +81,7 @@
                                     
                                     <!-- Group Badge -->
                                     @if($item['group'])
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary small">
+                                        <span class="rf-gsearch-tag">
                                             {{ $item['group'] }}
                                         </span>
                                     @endif

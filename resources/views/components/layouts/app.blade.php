@@ -36,12 +36,12 @@
     <link type="text/css" href="{{ asset('vendor/leaflet/dist/leaflet.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/medium-editor.css')}}" rel="stylesheet">
     <link type="text/css" href="{{ asset('vendor/medium-editor/css/themes/default.css')}}" rel="stylesheet">
-    <link type="text/css" href="{{ asset('css/theme.css')}}" rel="stylesheet">
-    <link type="text/css" href="{{ asset('css/theme-refined.css')}}?v={{ @filemtime(public_path('css/theme-refined.css')) }}" rel="stylesheet">
+    @vite('resources/css/main.css')
+    <script src="{{ asset('js/dark-mode.js') }}?v={{ @filemtime(public_path('js/dark-mode.js')) }}"></script>
     <style>{!! \App\Support\Branding::css() !!}</style>
     <style>
 
-        /* Sidebar and content layout live in css/theme-refined.css */
+        /* Sidebar and content layout live in resources/css/refined.css */
     </style>
     @livewireStyles
 
@@ -329,9 +329,7 @@
     <script src="{{ asset('vendor/choices.js/public/assets/scripts/choices.min.js')}}"></script>
     <!-- Choices.js CDN JS -->
     <script src="https://cdn.jsdelivr.net/npm/choices.js@10.2.0/public/assets/scripts/choices.min.js"></script>
-    <script src="{{ asset('js/rf-select.js') }}?v={{ @filemtime(public_path('js/rf-select.js')) }}"></script>
-    <script src="{{ asset('js/rf-dropzone.js') }}?v={{ @filemtime(public_path('js/rf-dropzone.js')) }}"></script>
-    <script src="{{ asset('js/rf-modal-close.js') }}?v={{ @filemtime(public_path('js/rf-modal-close.js')) }}"></script>
+    @vite('resources/js/rf.js')
     <script src="{{ asset('vendor/medium-editor/js/medium-editor.js')}}"></script>
     <script src="{{ asset('js/theme.js')}}"></script>
     <script>

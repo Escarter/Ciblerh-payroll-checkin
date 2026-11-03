@@ -23,6 +23,7 @@ class Appearance extends Component
     public $radius = 'soft';
     public $font_family = Branding::DEFAULT_FONT;
     public $timezone = '';
+    public $show_logo = true;
     public $logo;
     public $favicon;
     public $current_logo;
@@ -45,6 +46,7 @@ class Appearance extends Component
         $this->emp_nav_color = $b['emp_nav'];
         $this->emp_hero_color = $b['emp_hero'];
         $this->page_bg_color = $b['page_bg'];
+        $this->show_logo = $b['show_logo'] ?? true;
         $this->radius = $b['radius'];
         $this->font_family = $b['font'];
         $this->timezone = $b['timezone'] ?? config('app.timezone');
@@ -62,6 +64,7 @@ class Appearance extends Component
             'emp_nav_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'emp_hero_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'page_bg_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'show_logo' => ['boolean'],
             'radius' => ['required', 'in:sharp,soft,round'],
             'font_family' => ['required', 'in:' . implode(',', array_keys(Branding::FONTS))],
             'timezone' => ['required', 'in:' . implode(',', timezone_identifiers_list())],
@@ -84,6 +87,7 @@ class Appearance extends Component
             'brand_emp_nav_color' => strtolower($this->emp_nav_color),
             'brand_emp_hero_color' => strtolower($this->emp_hero_color),
             'brand_page_bg_color' => strtolower($this->page_bg_color),
+            'brand_show_logo' => (bool) $this->show_logo,
             'brand_radius' => $this->radius,
             'brand_font_family' => $this->font_family,
             'brand_timezone' => $this->timezone,
@@ -133,7 +137,7 @@ class Appearance extends Component
             $this->deleteOld($setting->brand_favicon_path);
             $setting->update([
                 'brand_app_name' => null, 'brand_logo_path' => null, 'brand_favicon_path' => null,
-                'brand_primary_color' => null, 'brand_secondary_color' => null, 'brand_sidebar_color' => null, 'brand_emp_nav_color' => null, 'brand_emp_hero_color' => null, 'brand_page_bg_color' => null, 'brand_radius' => null,
+                'brand_primary_color' => null, 'brand_secondary_color' => null, 'brand_sidebar_color' => null, 'brand_emp_nav_color' => null, 'brand_emp_hero_color' => null, 'brand_page_bg_color' => null, 'brand_radius' => null, 'brand_show_logo' => true,
                 'brand_font_family' => null, 'brand_timezone' => null,
             ]);
         }

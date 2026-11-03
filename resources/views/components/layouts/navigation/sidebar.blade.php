@@ -29,8 +29,12 @@
                                     <!-- <span class="ml-0 lead "><span class="bg-white px-1 border rounded text-secondary display-4">{{ __('common.admin') }}</span>
                                         <span class="display-4">{{ __('common.portal') }}</span>
                                     </span> -->
-                                    <img src="{{ \App\Support\Branding::get('logo') }}" class="rounded" id="fullLogo" alt="CibleRH">
-                                    <img src="{{ asset('/img/fav.jpg') }}" class="rounded d-none" id="smallLogo" alt="CibleRH">
+                                    <x-brand-logo class="rounded" id="fullLogo" />
+                                    @if (\App\Support\Branding::get('show_logo', true))
+                                        <img src="{{ \App\Support\Branding::get('favicon') }}" class="rounded d-none" id="smallLogo" alt="{{ \App\Support\Branding::get('app_name') }}">
+                                    @else
+                                        <span class="rf-brand-initial d-none" id="smallLogo">{{ mb_strtoupper(mb_substr(\App\Support\Branding::get('app_name'), 0, 1)) }}</span>
+                                    @endif
                                 </div>
                             </div>
 

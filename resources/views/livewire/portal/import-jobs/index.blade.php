@@ -357,16 +357,16 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     @if($activeTab === 'active')
-                                    <a href="#" wire:click="viewJobDetails({{$job->id}})" title="{{__('import_jobs.view_details')}}">
-                                        <svg class="icon icon-xs text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-primary" wire:click="viewJobDetails({{$job->id}})" title="{{__('import_jobs.view_details')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                         </svg>
                                     </a>
                                     @if($job->isFailed())
                                     @can('importjob-update')
-                                    <a href="#" wire:click="retryModal({{$job->id}})" title="{{__('import_jobs.retry_job')}}">
-                                        <svg class="icon icon-xs text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-success" wire:click="retryModal({{$job->id}})" title="{{__('import_jobs.retry_job')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>
                                     </a>
@@ -374,31 +374,31 @@
                                     @endif
                                     @if($job->can_be_cancelled)
                                     @can('importjob-cancel')
-                                    <a href="#" wire:click="cancelJob({{$job->id}})" wire:confirm="{{__('import_jobs.confirm_cancel_job')}}" title="{{__('import_jobs.cancel_job')}}">
-                                        <svg class="icon icon-xs text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-warning" wire:click="cancelJob({{$job->id}})" wire:confirm="{{__('import_jobs.confirm_cancel_job')}}" title="{{__('import_jobs.cancel_job')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
                                     </a>
                                     @endcan
                                     @endif
                                     @can('importjob-delete')
-                                    <a href="#" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" title="{{__('common.move_to_trash')}}">
-                                        <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-danger" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" title="{{__('common.move_to_trash')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </a>
                                     @endcan
                                     @else
                                     @can('importjob-update')
-                                    <a href="#" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('common.restore')}}">
-                                        <svg class="icon icon-xs text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-success" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('common.restore')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>
                                     </a>
                                     @endcan
                                     @can('importjob-delete')
-                                    <a href="#" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" title="{{__('common.delete_forever')}}">
-                                        <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-danger" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" title="{{__('common.delete_forever')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </a>

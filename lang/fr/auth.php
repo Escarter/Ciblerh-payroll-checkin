@@ -55,6 +55,17 @@ return [
 
     // Branding
     'ciberh' => 'CibeRH',
+    'password_label' => 'Mot de passe',
+    'show_password' => 'Afficher le mot de passe',
+    'welcome_back' => 'Bon retour',
+    'welcome_sub' => 'Connectez-vous pour accéder à vos bulletins, pointages et documents RH.',
+    'hero_kicker' => 'VOTRE RH, SIMPLIFIÉE',
+    'hero_title' => 'Tout le RH, en un seul endroit sécurisé.',
+    'hero_text' => 'Un espace sécurisé pour vos bulletins de paie, déclarations annuelles, congés et présences.',
+    'feature_1' => 'Vos bulletins et déclarations annuelles',
+    'feature_2' => 'Demandes de congés et présences',
+    'feature_3' => 'Sécurisé, privé et toujours disponible',
+    'rights' => 'Tous droits réservés.',
     'hr' => 'RH',
     'e_mail_address' => 'Adresse e-mail',
     'language' => 'Langue',

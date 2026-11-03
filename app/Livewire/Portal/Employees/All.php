@@ -1445,9 +1445,10 @@ class All extends BaseImportComponent
     }
     public function render()
     {
-        if (!Gate::allows('employee-read')) {
-            return abort(401);
-        }
+        abort_unless(
+            auth()->user()?->hasAnyRole(['admin', 'manager', 'supervisor']) || Gate::allows('employee-read'),
+            403
+        );
 
         $employees = $this->getEmployees();
 

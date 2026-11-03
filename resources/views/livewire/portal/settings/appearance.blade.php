@@ -44,6 +44,12 @@
                         @error('app_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" role="switch" id="show_logo" wire:model.live="show_logo">
+                        <label class="form-check-label" for="show_logo">{{ __('settings.show_logo') }}</label>
+                        <div class="small text-muted">{{ __('settings.show_logo_hint') }}</div>
+                    </div>
+
                     <div class="row g-4">
                         <div class="col-md-6">
                             <label>{{ __('settings.logo') }}</label>
@@ -72,6 +78,40 @@
             <div class="card mb-4">
                 <div class="card-header"><h2 class="h6 mb-0">{{ __('settings.colors_and_font') }}</h2></div>
                 <div class="card-body">
+                    <div class="mb-4">
+                        <label>{{ __('settings.palettes') }}</label>
+                        <div class="rf-palettes">
+                            @foreach ([
+                                ['Ocean', '#1d4ba0', '#38bdf8'],
+                                ['Teal', '#0e7490', '#f59e0b'],
+                                ['Forest', '#047857', '#a3e635'],
+                                ['Violet', '#7c3aed', '#f472b6'],
+                                ['Ruby', '#be123c', '#fb923c'],
+                                ['Amber', '#b45309', '#0ea5e9'],
+                                ['Midnight', '#0f172a', '#6366f1'],
+                                ['Sunset', '#c2410c', '#8b5cf6'],
+                ['Sky', '#0369a1', '#f97316'],
+                ['Emerald', '#059669', '#6366f1'],
+                ['Plum', '#86198f', '#facc15'],
+                ['Rose', '#e11d48', '#14b8a6'],
+                ['Slate', '#334155', '#22d3ee'],
+                ['Indigo', '#4338ca', '#fbbf24'],
+                ['Lime', '#4d7c0f', '#e879f9'],
+                ['Coral', '#dc2626', '#0ea5e9'],
+                ['Cocoa', '#7c2d12', '#d4a373'],
+                ['Navy', '#1e3a8a', '#f43f5e'],
+                ['Mint', '#0f766e', '#a3e635'],
+                ['Graphite', '#18181b', '#a1a1aa'],
+                            ] as [$name, $pp, $ss])
+                                <button type="button" class="rf-palette" x-on:click="p='{{ $pp }}'; s='{{ $ss }}'; eh='{{ $pp }}'" x-bind:class="{ 'is-on': p === '{{ $pp }}' && s === '{{ $ss }}' }">
+                                    <span class="rf-palette-chip"><i style="background:{{ $pp }}"></i><i style="background:{{ $ss }}"></i></span>
+                                    <small>{{ $name }}</small>
+                                </button>
+                            @endforeach
+                        </div>
+                        <div class="small text-muted mt-1">{{ __('settings.palettes_hint') }}</div>
+                    </div>
+
                     <div class="row g-4">
                         <div class="col-md-6">
                             <label>{{ __('settings.primary_color') }}</label>
@@ -79,7 +119,12 @@
                                 <input type="color" x-model="p" aria-label="{{ __('settings.primary_color') }}">
                                 <input type="text" x-model="p" class="form-control @error('primary_color') is-invalid @enderror" maxlength="7">
                             </div>
-                            @error('primary_color') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                        <div class="rf-swatches" role="group">
+                                @foreach (['#1d4ba0','#0e7490','#047857','#7c3aed','#be123c','#b45309','#0f172a','#c2410c','#0369a1'] as $c)
+                                    <button type="button" class="rf-swatch" style="background:{{ $c }}" x-on:click="p='{{ $c }}'" x-bind:class="{ 'is-on': p === '{{ $c }}' }" aria-label="{{ $c }}"></button>
+                                @endforeach
+                            </div>
+@error('primary_color') <div class="text-danger small">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
                             <label>{{ __('settings.secondary_color') }}</label>
@@ -87,7 +132,12 @@
                                 <input type="color" x-model="s" aria-label="{{ __('settings.secondary_color') }}">
                                 <input type="text" x-model="s" class="form-control @error('secondary_color') is-invalid @enderror" maxlength="7">
                             </div>
-                            @error('secondary_color') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                        <div class="rf-swatches" role="group">
+                                @foreach (['#3b6fd0','#06b6d4','#10b981','#a78bfa','#f43f5e','#f59e0b','#64748b','#fb923c','#38bdf8'] as $c)
+                                    <button type="button" class="rf-swatch" style="background:{{ $c }}" x-on:click="s='{{ $c }}'" x-bind:class="{ 'is-on': s === '{{ $c }}' }" aria-label="{{ $c }}"></button>
+                                @endforeach
+                            </div>
+@error('secondary_color') <div class="text-danger small">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
                             <label>{{ __('settings.sidebar_color') }}</label>
@@ -133,7 +183,12 @@
                                 <input type="color" x-model="en" aria-label="{{ __('settings.emp_nav_color') }}">
                                 <input type="text" x-model="en" class="form-control @error('emp_nav_color') is-invalid @enderror" maxlength="7">
                             </div>
-                            @error('emp_nav_color') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                        <div class="rf-swatches" role="group">
+                                @foreach (['#ffffff','#f1f5f9','#1d4ba0','#0f172a','#0e7490','#047857','#7c3aed','#be123c','#b45309'] as $c)
+                                    <button type="button" class="rf-swatch" style="background:{{ $c }}" x-on:click="en='{{ $c }}'" x-bind:class="{ 'is-on': en === '{{ $c }}' }" aria-label="{{ $c }}"></button>
+                                @endforeach
+                            </div>
+@error('emp_nav_color') <div class="text-danger small">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
                             <label>{{ __('settings.emp_hero_color') }}</label>
@@ -141,7 +196,12 @@
                                 <input type="color" x-model="eh" aria-label="{{ __('settings.emp_hero_color') }}">
                                 <input type="text" x-model="eh" class="form-control @error('emp_hero_color') is-invalid @enderror" maxlength="7">
                             </div>
-                            @error('emp_hero_color') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                        <div class="rf-swatches" role="group">
+                                @foreach (['#ffffff','#f1f5f9','#1d4ba0','#0f172a','#0e7490','#047857','#7c3aed','#be123c','#b45309'] as $c)
+                                    <button type="button" class="rf-swatch" style="background:{{ $c }}" x-on:click="eh='{{ $c }}'" x-bind:class="{ 'is-on': eh === '{{ $c }}' }" aria-label="{{ $c }}"></button>
+                                @endforeach
+                            </div>
+@error('emp_hero_color') <div class="text-danger small">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
                             <label>{{ __('settings.page_bg_color') }}</label>
@@ -149,7 +209,12 @@
                                 <input type="color" x-model="pb" aria-label="{{ __('settings.page_bg_color') }}">
                                 <input type="text" x-model="pb" class="form-control @error('page_bg_color') is-invalid @enderror" maxlength="7">
                             </div>
-                            @error('page_bg_color') <div class="text-danger small">{{ $message }}</div> @enderror
+                                                        <div class="rf-swatches" role="group">
+                                @foreach (['#f7f8fb','#ffffff','#f1f5f9','#fef9f3','#f0fdf4','#eff6ff','#faf5ff','#0f172a'] as $c)
+                                    <button type="button" class="rf-swatch" style="background:{{ $c }}" x-on:click="pb='{{ $c }}'" x-bind:class="{ 'is-on': pb === '{{ $c }}' }" aria-label="{{ $c }}"></button>
+                                @endforeach
+                            </div>
+@error('page_bg_color') <div class="text-danger small">{{ $message }}</div> @enderror
                         </div>
                         <div class="col-md-6">
                             <label for="radius">{{ __('settings.roundness') }}</label>
@@ -171,10 +236,15 @@
         </div>
 
         <div class="col-lg-5">
-            <div class="card position-sticky" style="top:5rem;" x-bind:style="`--pv:${p};--pa:${s};--sb:${sb}`">
+            <div class="position-sticky" style="top:5rem;" x-bind:style="`--pv:${p};--pa:${s};--sb:${sb};--en:${en};--eh:${eh};--pb:${pb}`">
+            <div class="card mb-3">
                 <div class="card-header"><h2 class="h6 mb-0">{{ __('settings.preview') }}</h2></div>
                 <div class="card-body rf-pv">
-                    <img src="{{ $logo ? $logo->temporaryUrl() : $current_logo }}" alt="" class="rf-pv-logo mb-3">
+                    @if ($show_logo)
+                        <img src="{{ $logo ? $logo->temporaryUrl() : $current_logo }}" alt="" class="rf-pv-logo mb-3">
+                    @else
+                        <div class="rf-brand-text mb-3">{{ $app_name ?: config('app.name') }}</div>
+                    @endif
                     <div class="rf-pv-title">{{ $app_name ?: config('app.name') }}</div>
                     <div class="rf-pv-bar"></div>
                     <div class="d-flex gap-2 my-3">
@@ -185,6 +255,36 @@
                     <span class="rf-pv-badge" style="background:var(--pa)">Accent</span>
                     <div class="rf-pv-sidebar mt-3" style="background:var(--sb)"><span></span><span></span><span></span></div>
                 </div>
+            </div>
+
+            <div class="card" x-data="{ dark(c) { const n = parseInt((c || '#fff').slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) < 150; } }">
+                <div class="card-header"><h2 class="h6 mb-0">{{ __('settings.employee_portal_preview') }}</h2></div>
+                <div class="card-body p-3">
+                    <div class="rf-ep" x-bind:class="{ 'is-dark': dark(en) }" x-bind:style="`background:${pb}`">
+                        <div class="rf-ep-nav" x-bind:style="`background:${en}`">
+                            @if ($show_logo)
+                                <img src="{{ $logo ? $logo->temporaryUrl() : $current_logo }}" alt="" class="rf-ep-logo">
+                            @else
+                                <span class="rf-ep-name">{{ $app_name ?: config('app.name') }}</span>
+                            @endif
+                            <span class="rf-ep-links"><i class="on"></i><i></i><i></i></span>
+                            <span class="rf-ep-pill"></span>
+                        </div>
+                        <div class="rf-ep-body">
+                            <div class="rf-ep-hero" x-bind:style="`background:linear-gradient(135deg, ${eh}, ${eh}cc)`">
+                                <small>{{ __('settings.preview') }}</small>
+                                <strong>{{ $app_name ?: config('app.name') }}</strong>
+                            </div>
+                            <div class="rf-ep-tiles">
+                                <span><b style="background:var(--pv)"></b></span>
+                                <span><b style="background:var(--pa)"></b></span>
+                                <span><b style="background:var(--pv)"></b></span>
+                            </div>
+                        </div>
+                        <div class="rf-ep-tabbar" x-bind:style="`background:${en}`"><i class="on"></i><i></i><i></i><i></i></div>
+                    </div>
+                </div>
+            </div>
             </div>
         </div>
     </form>
