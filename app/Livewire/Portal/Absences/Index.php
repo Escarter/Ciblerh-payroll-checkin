@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Mail;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
@@ -92,13 +94,9 @@ class Index extends Component
     {
         // Check permission based on approval status
         if ($this->bulk_approval_status) {
-            if (!Gate::allows('absence-bulkapproval')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('absence-bulkapproval');
         } else {
-            if (!Gate::allows('absence-bulkrejection')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('absence-bulkrejection');
         }
 
         // Fetch records before updating for audit logging
@@ -165,9 +163,7 @@ class Index extends Component
 
     public function update()
     {
-        if (!Gate::allows('absence-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-update');
         $this->validate();
 
         $this->absence->update([
@@ -189,9 +185,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('absence-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-delete');
 
         if (!empty($this->absence)) {
             $this->absence->delete(); // Already using soft delete
@@ -203,9 +197,7 @@ class Index extends Component
 
     public function restore($absenceId)
     {
-        if (!Gate::allows('absence-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-restore');
 
         $absence = Absence::withTrashed()->findOrFail($absenceId);
         $absence->restore();
@@ -215,9 +207,7 @@ class Index extends Component
 
     public function forceDelete($absenceId = null)
     {
-        if (!Gate::allows('absence-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-delete');
 
         // If no absenceId provided, try to get it from selectedAbsencesForDelete
         if (!$absenceId) {
@@ -245,9 +235,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('absence-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-bulkdelete');
 
         // Determine which set to operate on and capture affected records
         $targetIds = [];
@@ -315,9 +303,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('absence-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-bulkrestore');
 
         $absences = collect();
         $affectedRecords = [];
@@ -365,9 +351,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('absence-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-delete');
 
         $absences = collect();
         $affectedRecords = [];
@@ -484,9 +468,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('absence-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-read');
 
         $absences = $this->getAbsences();
 

@@ -26,6 +26,8 @@ use Illuminate\Database\Eloquent\Collection;
 
 class Index extends BaseImportComponent
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
     use \App\Livewire\Traits\WithTestSms;
 
@@ -207,9 +209,7 @@ class Index extends BaseImportComponent
  
     public function store()
     {
-        if (!Gate::allows('employee-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-create');
         
         // Validate that employee role is always included
         if (!in_array('employee', $this->selected_roles)) {
@@ -279,9 +279,7 @@ class Index extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         $this->setDefaultWorkTimes();
         
@@ -374,9 +372,7 @@ class Index extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-delete');
 
         if (!empty($this->employee)) {
             $this->employee->delete(); // Soft delete
@@ -388,9 +384,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('employee-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-restore');
 
         $employee = User::withTrashed()->findOrFail($this->employee_id);
         $employee->restore();
@@ -400,9 +394,7 @@ class Index extends BaseImportComponent
 
     public function forceDelete($employeeId = null)
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-delete');
 
         // If no employeeId provided, try to get it from selectedEmployees or selectedEmployeesForDelete
         if (!$employeeId) {
@@ -450,9 +442,7 @@ class Index extends BaseImportComponent
 
     public function bulkDelete()
     {
-        if (!Gate::allows('employee-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-bulkdelete');
 
         $targetIds = $this->selectedEmployees ?? [];
         $employees = collect();
@@ -501,9 +491,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('employee-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-bulkrestore');
 
         // Use selectedEmployeesForDelete when on deleted tab, otherwise selectedEmployees
         $targetIds = $this->activeTab === 'deleted' 
@@ -562,9 +550,7 @@ class Index extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-delete');
 
         // Use the correct array based on active tab
         $targetIds = $this->activeTab === 'deleted' 
@@ -791,9 +777,7 @@ class Index extends BaseImportComponent
 
     public function updateManager()
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         $this->validate([
             'first_name' => 'required',
@@ -890,9 +874,7 @@ class Index extends BaseImportComponent
 
     public function toggleEmailNotifications($employeeId)
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         $employee = User::findOrFail($employeeId);
         $employee->update([
@@ -909,9 +891,7 @@ class Index extends BaseImportComponent
 
     public function toggleSmsNotifications($employeeId)
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         $employee = User::findOrFail($employeeId);
         $employee->update([

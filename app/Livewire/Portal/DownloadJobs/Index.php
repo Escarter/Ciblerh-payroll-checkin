@@ -16,6 +16,8 @@ use Carbon\Carbon;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithPagination;
 
     protected $paginationTheme = "bootstrap";
@@ -251,9 +253,7 @@ class Index extends Component
 
     public function cancelJob($jobId)
     {
-        if (!Gate::allows('downloadjob-cancel')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-cancel');
 
         $job = DownloadJob::findOrFail($jobId);
 
@@ -273,9 +273,7 @@ class Index extends Component
 
     public function confirmDeleteJob($jobId)
     {
-        if (!Gate::allows('downloadjob-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-delete');
 
         $job = DownloadJob::findOrFail($jobId);
 
@@ -290,9 +288,7 @@ class Index extends Component
 
     public function delete()
     {
-        if (!Gate::allows('downloadjob-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-delete');
 
         // Handle both DownloadJob and ScheduledReport deletion
         if ($this->jobToDelete) {
@@ -334,9 +330,7 @@ class Index extends Component
 
     public function restore($jobId = null)
     {
-        if (!Gate::allows('downloadjob-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-restore');
 
         // Use parameter if provided, otherwise use properties
         $idToRestore = $jobId ?? $this->job_id;
@@ -403,9 +397,7 @@ class Index extends Component
 
     public function forceDelete()
     {
-        if (!Gate::allows('downloadjob-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-delete');
 
         // Handle both DownloadJob and ScheduledReport force deletion
         if ($this->jobToForceDelete) {
@@ -472,9 +464,7 @@ class Index extends Component
 
     public function bulkCancel()
     {
-        if (!Gate::allows('downloadjob-cancel')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-cancel');
 
         if (empty($this->selectedJobs)) {
             $this->dispatch("showToast", message: __('download_jobs.please_select_jobs_to_cancel'), type: "danger");
@@ -503,9 +493,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('downloadjob-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-bulkdelete');
 
         if (empty($this->selectedJobs)) {
             $this->dispatch("showToast", message: __('download_jobs.please_select_reports_to_delete'), type: "danger");
@@ -566,9 +554,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('downloadjob-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-bulkrestore');
 
         if (empty($this->selectedJobsForDelete)) {
             $this->dispatch("showToast", message: __('download_jobs.please_select_reports_to_restore'), type: "danger");
@@ -626,9 +612,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('downloadjob-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-delete');
 
         if (empty($this->selectedJobsForDelete)) {
             $this->dispatch("showToast", message: __('download_jobs.please_select_reports_to_permanently_delete'), type: "danger");
@@ -780,9 +764,7 @@ class Index extends Component
 
     public function generateNewReport()
     {
-        if (!Gate::allows('downloadjob-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-create');
 
         try {
             // Ensure employee_id is properly formatted as array of integers
@@ -1094,9 +1076,7 @@ class Index extends Component
 
     public function toggleScheduledReport($id)
     {
-        if (!Gate::allows('downloadjob-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-update');
 
         $scheduledReport = ScheduledReport::where('user_id', auth()->id())->findOrFail($id);
         $scheduledReport->update([
@@ -1107,9 +1087,7 @@ class Index extends Component
 
     public function confirmDeleteScheduledReport($id)
     {
-        if (!Gate::allows('downloadjob-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-delete');
 
         $this->scheduledReportToDelete = ScheduledReport::where('user_id', auth()->id())->findOrFail($id);
         $this->showDeleteModal = true;
@@ -1135,9 +1113,7 @@ class Index extends Component
 
     public function confirmRestoreScheduledReport($id)
     {
-        if (!Gate::allows('downloadjob-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-restore');
 
         $this->scheduledReportToRestore = ScheduledReport::where('user_id', auth()->id())->onlyTrashed()->findOrFail($id);
         $this->job_id = $id; // Set job_id for restore modal compatibility
@@ -1145,18 +1121,14 @@ class Index extends Component
 
     public function confirmForceDeleteScheduledReport($id)
     {
-        if (!Gate::allows('downloadjob-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-delete');
 
         $this->scheduledReportToForceDelete = ScheduledReport::where('user_id', auth()->id())->onlyTrashed()->findOrFail($id);
     }
 
     public function openCreateModal()
     {
-        if (!Gate::allows('downloadjob-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('downloadjob-create');
 
         $this->showCreateModal = true;
         $this->resetNewReport();

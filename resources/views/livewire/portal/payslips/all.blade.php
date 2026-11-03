@@ -205,7 +205,7 @@
                     <tr>
                         <td>
                             <input type="checkbox" class="form-check-input"
-                                wire:click="toggleJobSelection({{ $job->id }})"
+                                wire:click="toggleSelection({{ $job->id }})"
                                 {{ in_array($job->id, $selectedJobs) ? 'checked' : '' }}>
                         </td>
                         <td>

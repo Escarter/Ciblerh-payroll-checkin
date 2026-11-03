@@ -18,6 +18,8 @@ use Livewire\Attributes\Computed;
 
 class Index extends BaseImportComponent
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
     protected $importType = 'companies';
@@ -90,9 +92,7 @@ class Index extends BaseImportComponent
 
     public function store()
     {
-        if (!Gate::allows('company-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-create');
         
         $this->validate();
 
@@ -121,9 +121,7 @@ class Index extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('company-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-update');
         $this->validate();
 
         DB::transaction(function () {
@@ -147,9 +145,7 @@ class Index extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('company-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-delete');
 
         if (!empty($this->company)) {
             $this->company->delete(); // Soft delete
@@ -161,9 +157,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('company-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-restore');
 
         $company = Company::withTrashed()->findOrFail($this->company_id);
         $company->restore();
@@ -173,9 +167,7 @@ class Index extends BaseImportComponent
 
     public function forceDelete($companyId = null)
     {
-        if (!Gate::allows('company-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-delete');
 
         // If no companyId provided, try to get it from selectedCompanies
         if (!$companyId) {
@@ -217,9 +209,7 @@ class Index extends BaseImportComponent
 
     public function bulkDelete()
     {
-        if (!Gate::allows('company-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-bulkdelete');
 
         $targetIds = $this->selectedCompanies ?? [];
         $companies = collect();
@@ -266,9 +256,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('company-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-bulkrestore');
 
         $targetIds = $this->selectedCompanies ?? [];
         $companies = collect();
@@ -315,9 +303,7 @@ class Index extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('company-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-delete');
 
         if (!empty($this->selectedCompanies)) {
             /** @var \Illuminate\Database\Eloquent\Collection<int, Company> $companies */
@@ -465,9 +451,7 @@ class Index extends BaseImportComponent
 
     public function render()
     {
-        if (!Gate::allows('company-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-read');
 
         $companies = $this->getCompanies();
 
@@ -503,9 +487,7 @@ class Index extends BaseImportComponent
 
     public function openCompanyNotificationsModal()
     {
-        if (!Gate::allows('company-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('company-update');
 
         $this->dispatch('open-modal', 'CompanySmsToggleModal');
     }

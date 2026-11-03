@@ -11,6 +11,8 @@ use Spatie\Permission\Models\Permission;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
     // Modal visibility
@@ -45,18 +47,14 @@ class Index extends Component
 
     public function openCreateModal()
     {
-        if (!Gate::allows('role-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-create');
         $this->resetForm();
         $this->showCreateModal = true;
     }
 
     public function openEditModal($roleId)
     {
-        if (!Gate::allows('role-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-update');
         $this->editingRole = Role::with('permissions')->findOrFail($roleId);
         $this->roleName = $this->editingRole->name;
         $this->selectedPermissions = $this->editingRole->permissions->pluck('name')->toArray();
@@ -70,9 +68,7 @@ class Index extends Component
 
     public function createRole()
     {
-        if (!Gate::allows('role-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-create');
 
         $this->validate();
 
@@ -94,9 +90,7 @@ class Index extends Component
 
     public function updateRole()
     {
-        if (!Gate::allows('role-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-update');
 
         $this->validate([
             'roleName' => 'required|string|max:255|unique:roles,name,' . $this->editingRole->id,
@@ -267,9 +261,7 @@ class Index extends Component
 
     public function delete()
     {
-        if (!Gate::allows('role-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-delete');
 
         if (!empty($this->role)) {
             if(count($this->role->users) <= 0) {
@@ -284,9 +276,7 @@ class Index extends Component
 
     public function restore()
     {
-        if (!Gate::allows('role-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-restore');
 
         $role = Role::withTrashed()->findOrFail($this->role_id);
         $role->restore();
@@ -296,9 +286,7 @@ class Index extends Component
 
     public function forceDelete($roleId = null)
     {
-        if (!Gate::allows('role-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-delete');
 
         // If no roleId provided, try to get it from selectedRoles
         if (!$roleId) {
@@ -326,9 +314,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('role-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-bulkdelete');
 
         $targetIds = $this->selectedRoles ?? [];
         $roles = collect();
@@ -376,9 +362,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('role-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-bulkrestore');
 
         $targetIds = $this->selectedRoles ?? [];
         $roles = collect();
@@ -426,9 +410,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('role-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-delete');
 
         $targetIds = $this->selectedRoles ?? [];
         $roles = collect();
@@ -608,9 +590,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('role-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-read');
 
         $roles = $this->getRoles();
         

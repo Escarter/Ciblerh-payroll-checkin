@@ -20,6 +20,11 @@ trait WithBulkSelection
         return false;
     }
 
+    protected function bulkPageSize(): int
+    {
+        return (int) $this->perPage;
+    }
+
     abstract protected function bulkQuery();
 
     abstract protected function bulkSelectionMap(): array;
@@ -41,7 +46,7 @@ trait WithBulkSelection
         $query = $this->bulkQuery();
 
         if (! $allPages) {
-            $query->forPage(method_exists($this, 'getPage') ? $this->getPage() : 1, $this->perPage);
+            $query->forPage(method_exists($this, 'getPage') ? $this->getPage() : 1, $this->bulkPageSize());
         }
 
         return $query->pluck('id')->map(fn ($id) => (string) $id)->all();

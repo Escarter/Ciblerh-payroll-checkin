@@ -16,6 +16,8 @@ use Livewire\WithFileUploads;
 
 class Index extends BaseImportComponent
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable, WithFileUploads;
 
     protected $importType = 'leave_types';
@@ -75,9 +77,7 @@ class Index extends BaseImportComponent
 
     public function store()
     {
-        if (!Gate::allows('leave_type-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-create');
 
         $this->validate();
 
@@ -93,9 +93,7 @@ class Index extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('leave_type-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-update');
         $this->validate();
 
         DB::transaction(function () {
@@ -112,9 +110,7 @@ class Index extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('leave_type-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-delete');
 
         if (!empty($this->leave_type)) {
             $this->leave_type->delete(); // Already using soft delete
@@ -126,9 +122,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('leave_type-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-restore');
 
         $leaveType = LeaveType::withTrashed()->findOrFail($this->leave_type_id);
         $leaveType->restore();
@@ -138,9 +132,7 @@ class Index extends BaseImportComponent
 
     public function forceDelete($leaveTypeId = null)
     {
-        if (!Gate::allows('leave_type-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-delete');
 
         // If no leaveTypeId provided, try to get it from selectedLeaveTypes
         if (!$leaveTypeId) {
@@ -168,9 +160,7 @@ class Index extends BaseImportComponent
 
     public function bulkDelete()
     {
-        if (!Gate::allows('leave_type-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-bulkdelete');
 
         $targetIds = $this->selectedLeaveTypes ?? [];
         $leaveTypes = collect();
@@ -215,9 +205,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('leave_type-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-bulkrestore');
 
         $targetIds = $this->selectedLeaveTypes ?? [];
         $leaveTypes = collect();
@@ -264,9 +252,7 @@ class Index extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('leave_type-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-delete');
 
         $targetIds = $this->selectedLeaveTypes ?? [];
         $leaveTypes = collect();
@@ -350,9 +336,7 @@ class Index extends BaseImportComponent
     }
     public function export()
     {
-        if (!Gate::allows('leave_type-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-read');
 
         auditLog(
             auth()->user(),
@@ -367,9 +351,7 @@ class Index extends BaseImportComponent
 
     public function render()
     {
-        if (!Gate::allows('leave_type-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-read');
 
         $leave_types = $this->getLeaveTypes();
 

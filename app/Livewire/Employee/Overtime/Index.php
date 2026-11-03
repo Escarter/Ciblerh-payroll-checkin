@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Employee\Overtime;
 
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Livewire\Component;
 use App\Models\Overtime;
@@ -16,7 +17,9 @@ use App\Rules\Overtime\CheckOverlapWorkingHoursRule;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
     public bool $selectAll = false;
@@ -67,9 +70,7 @@ class Index extends Component
     }
     public function store()
     {
-        if (!Gate::allows('overtime-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-create');
         $useQuick = (bool) $this->use_quick_add;
         if ($useQuick) {
             $this->validate([
@@ -120,9 +121,7 @@ class Index extends Component
     }
     public function update()
     {
-        if (!Gate::allows('overtime-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-update');
         $this->validate([
             'start_time' => ['required', 'date'],
             'end_time' => ['required', 'date', 'after:start_time', new CheckEndTimeRule, new CheckStartAndEndTimeAreSameDayRule($this->start_time)],
@@ -143,9 +142,7 @@ class Index extends Component
 
     public function delete()
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-delete');
 
         if (!empty($this->overtime)) {
             $this->overtime->delete();
@@ -160,9 +157,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('overtime-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-bulkdelete');
 
         if (!empty($this->selected)) {
             $overtimes = Overtime::whereIn('id', $this->selected)
@@ -214,9 +209,7 @@ class Index extends Component
 
     public function restore($overtimeId)
     {
-        if (!Gate::allows('overtime-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-restore');
 
         $overtime = Overtime::withTrashed()->findOrFail($overtimeId);
 
@@ -235,9 +228,7 @@ class Index extends Component
 
     public function forceDelete($overtimeId = null)
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-delete');
 
         // If no overtimeId provided, try to get it from selectedOvertimesForDelete
         if (!$overtimeId) {
@@ -271,9 +262,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('overtime-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-bulkrestore');
 
         if (!empty($this->selectedOvertimesForDelete)) {
             $overtimes = Overtime::withTrashed()
@@ -326,9 +315,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-delete');
 
         if (!empty($this->selectedOvertimesForDelete)) {
             $overtimes = Overtime::withTrashed()
@@ -379,61 +366,10 @@ class Index extends Component
         }
     }
 
-    //Toggle the $selectAll on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selected = $this->getOvertimes()->pluck('id')->toArray();
-        } else {
-            $this->selected = [];
-        }
-    }
-
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedOvertimesForDelete = [];
-        $this->selectAllForDelete = false;
-    }
-
-    public function toggleSelectAllForDelete()
-    {
-        if ($this->selectAllForDelete) {
-            $this->selectedOvertimesForDelete = $this->getOvertimes()->pluck('id')->toArray();
-        } else {
-            $this->selectedOvertimesForDelete = [];
-        }
-    }
-
-    public function toggleOvertimeSelectionForDelete($overtimeId)
-    {
-        if (in_array($overtimeId, $this->selectedOvertimesForDelete)) {
-            $this->selectedOvertimesForDelete = array_diff($this->selectedOvertimesForDelete, [$overtimeId]);
-        } else {
-            $this->selectedOvertimesForDelete[] = $overtimeId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedOvertimesForDelete) === $this->getOvertimes()->count();
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selected = $this->getOvertimes()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedOvertimesForDelete = $this->getOvertimes()->pluck('id')->toArray();
-    }
-
-    public function selectAllOvertimes()
-    {
-        $this->selected = auth()->user()->overtimes()->whereNull('deleted_at')->pluck('id')->toArray();
-    }
-
-    public function selectAllDeletedOvertimes()
-    {
-        $this->selectedOvertimesForDelete = auth()->user()->overtimes()->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
+        $this->resetBulkSelection();
     }
 
     private function updateCounts()
@@ -442,7 +378,7 @@ class Index extends Component
         $this->deletedOvertimesCount = Overtime::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
     }
 
-    private function getOvertimes()
+    protected function bulkQuery()
     {
         $query = Overtime::search($this->query)->where('user_id', auth()->user()->id);
 
@@ -453,7 +389,20 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return [
+            'active' => ['selectedOvertimes', 'selectAll'],
+            'deleted' => ['selectedOvertimesForDelete', 'selectAllForDelete'],
+        ];
+    }
+
+    private function getOvertimes()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function clearFields()

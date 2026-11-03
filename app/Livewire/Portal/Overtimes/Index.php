@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Gate;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
@@ -87,13 +89,9 @@ class Index extends Component
     {
         // Check permission based on approval status
         if ($this->bulk_approval_status) {
-            if (!Gate::allows('overtime-bulkapproval')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('overtime-bulkapproval');
         } else {
-            if (!Gate::allows('overtime-bulkrejection')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('overtime-bulkrejection');
         }
 
         $this->validate([
@@ -153,9 +151,7 @@ class Index extends Component
 
     public function update()
     {
-        if (!Gate::allows('overtime-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-update');
 
         $this->validate([
             'approval_status' => 'required',
@@ -176,9 +172,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-delete');
 
         $this->overtime->delete(); // Already using soft delete
 
@@ -188,9 +182,7 @@ class Index extends Component
 
     public function restore()
     {
-        if (!Gate::allows('overtime-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-restore');
 
         $overtime = Overtime::withTrashed()->findOrFail($this->overtime_id);
         $overtime->restore();
@@ -200,9 +192,7 @@ class Index extends Component
 
     public function forceDelete($overtimeId = null)
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-delete');
 
         // If no overtimeId provided, try to get it from selectedOvertimesForDelete
         if (!$overtimeId) {
@@ -230,9 +220,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('overtime-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-bulkdelete');
 
         $targetIds = [];
         $operation = 'soft_delete';
@@ -297,9 +285,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('overtime-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-bulkrestore');
 
         $overtimes = collect();
         $affectedRecords = [];
@@ -347,9 +333,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('overtime-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-delete');
 
         $overtimes = collect();
         $affectedRecords = [];
@@ -480,9 +464,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('overtime-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('overtime-read');
 
         $overtimes = $this->getOvertimes();
 

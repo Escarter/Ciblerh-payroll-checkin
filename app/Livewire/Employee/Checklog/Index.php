@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Employee\Checklog;
 
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Carbon\Carbon;
 use App\Models\Ticking;
@@ -15,7 +16,9 @@ use Illuminate\Support\Facades\Gate;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
     public bool $selectAll = false;
@@ -64,9 +67,7 @@ class Index extends Component
 
     public function store()
     {
-        if (!Gate::allows('ticking-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-create');
        
         $this->validate([
             'start_time' => ['required','date',new CheckStartTimeRule],
@@ -110,9 +111,7 @@ class Index extends Component
 
     public function bulkStore()
     {
-        if (!Gate::allows('ticking-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-create');
 
         $this->validate([
             'start_day' => 'required|date|before:end_day',
@@ -237,9 +236,7 @@ class Index extends Component
     }
     public function update()
     {
-        if (!Gate::allows('ticking-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-update');
         $this->validate([
             'start_time' => 'required|date|before:end_time',
             'end_time' => 'required|date|after:start_time',
@@ -268,9 +265,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-delete');
 
         if (!empty($this->checklog)) {
             $this->checklog->delete();
@@ -285,9 +280,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('ticking-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-bulkdelete');
 
         if (!empty($this->selected)) {
             $checklogs = Ticking::whereIn('id', $this->selected)
@@ -339,9 +332,7 @@ class Index extends Component
 
     public function restore($checklogId)
     {
-        if (!Gate::allows('ticking-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-restore');
 
         $checklog = Ticking::withTrashed()->findOrFail($checklogId);
 
@@ -360,9 +351,7 @@ class Index extends Component
 
     public function forceDelete($checklogId = null)
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-delete');
 
         // If no checklogId provided, try to get it from selectedChecklogsForDelete
         if (!$checklogId) {
@@ -396,9 +385,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('ticking-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-bulkrestore');
 
         if (!empty($this->selectedChecklogsForDelete)) {
             $checklogs = Ticking::withTrashed()
@@ -451,9 +438,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-delete');
 
         if (!empty($this->selectedChecklogsForDelete)) {
             $checklogs = Ticking::withTrashed()
@@ -504,61 +489,10 @@ class Index extends Component
         }
     }
 
-    //Toggle the $selectAll on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selected = $this->getChecklogs()->pluck('id')->toArray();
-        } else {
-            $this->selected = [];
-        }
-    }
-
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedChecklogsForDelete = [];
-        $this->selectAllForDelete = false;
-    }
-
-    public function toggleSelectAllForDelete()
-    {
-        if ($this->selectAllForDelete) {
-            $this->selectedChecklogsForDelete = $this->getChecklogs()->pluck('id')->toArray();
-        } else {
-            $this->selectedChecklogsForDelete = [];
-        }
-    }
-
-    public function toggleChecklogSelectionForDelete($checklogId)
-    {
-        if (in_array($checklogId, $this->selectedChecklogsForDelete)) {
-            $this->selectedChecklogsForDelete = array_diff($this->selectedChecklogsForDelete, [$checklogId]);
-        } else {
-            $this->selectedChecklogsForDelete[] = $checklogId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedChecklogsForDelete) === $this->getChecklogs()->count();
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selected = $this->getChecklogs()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedChecklogsForDelete = $this->getChecklogs()->pluck('id')->toArray();
-    }
-
-    public function selectAllChecklogs()
-    {
-        $this->selected = Ticking::where('user_id', auth()->user()->id)->whereNull('deleted_at')->pluck('id')->toArray();
-    }
-
-    public function selectAllDeletedChecklogs()
-    {
-        $this->selectedChecklogsForDelete = Ticking::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
+        $this->resetBulkSelection();
     }
 
     private function updateCounts()
@@ -567,7 +501,7 @@ class Index extends Component
         $this->deletedChecklogsCount = Ticking::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
     }
 
-    private function getChecklogs()
+    protected function bulkQuery()
     {
         $query = Ticking::where('user_id', auth()->user()->id);
 
@@ -578,7 +512,20 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return [
+            'active' => ['selectedChecklogs', 'selectAll'],
+            'deleted' => ['selectedChecklogsForDelete', 'selectAllForDelete'],
+        ];
+    }
+
+    private function getChecklogs()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function recordOvertime($end_time)
@@ -617,9 +564,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('ticking-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-read');
 
         $checklogs = $this->getChecklogs();
 

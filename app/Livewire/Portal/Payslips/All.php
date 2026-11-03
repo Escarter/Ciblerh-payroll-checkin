@@ -7,11 +7,14 @@ use App\Models\SendPayslipProcess;
 use App\Models\Payslip;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 
 class All extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
    public ?SendPayslipProcess $send_payslip_process;
    public ?SendPayslipProcess $selectedProcess = null;
@@ -82,9 +85,7 @@ class All extends Component
 
      public function delete($jobId = null)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $job = $jobId ? SendPayslipProcess::findOrFail($jobId) : $this->send_payslip_process;
         
@@ -124,9 +125,7 @@ class All extends Component
 
     public function restore()
     {
-        if (!Gate::allows('payslip-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-restore');
 
         $job = SendPayslipProcess::withTrashed()->findOrFail($this->job_id);
         
@@ -146,9 +145,7 @@ class All extends Component
 
     public function forceDelete($jobId)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $job = SendPayslipProcess::withTrashed()->findOrFail($jobId);
         
@@ -175,9 +172,7 @@ class All extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('payslip-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkdelete');
 
         $query = SendPayslipProcess::whereIn('id', $this->selectedJobs);
         
@@ -231,9 +226,7 @@ class All extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('payslip-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkrestore');
 
         $query = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedJobs);
         
@@ -287,9 +280,7 @@ class All extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $query = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedJobs);
         
@@ -345,75 +336,46 @@ class All extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedJobs = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkQuery()
     {
-        if ($this->selectAll) {
-            $this->selectedJobs = $this->getAllJobs()->pluck('id')->toArray();
+        $query = match (auth()->user()->getRoleNames()->first()) {
+            'manager' => SendPayslipProcess::manager(),
+            'supervisor' => SendPayslipProcess::supervisor(),
+            'admin' => SendPayslipProcess::query(),
+            default => SendPayslipProcess::query(),
+        };
+
+        // Add soft delete filtering based on active tab
+        if ($this->activeTab === 'deleted') {
+            $query->withTrashed()->whereNotNull('deleted_at');
         } else {
-            $this->selectedJobs = [];
+            $query->whereNull('deleted_at');
         }
+
+        return $query->with('department')->orderBy($this->orderBy, $this->orderAsc);
     }
 
-    public function toggleJobSelection($jobId)
+    protected function bulkAcrossPages(): bool
     {
-        if (in_array($jobId, $this->selectedJobs)) {
-            $this->selectedJobs = array_diff($this->selectedJobs, [$jobId]);
-        } else {
-            $this->selectedJobs[] = $jobId;
-        }
-        
-        // Update selectAll state
-        $allJobs = $this->getAllJobs();
-        $this->selectAll = count($this->selectedJobs) === $allJobs->count() && $allJobs->count() > 0;
+        return true;
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return ['active' => ['selectedJobs', 'selectAll']];
     }
 
     private function getJobs()
     {
-        $query = match (auth()->user()->getRoleNames()->first()) {
-            'manager' => SendPayslipProcess::manager(),
-            'supervisor' => SendPayslipProcess::supervisor(),
-            'admin' => SendPayslipProcess::query(),
-            default => SendPayslipProcess::query(),
-        };
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        return $query->with('department')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
-    }
-
-    private function getAllJobs()
-    {
-        $query = match (auth()->user()->getRoleNames()->first()) {
-            'manager' => SendPayslipProcess::manager(),
-            'supervisor' => SendPayslipProcess::supervisor(),
-            'admin' => SendPayslipProcess::query(),
-            default => SendPayslipProcess::query(),
-        };
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        return $query->with('department')->orderBy($this->orderBy, $this->orderAsc)->get();
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function render()
     {
-        if (!Gate::allows('payslip-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-read');
 
         $jobs = $this->getJobs();
 
@@ -923,9 +885,7 @@ class All extends Component
 
     public function cancelTask($processId)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $process = SendPayslipProcess::findOrFail($processId);
         

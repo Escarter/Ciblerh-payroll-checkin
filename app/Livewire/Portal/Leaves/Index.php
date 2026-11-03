@@ -14,6 +14,8 @@ use App\Livewire\Traits\WithDataTable;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
 
@@ -110,13 +112,9 @@ class Index extends Component
     {
         // Check permission based on approval status
         if ($this->bulk_approval_status) {
-            if (!Gate::allows('leave-bulkapproval')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('leave-bulkapproval');
         } else {
-            if (!Gate::allows('leave-bulkrejection')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('leave-bulkrejection');
         }
 
         // Fetch records before updating for audit logging
@@ -205,9 +203,7 @@ class Index extends Component
 
     public function update()
     {
-        if (!Gate::allows('leave-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-update');
         $this->validate();
 
         if ($this->role === "supervisor") {
@@ -247,9 +243,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-delete');
 
         if (!empty($this->leave)) {
             $this->leave->delete(); // Already using soft delete
@@ -261,9 +255,7 @@ class Index extends Component
 
     public function restore()
     {
-        if (!Gate::allows('leave-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-restore');
 
         $leave = Leave::withTrashed()->findOrFail($this->leave_id);
         $leave->restore();
@@ -273,9 +265,7 @@ class Index extends Component
 
     public function forceDelete($leaveId = null)
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-delete');
 
         // If no leaveId provided, try to get it from selectedLeavesForDelete
         if (!$leaveId) {
@@ -303,9 +293,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('leave-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-bulkdelete');
 
         $targetIds = [];
         $operation = 'soft_delete';
@@ -372,9 +360,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('leave-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-bulkrestore');
 
         $leaves = collect();
         $affectedRecords = [];
@@ -424,9 +410,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-delete');
 
         $leaves = collect();
         $affectedRecords = [];
@@ -549,9 +533,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('leave-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-read');
 
         $leaves = $this->getLeaves();
 

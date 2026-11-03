@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 
 class Profile extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithFileUploads;
     public $first_name;
     public $last_name;
@@ -46,9 +48,7 @@ class Profile extends Component
 
     public function updateProfile()
     {
-        if (!Gate::allows('profile-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('profile-update');
         auth()->user()->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
@@ -66,9 +66,7 @@ class Profile extends Component
     }
     public function saveSignature()
     {
-        if (!Gate::allows('profile-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('profile-update');
         if ($this->signature) {
             if(!empty(auth()->user()->signature_path)){
 

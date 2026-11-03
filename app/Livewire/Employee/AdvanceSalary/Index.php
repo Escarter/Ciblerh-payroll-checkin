@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Employee\AdvanceSalary;
 
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Livewire\Component;
 use App\Models\AdvanceSalary;
@@ -14,7 +15,9 @@ use Illuminate\Support\Facades\Storage;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selectedAdvanceSalaries = [];
     public bool $selectAll = false;
@@ -86,9 +89,7 @@ class Index extends Component
 
     public function store()
     {
-        if (!Gate::allows('advance_salary-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-create');
 
         $this->validate();
 
@@ -208,9 +209,7 @@ class Index extends Component
 
     public function update()
     {
-        if (!Gate::allows('advance_salary--update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary--update');
         $this->validate();
         $this->advance_salary->update([
             'amount' => $this->amount,
@@ -227,9 +226,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('advance_salary--delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary--delete');
 
         if (!empty($this->advance_salary)) {
             $this->advance_salary->delete();
@@ -244,9 +241,7 @@ class Index extends Component
 
     public function restore($advanceSalaryId)
     {
-        if (!Gate::allows('advance_salary-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-restore');
 
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
 
@@ -265,9 +260,7 @@ class Index extends Component
 
     public function forceDelete($advanceSalaryId = null)
     {
-        if (!Gate::allows('advance_salary-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-delete');
 
         // If no advanceSalaryId provided, try to get it from selectedAdvanceSalariesForDelete
         if (!$advanceSalaryId) {
@@ -301,9 +294,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('advance_salary-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-bulkdelete');
 
         if (!empty($this->selectedAdvanceSalaries)) {
             $advanceSalaries = auth()->user()->advanceSalaries()
@@ -356,9 +347,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('advance_salary-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-bulkrestore');
 
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
             $advanceSalaries = AdvanceSalary::withTrashed()
@@ -411,9 +400,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('advance_salary-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-delete');
 
         if (!empty($this->selectedAdvanceSalariesForDelete)) {
             $advanceSalaries = AdvanceSalary::withTrashed()
@@ -464,61 +451,10 @@ class Index extends Component
         }
     }
 
-    //Toggle the $selectAll on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedAdvanceSalaries = $this->getAdvanceSalaries()->pluck('id')->toArray();
-        } else {
-            $this->selectedAdvanceSalaries = [];
-        }
-    }
-
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedAdvanceSalariesForDelete = [];
-        $this->selectAllForDelete = false;
-    }
-
-    public function toggleSelectAllForDelete()
-    {
-        if ($this->selectAllForDelete) {
-            $this->selectedAdvanceSalariesForDelete = $this->getAdvanceSalaries()->pluck('id')->toArray();
-        } else {
-            $this->selectedAdvanceSalariesForDelete = [];
-        }
-    }
-
-    public function toggleAdvanceSalarySelectionForDelete($advanceSalaryId)
-    {
-        if (in_array($advanceSalaryId, $this->selectedAdvanceSalariesForDelete)) {
-            $this->selectedAdvanceSalariesForDelete = array_diff($this->selectedAdvanceSalariesForDelete, [$advanceSalaryId]);
-        } else {
-            $this->selectedAdvanceSalariesForDelete[] = $advanceSalaryId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedAdvanceSalariesForDelete) === $this->getAdvanceSalaries()->count();
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selectedAdvanceSalaries = $this->getAdvanceSalaries()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedAdvanceSalariesForDelete = $this->getAdvanceSalaries()->pluck('id')->toArray();
-    }
-
-    public function selectAllAdvanceSalaries()
-    {
-        $this->selectedAdvanceSalaries = auth()->user()->advanceSalaries()->whereNull('deleted_at')->pluck('id')->toArray();
-    }
-
-    public function selectAllDeletedAdvanceSalaries()
-    {
-        $this->selectedAdvanceSalariesForDelete = auth()->user()->advanceSalaries()->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
+        $this->resetBulkSelection();
     }
 
     private function updateCounts()
@@ -556,7 +492,7 @@ class Index extends Component
         }
     }
 
-    private function getAdvanceSalaries()
+    protected function bulkQuery()
     {
         $query = auth()->user()->advanceSalaries()->with(['user', 'company']);
 
@@ -567,7 +503,20 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return [
+            'active' => ['selectedAdvanceSalaries', 'selectAll'],
+            'deleted' => ['selectedAdvanceSalariesForDelete', 'selectAllForDelete'],
+        ];
+    }
+
+    private function getAdvanceSalaries()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function clearFields()
@@ -593,9 +542,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('advance_salary-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-read');
 
         $advance_salaries = $this->getAdvanceSalaries();
 

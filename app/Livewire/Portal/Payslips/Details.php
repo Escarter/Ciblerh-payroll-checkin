@@ -11,6 +11,7 @@ use App\Models\SendPayslipProcess;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Gate;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Setting;
@@ -22,7 +23,9 @@ use App\Services\PayslipEncryptionService;
 
 class Details extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     public $job;
     public ?Payslip $payslip;
@@ -220,9 +223,7 @@ class Details extends Component
 
     public function delete()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         if (!empty($this->payslip)) {
             // Validate supervisor access
@@ -241,9 +242,7 @@ class Details extends Component
 
     public function restore($payslip_id = null)
     {
-        if (!Gate::allows('payslip-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-restore');
 
         $payslip_id = $payslip_id ?? $this->payslip_id;
         $payslip = Payslip::withTrashed()->findOrFail($payslip_id);
@@ -264,9 +263,7 @@ class Details extends Component
 
     public function forceDelete($payslip_id = null)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $payslip_id = $payslip_id ?? $this->payslip_id;
         $payslip = Payslip::withTrashed()->findOrFail($payslip_id);
@@ -287,9 +284,7 @@ class Details extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('payslip-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkdelete');
 
         if (!empty($this->selectedPayslips)) {
             $query = Payslip::whereIn('id', $this->selectedPayslips);
@@ -342,9 +337,7 @@ class Details extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('payslip-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkrestore');
 
         if (!empty($this->selectedPayslips)) {
             $query = Payslip::withTrashed()->whereIn('id', $this->selectedPayslips);
@@ -397,9 +390,7 @@ class Details extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         if (!empty($this->selectedPayslips)) {
             $query = Payslip::withTrashed()->whereIn('id', $this->selectedPayslips);
@@ -550,9 +541,7 @@ class Details extends Component
 
     public function bulkResendFailedEmails()
     {
-        if (!Gate::allows('payslip-bulkresend-email')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkresend-email');
 
         if (empty($this->selectedPayslips)) {
             $this->closeModalAndFlashMessage(__('payslips.no_payslips_selected'), 'BulkResendFailedEmailsModal');
@@ -627,9 +616,7 @@ class Details extends Component
 
     public function bulkResendFailedSms()
     {
-        if (!Gate::allows('payslip-bulkresend-sms')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkresend-sms');
 
         if (empty($this->selectedPayslips)) {
             $this->closeModalAndFlashMessage(__('payslips.no_payslips_selected'), 'BulkResendFailedSmsModal');
@@ -786,8 +773,7 @@ class Details extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedPayslips = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
         $this->showUnmatched = false;
     }
 
@@ -851,28 +837,10 @@ class Details extends Component
             ->paginate($this->perPage);
     }
 
-    public function toggleSelectAll()
+    protected function bulkQuery()
     {
-        if ($this->selectAll) {
-            // Select only the payslips visible on the current page
-            $this->selectedPayslips = $this->getPayslips()->pluck('id')->toArray();
-        } else {
-            $this->selectedPayslips = [];
-        }
-
-        // Update selectAll state based on whether all visible (paginated) payslips are selected
-        $visiblePayslipIds = $this->getPayslips()->pluck('id')->toArray();
-        $this->selectAll = !empty($visiblePayslipIds) && count(array_intersect($this->selectedPayslips, $visiblePayslipIds)) === count($visiblePayslipIds);
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selectedPayslips = $this->getAllPayslips()->pluck('id')->toArray();
-    }
-
-    public function selectAllPayslips()
-    {
-        $query = Payslip::where('send_payslip_process_id', $this->job->id);
+        // Start with base query and apply soft delete filtering first
+        $query = Payslip::query()->where('send_payslip_process_id', $this->job->id);
 
         // Add soft delete filtering based on active tab
         if ($this->activeTab === 'deleted') {
@@ -881,208 +849,96 @@ class Details extends Component
             $query->whereNull('deleted_at');
         }
 
-        $this->selectedPayslips = $query->pluck('id')->toArray();
-    }
-
-    public function togglePayslipSelection($payslipId)
-    {
-        if (in_array($payslipId, $this->selectedPayslips)) {
-            $this->selectedPayslips = array_diff($this->selectedPayslips, [$payslipId]);
-        } else {
-            $this->selectedPayslips[] = $payslipId;
+        // Apply search filtering after soft delete logic
+        if (!empty($this->query)) {
+            $query->where(function ($q) {
+                $q->where('first_name', 'like', '%' . $this->query . '%');
+                $q->orWhere('last_name', 'like', '%' . $this->query . '%');
+                $q->orWhere('email', 'like', '%' . $this->query . '%');
+                $q->orWhere('matricule', 'like', '%' . $this->query . '%');
+                $q->orWhere('phone', 'like', '%' . $this->query . '%');
+                $q->orWhere('month', 'like', '%' . $this->query . '%');
+                $q->orWhere('email_sent_status', 'like', '%' . $this->query . '%');
+                $q->orWhere('sms_sent_status', 'like', '%' . $this->query . '%');
+            });
         }
 
-        // Update selectAll state based on whether all visible (paginated) payslips are selected
-        $visiblePayslipIds = $this->getPayslips()->pluck('id')->toArray();
-        $this->selectAll = !empty($visiblePayslipIds) && count(array_intersect($this->selectedPayslips, $visiblePayslipIds)) === count($visiblePayslipIds);
+        // Apply status filters
+        if ($this->encryptionStatus !== '' && $this->encryptionStatus !== 'all' && $this->encryptionStatus !== null) {
+            $query->where('encryption_status', (int)$this->encryptionStatus);
+        }
+
+        if ($this->emailStatus !== '' && $this->emailStatus !== 'all' && $this->emailStatus !== null) {
+            $query->where('email_sent_status', (int)$this->emailStatus);
+        }
+
+        if ($this->smsStatus !== '' && $this->smsStatus !== 'all' && $this->smsStatus !== null) {
+            $query->where('sms_sent_status', (int)$this->smsStatus);
+        }
+
+        // Apply overall status filter
+        if ($this->overallStatus !== '' && $this->overallStatus !== 'all' && $this->overallStatus !== null) {
+            $query->where(function ($q) {
+                switch ($this->overallStatus) {
+                    case 'success':
+                        $q->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+                          ->where(function ($subQ) {
+                              $subQ->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
+                                   ->orWhere('sms_sent_status', Payslip::STATUS_SUCCESSFUL);
+                          });
+                        break;
+                    case 'failed':
+                        $q->where(function ($subQ) {
+                            $subQ->where('encryption_status', Payslip::STATUS_FAILED)
+                                 ->orWhere(function ($subQ2) {
+                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+                                           ->where('email_sent_status', Payslip::STATUS_FAILED)
+                                           ->where(function ($subQ3) {
+                                               $subQ3->where('sms_sent_status', Payslip::STATUS_FAILED)
+                                                     ->orWhere('sms_sent_status', Payslip::STATUS_DISABLED);
+                                           });
+                                 });
+                        });
+                        break;
+                    case 'processing':
+                        $q->where(function ($subQ) {
+                            $subQ->where('encryption_status', Payslip::STATUS_PENDING)
+                                 ->orWhere(function ($subQ2) {
+                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+                                           ->where(function ($subQ3) {
+                                               $subQ3->where('email_sent_status', Payslip::STATUS_PENDING)
+                                                     ->orWhereNull('email_sent_status')
+                                                     ->orWhere(function ($subQ4) {
+                                                         $subQ4->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
+                                                               ->where(function ($subQ5) {
+                                                                   $subQ5->where('sms_sent_status', Payslip::STATUS_PENDING)
+                                                                         ->orWhereNull('sms_sent_status');
+                                                               });
+                                                     });
+                                           });
+                                 });
+                        });
+                        break;
+                }
+            });
+        }
+
+        // Apply role-based filtering
+        if (auth()->user()->getRoleNames()->first() === "supervisor") {
+            $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return ['active' => ['selectedPayslips', 'selectAll']];
     }
 
     private function getPayslips()
     {
-        // Start with base query and apply soft delete filtering first
-        $query = Payslip::query()->where('send_payslip_process_id', $this->job->id);
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        // Apply search filtering after soft delete logic
-        if (!empty($this->query)) {
-            $query->where(function ($q) {
-                $q->where('first_name', 'like', '%' . $this->query . '%');
-                $q->orWhere('last_name', 'like', '%' . $this->query . '%');
-                $q->orWhere('email', 'like', '%' . $this->query . '%');
-                $q->orWhere('matricule', 'like', '%' . $this->query . '%');
-                $q->orWhere('phone', 'like', '%' . $this->query . '%');
-                $q->orWhere('month', 'like', '%' . $this->query . '%');
-                $q->orWhere('email_sent_status', 'like', '%' . $this->query . '%');
-                $q->orWhere('sms_sent_status', 'like', '%' . $this->query . '%');
-            });
-        }
-
-        // Apply status filters
-        if ($this->encryptionStatus !== '' && $this->encryptionStatus !== 'all' && $this->encryptionStatus !== null) {
-            $query->where('encryption_status', (int)$this->encryptionStatus);
-        }
-
-        if ($this->emailStatus !== '' && $this->emailStatus !== 'all' && $this->emailStatus !== null) {
-            $query->where('email_sent_status', (int)$this->emailStatus);
-        }
-
-        if ($this->smsStatus !== '' && $this->smsStatus !== 'all' && $this->smsStatus !== null) {
-            $query->where('sms_sent_status', (int)$this->smsStatus);
-        }
-
-        // Apply overall status filter
-        if ($this->overallStatus !== '' && $this->overallStatus !== 'all' && $this->overallStatus !== null) {
-            $query->where(function ($q) {
-                switch ($this->overallStatus) {
-                    case 'success':
-                        $q->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
-                          ->where(function ($subQ) {
-                              $subQ->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
-                                   ->orWhere('sms_sent_status', Payslip::STATUS_SUCCESSFUL);
-                          });
-                        break;
-                    case 'failed':
-                        $q->where(function ($subQ) {
-                            $subQ->where('encryption_status', Payslip::STATUS_FAILED)
-                                 ->orWhere(function ($subQ2) {
-                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
-                                           ->where('email_sent_status', Payslip::STATUS_FAILED)
-                                           ->where(function ($subQ3) {
-                                               $subQ3->where('sms_sent_status', Payslip::STATUS_FAILED)
-                                                     ->orWhere('sms_sent_status', Payslip::STATUS_DISABLED);
-                                           });
-                                 });
-                        });
-                        break;
-                    case 'processing':
-                        $q->where(function ($subQ) {
-                            $subQ->where('encryption_status', Payslip::STATUS_PENDING)
-                                 ->orWhere(function ($subQ2) {
-                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
-                                           ->where(function ($subQ3) {
-                                               $subQ3->where('email_sent_status', Payslip::STATUS_PENDING)
-                                                     ->orWhereNull('email_sent_status')
-                                                     ->orWhere(function ($subQ4) {
-                                                         $subQ4->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
-                                                               ->where(function ($subQ5) {
-                                                                   $subQ5->where('sms_sent_status', Payslip::STATUS_PENDING)
-                                                                         ->orWhereNull('sms_sent_status');
-                                                               });
-                                                     });
-                                           });
-                                 });
-                        });
-                        break;
-                }
-            });
-        }
-
-        // Apply role-based filtering
-        if (auth()->user()->getRoleNames()->first() === "supervisor") {
-            $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
-        }
-
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
-    }
-
-    private function getAllPayslips()
-    {
-        // Start with base query and apply soft delete filtering first
-        $query = Payslip::query()->where('send_payslip_process_id', $this->job->id);
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        // Apply search filtering after soft delete logic
-        if (!empty($this->query)) {
-            $query->where(function ($q) {
-                $q->where('first_name', 'like', '%' . $this->query . '%');
-                $q->orWhere('last_name', 'like', '%' . $this->query . '%');
-                $q->orWhere('email', 'like', '%' . $this->query . '%');
-                $q->orWhere('matricule', 'like', '%' . $this->query . '%');
-                $q->orWhere('phone', 'like', '%' . $this->query . '%');
-                $q->orWhere('month', 'like', '%' . $this->query . '%');
-                $q->orWhere('email_sent_status', 'like', '%' . $this->query . '%');
-                $q->orWhere('sms_sent_status', 'like', '%' . $this->query . '%');
-            });
-        }
-
-        // Apply status filters
-        if ($this->encryptionStatus !== '' && $this->encryptionStatus !== 'all' && $this->encryptionStatus !== null) {
-            $query->where('encryption_status', (int)$this->encryptionStatus);
-        }
-
-        if ($this->emailStatus !== '' && $this->emailStatus !== 'all' && $this->emailStatus !== null) {
-            $query->where('email_sent_status', (int)$this->emailStatus);
-        }
-
-        if ($this->smsStatus !== '' && $this->smsStatus !== 'all' && $this->smsStatus !== null) {
-            $query->where('sms_sent_status', (int)$this->smsStatus);
-        }
-
-        // Apply overall status filter
-        if ($this->overallStatus !== '' && $this->overallStatus !== 'all' && $this->overallStatus !== null) {
-            $query->where(function ($q) {
-                switch ($this->overallStatus) {
-                    case 'success':
-                        $q->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
-                          ->where(function ($subQ) {
-                              $subQ->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
-                                   ->orWhere('sms_sent_status', Payslip::STATUS_SUCCESSFUL);
-                          });
-                        break;
-                    case 'failed':
-                        $q->where(function ($subQ) {
-                            $subQ->where('encryption_status', Payslip::STATUS_FAILED)
-                                 ->orWhere(function ($subQ2) {
-                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
-                                           ->where('email_sent_status', Payslip::STATUS_FAILED)
-                                           ->where(function ($subQ3) {
-                                               $subQ3->where('sms_sent_status', Payslip::STATUS_FAILED)
-                                                     ->orWhere('sms_sent_status', Payslip::STATUS_DISABLED);
-                                           });
-                                 });
-                        });
-                        break;
-                    case 'processing':
-                        $q->where(function ($subQ) {
-                            $subQ->where('encryption_status', Payslip::STATUS_PENDING)
-                                 ->orWhere(function ($subQ2) {
-                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
-                                           ->where(function ($subQ3) {
-                                               $subQ3->where('email_sent_status', Payslip::STATUS_PENDING)
-                                                     ->orWhereNull('email_sent_status')
-                                                     ->orWhere(function ($subQ4) {
-                                                         $subQ4->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
-                                                               ->where(function ($subQ5) {
-                                                                   $subQ5->where('sms_sent_status', Payslip::STATUS_PENDING)
-                                                                         ->orWhereNull('sms_sent_status');
-                                                               });
-                                                     });
-                                           });
-                                 });
-                        });
-                        break;
-                }
-            });
-        }
-
-        // Apply role-based filtering
-        if (auth()->user()->getRoleNames()->first() === "supervisor") {
-            $query->whereIn('department_id', auth()->user()->supDepartments->pluck('department_id'));
-        }
-
-        return $query->orderBy($this->orderBy, $this->orderAsc)->get();
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function render()

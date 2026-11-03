@@ -205,7 +205,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllLeaves" href="#">{{__('leaves.select_all_leaves')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('leaves.select_all_leaves')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selectedLeaves', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -249,8 +249,8 @@
                             @endif
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedLeaves" href="#">{{__('leaves.select_all_deleted_leaves')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('leaves.select_all_deleted_leaves')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selectedLeavesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -310,8 +310,7 @@
                                     @else
                                         <input class="form-check-input p-2"
                                             wire:model.live="selectAllForDelete"
-                                            type="checkbox"
-                                            wire:click="toggleSelectAllForDelete">
+                                            type="checkbox">
                                     @endif
                                 </div>
                             </th>
@@ -334,7 +333,7 @@
                                     @else
                                         <input class="form-check-input"
                                             type="checkbox"
-                                            wire:click="toggleLeaveSelectionForDelete({{ $leave->id }})"
+                                            wire:click="toggleSelection({{ $leave->id }})"
                                             {{ in_array($leave->id, $selectedLeavesForDelete) ? 'checked' : '' }}>
                                     @endif
                                 </div>

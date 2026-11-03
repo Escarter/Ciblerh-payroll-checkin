@@ -11,7 +11,10 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithPagination, AuthorizesRequests;
+    use \App\Livewire\Traits\WithBulkSelection;
 
     //DataTable props
     public ?string $query = null;
@@ -169,9 +172,7 @@ class Index extends Component
 
     public function restore($auditLogId)
     {
-        if (!Gate::allows('audit_log-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('audit_log-restore');
 
         $auditLog = AuditLog::withTrashed()->findOrFail($auditLogId);
         $auditLog->restore();
@@ -181,9 +182,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('audit_log-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('audit_log-bulkdelete');
 
         if (!empty($this->selectedAuditLogs)) {
             AuditLog::whereIn('id', $this->selectedAuditLogs)->delete(); // Soft delete
@@ -195,9 +194,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('audit_log-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('audit_log-bulkrestore');
 
         if (!empty($this->selectedAuditLogs)) {
             AuditLog::withTrashed()->whereIn('id', $this->selectedAuditLogs)->restore();
@@ -220,38 +217,10 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedAuditLogs = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
-    {
-        $currentPageLogIds = $this->getAuditLogs()->pluck('id')->toArray();
-        
-        $allCurrentPageSelected = count(array_intersect($this->selectedAuditLogs, $currentPageLogIds)) === count($currentPageLogIds) && count($currentPageLogIds) > 0;
-        
-        if ($allCurrentPageSelected) {
-            $this->selectedAuditLogs = array_values(array_diff($this->selectedAuditLogs, $currentPageLogIds));
-        } else {
-            $this->selectedAuditLogs = array_values(array_unique(array_merge($this->selectedAuditLogs, $currentPageLogIds)));
-        }
-        
-        $this->selectAll = count(array_intersect($this->selectedAuditLogs, $currentPageLogIds)) === count($currentPageLogIds) && count($currentPageLogIds) > 0;
-    }
-
-    public function toggleAuditLogSelection($auditLogId)
-    {
-        if (in_array($auditLogId, $this->selectedAuditLogs)) {
-            $this->selectedAuditLogs = array_values(array_diff($this->selectedAuditLogs, [$auditLogId]));
-        } else {
-            $this->selectedAuditLogs = array_values(array_unique(array_merge($this->selectedAuditLogs, [$auditLogId])));
-        }
-        
-        $currentPageLogIds = $this->getAuditLogs()->pluck('id')->toArray();
-        $this->selectAll = count(array_intersect($this->selectedAuditLogs, $currentPageLogIds)) === count($currentPageLogIds) && count($currentPageLogIds) > 0;
-    }
-
-    private function getAuditLogs()
+    protected function bulkQuery()
     {
         $role = auth()->user()->getRoleNames()->first();
         
@@ -285,7 +254,17 @@ class Index extends Component
         });
 
         // Eager load user relationship for better performance
-        return $query->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->with('user')->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return ['active' => ['selectedAuditLogs', 'selectAll']];
+    }
+
+    private function getAuditLogs()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     /**

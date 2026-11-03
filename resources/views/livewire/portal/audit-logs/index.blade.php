@@ -373,7 +373,7 @@
                     <thead class="">
                         <tr>
                             <th class="border-0 px-4 py-2 text-muted fw-medium">
-                                <input type="checkbox" class="form-check-input" wire:model.live="selectAll" wire:click="toggleSelectAll">
+                                <input type="checkbox" class="form-check-input" wire:model.live="selectAll">
                             </th>
                             <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.user') }}</th>
                             <th class="border-0 px-4 py-2 text-muted fw-medium">{{ __('audit_logs.action') }}</th>
@@ -387,7 +387,7 @@
                         @forelse($logs as $log)
                         <tr class="border-bottom border-opacity-25">
                             <td class="px-4 py-2">
-                                <input type="checkbox" class="form-check-input" wire:click="toggleAuditLogSelection({{ $log->id }})" {{ in_array($log->id, $selectedAuditLogs) ? 'checked' : '' }}>
+                                <input type="checkbox" class="form-check-input" wire:click="toggleSelection({{ $log->id }})" {{ in_array($log->id, $selectedAuditLogs) ? 'checked' : '' }}>
                             </td>
                             <td class="px-4 py-2">
                                 @php

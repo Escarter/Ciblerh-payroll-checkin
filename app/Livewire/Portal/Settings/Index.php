@@ -18,6 +18,8 @@ use Illuminate\Support\Str;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithDataTable;
 
     public $setting, $sms_provider, $sms_provider_username, $sms_provider_password, $sms_provider_senderid;
@@ -1124,9 +1126,7 @@ class Index extends Component
      */
     public function save()
     {
-        if (!Gate::allows('manage-settings')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('manage-settings');
 
         Setting::updateOrCreate(
             [],

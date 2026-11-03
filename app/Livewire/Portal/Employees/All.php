@@ -26,6 +26,8 @@ use Illuminate\Database\Eloquent\Collection;
 
 class All extends BaseImportComponent
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
     use \App\Livewire\Traits\WithTestSms;
 
@@ -187,9 +189,7 @@ class All extends BaseImportComponent
 
     public function store()
     {
-        if (!Gate::allows('employee-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-create');
         $this->setDefaultWorkTimes();
         // Updated validation - only 5 fields are mandatory
         $this->validate([
@@ -276,9 +276,7 @@ class All extends BaseImportComponent
     }
     public function updateManager()
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         $this->setDefaultWorkTimes();
 
@@ -372,9 +370,7 @@ class All extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
         $this->setDefaultWorkTimes();
         $this->validate(array_merge($this->rules, [
             'email' => EmployeeIdentityRules::email($this->employee->id),
@@ -452,9 +448,7 @@ class All extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-delete');
 
         if (!empty($this->employee)) {
             $this->employee->delete(); // Soft delete
@@ -466,9 +460,7 @@ class All extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('employee-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-restore');
 
         $employee = User::withTrashed()->findOrFail($this->employee_id);
         $employee->restore();
@@ -478,9 +470,7 @@ class All extends BaseImportComponent
 
     public function forceDelete($employeeId = null)
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-delete');
 
         // If no employeeId provided, try to get it from selectedEmployees or employee_id
         if (!$employeeId) {
@@ -521,9 +511,7 @@ class All extends BaseImportComponent
 
     public function bulkDelete()
     {
-        if (!Gate::allows('employee-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-bulkdelete');
 
         $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
         $employees = collect();
@@ -573,9 +561,7 @@ class All extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('employee-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-bulkrestore');
 
         $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
         $employees = collect();
@@ -625,9 +611,7 @@ class All extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-delete');
 
         $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
 
@@ -737,18 +721,14 @@ class All extends BaseImportComponent
 
     public function openCompanyNotificationsModal(): void
     {
-        if (!Gate::allows('employee-update')) {
-            abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         $this->dispatch('open-modal', 'CompanySmsToggleModal');
     }
 
     public function bulkToggleCompanySmsNotifications(bool $enabled): void
     {
-        if (!Gate::allows('employee-update')) {
-            abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         if (!in_array($this->auth_role, ['admin', 'manager'], true)) {
             $this->showToast(__('employees.bulk_sms_company_role_not_allowed'), 'danger');
@@ -784,9 +764,7 @@ class All extends BaseImportComponent
 
     public function bulkToggleCompanyEmailNotifications(bool $enabled): void
     {
-        if (!Gate::allows('employee-update')) {
-            abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         if (!in_array($this->auth_role, ['admin', 'manager'], true)) {
             $this->showToast(__('employees.bulk_sms_company_role_not_allowed'), 'danger');
@@ -1008,9 +986,7 @@ class All extends BaseImportComponent
 
     public function toggleEmailNotifications($employeeId)
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         $employee = User::findOrFail($employeeId);
         $employee->update([
@@ -1027,9 +1003,7 @@ class All extends BaseImportComponent
 
     public function toggleSmsNotifications($employeeId)
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         $employee = User::findOrFail($employeeId);
         $employee->update([

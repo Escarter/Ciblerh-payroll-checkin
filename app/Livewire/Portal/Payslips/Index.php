@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use App\Models\SendPayslipProcess;
 use Illuminate\Support\Facades\Gate;
 use App\Jobs\Plan\PayslipSendingPlan;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use App\Services\PayslipProcessGuardService;
 use App\Services\PayslipProcessStartResult;
@@ -21,7 +22,9 @@ use App\Jobs\Single\ResendFailedPayslipJob;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
     
     public $companies = [];
     public $departments = [];
@@ -50,9 +53,7 @@ class Index extends Component
 
     public function delete($processId = null)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $process = $processId ? SendPayslipProcess::findOrFail($processId) : $this->send_payslip_process;
         
@@ -84,9 +85,7 @@ class Index extends Component
 
     public function restore($processId)
     {
-        if (!Gate::allows('payslip-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-restore');
 
         $process = SendPayslipProcess::withTrashed()->findOrFail($processId);
         
@@ -104,9 +103,7 @@ class Index extends Component
 
     public function forceDelete($processId)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $process = SendPayslipProcess::withTrashed()->findOrFail($processId);
         
@@ -125,9 +122,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('payslip-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkdelete');
 
         if (!empty($this->selectedSendPayslipProcesses)) {
             $query = SendPayslipProcess::whereIn('id', $this->selectedSendPayslipProcesses);
@@ -183,9 +178,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('payslip-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkrestore');
 
         if (!empty($this->selectedSendPayslipProcesses)) {
             $query = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedSendPayslipProcesses);
@@ -238,9 +231,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         if (!empty($this->selectedSendPayslipProcesses)) {
             $query = SendPayslipProcess::withTrashed()->whereIn('id', $this->selectedSendPayslipProcesses);
@@ -297,31 +288,10 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedSendPayslipProcesses = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
-    {
-        if ($this->selectAll) {
-            $this->selectedSendPayslipProcesses = $this->getSendPayslipProcesses()->pluck('id')->toArray();
-        } else {
-            $this->selectedSendPayslipProcesses = [];
-        }
-    }
-
-    public function toggleSendPayslipProcessSelection($processId)
-    {
-        if (in_array($processId, $this->selectedSendPayslipProcesses)) {
-            $this->selectedSendPayslipProcesses = array_diff($this->selectedSendPayslipProcesses, [$processId]);
-        } else {
-            $this->selectedSendPayslipProcesses[] = $processId;
-        }
-        
-        $this->selectAll = count($this->selectedSendPayslipProcesses) === $this->getSendPayslipProcesses()->count();
-    }
-
-    private function getSendPayslipProcesses()
+    protected function bulkQuery()
     {
         $query = match (auth()->user()->getRoleNames()->first()) {
             'manager' => SendPayslipProcess::manager(),
@@ -337,7 +307,22 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy('created_at', 'desc')->take(20)->get();
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    protected function bulkPageSize(): int
+    {
+        return 20;
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return ['active' => ['selectedSendPayslipProcesses', 'selectAll']];
+    }
+
+    private function getSendPayslipProcesses()
+    {
+        return $this->bulkQuery()->take(20)->get();
     }
 
     public function showTaskDetails($processId)
@@ -894,9 +879,7 @@ class Index extends Component
 
     public function cancelTask($processId)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $process = SendPayslipProcess::findOrFail($processId);
         
@@ -937,9 +920,7 @@ class Index extends Component
 
     public function bulkResendEmails($processId)
     {
-        if (!Gate::allows('payslip-bulkresend-email')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkresend-email');
 
         $process = SendPayslipProcess::findOrFail($processId);
         
@@ -1021,9 +1002,7 @@ class Index extends Component
 
     public function bulkResendSms($processId)
     {
-        if (!Gate::allows('payslip-bulkresend-sms')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkresend-sms');
 
         $process = SendPayslipProcess::findOrFail($processId);
 
@@ -1137,9 +1116,7 @@ class Index extends Component
 
     public function send()
     {
-        if (!Gate::allows('payslip-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-create');
 
         $this->validate([
             'department_id' => 'required',
@@ -1252,9 +1229,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('payslip-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-read');
 
         $jobs = $this->getSendPayslipProcesses();
 

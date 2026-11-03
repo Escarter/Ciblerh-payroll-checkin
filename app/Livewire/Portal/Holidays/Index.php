@@ -13,6 +13,8 @@ use App\Imports\Services\FieldMappingService;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithDataTable;
 
     public ?string $date = null;
@@ -108,9 +110,7 @@ class Index extends Component
 
     public function store()
     {
-        if (! Gate::allows('setting-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('setting-read');
         $this->validate();
         Holiday::create([
             'date' => $this->date,
@@ -135,9 +135,7 @@ class Index extends Component
 
     public function update()
     {
-        if (! Gate::allows('setting-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('setting-read');
         $this->validate();
         $this->holiday->update([
             'date' => $this->date,
@@ -152,9 +150,7 @@ class Index extends Component
 
     public function delete()
     {
-        if (! Gate::allows('setting-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('setting-read');
         $this->holiday?->delete();
         $this->clearFields();
         $this->dispatch('showToast', message: __('holidays.holiday_deleted'), type: 'success');
@@ -163,9 +159,7 @@ class Index extends Component
 
     public function importBulk()
     {
-        if (!Gate::allows('setting-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('setting-read');
 
         $this->validate([
             'import_file' => 'required|file|mimes:csv,txt,xlsx,xls|max:5120',

@@ -259,8 +259,7 @@
                                         <input id="select-all-payslips"
                                             class="form-check-input p-2"
                                             wire:model.live="selectAll"
-                                            type="checkbox"
-                                            wire:click="toggleSelectAll">
+                                            type="checkbox">
                                     </div>
                                 </th>
                                 <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('departments.department')}}</th>
@@ -276,7 +275,7 @@
                                     <div class="form-check d-flex justify-content-center align-items-center">
                                         <input class="form-check-input"
                                             type="checkbox"
-                                            wire:click="toggleSendPayslipProcessSelection({{ $job->id }})"
+                                            wire:click="toggleSelection({{ $job->id }})"
                                             {{ in_array($job->id, $selectedSendPayslipProcesses) ? 'checked' : '' }}>
                                     </div>
                                 </td>

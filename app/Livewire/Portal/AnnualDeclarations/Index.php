@@ -14,6 +14,8 @@ use Livewire\Component;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithDataTable;
 
     public $company_id;
@@ -26,9 +28,7 @@ class Index extends Component
 
     public function mount()
     {
-        if (!Gate::allows('payslip-read')) {
-            abort(401);
-        }
+        $this->authorizeAbility('payslip-read');
 
         $user = auth()->user();
         $this->role = (string) $user->getRoleNames()->first();
@@ -53,9 +53,7 @@ class Index extends Component
 
     public function send()
     {
-        if (!Gate::allows('payslip-create')) {
-            abort(401);
-        }
+        $this->authorizeAbility('payslip-create');
 
         $this->validate([
             'year' => 'required|integer|min:2000|max:' . (now()->year + 1),

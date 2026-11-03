@@ -20,6 +20,8 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends BaseImportComponent
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
     protected $importType = 'departments';
@@ -86,9 +88,7 @@ class Index extends BaseImportComponent
     }
     public function store()
     {
-        if (!Gate::allows('department-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-create');
         $this->validate([
             'name' => 'required',
         ]);
@@ -118,9 +118,7 @@ class Index extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('department-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-update');
         // $this->validate([
         //     // 'department_id' => 'required'
         // ]);
@@ -171,9 +169,7 @@ class Index extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('department-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-delete');
 
         if (!empty($this->department)) {
             $this->department->delete(); // Soft delete
@@ -185,9 +181,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('department-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-restore');
 
         $department = Department::withTrashed()->findOrFail($this->department_id);
         $department->restore();
@@ -197,9 +191,7 @@ class Index extends BaseImportComponent
 
     public function forceDelete($departmentId = null)
     {
-        if (!Gate::allows('department-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-delete');
 
         // If no departmentId provided, try to get it from selectedDepartments
         if (!$departmentId) {
@@ -237,9 +229,7 @@ class Index extends BaseImportComponent
 
     public function bulkDelete()
     {
-        if (!Gate::allows('department-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-bulkdelete');
 
         $targetIds = $this->selectedDepartments ?? [];
         $departments = collect();
@@ -286,9 +276,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('department-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-bulkrestore');
 
         $targetIds = $this->selectedDepartments ?? [];
         $departments = collect();
@@ -335,9 +323,7 @@ class Index extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('department-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-delete');
 
         if (!empty($this->selectedDepartments)) {
             $departments = Department::withTrashed()->whereIn('id', $this->selectedDepartments)->get();
@@ -464,9 +450,7 @@ class Index extends BaseImportComponent
 
     public function render()
     {
-        if (!Gate::allows('department-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-read');
 
         $departments = $this->getDepartments();
 
@@ -708,9 +692,7 @@ class Index extends BaseImportComponent
 
     public function openDepartmentNotificationsModal()
     {
-        if (!Gate::allows('department-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('department-update');
 
         $this->dispatch('open-modal', 'DepartmentSmsToggleModal');
     }

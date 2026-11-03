@@ -8,13 +8,16 @@ use App\Mail\AbsenceRequestSubmittedNotification;
 use Livewire\Component;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
 
@@ -104,9 +107,7 @@ class Index extends Component
 
     public function store()
     {
-        if (!Gate::allows('absence-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-create');
 
         $this->validate([
             'start_date' => 'required|date|after_or_equal:today',
@@ -203,9 +204,7 @@ class Index extends Component
 
     public function update()
     {
-        if (!Gate::allows('absence-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-update');
 
         $this->validate([
             'absence_date' => 'required|date|after_or_equal:today',
@@ -228,9 +227,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('absence-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-delete');
 
         if (!empty($this->absence)) {
             auth()->user()->absences()->findOrFail($this->absence->id)->delete();
@@ -245,9 +242,7 @@ class Index extends Component
 
     public function restore($absenceId)
     {
-        if (!Gate::allows('absence-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-restore');
 
         $absence = Absence::withTrashed()->findOrFail($absenceId);
 
@@ -266,9 +261,7 @@ class Index extends Component
 
     public function forceDelete($absenceId = null)
     {
-        if (!Gate::allows('absence-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-delete');
 
         // If no absenceId provided, try to get it from selectedAbsencesForDelete
         if (!$absenceId) {
@@ -300,44 +293,9 @@ class Index extends Component
         $this->updateCounts();
     }
 
-    // Bulk selection methods
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedAbsences = auth()->user()->absences()
-                ->where('approval_status', '!=', Absence::APPROVAL_STATUS_APPROVED)
-                ->pluck('id')
-                ->toArray();
-        } else {
-            $this->selectedAbsences = [];
-        }
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selectedAbsences = $this->getAbsences()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedAbsencesForDelete = $this->getAbsences()->pluck('id')->toArray();
-    }
-
-    public function selectAllAbsences()
-    {
-        $this->selectedAbsences = Absence::where('user_id', auth()->user()->id)->whereNull('deleted_at')->pluck('id')->toArray();
-    }
-
-    public function selectAllDeletedAbsences()
-    {
-        $this->selectedAbsencesForDelete = Absence::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
-    }
-
     public function bulkDelete()
     {
-        if (!Gate::allows('absence-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-bulkdelete');
 
         if (!empty($this->selectedAbsences)) {
             $absences = auth()->user()->absences()
@@ -391,9 +349,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('absence-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-bulkrestore');
 
         if (!empty($this->selectedAbsencesForDelete)) {
             $absences = Absence::withTrashed()
@@ -446,9 +402,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('absence-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-delete');
 
         if (!empty($this->selectedAbsencesForDelete)) {
             $absences = Absence::withTrashed()
@@ -502,28 +456,7 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedAbsencesForDelete = [];
-        $this->selectAllForDelete = false;
-    }
-
-    public function toggleSelectAllForDelete()
-    {
-        if ($this->selectAllForDelete) {
-            $this->selectedAbsencesForDelete = $this->getAbsences()->pluck('id')->toArray();
-        } else {
-            $this->selectedAbsencesForDelete = [];
-        }
-    }
-
-    public function toggleAbsenceSelectionForDelete($absenceId)
-    {
-        if (in_array($absenceId, $this->selectedAbsencesForDelete)) {
-            $this->selectedAbsencesForDelete = array_diff($this->selectedAbsencesForDelete, [$absenceId]);
-        } else {
-            $this->selectedAbsencesForDelete[] = $absenceId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedAbsencesForDelete) === $this->getAbsences()->count();
+        $this->resetBulkSelection();
     }
 
     private function updateCounts()
@@ -532,7 +465,7 @@ class Index extends Component
         $this->deletedAbsencesCount = Absence::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
     }
 
-    private function getAbsences()
+    protected function bulkQuery()
     {
         $query = auth()->user()->absences()->with(['user', 'company']);
 
@@ -543,7 +476,20 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return [
+            'active' => ['selectedAbsences', 'selectAll'],
+            'deleted' => ['selectedAbsencesForDelete', 'selectAllForDelete'],
+        ];
+    }
+
+    private function getAbsences()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function clearFields()
@@ -563,9 +509,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('absence-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('absence-read');
 
         $absences = $this->getAbsences();
 

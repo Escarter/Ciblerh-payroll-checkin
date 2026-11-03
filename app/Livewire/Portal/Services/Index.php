@@ -18,6 +18,8 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends BaseImportComponent
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
     protected $importType = 'services';
@@ -73,9 +75,7 @@ class Index extends BaseImportComponent
     }
     public function store()
     {
-        if (!Gate::allows('service-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-create');
         $this->validate();
 
         Service::create([
@@ -91,9 +91,7 @@ class Index extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('service-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-update');
         $this->validate();
 
         $this->service->update([
@@ -107,9 +105,7 @@ class Index extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('service-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-delete');
 
         if (!empty($this->service)) {
             $this->service->delete(); // Already using soft delete
@@ -121,9 +117,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('service-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-restore');
 
         $service = Service::withTrashed()->findOrFail($this->service_id);
         $service->restore();
@@ -133,9 +127,7 @@ class Index extends BaseImportComponent
 
     public function forceDelete($serviceId = null)
     {
-        if (!Gate::allows('service-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-delete');
 
         // If no serviceId provided, try to get it from selectedServices
         if (!$serviceId) {
@@ -170,9 +162,7 @@ class Index extends BaseImportComponent
 
     public function bulkDelete()
     {
-        if (!Gate::allows('service-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-bulkdelete');
 
         $targetIds = $this->selectedServices ?? [];
         $services = collect();
@@ -221,9 +211,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('service-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-bulkrestore');
 
         $targetIds = $this->selectedServices ?? [];
         $services = collect();
@@ -272,9 +260,7 @@ class Index extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('service-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-delete');
 
         if (!empty($this->selectedServices)) {
             $servicesWithTickings = [];
@@ -391,9 +377,7 @@ class Index extends BaseImportComponent
     }
     public function render()
     {
-        if (!Gate::allows('service-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-read');
 
         $services = $this->getServices();
 
@@ -490,9 +474,7 @@ class Index extends BaseImportComponent
 
     public function openServiceNotificationsModal()
     {
-        if (!Gate::allows('service-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-update');
 
         $this->dispatch('open-modal', 'ServiceSmsToggleModal');
     }

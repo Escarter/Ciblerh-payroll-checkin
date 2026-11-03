@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Gate;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
 
@@ -116,13 +118,9 @@ class Index extends Component
     {
         // Check permission based on approval status
         if ($this->bulk_approval_status) {
-            if (!Gate::allows('ticking-bulkapproval')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('ticking-bulkapproval');
         } else {
-            if (!Gate::allows('ticking-bulkrejection')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('ticking-bulkrejection');
         }
 
         // Fetch records before updating for audit logging
@@ -198,9 +196,7 @@ class Index extends Component
 
     public function update()
     {
-        if (!Gate::allows('ticking-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-update');
         $this->validate();
 
         if ($this->role === "supervisor") {
@@ -225,9 +221,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-delete');
 
         if (!empty($this->checklog)) {
             $this->checklog->delete(); // Already using soft delete
@@ -239,9 +233,7 @@ class Index extends Component
 
     public function restore($checklogId)
     {
-        if (!Gate::allows('ticking-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-restore');
 
         $checklog = Ticking::withTrashed()->findOrFail($checklogId);
         $checklog->restore();
@@ -251,9 +243,7 @@ class Index extends Component
 
     public function forceDelete($checklogId = null)
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-delete');
 
         // If no checklogId provided, try to get it from selectedChecklogsForDelete
         if (!$checklogId) {
@@ -281,9 +271,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('ticking-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-bulkdelete');
 
         $targetIds = [];
         $operation = 'soft_delete';
@@ -350,9 +338,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('ticking-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-bulkrestore');
 
         $checklogs = collect();
         $affectedRecords = [];
@@ -402,9 +388,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-delete');
 
         $checklogs = collect();
         $affectedRecords = [];
@@ -541,9 +525,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('ticking-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-read');
 
         $checklogs = $this->getChecklogs();
 

@@ -12,6 +12,8 @@ use Livewire\Component;
 
 class Details extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithDataTable;
 
     public SendAnnualDeclarationProcess $process;
@@ -19,9 +21,7 @@ class Details extends Component
 
     public function mount($id)
     {
-        if (!Gate::allows('payslip-read')) {
-            abort(401);
-        }
+        $this->authorizeAbility('payslip-read');
 
         $process = SendAnnualDeclarationProcess::withTrashed()->findOrFail($id);
         $this->authorizeProcess($process);
@@ -49,9 +49,7 @@ class Details extends Component
 
     public function resend(int $id, AnnualDeclarationNotifier $notifier)
     {
-        if (!Gate::allows('payslip-sending')) {
-            abort(401);
-        }
+        $this->authorizeAbility('payslip-sending');
 
         $declaration = $this->process->declarations()->sendable()->findOrFail($id);
         $notifier->send($declaration, true);
@@ -61,9 +59,7 @@ class Details extends Component
 
     public function retryFailed()
     {
-        if (!Gate::allows('payslip-sending')) {
-            abort(401);
-        }
+        $this->authorizeAbility('payslip-sending');
 
         $this->process->declarations()->sendable()
             ->where('email_sent_status', AnnualDeclaration::STATUS_FAILED)

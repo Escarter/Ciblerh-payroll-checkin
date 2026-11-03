@@ -18,6 +18,8 @@ use PhpOffice\PhpSpreadsheet\Cell\AdvancedValueBinder;
 
 class Index extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
     public ?array $selected = [];
@@ -135,13 +137,9 @@ class Index extends Component
     {
         // Check permission based on approval status
         if ($this->bulk_approval_status) {
-            if (!Gate::allows('advance_salary-bulkapproval')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('advance_salary-bulkapproval');
         } else {
-            if (!Gate::allows('advance_salary-bulkrejection')) {
-                return abort(401);
-            }
+            $this->authorizeAbility('advance_salary-bulkrejection');
         }
 
         // Fetch records before updating for audit logging
@@ -210,9 +208,7 @@ class Index extends Component
 
     public function update()
     {
-        if (!Gate::allows('advance_salary-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-update');
         $this->validate();
         $updateData = [
             'reason' => $this->reason,
@@ -252,9 +248,7 @@ class Index extends Component
 
     public function recordRepayment()
     {
-        if (!Gate::allows('advance_salary-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-update');
         if (!$this->advance_salary || $this->advance_salary->type !== AdvanceSalary::TYPE_LOAN) {
             $this->showToast(__('employees.repayment_only_for_loans'), 'danger');
             return;
@@ -281,9 +275,7 @@ class Index extends Component
 
     public function delete()
     {
-        if (!Gate::allows('advance_salary-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-delete');
 
         if (!empty($this->advance_salary)) {
             $this->advance_salary->delete(); // Already using soft delete
@@ -295,9 +287,7 @@ class Index extends Component
 
     public function restore($advanceSalaryId)
     {
-        if (!Gate::allows('advance_salary-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-restore');
 
         $advanceSalary = AdvanceSalary::withTrashed()->findOrFail($advanceSalaryId);
         $advanceSalary->restore();
@@ -307,9 +297,7 @@ class Index extends Component
 
     public function forceDelete($advanceSalaryId = null)
     {
-        if (!Gate::allows('ticking-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('ticking-delete');
 
         // If no advanceSalaryId provided, try to get it from selectedAdvanceSalariesForDelete
         if (!$advanceSalaryId) {
@@ -337,9 +325,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('advance_salary-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-bulkdelete');
 
         $targetIds = [];
         $operation = 'soft_delete';
@@ -404,9 +390,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('advance_salary-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-bulkrestore');
 
         $advanceSalaries = collect();
         $affectedRecords = [];
@@ -454,9 +438,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('advance_salary-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-delete');
 
         $advanceSalaries = collect();
         $affectedRecords = [];
@@ -617,9 +599,7 @@ class Index extends Component
     }
     public function render()
     {
-        if (!Gate::allows('advance_salary-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('advance_salary-read');
 
         $advance_salaries = $this->getAdvanceSalaries();
 

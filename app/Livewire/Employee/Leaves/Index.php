@@ -9,12 +9,15 @@ use Livewire\Component;
 use App\Models\LeaveType;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Carbon\Carbon;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     //Create, Edit, Delete, View Post props
     public ?array $selectedLeaves = [];
@@ -75,9 +78,7 @@ class Index extends Component
     
     public function store()
     {
-        if (!Gate::allows('leave-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-create');
 
         $this->validate([
             'start_date' => 'required|date',
@@ -164,9 +165,7 @@ class Index extends Component
 
     public function update()
     {
-        if (!Gate::allows('leave-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-update');
 
         $this->validate([
             'start_date' => 'required|date',
@@ -189,9 +188,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-delete');
 
         if (!empty($this->leave)) {
             auth()->user()->leaves()->findOrFail($this->leave->id)->delete();
@@ -206,9 +203,7 @@ class Index extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('leave-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-bulkdelete');
 
         if (!empty($this->selectedLeaves)) {
             $leaves = Leave::whereIn('id', $this->selectedLeaves)
@@ -260,9 +255,7 @@ class Index extends Component
 
     public function restore($leaveId)
     {
-        if (!Gate::allows('leave-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-restore');
 
         $leave = Leave::withTrashed()->findOrFail($leaveId);
 
@@ -281,9 +274,7 @@ class Index extends Component
 
     public function forceDelete($leaveId = null)
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-delete');
 
         // If no leaveId provided, try to get it from selectedLeavesForDelete
         if (!$leaveId) {
@@ -317,9 +308,7 @@ class Index extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('leave-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-bulkrestore');
 
         if (!empty($this->selectedLeavesForDelete)) {
             $leaves = Leave::withTrashed()
@@ -372,9 +361,7 @@ class Index extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-delete');
 
         if (!empty($this->selectedLeavesForDelete)) {
             $leaves = Leave::withTrashed()
@@ -426,16 +413,6 @@ class Index extends Component
     }
 
     //Toggle the $selectAll on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedLeaves = $this->getLeaves()->pluck('id')->toArray();
-        } else {
-            $this->selectedLeaves = [];
-        }
-    }
-
-    //Toggle the $selectAll on or off based on the count of selected posts
     public function updatedselectedLeaves()
     {
         // This method can be used for additional logic if needed
@@ -444,48 +421,7 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedLeavesForDelete = [];
-        $this->selectAllForDelete = false;
-    }
-
-    public function toggleSelectAllForDelete()
-    {
-        if ($this->selectAllForDelete) {
-            $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
-        } else {
-            $this->selectedLeavesForDelete = [];
-        }
-    }
-
-    public function toggleLeaveSelectionForDelete($leaveId)
-    {
-        if (in_array($leaveId, $this->selectedLeavesForDelete)) {
-            $this->selectedLeavesForDelete = array_diff($this->selectedLeavesForDelete, [$leaveId]);
-        } else {
-            $this->selectedLeavesForDelete[] = $leaveId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedLeavesForDelete) === $this->getLeaves()->count();
-    }
-
-    public function selectAllVisible()
-    {
-        $this->selectedLeaves = $this->getLeaves()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
-    }
-
-    public function selectAllLeaves()
-    {
-        $this->selectedLeaves = auth()->user()->leaves()->whereNull('deleted_at')->pluck('id')->toArray();
-    }
-
-    public function selectAllDeletedLeaves()
-    {
-        $this->selectedLeavesForDelete = auth()->user()->leaves()->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray();
+        $this->resetBulkSelection();
     }
 
     private function updateCounts()
@@ -494,7 +430,7 @@ class Index extends Component
         $this->deletedLeavesCount = Leave::where('user_id', auth()->user()->id)->withTrashed()->whereNotNull('deleted_at')->count();
     }
 
-    private function getLeaves()
+    protected function bulkQuery()
     {
         $query = Leave::search($this->query)->where('user_id', auth()->user()->id);
 
@@ -505,7 +441,20 @@ class Index extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    protected function bulkSelectionMap(): array
+    {
+        return [
+            'active' => ['selectedLeaves', 'selectAll'],
+            'deleted' => ['selectedLeavesForDelete', 'selectAllForDelete'],
+        ];
+    }
+
+    private function getLeaves()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function clearFields()
@@ -524,9 +473,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('leave-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-read');
 
         $leaves = $this->getLeaves();
 

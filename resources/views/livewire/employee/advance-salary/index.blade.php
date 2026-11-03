@@ -169,7 +169,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllAdvanceSalaries" href="#">{{__('advance_salary.select_all_advance_salaries')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('advance_salary.select_all_advance_salaries')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selectedAdvanceSalaries', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -213,8 +213,8 @@
                             @endif
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedAdvanceSalaries" href="#">{{__('advance_salary.select_all_deleted_advance_salaries')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('advance_salary.select_all_deleted_advance_salaries')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selectedAdvanceSalariesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -274,8 +274,7 @@
                                     @else
                                         <input class="form-check-input p-2"
                                             wire:model.live="selectAllForDelete"
-                                            type="checkbox"
-                                            wire:click="toggleSelectAllForDelete">
+                                            type="checkbox">
                                     @endif
                                 </div>
                             </th>
@@ -300,7 +299,7 @@
                                     @else
                                         <input class="form-check-input"
                                             type="checkbox"
-                                            wire:click="toggleAdvanceSalarySelectionForDelete({{ $advance_salary->id }})"
+                                            wire:click="toggleSelection({{ $advance_salary->id }})"
                                             {{ in_array($advance_salary->id, $selectedAdvanceSalariesForDelete) ? 'checked' : '' }}>
                                     @endif
                                 </div>

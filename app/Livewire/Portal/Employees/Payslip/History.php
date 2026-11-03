@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Storage;
 
 class History extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     use WithBulkSelection, WithDataTable;
 
     public $employee;
@@ -132,9 +134,7 @@ class History extends Component
 
     public function runEmployeePayslipDiagnostic(): void
     {
-        if (!Gate::allows('payslip-read')) {
-            abort(401);
-        }
+        $this->authorizeAbility('payslip-read');
 
         $this->employeeDiagnostic = app(PayslipEmployeeDiagnosticService::class)->diagnose($this->employee);
         $this->diagnosticRan = true;
@@ -343,9 +343,7 @@ class History extends Component
 
     public function delete($payslipId = null)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         try {
             $payslip = $payslipId ? Payslip::findOrFail($payslipId) : $this->payslip;
@@ -365,9 +363,7 @@ class History extends Component
 
     public function restore($payslipId)
     {
-        if (!Gate::allows('payslip-restore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-restore');
 
         $payslip = Payslip::withTrashed()->findOrFail($payslipId);
         $payslip->restore();
@@ -377,9 +373,7 @@ class History extends Component
 
     public function forceDelete($payslipId = null)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         try {
             $payslip = $payslipId ? Payslip::withTrashed()->findOrFail($payslipId) : $this->payslip;
@@ -399,9 +393,7 @@ class History extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('payslip-bulkdelete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkdelete');
 
         $targetIds = $this->selectedPayslips ?? [];
         $payslips = collect();
@@ -450,9 +442,7 @@ class History extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('payslip-bulkrestore')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-bulkrestore');
 
         $targetIds = $this->selectedPayslips ?? [];
         $payslips = collect();
@@ -501,9 +491,7 @@ class History extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         $targetIds = $this->selectedPayslips ?? [];
         $payslips = collect();
@@ -876,9 +864,7 @@ class History extends Component
 
     public function render()
     {
-        if (!Gate::allows('payslip-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-read');
 
         // if (auth()->user()->hasRole('employee') && $this->employee->department->author_id !== auth()->user()->id) {
         //     return abort(401);

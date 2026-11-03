@@ -21,6 +21,8 @@ use App\Livewire\Portal\Roles\Partial\WithImportJobPermissions;
 
 class Create extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
 
     use  WithComDeptServPermissions, WithRolePermissions, WithAuditLogPermissions, WithTickOvertimePermissions,
     WithAdvanceSalAndAbsencesPermissions, WithLeaveAndLeaveTypePermissions, WithSettingPermissions, WithPaySlipAndEmployeePermissions,
@@ -61,9 +63,7 @@ class Create extends Component
     
     public function editRole($roleId)
     {
-        if (!Gate::allows('role-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-update');
 
         $this->roleId = $roleId;
         $this->isEditMode = true;
@@ -232,9 +232,7 @@ class Create extends Component
 
     public function store()
     {
-        if (!Gate::allows('role.create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role.create');
 
         $this->validate(['name' => 'required|unique:roles']);
 
@@ -258,9 +256,7 @@ class Create extends Component
     
     public function update()
     {
-        if (!Gate::allows('role-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('role-update');
 
         $this->validate(['name' => 'required|unique:roles,name,' . $this->roleId]);
 

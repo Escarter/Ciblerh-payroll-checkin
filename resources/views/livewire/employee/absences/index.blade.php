@@ -169,7 +169,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" wire:click="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click="selectAllAbsences" href="#">{{__('absences.select_all_absences')}}</a></li>
+                            <li><a class="dropdown-item" wire:click="selectAllMatching" href="#">{{__('absences.select_all_absences')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click="$set('selectedAbsences', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -213,8 +213,8 @@
                             @endif
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" wire:click="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click="selectAllDeletedAbsences" href="#">{{__('absences.select_all_deleted_absences')}}</a></li>
+                            <li><a class="dropdown-item" wire:click="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click="selectAllMatching" href="#">{{__('absences.select_all_deleted_absences')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click="$set('selectedAbsencesForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -276,8 +276,7 @@
                                     @else
                                         <input class="form-check-input p-2"
                                             wire:model.live="selectAllForDelete"
-                                            type="checkbox"
-                                            wire:click="toggleSelectAllForDelete">
+                                            type="checkbox">
                                     @endif
                                 </div>
                             </th>
@@ -301,7 +300,7 @@
                                     @else
                                         <input class="form-check-input"
                                             type="checkbox"
-                                            wire:click="toggleAbsenceSelectionForDelete({{ $absence->id }})"
+                                            wire:click="toggleSelection({{ $absence->id }})"
                                             {{ in_array($absence->id, $selectedAbsencesForDelete) ? 'checked' : '' }}>
                                     @endif
                                 </div>
