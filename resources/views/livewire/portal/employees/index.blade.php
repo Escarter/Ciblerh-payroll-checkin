@@ -362,7 +362,7 @@
                     @forelse($employees as $employee)
                     <tr>
                         <td>
-                            <input type="checkbox"
+                            <input wire:key="sel-{{ $employee->id }}-{{ in_array($employee->id, $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees) ? 1 : 0 }}" type="checkbox"
                                 id="employee-checkbox-{{ $employee->id }}"
                                 wire:click="toggleSelection({{ $employee->id }})"
                                 {{ in_array($employee->id, $activeTab === 'deleted' ? $selectedEmployeesForDelete : $selectedEmployees) ? 'checked' : '' }}

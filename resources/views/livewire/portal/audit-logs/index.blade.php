@@ -387,7 +387,7 @@
                         @forelse($logs as $log)
                         <tr class="border-bottom border-opacity-25">
                             <td class="px-4 py-2">
-                                <input type="checkbox" class="form-check-input" wire:click="toggleSelection({{ $log->id }})" {{ in_array($log->id, $selectedAuditLogs) ? 'checked' : '' }}>
+                                <input wire:key="sel-{{ $log->id }}-{{ in_array($log->id, $selectedAuditLogs) ? 1 : 0 }}" type="checkbox" class="form-check-input" wire:click="toggleSelection({{ $log->id }})" {{ in_array($log->id, $selectedAuditLogs) ? 'checked' : '' }}>
                             </td>
                             <td class="px-4 py-2">
                                 @php

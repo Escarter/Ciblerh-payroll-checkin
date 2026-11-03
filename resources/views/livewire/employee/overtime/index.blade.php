@@ -301,7 +301,7 @@
                                     <input class="form-check-input" wire:model.live="selected" value="{{$overtime->id}}" type="checkbox">
                                     @endif
                                     @else
-                                    <input class="form-check-input"
+                                    <input wire:key="sel-{{ $overtime->id }}-{{ in_array($overtime->id, $selectedOvertimesForDelete) ? 1 : 0 }}" class="form-check-input"
                                         type="checkbox"
                                         wire:click="toggleSelection({{ $overtime->id }})"
                                         {{ in_array($overtime->id, $selectedOvertimesForDelete) ? 'checked' : '' }}>

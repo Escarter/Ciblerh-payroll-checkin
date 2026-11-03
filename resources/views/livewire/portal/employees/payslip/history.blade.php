@@ -418,7 +418,7 @@
                             <tr>
                                 <td>
                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                        <input class="form-check-input" 
+                                        <input wire:key="sel-{{ $payslip->id }}-{{ in_array($payslip->id, $selectedPayslips) ? 1 : 0 }}" class="form-check-input" 
                                             type="checkbox"
                                             wire:click="toggleSelection({{ $payslip->id }})"
                                             {{ in_array($payslip->id, $selectedPayslips) ? 'checked' : '' }}>

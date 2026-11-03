@@ -474,7 +474,7 @@
                                 <input class="form-check-input" wire:model.live="selectedChecklogs" value="{{$checklog->id}}" type="checkbox">
                                 @else
                                 <!-- For deleted tab, use soft delete selection -->
-                                <input class="form-check-input"
+                                <input wire:key="sel-{{ $checklog->id }}-{{ in_array($checklog->id, $selectedChecklogsForDelete) ? 1 : 0 }}" class="form-check-input"
                                     type="checkbox"
                                     wire:click="toggleSelection({{ $checklog->id }})"
                                     {{ in_array($checklog->id, $selectedChecklogsForDelete) ? 'checked' : '' }}>

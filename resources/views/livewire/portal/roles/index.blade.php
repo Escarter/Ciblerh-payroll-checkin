@@ -216,7 +216,7 @@
                     @forelse($roles as $role)
                     <tr class="{{ in_array($role->id, $selectedRoles) ? 'table-primary' : '' }}">
                         <td>
-                            <input type="checkbox"
+                            <input wire:key="sel-{{ $role->id }}-{{ in_array($role->id, $selectedRoles) ? 1 : 0 }}" type="checkbox"
                                 id="role-checkbox-{{ $role->id }}"
                                 wire:click="toggleSelection({{ $role->id }})"
                                 {{ in_array($role->id, $selectedRoles) ? 'checked' : '' }}

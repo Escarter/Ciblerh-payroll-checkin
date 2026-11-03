@@ -331,7 +331,7 @@
                                     @if($activeTab === 'active')
                                         <input class="form-check-input" wire:model.live="selectedLeaves" value="{{$leave->id}}" type="checkbox">
                                     @else
-                                        <input class="form-check-input"
+                                        <input wire:key="sel-{{ $leave->id }}-{{ in_array($leave->id, $selectedLeavesForDelete) ? 1 : 0 }}" class="form-check-input"
                                             type="checkbox"
                                             wire:click="toggleSelection({{ $leave->id }})"
                                             {{ in_array($leave->id, $selectedLeavesForDelete) ? 'checked' : '' }}>

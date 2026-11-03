@@ -204,7 +204,7 @@
                     @foreach($jobs as $job)
                     <tr>
                         <td>
-                            <input type="checkbox" class="form-check-input"
+                            <input wire:key="sel-{{ $job->id }}-{{ in_array($job->id, $selectedJobs) ? 1 : 0 }}" type="checkbox" class="form-check-input"
                                 wire:click="toggleSelection({{ $job->id }})"
                                 {{ in_array($job->id, $selectedJobs) ? 'checked' : '' }}>
                         </td>

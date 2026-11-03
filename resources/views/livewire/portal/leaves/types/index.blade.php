@@ -312,7 +312,7 @@
                     <tr>
                         <td>
                             <div class="form-check d-flex justify-content-center align-items-center">
-                                <input class="form-check-input" 
+                                <input wire:key="sel-{{ $leave_type->id }}-{{ in_array($leave_type->id, $selectedLeaveTypes) ? 1 : 0 }}" class="form-check-input" 
                                     type="checkbox"
                                     wire:click="toggleSelection({{ $leave_type->id }})"
                                     {{ in_array($leave_type->id, $selectedLeaveTypes) ? 'checked' : '' }}>

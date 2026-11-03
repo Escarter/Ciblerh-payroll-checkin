@@ -400,7 +400,7 @@
                                 <input class="form-check-input" wire:model.live="selectedOvertimes" value="{{$overtime->id}}" type="checkbox">
                                 @else
                                 <!-- For deleted tab, use soft delete selection -->
-                                <input class="form-check-input"
+                                <input wire:key="sel-{{ $overtime->id }}-{{ in_array($overtime->id, $selectedOvertimesForDelete) ? 1 : 0 }}" class="form-check-input"
                                     type="checkbox"
                                     wire:click="toggleSelection({{ $overtime->id }})"
                                     {{ in_array($overtime->id, $selectedOvertimesForDelete) ? 'checked' : '' }}>

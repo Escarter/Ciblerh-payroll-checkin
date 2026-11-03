@@ -273,7 +273,7 @@
                             <tr>
                                 <td>
                                     <div class="form-check d-flex justify-content-center align-items-center">
-                                        <input class="form-check-input"
+                                        <input wire:key="sel-{{ $job->id }}-{{ in_array($job->id, $selectedSendPayslipProcesses) ? 1 : 0 }}" class="form-check-input"
                                             type="checkbox"
                                             wire:click="toggleSelection({{ $job->id }})"
                                             {{ in_array($job->id, $selectedSendPayslipProcesses) ? 'checked' : '' }}>

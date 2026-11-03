@@ -298,7 +298,7 @@
                                         <input class="form-check-input" wire:model.live="selectedAbsences" value="{{$absence->id}}" type="checkbox">
                                         @endif
                                     @else
-                                        <input class="form-check-input"
+                                        <input wire:key="sel-{{ $absence->id }}-{{ in_array($absence->id, $selectedAbsencesForDelete) ? 1 : 0 }}" class="form-check-input"
                                             type="checkbox"
                                             wire:click="toggleSelection({{ $absence->id }})"
                                             {{ in_array($absence->id, $selectedAbsencesForDelete) ? 'checked' : '' }}>

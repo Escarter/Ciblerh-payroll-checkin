@@ -297,7 +297,7 @@
                                         <input class="form-check-input" wire:model.live="selectedAdvanceSalaries" value="{{$advance_salary->id}}" type="checkbox">
                                         @endif
                                     @else
-                                        <input class="form-check-input"
+                                        <input wire:key="sel-{{ $advance_salary->id }}-{{ in_array($advance_salary->id, $selectedAdvanceSalariesForDelete) ? 1 : 0 }}" class="form-check-input"
                                             type="checkbox"
                                             wire:click="toggleSelection({{ $advance_salary->id }})"
                                             {{ in_array($advance_salary->id, $selectedAdvanceSalariesForDelete) ? 'checked' : '' }}>
