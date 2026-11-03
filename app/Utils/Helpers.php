@@ -579,152 +579,92 @@ if (!function_exists('numberFormat')) {
 
 if (!function_exists('validatePhoneNumber')) {
     /**
-     * Validate and format phone number to E.164 format
-     * 
+     * Normalise a phone number to E.164 (+<country code><number>).
+     *
+     * Pipeline:
+     *  1. Strip every separator/letter (spaces, commas, dots, dashes, brackets...), keep digits and a leading "+".
+     *  2. "00" international prefix is treated as "+".
+     *  3. With "+": the number is already international (a stray trunk "0" after the country code and a
+     *     duplicated country code are removed).
+     *  4. Without "+": a number that already starts with a recognised country code and has a plausible length is
+     *     international; any other number is national, so the leading trunk "0" is dropped and the default
+     *     country code is prepended (config app.phone_default_country_code, or the $countryCode argument).
+     *     Numbers too long to be national (> 10 digits) are assumed to carry their country code already.
+     *
      * @param string $phoneNumber Phone number to validate
-     * @param string|null $countryCode Optional country code to use if phone doesn't have one
+     * @param string|null $countryCode Optional default country code (digits only) for national numbers
      * @return array ['valid' => bool, 'formatted' => string|null, 'error' => string|null]
      */
     function validatePhoneNumber(string $phoneNumber, ?string $countryCode = null): array
     {
-        if (empty(trim($phoneNumber))) {
-            return [
-                'valid' => false,
-                'formatted' => null,
-                'error' => __('common.phone_number_cannot_be_empty')
-            ];
+        $invalid = fn (string $message) => ['valid' => false, 'formatted' => null, 'error' => $message];
+
+        if (trim($phoneNumber) === '') {
+            return $invalid(__('common.phone_number_cannot_be_empty'));
         }
 
-        // Remove all whitespace and common formatting characters
-        $phoneNumber = preg_replace('/[\s\-\(\)\.]/', '', $phoneNumber);
-        
-        // Remove all non-numeric characters except +
-        $phoneNumber = preg_replace('/[^0-9+]/', '', $phoneNumber);
+        $hasPlus = str_starts_with(ltrim($phoneNumber), '+');
+        $digits = preg_replace('/\D/', '', $phoneNumber);
 
-        // If phone already starts with +, validate it
-        if (str_starts_with($phoneNumber, '+')) {
-            $digits = substr($phoneNumber, 1);
-            
-            // Check if country code starts with 0 (invalid in E.164)
-            if (str_starts_with($digits, '0')) {
-                return [
-                    'valid' => false,
-                    'formatted' => null,
-                    'error' => __('common.country_code_cannot_start_with_zero')
-                ];
+        if (!$hasPlus && str_starts_with($digits, '00')) {
+            $hasPlus = true;
+            $digits = substr($digits, 2);
+        }
+
+        if ($digits === '') {
+            return $invalid(__('common.invalid_phone_number_format_e164'));
+        }
+
+        if (trim($digits, '0') === '') {
+            return $invalid(__($hasPlus ? 'common.phone_number_must_contain_non_zero_digit' : 'common.phone_number_cannot_be_all_zeros'));
+        }
+
+        $defaultCode = preg_replace('/\D/', '', (string) ($countryCode ?: config('app.phone_default_country_code', '237')));
+        $isInternational = $hasPlus;
+
+        if (!$isInternational) {
+            $detected = detectCountryCodeFromPhone($digits);
+            $startsWithDefault = $defaultCode !== ''
+                && str_starts_with($digits, $defaultCode)
+                && strlen($digits) - strlen($defaultCode) >= 8
+                && strlen($digits) - strlen($defaultCode) <= 12;
+
+            if ($startsWithDefault || $detected !== null || strlen(ltrim($digits, '0')) > 10) {
+                $isInternational = true;
             }
-            
-            // Check for duplicate country codes (e.g., +237237656379100)
-            // Only remove duplicates, not the first occurrence
-            $detectedCode = detectCountryCodeFromPhone($digits);
-            if ($detectedCode !== null && str_starts_with($digits, $detectedCode)) {
-                // Check if the remaining digits after removing the country code also start with it (duplicate case)
-                $digitsAfterFirstCode = substr($digits, strlen($detectedCode));
-                if (str_starts_with($digitsAfterFirstCode, $detectedCode)) {
-                    // This is a duplicate - remove the duplicate country code
-                    $digits = $detectedCode . substr($digitsAfterFirstCode, strlen($detectedCode));
-                }
-                // If no duplicate, keep digits as-is (already properly formatted)
+        }
+
+        if ($isInternational) {
+            if ($hasPlus && str_starts_with($digits, '0')) {
+                return $invalid(__('common.country_code_cannot_start_with_zero'));
             }
-            
-            // Remove leading zeros (trunk prefixes)
-            $originalDigits = $digits;
+
             $digits = ltrim($digits, '0');
-            
-            if (empty($digits)) {
-                return [
-                    'valid' => false,
-                    'formatted' => null,
-                    'error' => __('common.phone_number_must_contain_non_zero_digit')
-                ];
-            }
-            
-            $formatted = '+' . $digits;
-            
-            // Validate E.164 format
-            if (!isValidE164Format($formatted)) {
-                return [
-                    'valid' => false,
-                    'formatted' => null,
-                    'error' => __('common.invalid_phone_number_format_e164')
-                ];
-            }
-            
-            return [
-                'valid' => true,
-                'formatted' => $formatted,
-                'error' => null
-            ];
-        }
+            $code = ($defaultCode !== '' && str_starts_with($digits, $defaultCode)) ? $defaultCode : detectCountryCodeFromPhone($digits);
 
-        // Handle phone numbers without + prefix
-        $phoneNumber = ltrim($phoneNumber, '0');
-        if (empty($phoneNumber)) {
-            return [
-                'valid' => false,
-                'formatted' => null,
-                'error' => __('common.phone_number_cannot_be_all_zeros')
-            ];
-        }
-
-        // Use provided country code or try to detect
-        if ($countryCode !== null && is_numeric($countryCode) && strlen($countryCode) <= 3) {
-            // If phone number already starts with this country code, don't add it again
-            if (str_starts_with($phoneNumber, $countryCode)) {
-                $formatted = '+' . $phoneNumber;
-            } else {
-                $formatted = '+' . $countryCode . $phoneNumber;
+            if ($code !== null) {
+                $national = substr($digits, strlen($code));
+                // Collapse a duplicated country code (e.g. 237237699949194) and a stray trunk zero (+2370698...)
+                if (str_starts_with($national, $code) && strlen($national) > 10) {
+                    $national = substr($national, strlen($code));
+                }
+                $digits = $code . ltrim($national, '0');
             }
         } else {
-            // Try to detect country code
-            $detectedCode = detectCountryCodeFromPhone($phoneNumber);
-            if ($detectedCode !== null) {
-                // If phone number already starts with detected country code, remove it before adding
-                if (str_starts_with($phoneNumber, $detectedCode)) {
-                    // Remove the detected country code from the beginning
-                    $phoneNumberWithoutCode = substr($phoneNumber, strlen($detectedCode));
-                    
-                    // Check if the remaining number also starts with the country code (duplicate case)
-                    // This handles cases like "237237699949194" where country code appears twice
-                    if (str_starts_with($phoneNumberWithoutCode, $detectedCode)) {
-                        // Remove the duplicate country code as well
-                        $phoneNumberWithoutCode = substr($phoneNumberWithoutCode, strlen($detectedCode));
-                    }
-                    
-                    // Remove any leading zeros that might remain
-                    $phoneNumberWithoutCode = ltrim($phoneNumberWithoutCode, '0');
-                    if (empty($phoneNumberWithoutCode)) {
-                        return [
-                            'valid' => false,
-                            'formatted' => null,
-                            'error' => __('common.phone_number_cannot_be_all_zeros')
-                        ];
-                    }
-                    $formatted = '+' . $detectedCode . $phoneNumberWithoutCode;
-                } else {
-                    // Country code detected but number doesn't start with it - prepend it
-                    $formatted = '+' . $detectedCode . $phoneNumber;
-                }
-            } else {
-                // Just add + prefix (may fail if country code is required)
-                $formatted = '+' . $phoneNumber;
+            $national = ltrim($digits, '0');
+            if ($defaultCode === '' || strlen($national) < 7) {
+                return $invalid(__('common.invalid_phone_number_format_e164'));
             }
+            $digits = $defaultCode . $national;
         }
 
-        // Validate final format
-        if (!isValidE164Format($formatted)) {
-            return [
-                'valid' => false,
-                'formatted' => null,
-                'error' => __('common.invalid_phone_number_format_e164')
-            ];
+        $formatted = '+' . $digits;
+
+        if (!isValidE164Format($formatted) || strlen($digits) < 8) {
+            return $invalid(__('common.invalid_phone_number_format_e164'));
         }
 
-        return [
-            'valid' => true,
-            'formatted' => $formatted,
-            'error' => null
-        ];
+        return ['valid' => true, 'formatted' => $formatted, 'error' => null];
     }
 }
 
