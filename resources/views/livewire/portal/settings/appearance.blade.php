@@ -40,7 +40,7 @@
                 <div class="card-body">
                     <div class="mb-4">
                         <label for="app_name">{{ __('settings.app_name') }}</label>
-                        <input id="app_name" type="text" wire:model="app_name" class="form-control @error('app_name') is-invalid @enderror">
+                        <input id="app_name" type="text" wire:model="app_name" class="form-control @error('app_name') is-invalid @enderror" placeholder="{{ __('settings.app_name') }}">
                         @error('app_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
 
