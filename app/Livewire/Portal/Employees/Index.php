@@ -635,7 +635,7 @@ class Index extends BaseImportComponent
     {
         return [
             'active' => ['selectedEmployees', 'selectAll'],
-            'deleted' => ['selectedEmployeesForDelete', 'selectAllForDelete'],
+            'deleted' => ['selectedEmployeesForDelete', 'selectAll'],
         ];
     }
 

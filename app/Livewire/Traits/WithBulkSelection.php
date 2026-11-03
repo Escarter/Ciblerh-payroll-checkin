@@ -88,7 +88,7 @@ trait WithBulkSelection
 
     public function updatedSelectAll($value): void
     {
-        $this->applyBulkSelection('active', (bool) $value);
+        $this->applyBulkSelection($this->bulkTab(), (bool) $value);
     }
 
     public function updatedSelectAllForDelete($value): void

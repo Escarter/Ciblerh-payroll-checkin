@@ -41,3 +41,20 @@ test('select all, toggle one row and clear work through the shared trait', funct
     $component->call('selectAllMatching')->assertCount('selectedCompanies', $total)
         ->call('clearSelection')->assertCount('selectedCompanies', 0);
 });
+
+test('employees trash header checkbox selects and ticks every trashed row', function () {
+    Gate::define('employee-read', fn () => true);
+
+    foreach (User::factory()->count(2)->create() as $user) {
+        $user->syncRoles(['employee']);
+        $user->delete();
+    }
+
+    $component = Livewire::test(\App\Livewire\Portal\Employees\All::class)
+        ->call('switchTab', 'deleted')
+        ->set('selectAll', true);
+
+    expect($component->get('selectedEmployeesForDelete'))->toHaveCount(2);
+    expect(substr_count($component->html(), 'wire:click="toggleSelection('))->toBe(2);
+    expect(preg_match_all('/toggleSelection\(\d+\)"\s+checked/', $component->html()))->toBe(2);
+});
