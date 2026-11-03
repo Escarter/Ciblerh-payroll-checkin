@@ -59,7 +59,7 @@ class Profile extends Component
             'position' => $this->position,
             'matricule' => $this->matricule,
             'preferred_language' => $this->preferred_language,
-            'date_of_birth' => $this->date_of_birth,
+            'date_of_birth' => $this->date_of_birth ?: null,
         ]);
 
         $this->refresh(__('auth.profile_updated_successfully'));

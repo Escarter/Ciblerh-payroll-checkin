@@ -47,7 +47,7 @@ class ProfileSetting extends Component
             'phone_number' => $this->phone_number,
             'position' => $this->position,
             'matricule' => $this->matricule,
-            'date_of_birth' => $this->date_of_birth,
+            'date_of_birth' => $this->date_of_birth ?: null,
             'preferred_language' => $this->preferred_language,
         ]);
 
