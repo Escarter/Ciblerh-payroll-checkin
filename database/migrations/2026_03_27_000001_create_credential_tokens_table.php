@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('credential_tokens')) {
+            return;
+        }
+
         Schema::create('credential_tokens', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->index();

@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('credential_tokens', 'import_job_id')) {
+            return;
+        }
+
         Schema::table('credential_tokens', function (Blueprint $table) {
             $table->unsignedBigInteger('import_job_id')->nullable()->after('user_id');
             $table->foreign('import_job_id')->references('id')->on('import_jobs')->nullOnDelete();

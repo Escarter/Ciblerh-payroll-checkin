@@ -13,6 +13,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Databases created from the emploiservice_payslip schema lack this base column.
+        if (!Schema::hasColumn('payslips', 'sms_status_note')) {
+            Schema::table('payslips', function (Blueprint $table) {
+                $table->text('sms_status_note')->nullable()->after('sms_sent_status');
+            });
+        }
+
         Schema::table('payslips', function (Blueprint $table) {
             $table->string('sms_txn_id')->nullable()->after('sms_status_note');
             $table->string('sms_client_txn_id')->nullable()->after('sms_txn_id');
