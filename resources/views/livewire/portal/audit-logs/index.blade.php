@@ -518,13 +518,11 @@
                                             @endphp
                                             @if($userModel || $selectedLog->getAttribute('user'))
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar bg-primary text-white me-2 d-flex align-items-center justify-content-center fw-bold rounded" style="width: 40px; height: 40px;">
-                                                    {{initials($userName)}}
-                                                </div>
-                                                <div>
-                                                    <div class="fw-bold">{{ $userName }}</div>
+                                                <div class="avatar d-flex align-items-center justify-content-center fw-bold rounded bg-primary me-3"><span class="text-white">{{initials($userName)}}</span></div>
+                                                <div class="d-block">
+                                                    <span class="fw-bold">{{ $userName }}</span>
                                                     @if($userModel && $userModel->email)
-                                                    <small class="text-muted">{{ $userModel->email }}</small>
+                                                    <div class="small text-gray">{{ $userModel->email }}</div>
                                                     @endif
                                                 </div>
                                             </div>
