@@ -172,7 +172,7 @@ return [
     'all' => 'Tous',
 
     // Global search
-    'search_pages_features' => 'Rechercher pages, fonctionnalités...',
+    'search_pages_features' => 'Rechercher pages, employés, entreprises...',
     'type_to_search' => 'Tapez pour rechercher des pages et fonctionnalités',
     'try_searching_else' => 'Essayez de rechercher autre chose',
     'navigate' => 'pour naviguer',

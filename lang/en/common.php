@@ -174,7 +174,7 @@ return [
     'all' => 'All',
 
     // Global search
-    'search_pages_features' => 'Search pages, features...',
+    'search_pages_features' => 'Search pages, employees, companies...',
     'type_to_search' => 'Type to search for pages and features',
     'try_searching_else' => 'Try searching for something else',
     'navigate' => 'to navigate',

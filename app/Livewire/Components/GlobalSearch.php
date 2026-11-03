@@ -3,6 +3,10 @@
 namespace App\Livewire\Components;
 
 use App\Utils\PermissionHelper;
+use App\Models\Company;
+use App\Models\Department;
+use App\Models\Service;
+use App\Models\User;
 use Livewire\Component;
 
 class GlobalSearch extends Component
@@ -108,8 +112,63 @@ class GlobalSearch extends Component
         // Sort by search score (descending)
         usort($filtered, fn($a, $b) => $b['search_score'] <=> $a['search_score']);
 
-        // Limit results
-        $this->results = array_slice($filtered, 0, 20);
+        $this->results = array_merge(array_slice($filtered, 0, 12), $this->searchRecords(trim($this->search)));
+    }
+
+    // Records the user may open, searched across models and linked to the page that lists them.
+    private function searchRecords(string $term): array
+    {
+        $user = auth()->user();
+
+        if (mb_strlen($term) < 2 || ! $user || ! $user->hasAnyRole(['admin', 'manager', 'supervisor'])) {
+            return [];
+        }
+
+        $isSupervisor = $user->hasRole('supervisor') && ! $user->hasAnyRole(['admin', 'manager']);
+        $like = '%' . $term . '%';
+        $records = [];
+
+        try {
+            User::search($term)->with('company')->limit(6)->get()->each(function ($u) use (&$records) {
+                $records[] = $this->record('user-' . $u->id, $u->name, trim(($u->email ?: $u->matricule ?: '') . ' ' . ($u->company?->name ? '· ' . $u->company->name : '')),
+                    __('common.employees'), route('portal.all-employees', ['q' => $u->matricule ?: ($u->email ?: $u->last_name)]), 'fas fa-user');
+            });
+
+            if (! $isSupervisor) {
+                Company::manager()->where('name', 'like', $like)->limit(4)->get()->each(function ($c) use (&$records) {
+                    $records[] = $this->record('company-' . $c->id, $c->name, '', __('common.companies'), route('portal.companies.index', ['q' => $c->name]), 'fas fa-building');
+                });
+            }
+
+            $departments = Department::query()->with('company');
+            $isSupervisor ? $departments->supervisor() : $departments->manager();
+            $departments->where('name', 'like', $like)->limit(4)->get()->each(function ($d) use (&$records, $isSupervisor) {
+                $url = $isSupervisor
+                    ? route('portal.departments.supervisor', ['q' => $d->name])
+                    : ($d->company ? route('portal.departments.index', ['company_uuid' => $d->company->uuid, 'q' => $d->name]) : null);
+                if ($url) {
+                    $records[] = $this->record('department-' . $d->id, $d->name, $d->company?->name ?? '', __('common.departments'), $url, 'fas fa-sitemap');
+                }
+            });
+
+            $services = Service::query()->with('department');
+            $isSupervisor ? $services->supervisor() : $services->manager();
+            $services->where('name', 'like', $like)->limit(4)->get()->each(function ($s) use (&$records) {
+                if ($s->department) {
+                    $records[] = $this->record('service-' . $s->id, $s->name, $s->department->name, __('common.services'),
+                        route('portal.services.index', ['department_uuid' => $s->department->uuid, 'q' => $s->name]), 'fas fa-briefcase');
+                }
+            });
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return $records;
+    }
+
+    private function record(string $id, string $label, string $description, string $group, string $url, string $icon): array
+    {
+        return compact('id', 'label', 'description', 'group', 'url', 'icon') + ['search_terms' => []];
     }
 
     private function calculateSearchScore(array $item, string $searchTerm): int
