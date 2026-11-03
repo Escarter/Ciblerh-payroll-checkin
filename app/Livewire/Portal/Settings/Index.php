@@ -485,7 +485,7 @@ class Index extends Component
 
         $this->validate(['test_phone_number' => ['required', 'string', new \App\Rules\PhoneNumber()]]);
 
-        $phone = validatePhoneNumber($this->test_phone_number)['formatted'];
+        $phone = \App\Services\SmsProvider::cleanPhone($this->test_phone_number);
 
         if (empty($setting) || (empty($setting->sms_provider_username) && empty($setting->sms_provider_password))) {
             $this->showToast(__('settings.setting_for_sms_required'), 'danger');
