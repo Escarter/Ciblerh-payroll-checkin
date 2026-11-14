@@ -42,6 +42,8 @@ class User extends Authenticatable implements HasLocalePreference
     protected $hidden = [
         'password',
         'remember_token',
+        'mfa_secret',
+        'mfa_totp_timestep',
     ];
 
     /**
@@ -63,6 +65,12 @@ class User extends Authenticatable implements HasLocalePreference
         'email_bounce_type' => 'string',
         'last_payslip_received_at' => 'datetime',
         'deactivated_at' => 'datetime',
+        'mfa_enabled' => 'boolean',
+        'mfa_required' => 'boolean',
+        'mfa_secret' => 'encrypted',
+        'mfa_totp_timestep' => 'integer',
+        'mfa_confirmed_at' => 'datetime',
+        'mfa_last_used_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -414,6 +422,21 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->hasMany(AnnualDeclaration::class, 'employee_id');
     }
 
+    public function mfaRecoveryCodes(): HasMany
+    {
+        return $this->hasMany(MfaRecoveryCode::class, 'user_id');
+    }
+
+    public function mfaSecurityEvents(): HasMany
+    {
+        return $this->hasMany(MfaSecurityEvent::class, 'user_id');
+    }
+
+    public function trustedDevices(): HasMany
+    {
+        return $this->hasMany(TrustedDevice::class, 'user_id');
+    }
+
     /**
      * Check whether the employee has any related records (including soft-deleted ones).
      */
@@ -466,6 +489,13 @@ class User extends Authenticatable implements HasLocalePreference
             // 4. Remove supervisor & manager assignments
             $this->supDepartments()->delete();
             $this->managerCompanies()->detach();
+
+            // 4b. Clean up MFA records if tables exist
+            foreach (['mfa_recovery_codes', 'mfa_security_events', 'mfa_trusted_devices'] as $mfaTable) {
+                if (\Illuminate\Support\Facades\Schema::hasTable($mfaTable)) {
+                    \Illuminate\Support\Facades\DB::table($mfaTable)->where('user_id', $this->id)->delete();
+                }
+            }
 
             // 5. Detach Spatie roles & permissions
             $this->roles()->detach();

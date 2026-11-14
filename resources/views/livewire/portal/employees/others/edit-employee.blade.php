@@ -5,12 +5,12 @@
                 <div class="p-3 p-lg-5">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('employees.update_employee')}}</h1>
-                        <p>{{__('employees.update_employee_details')}} &#128522;</p>
+                        <p>{{__('employees.update_employee_details')}}</p>
                     </div>
                     <x-form-items.form wire:submit="update" class="form-modal">
                         <input type='hidden' name='employee_id' value="" id="EmployeeId">
                         <div class="form-group mb-2 row">
-                            <div class='col-md-6 col-xs-12'>
+                            <div class='col-md-6 col-xs-12' wire:key="edit-emp-company-{{ $employee_id ?? 'new' }}">
                                 <label for="company">{{__('companies.company')}}</label>
                                 @if(auth()->user()->hasRole('supervisor'))
                                     <input type="text" class="form-control" value="{{$employee->company->name ?? __('employees.unknown_company')}}" disabled>
@@ -28,7 +28,7 @@
                                     <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? '' }}" disabled>
                                 @endif
                             </div>
-                            <div class='col-md-6 col-xs-12'>
+                            <div class='col-md-6 col-xs-12' wire:key="edit-emp-dept-{{ $employee_id ?? 'new' }}-{{ $editCompanyId ?? ($company->id ?? 'none') }}-{{ count($departments ?? []) }}">
                                 <label for="department">{{__('departments.department')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <select wire:model.live="department_id" class="form-select  @error('department_id') is-invalid @enderror">
                                     <option value="">{{__('departments.select_department')}}</option>
@@ -38,7 +38,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class='form-group mb-2'>
+                        <div class='form-group mb-2' wire:key="edit-emp-service-{{ $employee_id ?? 'new' }}-{{ $department_id ?? 'none' }}-{{ count($services ?? []) }}">
                             <label for="service_id">{{__('employees.service')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model.live="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
                                 <option value="">{{__('services.select_service')}}</option>
@@ -159,7 +159,7 @@
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="position">{{__('common.position')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                                <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position" placeholder="{{__('common.position')}}">
+                                <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" name="position" placeholder="{{__('common.position')}}">
                                 @error('position')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -196,7 +196,7 @@
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="contract_end">{{__('employees.contract_end_date')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                                <input wire:model="contract_end" type="date" class="form-control  @error('contract_end') is-invalid @enderror" autofocus="" name="contract_end">
+                                <input wire:model="contract_end" type="date" class="form-control  @error('contract_end') is-invalid @enderror" name="contract_end">
                                 @error('contract_end')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -204,7 +204,7 @@
                         </div>
                         <div class="form-group mb-3">
                             <label for="password">{{__('employees.reset_employee_password')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                            <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password" placeholder="{{__('employees.reset_employee_password')}}">
+                            <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" name="password" placeholder="{{__('employees.reset_employee_password')}}">
                             @error('password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

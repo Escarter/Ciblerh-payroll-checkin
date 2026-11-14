@@ -91,6 +91,16 @@ trait WithBulkSelection
         $this->applyBulkSelection($this->bulkTab(), (bool) $value);
     }
 
+    public function updatedPage(): void
+    {
+        $this->refreshBulkFlag($this->bulkTab());
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->refreshBulkFlag($this->bulkTab());
+    }
+
     public function updatedSelectAllForDelete($value): void
     {
         $this->applyBulkSelection('deleted', (bool) $value);

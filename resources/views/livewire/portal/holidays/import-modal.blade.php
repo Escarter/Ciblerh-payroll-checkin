@@ -2,11 +2,13 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ __('holidays.bulk_import') }}</h5>
+                <div>
+                    <h5 class="modal-title">{{ __('holidays.bulk_import') }}</h5>
+                    <p class="text-muted small mb-0">{{ __('holidays.bulk_import_help') }}</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted small">{{ __('holidays.bulk_import_help') }}</p>
                 <div class="mb-3">
                     <label class="form-label">{{ __('holidays.import_file') }} <span class="text-danger">*</span></label>
                     <input type="file" wire:model="import_file" class="form-control @error('import_file') is-invalid @enderror" accept=".csv,.txt">

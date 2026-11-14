@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('companies.assign_manager')}}</h1>
-                        <p>{{__('companies.assign_manager_to_manage_company')}} &#128522;</p>
+                        <p>{{__('companies.assign_manager_to_manage_company')}}</p>
                     </div>
                     <form wire:submit.prevent="assignManager">
                         <div class='form-group mb-4'>

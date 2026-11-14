@@ -198,6 +198,10 @@
                         </div>
                     </x-form-items.form>
                 </div>
+
+                <div class="mt-3">
+                    @include('livewire.partials.two-factor.manage')
+                </div>
             </div>
         </div>
     </div>

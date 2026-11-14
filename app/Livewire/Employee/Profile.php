@@ -4,15 +4,18 @@ namespace App\Livewire\Employee;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Illuminate\Support\Facades\Gate;
 use App\Rules\CurrentPasswordCheckRule;
+use App\Services\TrustedDeviceService;
 use Illuminate\Support\Facades\Hash;
 
 class Profile extends Component
 {
     use \App\Livewire\Traits\AuthorizesAbilities;
-
+    use \App\Livewire\Traits\ManagesOwnTwoFactor;
     use WithFileUploads;
+    use WithPagination;
     public $first_name;
     public $last_name;
     public $email;
@@ -44,6 +47,7 @@ class Profile extends Component
         $this->work_time = auth()->user()->work_start_time ." - ". auth()->user()->work_end_time;
         $this->preferred_language = auth()->user()->preferred_language;
         $this->date_of_birth = !empty(auth()->user()->date_of_birth) ? auth()->user()->date_of_birth->format('Y-m-d') : '';
+        $this->initTwoFactorEnrolment();
     }
 
     public function updateProfile()
@@ -85,6 +89,7 @@ class Profile extends Component
         ]);
 
         auth()->user()->update(['password' => Hash::make($this->password)]);
+        app(TrustedDeviceService::class)->forgetAll(auth()->user());
 
         $this->reset(['current_password','password','password_confirmation']);
 
@@ -96,6 +101,6 @@ class Profile extends Component
     }
     public function render()
     {
-        return view('livewire.employee.profile')->layout('components.layouts.employee.master');
+        return view('livewire.employee.profile', $this->twoFactorViewData())->layout('components.layouts.employee.master');
     }
 }

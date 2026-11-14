@@ -207,3 +207,22 @@ test('manager can only transfer employees between companies they manage', functi
 
     expect($employee->fresh()->company_id)->toBe($managedCompanyB->id);
 });
+
+test('selectAll checkbox on employees pages selects only current pagination page by default', function () {
+    $company = Company::factory()->create();
+
+    foreach (User::factory()->count(8)->create(['company_id' => $company->id]) as $user) {
+        $user->syncRoles(['employee']);
+    }
+
+    Livewire::test(All::class)
+        ->set('perPage', 5)
+        ->set('selectAll', true)
+        ->assertCount('selectedEmployees', 5);
+
+    Livewire::test(Index::class, ['company_uuid' => $company->id])
+        ->set('perPage', 5)
+        ->set('selectAll', true)
+        ->assertCount('selectedEmployees', 5);
+});
+

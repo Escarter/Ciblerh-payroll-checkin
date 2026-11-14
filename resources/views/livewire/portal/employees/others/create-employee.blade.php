@@ -7,9 +7,9 @@
                         <h1 class="mb-0 h4">{{__('employees.create_new_employee')}}</h1>
                         <p>
                             @if(auth()->user()->hasRole('supervisor'))
-                                {{__('employees.create_new_employee_in_department')}} &#128522;
+                                {{__('employees.create_new_employee_in_department')}}
                             @else
-                                {{__('employees.create_new_employee_for')}} - {{$company->name ?? '' }} &#128522;
+                                {{__('employees.create_new_employee_for')}} - {{$company->name ?? '' }}
                             @endif
                         </p>
                     </div>

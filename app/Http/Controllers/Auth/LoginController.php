@@ -123,6 +123,8 @@ class LoginController extends Controller
             ]
         );
 
+        app(\App\Services\TwoFactorService::class)->forgetVerification();
+
         Auth::logout();
 
         $request->session()->invalidate();

@@ -229,9 +229,71 @@
                 </div>
             </div>
 
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="h6 mb-0">{{ __('settings.auth_page_section') }}</h2>
+                    <p class="small text-muted mb-0 mt-1">{{ __('settings.auth_page_hint') }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label>{{ __('settings.auth_bg_image') }}</label>
+                        @php
+                            $authBgPreview = $auth_bg ? $auth_bg->temporaryUrl() : $current_auth_bg;
+                        @endphp
+                        @if ($authBgPreview)
+                            <div class="mb-2 rounded overflow-hidden border" style="height: 110px; background: url('{{ $authBgPreview }}') center/cover no-repeat;"></div>
+                        @endif
+                        <input type="file" wire:model="auth_bg" accept="image/*" class="form-control @error('auth_bg') is-invalid @enderror">
+                        <div class="small text-muted mt-1">{{ __('settings.auth_bg_image_hint') }}</div>
+                        @error('auth_bg') <div class="text-danger small">{{ $message }}</div> @enderror
+                        @if (\App\Models\Setting::first()?->brand_auth_bg_path)
+                            <button type="button" wire:click="removeAsset('auth_bg')" class="btn btn-link btn-sm text-danger p-0 mt-1">{{ __('settings.use_default') }}</button>
+                        @endif
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="auth_kicker">{{ __('settings.auth_kicker') }}</label>
+                            <input id="auth_kicker" type="text" wire:model.live="auth_kicker" class="form-control @error('auth_kicker') is-invalid @enderror" placeholder="{{ __('auth.hero_kicker') }}">
+                            @error('auth_kicker') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="auth_title">{{ __('settings.auth_title') }}</label>
+                            <input id="auth_title" type="text" wire:model.live="auth_title" class="form-control @error('auth_title') is-invalid @enderror" placeholder="{{ __('auth.hero_title') }}">
+                            @error('auth_title') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-12">
+                            <label for="auth_subtitle">{{ __('settings.auth_subtitle') }}</label>
+                            <textarea id="auth_subtitle" rows="2" wire:model.live="auth_subtitle" class="form-control @error('auth_subtitle') is-invalid @enderror" placeholder="{{ __('auth.hero_subtitle') }}"></textarea>
+                            @error('auth_subtitle') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label for="auth_feature_1">{{ __('settings.auth_feature_1') }}</label>
+                            <input id="auth_feature_1" type="text" wire:model.live="auth_feature_1" class="form-control @error('auth_feature_1') is-invalid @enderror" placeholder="{{ __('auth.hero_feature_payslips') }}">
+                            @error('auth_feature_1') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label for="auth_feature_2">{{ __('settings.auth_feature_2') }}</label>
+                            <input id="auth_feature_2" type="text" wire:model.live="auth_feature_2" class="form-control @error('auth_feature_2') is-invalid @enderror" placeholder="{{ __('auth.hero_feature_leaves') }}">
+                            @error('auth_feature_2') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <label for="auth_feature_3">{{ __('settings.auth_feature_3') }}</label>
+                            <input id="auth_feature_3" type="text" wire:model.live="auth_feature_3" class="form-control @error('auth_feature_3') is-invalid @enderror" placeholder="{{ __('auth.hero_feature_security') }}">
+                            @error('auth_feature_3') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-12">
+                            <label for="auth_footer">{{ __('settings.auth_footer') }}</label>
+                            <input id="auth_footer" type="text" wire:model.live="auth_footer" class="form-control @error('auth_footer') is-invalid @enderror" placeholder="© {{ date('Y') }} {{ $app_name ?: config('app.name') }}">
+                            @error('auth_footer') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-flex justify-content-between">
                 <button type="button" class="btn btn-outline-gray-600" data-bs-toggle="modal" data-bs-target="#ResetAppearanceModal">{{ __('settings.reset_defaults') }}</button>
-                <button type="submit" class="btn btn-gray-800" wire:loading.attr="disabled" wire:target="save,logo,favicon">{{ __('common.save') }}</button>
+                <button type="submit" class="btn btn-gray-800" wire:loading.attr="disabled" wire:target="save,logo,favicon,auth_bg">{{ __('common.save') }}</button>
             </div>
         </div>
 
@@ -257,7 +319,7 @@
                 </div>
             </div>
 
-            <div class="card" x-data="{ dark(c) { const n = parseInt((c || '#fff').slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) < 150; } }">
+            <div class="card mb-3" x-data="{ dark(c) { const n = parseInt((c || '#fff').slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) < 150; } }">
                 <div class="card-header"><h2 class="h6 mb-0">{{ __('settings.employee_portal_preview') }}</h2></div>
                 <div class="card-body p-3">
                     <div class="rf-ep" x-bind:class="{ 'is-dark': dark(en) }" x-bind:style="`background:${pb}`">
@@ -282,6 +344,41 @@
                             </div>
                         </div>
                         <div class="rf-ep-tabbar" x-bind:style="`background:${en}`"><i class="on"></i><i></i><i></i><i></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h2 class="h6 mb-0">{{ __('settings.auth_page_preview') }}</h2></div>
+                <div class="card-body p-3">
+                    <div class="d-flex rounded overflow-hidden border" style="min-height: 220px;">
+                        <div class="text-white p-3 d-flex flex-column justify-content-between"
+                             style="width: 42%; font-size: 0.72rem; @if($authBgPreview) background: linear-gradient(155deg, rgba(15, 23, 42, 0.72) 0%, rgba(15, 23, 42, 0.84) 100%), url('{{ $authBgPreview }}') center/cover no-repeat; @else background: linear-gradient(155deg, var(--pv) 0%, #0f172a 100%); @endif">
+                            <div>
+                                @if ($show_logo)
+                                    <img src="{{ $logo ? $logo->temporaryUrl() : $current_logo }}" alt="" style="max-height: 22px; filter: brightness(0) invert(1);">
+                                @else
+                                    <strong style="font-size: 0.8rem;">{{ $app_name ?: config('app.name') }}</strong>
+                                @endif
+                            </div>
+                            <div class="my-2">
+                                <div class="text-uppercase opacity-75" style="font-size: 0.6rem; letter-spacing: .06em;">{{ $auth_kicker ?: __('auth.hero_kicker') }}</div>
+                                <div class="fw-bold mt-1" style="font-size: 0.85rem; line-height: 1.2;">{{ $auth_title ?: __('auth.hero_title') }}</div>
+                                <div class="opacity-75 mt-1" style="font-size: 0.65rem; line-height: 1.3;">{{ \Illuminate\Support\Str::limit($auth_subtitle ?: __('auth.hero_subtitle'), 85) }}</div>
+                            </div>
+                            <div class="opacity-50" style="font-size: 0.58rem;">
+                                {{ $auth_footer ?: ('© ' . date('Y') . ' ' . ($app_name ?: config('app.name'))) }}
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 p-3 d-flex flex-column justify-content-center" x-bind:style="`background:${pb}`">
+                            <div class="bg-white rounded p-3 border shadow-sm">
+                                <div class="fw-bold mb-1" style="font-size: 0.8rem; color: #0f172a;">{{ __('Login') }}</div>
+                                <div class="rounded mb-2" style="height: 8px; width: 65%; background: #e2e8f0;"></div>
+                                <div class="rounded mb-2 border" style="height: 20px; background: #f8fafc;"></div>
+                                <div class="rounded mb-2 border" style="height: 20px; background: #f8fafc;"></div>
+                                <div class="rounded" style="height: 22px; background: var(--pv);"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

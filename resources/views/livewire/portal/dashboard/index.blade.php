@@ -1118,11 +1118,11 @@
             <div class="department-modal-content"
                 style="position: fixed; top: 0; right: 0; width: 950px; height: 100%; background-color: white; box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15); overflow-y: auto; transform: translateX({{ $showDepartmentModal ? '0' : '100%' }}); transition: transform 300ms ease-in-out;">
 
-                <div class="modal-header p-4 border-bottom">
-                    <div class="d-flex justify-content-end align-items-center">
+                <div class="modal-header p-4">
+                    <div class="d-flex justify-content-between align-items-start w-100">
                         <div>
-                            <h5 class="mb-1">{{__('dashboard.department_performance_details')}}</h5>
-                            <small class="text-gray">{{__('dashboard.comprehensive_department_analysis')}}</small>
+                            <h5 class="modal-title mb-1">{{__('dashboard.department_performance_details')}}</h5>
+                            <p class="mb-0 text-muted small">{{__('dashboard.comprehensive_department_analysis')}}</p>
                         </div>
                         <button type="button" class="btn-close" wire:click="closeDepartmentModal" aria-label="Close"></button>
                     </div>

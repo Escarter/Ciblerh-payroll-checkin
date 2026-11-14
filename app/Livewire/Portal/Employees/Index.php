@@ -31,6 +31,7 @@ class Index extends BaseImportComponent
     use WithBulkSelection, WithDataTable;
     use \App\Livewire\Traits\WithTestSms;
     use \App\Livewire\Traits\WithEmployeeCompanyTransfer;
+    use \App\Livewire\Traits\WithAdminTwoFactorActions;
 
     private const DEFAULT_WORK_START_TIME = '08:00';
     private const DEFAULT_WORK_END_TIME = '17:30';
@@ -460,7 +461,7 @@ class Index extends BaseImportComponent
 
     public function bulkDelete()
     {
-        $this->authorizeAbility('employee-bulkdelete');
+        $this->authorizeAbility(['employee-bulkdelete', 'employee-delete']);
 
         $targetIds = $this->selectedEmployees ?? [];
         $employees = collect();
@@ -509,7 +510,7 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        $this->authorizeAbility('employee-bulkrestore');
+        $this->authorizeAbility(['employee-bulkrestore', 'employee-restore', 'employee-delete']);
 
         // Use selectedEmployeesForDelete when on deleted tab, otherwise selectedEmployees
         $targetIds = $this->activeTab === 'deleted' 
@@ -642,6 +643,11 @@ class Index extends BaseImportComponent
     {
         $this->activeTab = $tab;
         $this->resetBulkSelection();
+    }
+
+    protected function bulkAcrossPages(): bool
+    {
+        return false;
     }
 
     protected function bulkSelectionMap(): array

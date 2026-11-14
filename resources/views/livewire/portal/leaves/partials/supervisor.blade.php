@@ -1,6 +1,6 @@
 <div class="mb-4 mt-md-0">
     <h1 class="mb-0 h4">{{__('employees.bulk_leave')}} {{($bulk_approval_status == 1) ? __('common.approve') : __('common.reject')}} </h1>
-    <p>{{__('employees.employee_leave_bulk')}} {{$bulk_approval_status ? __('common.approve') : __('common.reject')}} &#128522;</p>
+    <p>{{__('employees.employee_leave_bulk')}} {{$bulk_approval_status ? __('common.approve') : __('common.reject')}}</p>
 </div>
 <x-form-items.form wire:submit="bulkApproval">
 

@@ -3,15 +3,15 @@
     <div class="modal-dialog modal-sm modal-dialog-centered " role="document" style="max-width:65%;">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{__('download_jobs.job_details')}} @if($selectedJob)- #{{$selectedJob->uuid}}@endif</h5>
+                <div>
+                    <h5 class="modal-title">{{__('download_jobs.job_details')}} @if($selectedJob)- #{{$selectedJob->uuid}}@endif</h5>
+                    <p class="mb-0 text-muted small">{{__('download_jobs.view_job_status_and_details')}}</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="closeDetailsModal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
                 @if($selectedJob)
                 <div class="p-3 p-lg-4">
-                    <div class="mb-4 mt-md-0">
-                        <p>{{__('download_jobs.view_job_status_and_details')}} &#128522;</p>
-                    </div>
                 <div class="row">
                     <div class="col-md-6">
                         <h6>{{__('download_jobs.job_information')}}</h6>

@@ -225,7 +225,7 @@
     </div>
 
     <!-- Table Controls: Bulk Actions (Left) + Tab Buttons (Right) -->
-    @if(auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore'))
+    @if(auth()->user()->hasAnyRole(['admin','manager']) || auth()->user()->can('employee-update') || auth()->user()->can('employee-delete') || (auth()->user()->can('employee-bulkdelete') && auth()->user()->can('employee-bulkrestore')))
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <!-- Tab Buttons (Right) -->
@@ -299,13 +299,10 @@
             @endif
 
             @if((is_array($selectedEmployees) && count($selectedEmployees) > 0) || (is_array($selectedEmployeesForDelete) && count($selectedEmployeesForDelete) > 0))
-
-            @if((is_array($selectedEmployees) && count($selectedEmployees) > 0) || (is_array($selectedEmployeesForDelete) && count($selectedEmployeesForDelete) > 0))
             <div class="d-flex align-items-center gap-2">
 
                 @if($activeTab === 'active')
-                @if($canTransferCompany ?? false)
-                @can('employee-update')
+                @if(($canTransferCompany ?? false) && (auth()->user()->hasAnyRole(['admin','manager']) || auth()->user()->can('employee-update')))
                 <button type="button"
                     wire:click="openBulkTransferModal"
                     class="btn btn-sm btn-outline-primary d-flex align-items-center me-2"
@@ -315,9 +312,8 @@
                     {{ __('employees.move_to_company') }}
                     <span class="badge bg-primary text-white ms-1">{{ is_array($selectedEmployees) ? count($selectedEmployees) : 0 }}</span>
                 </button>
-                @endcan
                 @endif
-                @can('employee-bulkdelete')
+                @if(auth()->user()->hasAnyRole(['admin','manager']) || auth()->user()->can('employee-bulkdelete') || auth()->user()->can('employee-delete'))
                 <button type="button"
                     class="btn btn-sm btn-danger d-flex align-items-center me-2"
                     data-bs-toggle="modal"
@@ -328,9 +324,9 @@
                     {{__('common.move_to_trash')}}
                     <span class="badge bg-light text-white ms-1">{{ is_array($selectedEmployees) ? count($selectedEmployees) : 0 }}</span>
                 </button>
-                @endcan
+                @endif
                 @else
-                @can('employee-bulkrestore')
+                @if(auth()->user()->hasAnyRole(['admin','manager']) || auth()->user()->can('employee-bulkrestore') || auth()->user()->can('employee-delete'))
                 <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                     class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                     title="{{ __('employees.restore_selected_employees') }}">
@@ -352,10 +348,10 @@
                     {{__('common.delete_forever')}}
                     <span class="badge bg-danger text-white ms-1">{{ is_array($selectedEmployeesForDelete) ? count($selectedEmployeesForDelete) : 0 }}</span>
                 </button>
-                @endcan
+                @endif
                 @endif
 
-                <button wire:click="$set('selectedEmployees', []); $set('selectedEmployeesForDelete', [])"
+                <button wire:click="$set('selectedEmployees', []); $set('selectedEmployeesForDelete', []); $set('selectAll', false)"
                     class="btn btn-sm btn-outline-secondary d-flex align-items-center">
                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -363,7 +359,6 @@
                     {{__('common.clear')}}
                 </button>
             </div>
-            @endif
             @endif
             @endif
         </div>
@@ -510,6 +505,43 @@
                                                 @endif
                                             </svg>
                                         </button>
+                                        @endcan
+                                    </div>
+                                </div>
+                                <div class="mt-1">
+                                    <small class="text-muted fw-bold">{{ __('two_factor.column_label') }}:</small>
+                                    <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+                                        @if($employee->mfa_enabled)
+                                            <span class="badge p-1 px-2 bg-success">{{ strtoupper($employee->mfa_method ?? '2FA') }}</span>
+                                        @elseif($employee->mfa_required)
+                                            <span class="badge p-1 px-2 bg-warning text-dark">{{ __('two_factor.required_badge') }}</span>
+                                        @else
+                                            <span class="badge p-1 px-2 bg-secondary">{{ __('two_factor.status_disabled') }}</span>
+                                        @endif
+
+                                        @can('employee-update')
+                                            <button
+                                                type="button"
+                                                wire:click="toggleUserMfaRequired({{ $employee->id }})"
+                                                class="btn btn-sm {{ $employee->mfa_required ? 'btn-outline-warning' : 'btn-outline-primary' }}"
+                                                style="padding: 0.125rem 0.35rem; font-size: 0.7rem; line-height: 1.1;"
+                                                title="{{ $employee->mfa_required ? __('two_factor.make_mfa_optional') : __('two_factor.require_mfa') }}"
+                                            >
+                                                {{ $employee->mfa_required ? __('two_factor.optional_short') : __('two_factor.require_short') }}
+                                            </button>
+
+                                            @if($employee->mfa_enabled)
+                                                <button
+                                                    type="button"
+                                                    wire:click="resetUserMfa({{ $employee->id }})"
+                                                    wire:confirm="{{ __('two_factor.confirm_admin_reset', ['user' => $employee->name]) }}"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    style="padding: 0.125rem 0.35rem; font-size: 0.7rem; line-height: 1.1;"
+                                                    title="{{ __('two_factor.reset_user_mfa') }}"
+                                                >
+                                                    {{ __('two_factor.reset_short') }}
+                                                </button>
+                                            @endif
                                         @endcan
                                     </div>
                                 </div>

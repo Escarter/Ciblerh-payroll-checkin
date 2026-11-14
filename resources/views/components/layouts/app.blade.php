@@ -77,6 +77,7 @@
                             itemSelectText: '',
                             removeItems: true,
                             removeItemButton: true,
+                            allowHTML: false,
                             noResultsText: 'No results found',
                             noChoicesText: 'No options available',
                         });

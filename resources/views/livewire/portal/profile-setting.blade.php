@@ -165,6 +165,8 @@
                         </div>
                     </x-form-items.form>
                 </div>
+
+                @include('livewire.partials.two-factor.manage')
             </div>
         </div>
     </div>

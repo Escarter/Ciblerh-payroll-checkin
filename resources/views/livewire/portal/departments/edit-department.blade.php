@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('departments.edit_department')}}</h1>
-                        <p>{{__('departments.edit_department_details')}} &#128522;</p>
+                        <p>{{__('departments.edit_department_details')}}</p>
                     </div>
                     <x-form-items.form wire:submit="update">
 

@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('employees.update_or_approve_checkin')}}</h1>
-                        <p>{{__('employees.update_or_approve_employee_checkin_record')}} &#128522;</p>
+                        <p>{{__('employees.update_or_approve_employee_checkin_record')}}</p>
                     </div>
                     <x-form-items.form wire:submit="update">
                         <div class="form-group mb-4">

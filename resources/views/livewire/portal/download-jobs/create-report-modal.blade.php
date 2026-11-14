@@ -3,14 +3,14 @@
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document" style="max-width:65%;">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{__('reports.generate_new_report')}}</h5>
+                <div>
+                    <h5 class="modal-title">{{__('reports.generate_new_report')}}</h5>
+                    <p class="mb-0 text-muted small">{{__('download_jobs.generate_reports_and_download_files')}}</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="closeCreateModal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
                 <div class="p-3 p-lg-4">
-                    <div class="mb-4 mt-md-0">
-                        <p>{{__('download_jobs.generate_reports_and_download_files')}} &#128522;</p>
-                    </div>
                 <form wire:submit.prevent="generateNewReport">
                     <div class="row">
                         <div class="col-md-6">

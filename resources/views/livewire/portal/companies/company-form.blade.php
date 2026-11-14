@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{ $isEditMode ? __('companies.edit_company') : __('companies.create_company') }}</h1>
-                        <p>{{ $isEditMode ? __('companies.edit_company_details') : __('companies.create_new_company_to_manage') }} &#128522;</p>
+                        <p>{{ $isEditMode ? __('companies.edit_company_details') : __('companies.create_new_company_to_manage') }}</p>
                     </div>
                     <x-form-items.form wire:submit="{{ $isEditMode ? 'update' : 'store' }}">
                         <div class="form-group row mb-4">

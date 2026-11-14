@@ -6,7 +6,7 @@
                     <div class="mb-4 mt-md-0">
 
                         <h1 class="mb-0 h4">{{__('employees.create_a_new_manager')}}</h1>
-                        <p>{{__('employees.create_a_new_manager')}} &#128522;</p>
+                        <p>{{__('employees.create_a_new_manager')}}</p>
                     </div>
                     <x-form-items.form wire:submit="store"  class="form-modal">
                         <div class='form-group mb-4'>

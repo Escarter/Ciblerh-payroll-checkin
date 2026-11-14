@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('employees.update_advance_salary_request')}}</h1>
-                        <p>{{__('employees.edit_and_submit_advance_salary_request')}} &#128530;</p>
+                        <p>{{__('employees.edit_and_submit_advance_salary_request')}}</p>
                     </div>
                     <x-form-items.form wire:submit.prevent="update" enctype="multipart/form-data" class="form-modal">
                         <h5 class="pb-0 mb-n2">{{__('common.request_details')}}</h5>

@@ -4,15 +4,18 @@ namespace App\Livewire\Portal;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Illuminate\Support\Facades\Gate;
 use App\Rules\CurrentPasswordCheckRule;
+use App\Services\TrustedDeviceService;
 use Illuminate\Support\Facades\Hash;
 
 class ProfileSetting extends Component
 {
     use \App\Livewire\Traits\AuthorizesAbilities;
-
+    use \App\Livewire\Traits\ManagesOwnTwoFactor;
     use WithFileUploads;
+    use WithPagination;
     public $first_name;
     public $last_name;
     public $email;
@@ -35,6 +38,7 @@ class ProfileSetting extends Component
         $this->position = auth()->user()->position;
         $this->phone_number = auth()->user()->phone_number;
         $this->date_of_birth = auth()->user()->date_of_birth;
+        $this->initTwoFactorEnrolment();
     }
 
     public function updateProfile()
@@ -74,6 +78,7 @@ class ProfileSetting extends Component
         ]);
 
         auth()->user()->update(['password' => Hash::make($this->password)]);
+        app(TrustedDeviceService::class)->forgetAll(auth()->user());
 
         $this->reset(['current_password','password','password_confirmation']);
 
@@ -85,7 +90,7 @@ class ProfileSetting extends Component
     }
     public function render()
     {
-        return view('livewire.portal.profile-setting')->layout('components.layouts.dashboard');
+        return view('livewire.portal.profile-setting', $this->twoFactorViewData())->layout('components.layouts.dashboard');
     }
 }
 

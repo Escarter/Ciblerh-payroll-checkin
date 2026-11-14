@@ -83,6 +83,20 @@
                         <span>{{ __('settings.tab_features') }}</span>
                     </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button"
+                        id="settings-tab-security"
+                        wire:click="switchTab('security')"
+                        class="nav-link d-flex align-items-center justify-content-center gap-2 py-2 px-3 {{ $activeTab === 'security' ? 'active fw-semibold shadow-sm' : 'text-gray-700' }}"
+                        role="tab"
+                        aria-selected="{{ $activeTab === 'security' ? 'true' : 'false' }}">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>{{ __('two_factor.tab_security') }}</span>
+                        @if($mfa_required_for !== 'none')
+                            <span class="badge bg-success rounded-pill" style="font-size: 0.65rem;">ON</span>
+                        @endif
+                    </button>
+                </li>
             </ul>
         </div>
     </div>
@@ -714,6 +728,11 @@
     <!-- TAB 4 & TAB 5: SFTP & Feature Configuration Section -->
     <div class='pb-0'>
         @include('livewire.portal.settings.partials.feature-configuration')
+    </div>
+
+    <!-- TAB 6: Security & Two-Factor Authentication Section -->
+    <div class='pb-0'>
+        @include('livewire.portal.settings.partials.mfa-security')
     </div>
 
     @include('livewire.portal.settings.partials.sms-provider-guide-modal')

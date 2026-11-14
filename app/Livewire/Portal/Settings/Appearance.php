@@ -26,8 +26,17 @@ class Appearance extends Component
     public $show_logo = true;
     public $logo;
     public $favicon;
+    public $auth_bg;
     public $current_logo;
     public $current_favicon;
+    public $current_auth_bg;
+    public $auth_kicker = '';
+    public $auth_title = '';
+    public $auth_subtitle = '';
+    public $auth_feature_1 = '';
+    public $auth_feature_2 = '';
+    public $auth_feature_3 = '';
+    public $auth_footer = '';
 
     public function mount()
     {
@@ -52,6 +61,14 @@ class Appearance extends Component
         $this->timezone = $b['timezone'] ?? config('app.timezone');
         $this->current_logo = $b['logo'];
         $this->current_favicon = $b['favicon'];
+        $this->current_auth_bg = $b['auth_bg'] ?? null;
+        $this->auth_kicker = $setting?->brand_auth_kicker ?? '';
+        $this->auth_title = $setting?->brand_auth_title ?? '';
+        $this->auth_subtitle = $setting?->brand_auth_subtitle ?? '';
+        $this->auth_feature_1 = $setting?->brand_auth_feature_1 ?? '';
+        $this->auth_feature_2 = $setting?->brand_auth_feature_2 ?? '';
+        $this->auth_feature_3 = $setting?->brand_auth_feature_3 ?? '';
+        $this->auth_footer = $setting?->brand_auth_footer ?? '';
     }
 
     protected function rules(): array
@@ -70,6 +87,14 @@ class Appearance extends Component
             'timezone' => ['required', 'in:' . implode(',', timezone_identifiers_list())],
             'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
             'favicon' => ['nullable', 'image', 'mimes:png,jpg,jpeg,ico,svg,webp', 'max:1024'],
+            'auth_bg' => ['nullable', 'image', 'mimes:png,jpg,jpeg,svg,webp', 'max:4096'],
+            'auth_kicker' => ['nullable', 'string', 'max:120'],
+            'auth_title' => ['nullable', 'string', 'max:200'],
+            'auth_subtitle' => ['nullable', 'string', 'max:500'],
+            'auth_feature_1' => ['nullable', 'string', 'max:200'],
+            'auth_feature_2' => ['nullable', 'string', 'max:200'],
+            'auth_feature_3' => ['nullable', 'string', 'max:200'],
+            'auth_footer' => ['nullable', 'string', 'max:200'],
         ];
     }
 
@@ -91,6 +116,13 @@ class Appearance extends Component
             'brand_radius' => $this->radius,
             'brand_font_family' => $this->font_family,
             'brand_timezone' => $this->timezone,
+            'brand_auth_kicker' => $this->auth_kicker ?: null,
+            'brand_auth_title' => $this->auth_title ?: null,
+            'brand_auth_subtitle' => $this->auth_subtitle ?: null,
+            'brand_auth_feature_1' => $this->auth_feature_1 ?: null,
+            'brand_auth_feature_2' => $this->auth_feature_2 ?: null,
+            'brand_auth_feature_3' => $this->auth_feature_3 ?: null,
+            'brand_auth_footer' => $this->auth_footer ?: null,
         ];
 
         if ($this->logo) {
@@ -101,11 +133,15 @@ class Appearance extends Component
             $this->deleteOld($setting->brand_favicon_path);
             $data['brand_favicon_path'] = $this->favicon->store('branding', 'public');
         }
+        if ($this->auth_bg) {
+            $this->deleteOld($setting->brand_auth_bg_path);
+            $data['brand_auth_bg_path'] = $this->auth_bg->store('branding', 'public');
+        }
 
         $setting->fill($data)->save();
         Branding::flush();
 
-        $this->reset(['logo', 'favicon']);
+        $this->reset(['logo', 'favicon', 'auth_bg']);
         $this->fillFromSettings();
         session()->flash('message', __('settings.appearance_saved'));
 
@@ -115,7 +151,7 @@ class Appearance extends Component
     public function removeAsset(string $type)
     {
         abort_unless(Gate::allows('setting-save'), 403);
-        if (!in_array($type, ['logo', 'favicon'], true)) {
+        if (!in_array($type, ['logo', 'favicon', 'auth_bg'], true)) {
             return;
         }
         $setting = Setting::first();
@@ -135,10 +171,13 @@ class Appearance extends Component
         if ($setting) {
             $this->deleteOld($setting->brand_logo_path);
             $this->deleteOld($setting->brand_favicon_path);
+            $this->deleteOld($setting->brand_auth_bg_path);
             $setting->update([
-                'brand_app_name' => null, 'brand_logo_path' => null, 'brand_favicon_path' => null,
+                'brand_app_name' => null, 'brand_logo_path' => null, 'brand_favicon_path' => null, 'brand_auth_bg_path' => null,
                 'brand_primary_color' => null, 'brand_secondary_color' => null, 'brand_sidebar_color' => null, 'brand_emp_nav_color' => null, 'brand_emp_hero_color' => null, 'brand_page_bg_color' => null, 'brand_radius' => null, 'brand_show_logo' => true,
                 'brand_font_family' => null, 'brand_timezone' => null,
+                'brand_auth_kicker' => null, 'brand_auth_title' => null, 'brand_auth_subtitle' => null,
+                'brand_auth_feature_1' => null, 'brand_auth_feature_2' => null, 'brand_auth_feature_3' => null, 'brand_auth_footer' => null,
             ]);
         }
         Branding::flush();

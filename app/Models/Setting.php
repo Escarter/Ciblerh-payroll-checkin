@@ -21,6 +21,12 @@ class Setting extends Model
         'sftp_push_archive_move_failed' => 'boolean',
         'sftp_push_archive_require_successful_process' => 'boolean',
         'allow_employee_company_transfer' => 'boolean',
+        'mfa_authenticator_enabled' => 'boolean',
+        'mfa_email_enabled' => 'boolean',
+        'mfa_sms_enabled' => 'boolean',
+        'mfa_code_minutes' => 'integer',
+        'mfa_max_attempts' => 'integer',
+        'mfa_remember_days' => 'integer',
     ];
 
 }

@@ -63,6 +63,14 @@ class Branding
                 'radius' => array_key_exists($row?->brand_radius, self::RADII) ? $row->brand_radius : 'soft',
                 'font' => array_key_exists($font, self::FONTS) ? $font : self::DEFAULT_FONT,
                 'timezone' => in_array($row?->brand_timezone, timezone_identifiers_list(), true) ? $row->brand_timezone : null,
+                'auth_bg' => self::fileUrl($row?->brand_auth_bg_path),
+                'auth_kicker' => filled($row?->brand_auth_kicker) ? $row->brand_auth_kicker : null,
+                'auth_title' => filled($row?->brand_auth_title) ? $row->brand_auth_title : null,
+                'auth_subtitle' => filled($row?->brand_auth_subtitle) ? $row->brand_auth_subtitle : null,
+                'auth_feature_1' => filled($row?->brand_auth_feature_1) ? $row->brand_auth_feature_1 : null,
+                'auth_feature_2' => filled($row?->brand_auth_feature_2) ? $row->brand_auth_feature_2 : null,
+                'auth_feature_3' => filled($row?->brand_auth_feature_3) ? $row->brand_auth_feature_3 : null,
+                'auth_footer' => filled($row?->brand_auth_footer) ? $row->brand_auth_footer : null,
             ];
         });
     }
@@ -93,6 +101,11 @@ class Branding
     public static function get(string $key, $default = null)
     {
         return self::all()[$key] ?? $default;
+    }
+
+    public static function portalTitle(): string
+    {
+        return (string) (self::get('app_name') ?: config('app.name', 'CibleRH'));
     }
 
     public static function flush(): void

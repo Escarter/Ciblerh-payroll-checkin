@@ -31,6 +31,7 @@ class All extends BaseImportComponent
     use WithBulkSelection, WithDataTable;
     use \App\Livewire\Traits\WithTestSms;
     use \App\Livewire\Traits\WithEmployeeCompanyTransfer;
+    use \App\Livewire\Traits\WithAdminTwoFactorActions;
 
     private const DEFAULT_WORK_START_TIME = '08:00';
     private const DEFAULT_WORK_END_TIME = '17:30';
@@ -54,6 +55,8 @@ class All extends BaseImportComponent
     public $professional_phone_number = null;
     public $personal_phone_number = null;
     public $mobile_money_number = null;
+    public $remaining_leave_days = null;
+    public $monthly_leave_allocation = null;
     public $net_salary = null;
     public $contract_end = null;
     public $matricule = null;
@@ -406,6 +409,8 @@ class All extends BaseImportComponent
             'professional_phone_number' => $professionalPhone['formatted'],
             'personal_phone_number' => $personalPhone['formatted'],
             'mobile_money_number' => $this->mobile_money_number,
+            'remaining_leave_days' => $this->remaining_leave_days,
+            'monthly_leave_allocation' => $this->monthly_leave_allocation,
             'matricule' => $this->matricule,
             'position' => $this->position,
             'net_salary' => $this->net_salary,
@@ -522,7 +527,7 @@ class All extends BaseImportComponent
 
     public function bulkDelete()
     {
-        $this->authorizeAbility('employee-bulkdelete');
+        $this->authorizeAbility(['employee-bulkdelete', 'employee-delete']);
 
         $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
         $employees = collect();
@@ -572,7 +577,7 @@ class All extends BaseImportComponent
 
     public function bulkRestore()
     {
-        $this->authorizeAbility('employee-bulkrestore');
+        $this->authorizeAbility(['employee-bulkrestore', 'employee-restore', 'employee-delete']);
 
         $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
         $employees = collect();
@@ -810,6 +815,11 @@ class All extends BaseImportComponent
         $this->resetBulkSelection();
     }
 
+    protected function bulkAcrossPages(): bool
+    {
+        return false;
+    }
+
     protected function bulkSelectionMap(): array
     {
         return [
@@ -928,6 +938,8 @@ class All extends BaseImportComponent
         $this->professional_phone_number = $employee->professional_phone_number;
         $this->personal_phone_number = $employee->personal_phone_number;
         $this->mobile_money_number = $employee->mobile_money_number;
+        $this->remaining_leave_days = $employee->remaining_leave_days;
+        $this->monthly_leave_allocation = $employee->monthly_leave_allocation;
         $this->net_salary = $employee->net_salary;
         $this->salary_grade = $employee->salary_grade;
         $this->position = $employee->position;
@@ -1037,6 +1049,8 @@ class All extends BaseImportComponent
             'professional_phone_number',
             'personal_phone_number',
             'mobile_money_number',
+            'remaining_leave_days',
+            'monthly_leave_allocation',
             'matricule',
             'position',
             'net_salary',

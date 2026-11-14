@@ -7,12 +7,12 @@
                         <h1 class="mb-0 h4">{{ $isEditMode ? __('employees.update_employee') : __('employees.create_a_new_employee') }}</h1>
                         <p>
                             @if($isEditMode)
-                                {{__('employees.update_employee_details')}} &#128522;
+                                {{__('employees.update_employee_details')}}
                             @else
                                 @if(auth()->user()->hasRole('supervisor'))
-                                    {{__('employees.create_new_employee_in_department')}} &#128522;
+                                    {{__('employees.create_new_employee_in_department')}}
                                 @else
-                                    {{__('employees.create_new_employee_for')}} - {{$company->name ?? '' }} &#128522;
+                                    {{__('employees.create_new_employee_for')}} - {{$company->name ?? '' }}
                                 @endif
                             @endif
                         </p>
@@ -20,7 +20,7 @@
                     <x-form-items.form wire:submit="{{ $isEditMode ? 'update' : 'store' }}" class="form-modal">
                         <input type='hidden' name='employee_id' value="{{ $employee_id ?? '' }}" id="EmployeeId">
                         <div class="form-group mb-2 row">
-                            <div class='col-md-6 col-xs-12'>
+                            <div class='col-md-6 col-xs-12' wire:key="emp-form-company-{{ $employee_id ?? 'new' }}-{{ $isEditMode ? 'edit' : 'create' }}">
                                 <label for="company">{{__('companies.company')}}</label>
                                 @if(auth()->user()->hasRole('supervisor'))
                                     <input type="text" class="form-control" value="{{ $isEditMode ? ($employee->company->name ?? __('employees.unknown_company')) : __('employees.department_company') }}" disabled>
@@ -38,7 +38,7 @@
                                     <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? '' }}" disabled>
                                 @endif
                             </div>
-                            <div class='col-md-6 col-xs-12'>
+                            <div class='col-md-6 col-xs-12' wire:key="emp-form-dept-{{ $employee_id ?? 'new' }}-{{ $editCompanyId ?? ($company->id ?? 'none') }}-{{ count($departments ?? []) }}">
                                 <label for="department">{{__('departments.department')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <select wire:model.live="selectedDepartmentId" class="form-select  @error('selectedDepartmentId') is-invalid @enderror">
                                     <option value="">{{__('departments.select_department')}}</option>
@@ -49,7 +49,7 @@
                             </div>
                         </div>
 
-                        <div class='form-group mb-2'>
+                        <div class='form-group mb-2' wire:key="emp-form-service-{{ $employee_id ?? 'new' }}-{{ $selectedDepartmentId ?? 'none' }}-{{ count($services ?? []) }}">
                             <label for="service_id">{{__('employees.service')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model.live="service_id" name="service_id" class="form-select  @error('service_id') is-invalid @enderror">
                                 <option value="">{{__('services.select_service')}}</option>
@@ -186,14 +186,14 @@
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>
                                 <label for="salary_grade">{{__('employees.salary_grade')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                                <input wire:model="salary_grade" type="text" class="form-control  @error('salary_grade') is-invalid @enderror" autofocus="" name="salary_grade" placeholder="{{__('employees.salary_grade')}}">
+                                <input wire:model="salary_grade" type="text" class="form-control  @error('salary_grade') is-invalid @enderror" name="salary_grade" placeholder="{{__('employees.salary_grade')}}">
                                 @error('salary_grade')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="position">{{__('common.position')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                                <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" autofocus="" name="position" placeholder="{{__('common.position')}}">
+                                <input wire:model="position" type="text" class="form-control  @error('position') is-invalid @enderror" name="position" placeholder="{{__('common.position')}}">
                                 @error('position')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -229,7 +229,7 @@
                             </div>
                             <div class='col-md-6 col-xs-12'>
                                 <label for="contract_end">{{__('employees.contract_end_date')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                                <input wire:model="contract_end" type="date" class="form-control  @error('contract_end') is-invalid @enderror" autofocus="" name="contract_end">
+                                <input wire:model="contract_end" type="date" class="form-control  @error('contract_end') is-invalid @enderror" name="contract_end">
                                 @error('contract_end')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
@@ -237,7 +237,7 @@
                         </div>
                         <div class="form-group mb-{{ $isEditMode ? '3' : '4' }}">
                             <label for="password">{{ $isEditMode ? __('employees.reset_employee_password') : __('employees.create_employee_password') }} <span class="text-danger">*</span></label>
-                            <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password" {{ $isEditMode ? '' : 'required' }} placeholder="{{ $isEditMode ? __('employees.reset_employee_password') : __('employees.create_employee_password') }}">
+                            <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" name="password" {{ $isEditMode ? '' : 'required' }} placeholder="{{ $isEditMode ? __('employees.reset_employee_password') : __('employees.create_employee_password') }}">
                             @error('password')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('employees.request_for_leave')}}</h1>
-                        <p>{{__('employees.submit_a_leave_request')}} &#128522;</p>
+                        <p>{{__('employees.submit_a_leave_request')}}</p>
                     </div>
                     <x-form-items.form wire:submit.prevent="store" enctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-4">

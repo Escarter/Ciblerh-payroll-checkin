@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('departments.assign_supervisor')}}</h1>
-                        <p>{{__('departments.assign_supervisor_to_department')}} &#128522;</p>
+                        <p>{{__('departments.assign_supervisor_to_department')}}</p>
                     </div>
                     <x-form-items.form wire:submit="assignSupervisor">
 

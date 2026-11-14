@@ -2,12 +2,13 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="EmployeePayslipDiagnosticModalLabel">{{ __('payslips.employee_access_diagnostic') }}</h5>
+                <div>
+                    <h5 class="modal-title" id="EmployeePayslipDiagnosticModalLabel">{{ __('payslips.employee_access_diagnostic') }}</h5>
+                    <p class="text-muted small mb-0">{{ __('payslips.employee_access_diagnostic_description') }}</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted">{{ __('payslips.employee_access_diagnostic_description') }}</p>
-
                 @if($diagnosticRan && !empty($employeeDiagnostic['summary']))
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">

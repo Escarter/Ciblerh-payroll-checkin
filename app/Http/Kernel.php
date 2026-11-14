@@ -38,6 +38,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \Illuminate\Session\Middleware\AuthenticateSession::class,
             \App\Http\Middleware\Localization::class,
+            \App\Http\Middleware\RequireTwoFactor::class,
         ],
 
         'api' => [

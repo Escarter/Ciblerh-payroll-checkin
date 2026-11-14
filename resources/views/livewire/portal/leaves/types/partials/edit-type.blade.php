@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('leaves.edit_leave_type')}}</h1>
-                        <p>{{__('leaves.edit_leave_type_details')}} &#128522;</p>
+                        <p>{{__('leaves.edit_leave_type_details')}}</p>
                     </div>
                     <x-form-items.form wire:submit="update">
 

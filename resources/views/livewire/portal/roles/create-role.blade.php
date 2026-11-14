@@ -4,12 +4,14 @@
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width:50%; max-height: 100vh;">
         <div class="modal-content" style="max-height: 100vh; display: flex; flex-direction: column;">
             <div class="modal-header border-0 pb-2 flex-shrink-0">
-                <h1 class="mb-0 h4">{{ __('roles.create_role') }}</h1>
+                <div>
+                    <h1 class="mb-1 h4 fw-bolder">{{ __('roles.create_role') }}</h1>
+                    <p class="mb-0 text-muted small">{{ __('roles.create_new_role_allocate_permissions') }}</p>
+                </div>
                 <button type="button" class="btn-close" wire:click="closeModals" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0 flex-grow-1" style="overflow-y: auto; min-height: 0;">
                 <div class="p-2 p-lg-3">
-                    <p class="mb-2 small">{{ __('roles.create_new_role_allocate_permissions') }} &#128522;</p>
                     <form wire:submit.prevent="createRole">
                         <div class="fv-row mb-3 fv-plugins-icon-container">
                             <label class="form-label mb-2 fw-semibold">
@@ -165,12 +167,14 @@
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width:50%; max-height: 100vh;">
         <div class="modal-content" style="max-height: 100vh; display: flex; flex-direction: column;">
             <div class="modal-header border-0 pb-2 flex-shrink-0">
-                <h1 class="mb-0 h4">{{ __('roles.edit_role') }}</h1>
+                <div>
+                    <h1 class="mb-1 h4 fw-bolder">{{ __('roles.edit_role') }}</h1>
+                    <p class="mb-0 text-muted small">{{ __('roles.update_role_modify_permissions') }}</p>
+                </div>
                 <button type="button" class="btn-close" wire:click="closeModals" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0 flex-grow-1" style="overflow-y: auto; min-height: 0;">
                 <div class="p-2 p-lg-3">
-                    <p class="mb-2 small">{{ __('roles.update_role_modify_permissions') }} &#128522;</p>
                     @if($editingRole)
                     <div class="fv-row mb-3 p-3 bg-info bg-opacity-10 border border-info border-opacity-25 rounded-3">
                         <div class="d-flex align-items-center">

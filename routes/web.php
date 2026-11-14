@@ -34,6 +34,11 @@ Auth::routes(['register'=>'false']);
 
 Route::any('/logout', [LoginController::class, 'logout']);
 
+Route::middleware(['auth'])->prefix('two-factor')->group(function () {
+    Route::get('/challenge', App\Livewire\Auth\TwoFactorChallenge::class)->name('two-factor.challenge');
+    Route::get('/setup', App\Livewire\Auth\TwoFactorSetup::class)->name('two-factor.setup');
+});
+
 
 Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']], function () {
     Route::get('/dashboard', App\Livewire\Employee\Dashboard::class)->name('employee.dashboard');

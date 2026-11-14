@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('absences.update_or_approve_absence')}}</h1>
-                        <p>{{__('absences.update_or_approve_employee_absence_record')}} &#128522;</p>
+                        <p>{{__('absences.update_or_approve_employee_absence_record')}}</p>
                     </div>
                     <x-form-items.form wire:submit="update">
                         <div class="form-group mb-4">

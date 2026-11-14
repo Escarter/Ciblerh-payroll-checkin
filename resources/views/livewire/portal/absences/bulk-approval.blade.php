@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('absences.bulk_absence')}} {{$bulk_approval_status ? __('common.approve') : __('common.reject')}} </h1>
-                        <p>{{__('absences.employee_absence_bulk')}} {{$bulk_approval_status ? __('common.approve') : __('common.reject')}} &#128522;</p>
+                        <p>{{__('absences.employee_absence_bulk')}} {{$bulk_approval_status ? __('common.approve') : __('common.reject')}}</p>
                     </div>
                     <x-form-items.form wire:submit="bulkApproval">
 

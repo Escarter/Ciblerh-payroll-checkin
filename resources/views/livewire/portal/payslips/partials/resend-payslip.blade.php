@@ -2,15 +2,8 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content rf-resend">
             <!-- Modal Header -->
-            <div class="modal-header border-0 pb-0 pe-5">
-                <div class="d-flex align-items-center w-100">
-                    <div class="flex-shrink-0 me-3">
-                        <div class="rf-resend-icon d-inline-flex align-items-center justify-content-center">
-                            <svg class="icon icon-lg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                            </svg>
-                        </div>
-                    </div>
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex justify-content-between align-items-start w-100">
                     <div class="flex-grow-1">
                         <h5 class="modal-title fw-bold mb-1" id="resendPayslipModalLabel">{{__('payslips.resend_payslip_title')}}</h5>
                         <p class="text-muted small mb-0">{{__('payslips.you_are_about_to_resend_email_and_sms_with_employee_payslip')}}</p>

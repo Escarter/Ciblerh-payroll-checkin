@@ -98,6 +98,17 @@ class Index extends Component
     public $allow_force_delete_employees_with_data = false;
     public $allow_employee_company_transfer = false;
 
+    // Two-Factor Authentication (MFA) Configuration Properties
+    public $mfa_required_for = 'none';
+    public $mfa_authenticator_enabled = true;
+    public $mfa_email_enabled = true;
+    public $mfa_sms_enabled = false;
+    public $mfa_code_minutes = 10;
+    public $mfa_max_attempts = 5;
+    public $mfa_remember_days = 30;
+    public string $mfaEventType = '';
+    public string $mfaEventSearch = '';
+
     public $sftp_sync_enabled = false;
     // Legacy single-user props kept for backward-compat display only (HTTP API fallback)
     public $sftp_push_username;
@@ -200,7 +211,7 @@ class Index extends Component
 
         // Feature Configuration initialization
         $requestedTab = request()->query('tab');
-        if (in_array($requestedTab, ['sms', 'email', 'templates', 'sftp', 'features'], true)) {
+        if (in_array($requestedTab, ['sms', 'email', 'templates', 'sftp', 'features', 'security'], true)) {
             $this->activeTab = $requestedTab;
         }
 
@@ -209,6 +220,15 @@ class Index extends Component
         $this->deactivation_check_time = !empty($this->setting) ? $this->setting->deactivation_check_time : '02:00';
         $this->allow_force_delete_employees_with_data = $this->setting ? (bool) $this->setting->allow_force_delete_employees_with_data : false;
         $this->allow_employee_company_transfer = $this->setting ? (bool) $this->setting->allow_employee_company_transfer : false;
+
+        // Two-Factor Authentication initialization
+        $this->mfa_required_for = !empty($this->setting?->mfa_required_for) ? $this->setting->mfa_required_for : 'none';
+        $this->mfa_authenticator_enabled = $this->setting ? (bool) ($this->setting->mfa_authenticator_enabled ?? true) : true;
+        $this->mfa_email_enabled = $this->setting ? (bool) ($this->setting->mfa_email_enabled ?? true) : true;
+        $this->mfa_sms_enabled = $this->setting ? (bool) ($this->setting->mfa_sms_enabled ?? false) : false;
+        $this->mfa_code_minutes = !empty($this->setting?->mfa_code_minutes) ? (int) $this->setting->mfa_code_minutes : 10;
+        $this->mfa_max_attempts = !empty($this->setting?->mfa_max_attempts) ? (int) $this->setting->mfa_max_attempts : 5;
+        $this->mfa_remember_days = $this->setting && $this->setting->mfa_remember_days !== null ? (int) $this->setting->mfa_remember_days : 30;
 
         $this->sftp_sync_enabled = $this->setting ? (bool) $this->setting->sftp_sync_enabled : false;
         $this->sftp_push_username = !empty($this->setting) ? $this->setting->sftp_push_username : '';
@@ -544,9 +564,64 @@ class Index extends Component
 
     public function switchTab(string $tab): void
     {
-        if (in_array($tab, ['sms', 'email', 'templates', 'sftp', 'features'], true)) {
+        if (in_array($tab, ['sms', 'email', 'templates', 'sftp', 'features', 'security'], true)) {
             $this->activeTab = $tab;
         }
+    }
+
+    public function updatedMfaEventType(): void
+    {
+        $this->resetPage('mfaEventsPage');
+    }
+
+    public function updatedMfaEventSearch(): void
+    {
+        $this->resetPage('mfaEventsPage');
+    }
+
+    public function saveMfaConfiguration()
+    {
+        $this->validate([
+            'mfa_required_for' => 'required|in:none,admins_only,portal_staff,everyone',
+            'mfa_code_minutes' => 'required|integer|min:3|max:30',
+            'mfa_max_attempts' => 'required|integer|min:3|max:10',
+            'mfa_remember_days' => 'required|integer|min:0|max:180',
+        ]);
+
+        if (
+            $this->mfa_required_for !== 'none'
+            && !$this->mfa_authenticator_enabled
+            && !$this->mfa_email_enabled
+            && !$this->mfa_sms_enabled
+        ) {
+            $this->showToast(__('two_factor.error_enable_at_least_one_method'), 'danger');
+            return;
+        }
+
+        $setting = Setting::updateOrCreate(
+            ['company_id' => 1],
+            [
+                'company_id' => 1,
+                'mfa_required_for' => $this->mfa_required_for,
+                'mfa_authenticator_enabled' => (bool) $this->mfa_authenticator_enabled,
+                'mfa_email_enabled' => (bool) $this->mfa_email_enabled,
+                'mfa_sms_enabled' => (bool) $this->mfa_sms_enabled,
+                'mfa_code_minutes' => max(3, min(30, (int) $this->mfa_code_minutes)),
+                'mfa_max_attempts' => max(3, min(10, (int) $this->mfa_max_attempts)),
+                'mfa_remember_days' => max(0, min(180, (int) $this->mfa_remember_days)),
+            ]
+        );
+
+        $this->setting = $setting;
+
+        auditLog(
+            auth()->user(),
+            'setting_updated',
+            'web',
+            __('two_factor.audit_policy_updated', ['policy' => $this->mfa_required_for])
+        );
+
+        $this->showToast(__('two_factor.settings_saved'), 'success');
     }
 
     public function saveFeatureConfiguration()
@@ -1176,6 +1251,13 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.portal.settings.index')->layout('components.layouts.dashboard');
+        $mfaSummary = app(\App\Services\TwoFactorService::class)->summary();
+        $mfaSecurityEvents = app(\App\Services\MfaSecurityEventService::class)
+            ->searchAll($this->mfaEventType, $this->mfaEventSearch, 12, 'mfaEventsPage');
+
+        return view('livewire.portal.settings.index', [
+            'mfaSummary' => $mfaSummary,
+            'mfaSecurityEvents' => $mfaSecurityEvents,
+        ])->layout('components.layouts.dashboard');
     }
 }
