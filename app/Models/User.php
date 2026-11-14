@@ -78,11 +78,33 @@ class User extends Authenticatable implements HasLocalePreference
         // When not logged in as a superadmin, hide superadmins from all queries
         static::addGlobalScope('hideSuperadmins', function (Builder $builder) {
             if (!app()->runningInConsole()) {
-                $authUser = auth()->user();
-                if (!$authUser || !$authUser->hasRole('superadmin')) {
-                    $builder->whereDoesntHave('roles', function ($q) {
-                        $q->where('name', 'superadmin');
+                $authId = auth()->id();
+                // Check if current user is superadmin via cached or lightweight query
+                $isSuperAdmin = false;
+                if ($authId) {
+                    $isSuperAdmin = \Illuminate\Support\Facades\Cache::remember('is_superadmin_' . $authId, 300, function () use ($authId) {
+                        return \Illuminate\Support\Facades\DB::table('model_has_roles')
+                            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                            ->where('model_has_roles.model_type', User::class)
+                            ->where('model_has_roles.model_id', $authId)
+                            ->where('roles.name', 'superadmin')
+                            ->exists();
                     });
+                }
+
+                if (!$isSuperAdmin) {
+                    $superadminIds = \Illuminate\Support\Facades\Cache::remember('superadmin_user_ids', 300, function () {
+                        return \Illuminate\Support\Facades\DB::table('model_has_roles')
+                            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                            ->where('model_has_roles.model_type', User::class)
+                            ->where('roles.name', 'superadmin')
+                            ->pluck('model_has_roles.model_id')
+                            ->toArray();
+                    });
+
+                    if (!empty($superadminIds)) {
+                        $builder->whereNotIn($builder->getModel()->getTable() . '.id', $superadminIds);
+                    }
                 }
             }
         });
