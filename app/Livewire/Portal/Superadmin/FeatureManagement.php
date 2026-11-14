@@ -76,7 +76,11 @@ class FeatureManagement extends Component
 
     public function render()
     {
-        $features = PlatformFeature::orderBy('category')->orderBy('name')->get()->groupBy('category');
+        $allFeatures = PlatformFeature::orderBy('category')->orderBy('name')->get();
+        $features = $allFeatures->groupBy('category');
+        $totalFeatures = $allFeatures->count();
+        $enabledCount = $allFeatures->where('is_enabled', true)->count();
+        $disabledCount = $allFeatures->where('is_enabled', false)->count();
 
         $superadmins = User::withoutGlobalScope('hideSuperadmins')
             ->role('superadmin')
@@ -97,8 +101,11 @@ class FeatureManagement extends Component
 
         return view('livewire.portal.superadmin.feature-management', [
             'features' => $features,
+            'totalFeatures' => $totalFeatures,
+            'enabledCount' => $enabledCount,
+            'disabledCount' => $disabledCount,
             'superadmins' => $superadmins,
             'candidates' => $candidates,
-        ])->layout('components.layouts.app');
+        ])->layout('components.layouts.dashboard');
     }
 }
