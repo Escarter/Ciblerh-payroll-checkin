@@ -1499,18 +1499,74 @@ html:not([data-theme="dark"]) main.content hr {
     background: rgba(24, 24, 27, 0.5);
 }
 
-/* ---------- Two-Factor Management Card ---------- */
-#two-factor-section {
-    color: var(--rf-text, #334155) !important;
+/* ---------- Two-Factor Authentication & Management ---------- */
+html:not([data-theme="dark"]) #two-factor-section {
+    color: var(--rf-text, #334155);
 }
-#two-factor-section h2,
-#two-factor-section .h5 {
-    color: var(--rf-ink, #0f172a) !important;
+html:not([data-theme="dark"]) #two-factor-section h2,
+html:not([data-theme="dark"]) #two-factor-section .h5 {
+    color: var(--rf-ink, #0f172a);
 }
-#two-factor-section .text-muted {
-    color: var(--rf-muted, #64748b) !important;
+html:not([data-theme="dark"]) #two-factor-section .text-muted {
+    color: var(--rf-muted, #64748b);
 }
-#two-factor-section .bg-light {
+html:not([data-theme="dark"]) #two-factor-section .bg-light,
+html:not([data-theme="dark"]) .rf-mfa-active-box {
     background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
     color: var(--rf-text, #334155) !important;
+}
+html:not([data-theme="dark"]) .rf-mfa-active-box .text-gray-700 {
+    color: var(--rf-text, #334155) !important;
+}
+
+.rf-mfa-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0 !important;
+    color: var(--rf-ink, #0f172a);
+    transition: all .15s ease;
+}
+.rf-mfa-card:hover:not(:disabled) {
+    background-color: #f8fafc;
+    border-color: #cbd5e1 !important;
+}
+.rf-mfa-card.rf-mfa-card-selected {
+    background-color: #eff6ff !important;
+    border: 2px solid var(--rf-brand, #1d4ba0) !important;
+    box-shadow: 0 2px 8px rgba(29, 75, 160, 0.12);
+}
+.rf-mfa-panel {
+    background-color: #f8fafc;
+    border-color: #e2e8f0 !important;
+}
+.rf-qr-frame {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+}
+.rf-mfa-secret-box {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+}
+.rf-recovery-banner {
+    background-color: #fffbeb !important;
+    border: 1px solid #fcd34d !important;
+}
+.rf-recovery-grid {
+    background-color: #ffffff;
+    border-color: #e2e8f0;
+}
+.rf-recovery-chip {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+}
+.rf-mfa-summary-banner {
+    background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);
+    border: 1px solid #e2e8f0;
+}
+.rf-mfa-summary-icon {
+    width: 40px;
+    height: 40px;
+    background: #eff6ff;
+    color: var(--rf-brand, #1d4ba0);
 }

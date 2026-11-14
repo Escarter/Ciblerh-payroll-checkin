@@ -582,3 +582,102 @@ html[data-theme="dark"] .rf-avatar-upload-initials {
 html[data-theme="dark"] .rf-photo-upload-row {
     border-bottom-color: var(--rf-line) !important;
 }
+
+/* Two-Factor Authentication & Management in dark mode */
+html[data-theme="dark"] #two-factor-section {
+    background: var(--rf-surface) !important;
+    border-color: var(--rf-line) !important;
+    color: var(--rf-text) !important;
+}
+html[data-theme="dark"] #two-factor-section h2,
+html[data-theme="dark"] #two-factor-section .h5 {
+    color: var(--rf-ink) !important;
+}
+html[data-theme="dark"] #two-factor-section .text-dark {
+    color: var(--rf-ink) !important;
+}
+html[data-theme="dark"] #two-factor-section .text-muted {
+    color: var(--rf-muted) !important;
+}
+html[data-theme="dark"] #two-factor-section .border {
+    border-color: var(--rf-line) !important;
+}
+html[data-theme="dark"] #two-factor-section .bg-light,
+html[data-theme="dark"] .rf-mfa-active-box {
+    background-color: var(--rf-surface-2) !important;
+    border-color: var(--rf-line) !important;
+    color: var(--rf-text) !important;
+}
+html[data-theme="dark"] .rf-mfa-active-box .text-gray-700,
+html[data-theme="dark"] #two-factor-section .bg-light .text-gray-700 {
+    color: var(--rf-text) !important;
+}
+html[data-theme="dark"] .rf-mfa-card {
+    background-color: var(--rf-surface-2) !important;
+    border: 1px solid var(--rf-line) !important;
+    color: var(--rf-text) !important;
+}
+html[data-theme="dark"] .rf-mfa-card:hover:not(:disabled) {
+    background-color: #223049 !important;
+    border-color: #3b4e6b !important;
+}
+html[data-theme="dark"] .rf-mfa-card.rf-mfa-card-selected {
+    background-color: var(--rf-brand-soft) !important;
+    border: 2px solid var(--rf-brand) !important;
+    box-shadow: 0 0 0 1px var(--rf-brand), 0 2px 10px rgba(109, 155, 240, 0.20) !important;
+}
+html[data-theme="dark"] .rf-mfa-card .rf-mfa-card-title,
+html[data-theme="dark"] .rf-mfa-card .text-dark {
+    color: var(--rf-ink) !important;
+}
+html[data-theme="dark"] .rf-mfa-card .rf-mfa-card-desc,
+html[data-theme="dark"] .rf-mfa-card .text-muted {
+    color: var(--rf-muted) !important;
+}
+html[data-theme="dark"] .rf-mfa-panel {
+    background-color: var(--rf-surface-2) !important;
+    border-color: var(--rf-line) !important;
+    color: var(--rf-text) !important;
+}
+html[data-theme="dark"] .rf-qr-frame {
+    background-color: #ffffff !important;
+    border-color: var(--rf-line) !important;
+}
+html[data-theme="dark"] .rf-mfa-secret-box {
+    background-color: var(--rf-surface) !important;
+    border-color: var(--rf-line) !important;
+}
+html[data-theme="dark"] .rf-mfa-secret-box code {
+    color: var(--rf-brand-2, #8bb0f4) !important;
+}
+html[data-theme="dark"] .rf-recovery-banner {
+    background-color: rgba(245, 158, 11, .12) !important;
+    border: 1px solid rgba(245, 158, 11, .35) !important;
+    color: var(--rf-text) !important;
+}
+html[data-theme="dark"] .rf-recovery-banner .text-dark {
+    color: var(--rf-ink) !important;
+}
+html[data-theme="dark"] .rf-recovery-grid {
+    background-color: var(--rf-surface) !important;
+    border-color: var(--rf-line) !important;
+}
+html[data-theme="dark"] .rf-recovery-chip {
+    background-color: var(--rf-surface-2) !important;
+    border-color: var(--rf-line) !important;
+    color: var(--rf-ink) !important;
+}
+html[data-theme="dark"] .rf-mfa-summary-banner {
+    background: linear-gradient(135deg, var(--rf-surface) 0%, var(--rf-surface-2) 100%) !important;
+    border-color: var(--rf-line) !important;
+}
+html[data-theme="dark"] .rf-mfa-summary-icon {
+    background: var(--rf-brand-soft) !important;
+    color: var(--rf-brand) !important;
+}
+html[data-theme="dark"] .table-light,
+html[data-theme="dark"] .table-light th {
+    background-color: var(--rf-surface-2) !important;
+    color: var(--rf-muted) !important;
+    border-color: var(--rf-line) !important;
+}
