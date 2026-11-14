@@ -53,6 +53,10 @@ class Index extends Component
 
     public function mount()
     {
+        if (request()->filled('q') && empty($this->query)) {
+            $this->query = request('q');
+        }
+
         // Check if user has any audit log read permission or is admin
         $user = auth()->user();
         $isAdmin = $user->hasRole('admin');

@@ -18,6 +18,13 @@ class Index extends Component
     public int $perPage = 15;
     protected $paginationTheme = "bootstrap";
 
+    public function mount()
+    {
+        if (request()->filled('q') && empty($this->query)) {
+            $this->query = request('q');
+        }
+    }
+
     public function render()
     {
         // Build query for employee's own audit logs

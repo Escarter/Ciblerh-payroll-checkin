@@ -81,6 +81,12 @@ class Index extends Component
 
     public function mount()
     {
+        if (request()->filled('q')) {
+            $this->searchQuery = request('q');
+        } elseif (request()->filled('searchQuery')) {
+            $this->searchQuery = request('searchQuery');
+        }
+
         $this->loadStats();
     }
 
