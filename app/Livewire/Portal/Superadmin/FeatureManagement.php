@@ -47,6 +47,8 @@ class FeatureManagement extends Component
 
         if (!$user->hasRole('superadmin')) {
             $user->assignRole($role);
+            \Illuminate\Support\Facades\Cache::forget('is_superadmin_' . $userId);
+            \Illuminate\Support\Facades\Cache::forget('superadmin_user_ids');
             session()->flash('success', "User '{$user->name}' ({$user->email}) is now a Superadmin.");
         }
     }
@@ -67,6 +69,8 @@ class FeatureManagement extends Component
         }
 
         $user->removeRole('superadmin');
+        \Illuminate\Support\Facades\Cache::forget('is_superadmin_' . $userId);
+        \Illuminate\Support\Facades\Cache::forget('superadmin_user_ids');
         session()->flash('success', "Superadmin privilege revoked from '{$user->name}'.");
     }
 

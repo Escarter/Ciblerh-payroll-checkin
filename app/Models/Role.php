@@ -14,11 +14,34 @@ class Role extends SpatieRole
     protected static function booted(): void
     {
         static::addGlobalScope('hideSuperadminRole', function (\Illuminate\Database\Eloquent\Builder $builder) {
-            if (!app()->runningInConsole()) {
-                $authUser = auth()->user();
-                if (!$authUser || !$authUser->hasRole('superadmin')) {
-                    $builder->where('name', '!=', 'superadmin');
+            if (app()->runningInConsole()) {
+                return;
+            }
+
+            static $isResolving = false;
+            if ($isResolving) {
+                return;
+            }
+
+            $isResolving = true;
+            try {
+                if (\App\Models\User::isCurrentSuperAdmin()) {
+                    return;
                 }
+
+                if (!app()->bound('session') || !session()->isStarted()) {
+                    return;
+                }
+
+                $guard = auth()->guard();
+                $hasAuthId = $guard->hasUser() || session()->has($guard->getName());
+                if (!$hasAuthId) {
+                    return;
+                }
+
+                $builder->where($builder->getModel()->getTable() . '.name', '!=', 'superadmin');
+            } finally {
+                $isResolving = false;
             }
         });
     }

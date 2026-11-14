@@ -73,39 +73,96 @@ class User extends Authenticatable implements HasLocalePreference
         'mfa_last_used_at' => 'datetime',
     ];
 
+    /**
+     * Check safely whether the current request/session belongs to a superadmin
+     * without triggering Eloquent queries or re-entrant auth user resolution.
+     */
+    public static function isCurrentSuperAdmin(): bool
+    {
+        if (app()->runningInConsole() || !app()->bound('auth')) {
+            return false;
+        }
+
+        try {
+            $guard = auth()->guard();
+            $authId = null;
+
+            if ($guard->hasUser()) {
+                $authId = $guard->user()?->getAuthIdentifier();
+            } elseif (app()->bound('session') && session()->isStarted()) {
+                $sessionKey = $guard->getName();
+                $authId = session()->get($sessionKey);
+            }
+
+            if (!$authId) {
+                return false;
+            }
+
+            static $requestCache = [];
+            if (isset($requestCache[$authId])) {
+                return $requestCache[$authId];
+            }
+
+            $isSuper = \Illuminate\Support\Facades\Cache::remember('is_superadmin_' . $authId, 300, function () use ($authId) {
+                return \Illuminate\Support\Facades\DB::table('model_has_roles')
+                    ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                    ->where('model_has_roles.model_type', User::class)
+                    ->where('model_has_roles.model_id', $authId)
+                    ->where('roles.name', 'superadmin')
+                    ->exists();
+            });
+
+            return $requestCache[$authId] = (bool) $isSuper;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     protected static function booted(): void
     {
         // When not logged in as a superadmin, hide superadmins from all queries
         static::addGlobalScope('hideSuperadmins', function (Builder $builder) {
-            if (!app()->runningInConsole()) {
-                $authId = auth()->id();
-                // Check if current user is superadmin via cached or lightweight query
-                $isSuperAdmin = false;
-                if ($authId) {
-                    $isSuperAdmin = \Illuminate\Support\Facades\Cache::remember('is_superadmin_' . $authId, 300, function () use ($authId) {
-                        return \Illuminate\Support\Facades\DB::table('model_has_roles')
-                            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                            ->where('model_has_roles.model_type', User::class)
-                            ->where('model_has_roles.model_id', $authId)
-                            ->where('roles.name', 'superadmin')
-                            ->exists();
-                    });
+            if (app()->runningInConsole()) {
+                return;
+            }
+
+            static $isResolving = false;
+            if ($isResolving) {
+                return;
+            }
+
+            $isResolving = true;
+            try {
+                if (static::isCurrentSuperAdmin()) {
+                    return;
                 }
 
-                if (!$isSuperAdmin) {
-                    $superadminIds = \Illuminate\Support\Facades\Cache::remember('superadmin_user_ids', 300, function () {
-                        return \Illuminate\Support\Facades\DB::table('model_has_roles')
-                            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
-                            ->where('model_has_roles.model_type', User::class)
-                            ->where('roles.name', 'superadmin')
-                            ->pluck('model_has_roles.model_id')
-                            ->toArray();
-                    });
-
-                    if (!empty($superadminIds)) {
-                        $builder->whereNotIn($builder->getModel()->getTable() . '.id', $superadminIds);
-                    }
+                // If not authenticated or no active session (e.g. login credentials lookup),
+                // do not hide superadmins so authentication / login works
+                if (!app()->bound('session') || !session()->isStarted()) {
+                    return;
                 }
+
+                $guard = auth()->guard();
+                $hasAuthId = $guard->hasUser() || session()->has($guard->getName());
+                if (!$hasAuthId) {
+                    return;
+                }
+
+                $superadminIds = \Illuminate\Support\Facades\Cache::remember('superadmin_user_ids', 300, function () {
+                    return \Illuminate\Support\Facades\DB::table('model_has_roles')
+                        ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                        ->where('model_has_roles.model_type', User::class)
+                        ->where('roles.name', 'superadmin')
+                        ->pluck('model_has_roles.model_id')
+                        ->toArray();
+                });
+
+                if (!empty($superadminIds)) {
+                    $builder->whereNotIn($builder->getModel()->getTable() . '.id', $superadminIds);
+                }
+            } finally {
+                $isResolving = false;
             }
         });
 
