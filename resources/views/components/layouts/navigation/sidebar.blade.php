@@ -98,6 +98,7 @@
                                 @endhasrole
                                 @canany(['ticking-read','overtime-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
+                                @feature('checklogs')
                                 @can('ticking-read')
                                 <li class="nav-item {{ $request->routeIs('portal.checklogs.*') ? 'active' : '' }}">
                                     <a href="{{route('portal.checklogs.index')}}" class="nav-link d-flex align-items-center justify-content-between">
@@ -112,6 +113,8 @@
                                     </a>
                                 </li>
                                 @endcan
+                                @endfeature
+                                @feature('overtimes')
                                 @can('overtime-read')
                                 <li class="nav-item {{ $request->routeIs('portal.overtimes.*') ? 'active' : '' }}">
                                     <a href="{{route('portal.overtimes.index')}}" class="nav-link d-flex align-items-center justify-content-between">
@@ -126,9 +129,11 @@
                                     </a>
                                 </li>
                                 @endcan
+                                @endfeature
                                 @endcanany
                                 @canany(['advance_salary-read','absence-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
+                                @feature('advance_salaries')
                                 @can('advance_salary-read')
                                 <li class="nav-item {{ $request->routeIs('portal.advance-salaries.*') ? 'active' : '' }}">
                                     <a href="{{route('portal.advance-salaries.index')}}" class="nav-link d-flex align-items-center justify-content-between">
@@ -143,6 +148,7 @@
                                     </a>
                                 </li>
                                 @endcan
+                                @endfeature
                                 @can('absence-read')
                                 <li class="nav-item {{ $request->routeIs('portal.absences.*') ? 'active' : '' }}">
                                     <a href="{{route('portal.absences.index')}}" class="nav-link d-flex align-items-center justify-content-between">
@@ -160,6 +166,7 @@
                                 @endcanany
                                 @canany(['payslip-read','payslip-sending','manage-payslips'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
+                                @feature('sftp_validator')
                                 @can('manage-payslips')
                                 <li class="nav-item {{ $request->routeIs('portal.payslips.sftp-validator') ? 'active' : '' }}">
                                     <a href="{{route('portal.payslips.sftp-validator')}}" class="nav-link d-flex align-items-center justify-content-between">
@@ -174,6 +181,7 @@
                                     </a>
                                 </li>
                                 @endcan
+                                @endfeature
                                 @can('payslip-sending')
                                 <li class="nav-item {{ $request->routeIs('portal.payslips.index') ? 'active' : '' }}">
                                     <a href="{{route('portal.payslips.index')}}" class="nav-link d-flex align-items-center justify-content-between">
@@ -188,6 +196,7 @@
                                     </a>
                                 </li>
                                 @endcan
+                                @feature('annual_declarations')
                                 @can('payslip-read')
                                 <li class="nav-item {{ $request->routeIs('portal.annual-declarations.*') ? 'active' : '' }}">
                                     <a href="{{route('portal.annual-declarations.index')}}" class="nav-link d-flex align-items-center justify-content-between">
@@ -202,6 +211,7 @@
                                     </a>
                                 </li>
                                 @endcan
+                                @endfeature
                                 @can('payslip-read')
                                 <li class="nav-item {{ $request->routeIs('portal.payslips.history') ? 'active' : '' }}">
                                     <a href="{{route('portal.payslips.history')}}" class="nav-link d-flex align-items-center justify-content-between">
@@ -366,6 +376,7 @@
                                     </a>
                                 </li>
                                 @endcan
+                                @feature('audit_logs')
                                 <li class="nav-item {{ $request->routeIs('portal.auditlogs.*') ? 'active' : '' }}">
                                     <a href="{{route('portal.auditlogs.index')}}" class="nav-link">
                                         <span class="sidebar-icon">
@@ -376,6 +387,22 @@
                                         <span class="sidebar-text">{{__('common.audit_logs')}}</span>
                                     </a>
                                 </li>
+                                @endfeature
+
+                                @superadmin
+                                <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
+                                <li class="nav-item {{ $request->routeIs('portal.superadmin.*') ? 'active' : '' }}">
+                                    <a href="{{ route('portal.superadmin.features') }}" class="nav-link d-flex align-items-center justify-content-between">
+                                        <span>
+                                            <span class="sidebar-icon text-danger">
+                                                <svg class="icon icon-sm me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                            </span>
+                                            <span class="sidebar-text fw-bold text-danger">Superadmin</span>
+                                        </span>
+                                        <span class="badge badge-sm bg-danger text-white">Hub</span>
+                                    </a>
+                                </li>
+                                @endsuperadmin
                                 <!-- <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
                                 <li class="nav-item">
                                     <a href="#" target="_blank" class="nav-link d-flex align-items-center">

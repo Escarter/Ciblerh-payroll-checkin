@@ -11,6 +11,18 @@ class Role extends SpatieRole
 {
     use HasFactory, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('hideSuperadminRole', function (\Illuminate\Database\Eloquent\Builder $builder) {
+            if (!app()->runningInConsole()) {
+                $authUser = auth()->user();
+                if (!$authUser || !$authUser->hasRole('superadmin')) {
+                    $builder->where('name', '!=', 'superadmin');
+                }
+            }
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *

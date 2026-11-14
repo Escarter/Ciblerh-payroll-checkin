@@ -13,23 +13,37 @@
         'logout' => 'M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1',
         'switch' => 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4',
     ];
-    $links = [
-        ['employee.dashboard', __('common.dashboard'), 'home'],
-        ['employee.checklogs', __('employees.checkins'), 'check'],
-        ['employee.payslips', __('common.payslips'), 'cash'],
-        ['employee.leaves', __('employees.leave'), 'leave'],
-        ['employee.overtimes', __('common.overtime'), 'clock'],
-        ['employee.advance-salaries', __('employees.advance_salary_short'), 'cash'],
-        ['employee.absences', __('employees.absence'), 'calendar'],
-        ['employee.annual-declarations', __('annual_declarations.annual_declarations'), 'doc'],
+    $allLinks = [
+        'employee.dashboard' => ['employee.dashboard', __('common.dashboard'), 'home'],
+        'employee.checklogs' => \App\Models\PlatformFeature::isEnabled('checklogs') ? ['employee.checklogs', __('employees.checkins'), 'check'] : null,
+        'employee.payslips' => ['employee.payslips', __('common.payslips'), 'cash'],
+        'employee.leaves' => ['employee.leaves', __('employees.leave'), 'leave'],
+        'employee.overtimes' => \App\Models\PlatformFeature::isEnabled('overtimes') ? ['employee.overtimes', __('common.overtime'), 'clock'] : null,
+        'employee.advance-salaries' => \App\Models\PlatformFeature::isEnabled('advance_salaries') ? ['employee.advance-salaries', __('employees.advance_salary_short'), 'cash'] : null,
+        'employee.absences' => ['employee.absences', __('employees.absence'), 'calendar'],
+        'employee.annual-declarations' => \App\Models\PlatformFeature::isEnabled('annual_declarations') ? ['employee.annual-declarations', __('annual_declarations.annual_declarations'), 'doc'] : null,
     ];
+    $links = array_values(array_filter($allLinks));
     $by = collect($links)->keyBy(0);
-    $groups = [
+
+    $requestItems = array_values(array_filter([
+        $by->get('employee.leaves'),
+        $by->get('employee.overtimes'),
+        $by->get('employee.advance-salaries'),
+        $by->get('employee.absences'),
+    ]));
+
+    $docItems = array_values(array_filter([
+        $by->get('employee.payslips'),
+        $by->get('employee.annual-declarations'),
+    ]));
+
+    $groups = array_values(array_filter([
         ['route' => 'employee.dashboard', 'label' => __('common.dashboard')],
-        ['route' => 'employee.checklogs', 'label' => __('employees.checkins')],
-        ['label' => __('common.requests'), 'items' => [$by['employee.leaves'], $by['employee.overtimes'], $by['employee.advance-salaries'], $by['employee.absences']]],
-        ['label' => __('common.documents'), 'items' => [$by['employee.payslips'], $by['employee.annual-declarations']]],
-    ];
+        $by->has('employee.checklogs') ? ['route' => 'employee.checklogs', 'label' => __('employees.checkins')] : null,
+        count($requestItems) > 0 ? ['label' => __('common.requests'), 'items' => $requestItems] : null,
+        count($docItems) > 0 ? ['label' => __('common.documents'), 'items' => $docItems] : null,
+    ]));
     $tabs = array_slice($links, 0, 4);
     $more = array_slice($links, 4);
     $moreActive = collect($more)->contains(fn ($l) => request()->routeIs($l[0] . '*')) || request()->routeIs('employee.profile');

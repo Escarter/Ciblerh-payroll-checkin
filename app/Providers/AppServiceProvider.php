@@ -91,6 +91,15 @@ class AppServiceProvider extends ServiceProvider
             return "<?php endif; ?>";
         });
 
+        // Register @feature and @superadmin Blade directives
+        \Blade::if('feature', function (string $key, bool $allowSuperadminBypass = true) {
+            return \App\Models\PlatformFeature::isEnabled($key, $allowSuperadminBypass);
+        });
+
+        \Blade::if('superadmin', function () {
+            return auth()->check() && auth()->user()->hasRole('superadmin');
+        });
+
         // Register Mandrill HTTP API transport
         Mail::extend('mandrill-api', function (array $config) {
             return new \App\Mail\Transport\MandrillApiTransport(

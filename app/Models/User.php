@@ -75,6 +75,18 @@ class User extends Authenticatable implements HasLocalePreference
 
     protected static function booted(): void
     {
+        // When not logged in as a superadmin, hide superadmins from all queries
+        static::addGlobalScope('hideSuperadmins', function (Builder $builder) {
+            if (!app()->runningInConsole()) {
+                $authUser = auth()->user();
+                if (!$authUser || !$authUser->hasRole('superadmin')) {
+                    $builder->whereDoesntHave('roles', function ($q) {
+                        $q->where('name', 'superadmin');
+                    });
+                }
+            }
+        });
+
         static::creating(function (User $user) {
             $user->applyDefaultWorkTimes();
         });
