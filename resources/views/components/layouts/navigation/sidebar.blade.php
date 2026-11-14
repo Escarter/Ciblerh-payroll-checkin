@@ -295,7 +295,7 @@
                                 @endif
 
                                 @can('importjob-read')
-                                <li class="nav-item {{ $request->routeIs('portal.import-jobs.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ ($request->routeIs('portal.import-jobs.*') || $request->routeIs('portal.import-wizard')) ? 'active' : '' }}">
                                     <a href="{{route('portal.import-jobs.index')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
