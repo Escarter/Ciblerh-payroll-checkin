@@ -493,24 +493,30 @@
                                 </div>
                                 <div class="mt-1">
                                     <small class="text-muted fw-bold">{{ __('two_factor.column_label') }}:</small>
-                                    <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+                                    <div class="d-flex align-items-center mt-1">
                                         @if($employee->mfa_enabled)
-                                            <span class="badge p-1 px-2 bg-success">{{ strtoupper($employee->mfa_method ?? '2FA') }}</span>
+                                            <span class="badge p-1 px-2 bg-success me-2">{{ strtoupper($employee->mfa_method ?? '2FA') }}</span>
                                         @elseif($employee->mfa_required)
-                                            <span class="badge p-1 px-2 bg-warning text-dark">{{ __('two_factor.required_badge') }}</span>
+                                            <span class="badge p-1 px-2 bg-warning text-dark me-2">{{ __('two_factor.required_badge') }}</span>
                                         @else
-                                            <span class="badge p-1 px-2 bg-secondary">{{ __('two_factor.status_disabled') }}</span>
+                                            <span class="badge p-1 px-2 bg-secondary me-2">{{ __('two_factor.status_disabled') }}</span>
                                         @endif
 
                                         @can('employee-update')
                                             <button
                                                 type="button"
                                                 wire:click="toggleUserMfaRequired({{ $employee->id }})"
-                                                class="btn btn-sm {{ $employee->mfa_required ? 'btn-outline-warning' : 'btn-outline-primary' }}"
-                                                style="padding: 0.125rem 0.35rem; font-size: 0.7rem; line-height: 1.1;"
+                                                class="btn btn-sm {{ $employee->mfa_required ? 'btn-outline-warning' : 'btn-outline-primary' }} me-1"
+                                                style="padding: 0.125rem 0.25rem; font-size: 0.75rem; line-height: 1;"
                                                 title="{{ $employee->mfa_required ? __('two_factor.make_mfa_optional') : __('two_factor.require_mfa') }}"
                                             >
-                                                {{ $employee->mfa_required ? __('two_factor.optional_short') : __('two_factor.require_short') }}
+                                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    @if($employee->mfa_required)
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                    @else
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12-2c0 5.591-3.824 10.29-9 11.622C6.824 20.29 3 15.591 3 10V5.25L12 2l9 3.25V10z" />
+                                                    @endif
+                                                </svg>
                                             </button>
 
                                             @if($employee->mfa_enabled)
@@ -519,10 +525,12 @@
                                                     wire:click="resetUserMfa({{ $employee->id }})"
                                                     wire:confirm="{{ __('two_factor.confirm_admin_reset', ['user' => $employee->name]) }}"
                                                     class="btn btn-sm btn-outline-danger"
-                                                    style="padding: 0.125rem 0.35rem; font-size: 0.7rem; line-height: 1.1;"
+                                                    style="padding: 0.125rem 0.25rem; font-size: 0.75rem; line-height: 1;"
                                                     title="{{ __('two_factor.reset_user_mfa') }}"
                                                 >
-                                                    {{ __('two_factor.reset_short') }}
+                                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                    </svg>
                                                 </button>
                                             @endif
                                         @endcan
