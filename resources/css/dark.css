@@ -499,6 +499,18 @@ html[data-theme="dark"] .form-select, html[data-theme="dark"] .input-group-text,
 html[data-theme="dark"] .emp-lang a, html[data-theme="dark"] .emp-pill, html[data-theme="dark"] #sidebar-toggle,
 html[data-theme="dark"] kbd, html[data-theme="dark"] .table td, html[data-theme="dark"] .table th { transition: none !important; }
 
+html[data-theme="dark"] .input-group > .copy-pdf-pwd {
+    background: var(--rf-surface-2) !important;
+    border-color: var(--rf-line) !important;
+    color: var(--rf-muted) !important;
+}
+html[data-theme="dark"] .input-group > .copy-pdf-pwd:hover,
+html[data-theme="dark"] .input-group > .copy-pdf-pwd:focus {
+    background: var(--rf-brand-soft) !important;
+    color: var(--rf-brand) !important;
+    border-color: var(--rf-brand) !important;
+}
+
 /* Import wizard */
 html[data-theme="dark"] .import-wizard .template-banner {
     background: var(--rf-surface-2) !important;

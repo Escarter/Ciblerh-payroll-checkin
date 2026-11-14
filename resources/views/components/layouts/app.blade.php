@@ -489,6 +489,10 @@
                 if (!btn) return;
                 e.preventDefault();
                 var pwd = btn.getAttribute('data-password');
+                if (!pwd && btn.parentElement) {
+                    var siblingInput = btn.parentElement.querySelector('input');
+                    if (siblingInput) pwd = siblingInput.value;
+                }
                 if (!pwd) return;
                 copyText(pwd).then(function () {
                     var svg = btn.querySelector('svg');
