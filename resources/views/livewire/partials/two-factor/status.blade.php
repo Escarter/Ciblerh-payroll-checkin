@@ -3,10 +3,10 @@
     $compact = $compact ?? false;
 @endphp
 
-<div class="card border-0 shadow-sm mb-4 {{ $compact ? 'p-3' : 'p-4' }}" style="background: linear-gradient(135deg, #f8fafc 0%, #eff6ff 100%);">
+<div class="card border-0 shadow-sm mb-4 rf-mfa-summary-banner {{ $compact ? 'p-3' : 'p-4' }}">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div class="d-flex align-items-start gap-3">
-            <span class="d-inline-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 40px; height: 40px; background: #eff6ff; color: var(--rf-brand, #1d4ba0);">
+            <span class="d-inline-flex align-items-center justify-content-center rounded-3 flex-shrink-0 rf-mfa-summary-icon">
                 <i class="fas fa-user-shield"></i>
             </span>
             <div>

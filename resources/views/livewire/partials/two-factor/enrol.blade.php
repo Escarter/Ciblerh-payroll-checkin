@@ -29,16 +29,15 @@
                             type="button"
                             wire:click="selectTwoFactorMethod('{{ $key }}')"
                             @if(!$isReady) disabled @endif
-                            class="btn w-100 h-100 text-start p-3 rounded-3 border {{ !$isReady ? 'opacity-50' : '' }}"
-                            style="{{ $isSelected ? 'background-color: #eff6ff; border: 2px solid var(--rf-brand, #1d4ba0) !important; box-shadow: 0 2px 8px rgba(29, 75, 160, 0.10);' : 'background-color: #ffffff; border: 1px solid #e2e8f0 !important;' }}"
+                            class="btn w-100 h-100 text-start p-3 rounded-3 border rf-mfa-card {{ $isSelected ? 'rf-mfa-card-selected' : '' }} {{ !$isReady ? 'opacity-50' : '' }}"
                         >
                             <div class="d-flex align-items-start justify-content-between gap-1 mb-1">
-                                <span class="fw-bold text-dark small">{{ $info['label'] }}</span>
+                                <span class="fw-bold text-dark small rf-mfa-card-title">{{ $info['label'] }}</span>
                                 @if($isSelected)
                                     <span class="badge bg-primary flex-shrink-0">{{ __('two_factor.selected') }}</span>
                                 @endif
                             </div>
-                            <div class="text-muted" style="font-size: 0.78rem; line-height: 1.35;">
+                            <div class="text-muted rf-mfa-card-desc" style="font-size: 0.78rem; line-height: 1.35;">
                                 {{ $info['description'] }}
                             </div>
                             @if(!empty($info['hint']))
@@ -60,14 +59,14 @@
 
         {{-- Step 2: Method-specific instructions + 6-digit confirmation --}}
         @if($chosenMethod === 'authenticator' && $authenticator)
-            <div class="card border bg-light-subtle p-3 mb-3">
+            <div class="card border p-3 mb-3 rf-mfa-panel">
                 <div class="fw-semibold small text-uppercase text-muted mb-2">
                     2. {{ __('two_factor.step_scan_qr') }}
                 </div>
                 <div class="row g-3 align-items-center">
                     <div class="col-auto">
                         @if(!empty($authenticator['qr_svg']))
-                            <div class="bg-white p-2 rounded-3 border d-inline-block">
+                            <div class="p-2 rounded-3 border d-inline-block rf-qr-frame">
                                 <img
                                     src="{{ $authenticator['qr_svg'] }}"
                                     alt="{{ __('two_factor.qr_code_alt') }}"
@@ -80,11 +79,11 @@
                         <p class="small text-muted mb-2">
                             {{ __('two_factor.authenticator_scan_instructions') }}
                         </p>
-                        <div class="p-2 rounded bg-white border">
+                        <div class="p-2 rounded border rf-mfa-secret-box">
                             <div class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">
                                 {{ __('two_factor.manual_entry_key') }}
                             </div>
-                            <code class="d-block mt-1 fw-bold text-dark user-select-all" style="font-size: 0.9rem; letter-spacing: 0.06em;">
+                            <code class="d-block mt-1 fw-bold user-select-all" style="font-size: 0.9rem; letter-spacing: 0.06em;">
                                 {{ $authenticator['formatted_secret'] }}
                             </code>
                         </div>
@@ -119,7 +118,7 @@
                 </form>
             </div>
         @elseif($chosenMethod === 'email')
-            <div class="card border bg-light-subtle p-3 mb-3">
+            <div class="card border p-3 mb-3 rf-mfa-panel">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                     <div>
                         <div class="fw-semibold small text-uppercase text-muted">
@@ -164,7 +163,7 @@
                 </form>
             </div>
         @elseif($chosenMethod === 'sms')
-            <div class="card border bg-light-subtle p-3 mb-3">
+            <div class="card border p-3 mb-3 rf-mfa-panel">
                 <div class="fw-semibold small text-uppercase text-muted mb-2">
                     2. {{ __('two_factor.step_enter_mobile_number') }}
                 </div>

@@ -27,8 +27,7 @@
                 URL.revokeObjectURL(url);
             }
         }"
-        class="card p-3 mb-3"
-        style="background-color: #fffbeb; border: 1px solid #fcd34d !important;"
+        class="card p-3 mb-3 rf-recovery-banner"
     >
         <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
             <div>
@@ -44,10 +43,10 @@
             </span>
         </div>
 
-        <div class="row g-2 bg-white border rounded-3 p-3 my-2">
+        <div class="row g-2 rf-recovery-grid border rounded-3 p-3 my-2">
             @foreach($codes as $recoveryCode)
                 <div class="col-6 col-sm-4">
-                    <div class="p-1 text-center bg-light rounded border font-monospace fw-bold small user-select-all">
+                    <div class="p-1 text-center rf-recovery-chip rounded border font-monospace fw-bold small user-select-all">
                         {{ $recoveryCode }}
                     </div>
                 </div>
@@ -59,7 +58,7 @@
                 <button
                     type="button"
                     @click="copyAll()"
-                    class="btn btn-sm btn-outline-secondary bg-white"
+                    class="btn btn-sm btn-outline-secondary"
                 >
                     <span x-show="!copied">{{ __('two_factor.copy_codes') }}</span>
                     <span x-show="copied" x-cloak class="text-success fw-semibold">{{ __('two_factor.copied') }}</span>
@@ -68,7 +67,7 @@
                 <button
                     type="button"
                     @click="downloadTxt()"
-                    class="btn btn-sm btn-outline-secondary bg-white"
+                    class="btn btn-sm btn-outline-secondary"
                 >
                     {{ __('two_factor.download_txt') }}
                 </button>

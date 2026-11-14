@@ -62,7 +62,7 @@
 
     @if($mfaEnabled && $twoFactorChosenMethod === '')
         {{-- Active enrollment summary + quick actions --}}
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 rounded-3 bg-light border mb-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 rounded-3 rf-mfa-active-box border mb-3">
             <div class="small text-gray-700">
                 @if($currentMethod === 'authenticator')
                     {{ __('two_factor.active_summary_authenticator') }}
@@ -136,7 +136,7 @@
                         maxlength="6"
                         wire:model="twoFactorTestCode"
                         placeholder="000000"
-                        class="form-control form-control-sm text-center fw-bold bg-white"
+                        class="form-control form-control-sm text-center fw-bold"
                         style="max-width: 160px; letter-spacing: 0.3em; font-family: monospace;"
                     >
                     <button type="submit" wire:loading.attr="disabled" class="btn btn-sm btn-primary">
