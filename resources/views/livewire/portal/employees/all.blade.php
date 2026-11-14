@@ -11,6 +11,7 @@
     @include('livewire.partials.bulk-force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => (is_array($selectedEmployees) && count($selectedEmployees) === 1) ? __('employees.employee') : __('employees.employees')])
     @include('livewire.partials.force-delete-modal-generic', ['selectedItems' => $selectedEmployees, 'itemType' => __('employees.employee')])
     @include('livewire.portal.employees.partials.company-sms-toggle-modal')
+    @include('livewire.portal.employees.partials.transfer-company-modal')
     @livewire('portal.employees.partial.user-roles')
     <div class='p-0'>
         <div class="d-flex justify-content-between w-100 flex-wrap align-items-center">
@@ -303,6 +304,19 @@
             <div class="d-flex align-items-center gap-2">
 
                 @if($activeTab === 'active')
+                @if($canTransferCompany ?? false)
+                @can('employee-update')
+                <button type="button"
+                    wire:click="openBulkTransferModal"
+                    class="btn btn-sm btn-outline-primary d-flex align-items-center me-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#TransferCompanyModal">
+                    <i class="fas fa-exchange-alt me-1"></i>
+                    {{ __('employees.move_to_company') }}
+                    <span class="badge bg-primary text-white ms-1">{{ is_array($selectedEmployees) ? count($selectedEmployees) : 0 }}</span>
+                </button>
+                @endcan
+                @endif
                 @can('employee-bulkdelete')
                 <button type="button"
                     class="btn btn-sm btn-danger d-flex align-items-center me-2"
@@ -523,6 +537,18 @@
                             @endcan
 
                             @can('employee-update')
+                            @if(($canTransferCompany ?? false) && !$employee->hasRole('admin'))
+                            <button type="button"
+                                wire:click="openTransferModal({{ $employee->id }})"
+                                data-bs-toggle="modal"
+                                data-bs-target="#TransferCompanyModal"
+                                class="rf-icon-btn rf-icon-btn-secondary me-1"
+                                title="{{ __('employees.transfer_to_company_title') }}">
+                                <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                                </svg>
+                            </button>
+                            @endif
                             @if($employee->hasAnyRole(['manager', 'admin', 'supervisor']) || $employee->roles->count() > 1)
                             <a href='#' wire:click.prevent="initDataManager({{$employee->id}})" data-bs-toggle="modal" data-bs-target="#EditManagerModal">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

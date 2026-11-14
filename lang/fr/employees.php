@@ -40,6 +40,7 @@ return [
     // Error Messages
     'cannot_permanently_delete_employee' => 'Impossible de supprimer définitivement l\'employé. Il a des enregistrements liés.',
     'cannot_permanently_delete_employees' => 'Impossible de supprimer définitivement les employés suivants car ils ont des enregistrements liés: ',
+    'cascade_delete_warning' => 'Toutes les données associées à cet employé (fiches de paie, fichiers PDF, déclarations annuelles, congés, pointages, absences, avances sur salaire et heures supplémentaires) seront également définitivement supprimées.',
     'no_permission_assign_roles' => 'Vous n\'avez pas la permission d\'assigner les rôles suivants: ',
     'maximum_2_roles_allowed' => 'Un utilisateur peut avoir un maximum de 2 rôles.',
 
@@ -639,4 +640,27 @@ return [
     'test_sms_failed' => 'Échec de l\'envoi du SMS de test',
     'test_sms_default_message' => 'SMS de test de :app. Si vous avez reçu ce message, l\'envoi de SMS fonctionne.',
     'send_test_sms' => 'Envoyer un SMS de test',
+
+    // Transfert d'employés entre entreprises
+    'move_to_company' => 'Déplacer vers une entreprise',
+    'transfer_to_company' => 'Transférer vers une entreprise',
+    'transfer_to_company_title' => 'Transférer des employé(s) vers une autre entreprise',
+    'transfer_to_company_info_title' => 'Historique des données conservé',
+    'transfer_to_company_info_body' => 'Le transfert d\'un employé met à jour son entreprise, son département et son service actuels. Les fiches de paie, congés, pointages, absences, heures supplémentaires et avances sur salaire historiques restent rattachés à l\'entreprise où ils ont été enregistrés.',
+    'selected_employee' => 'Employé sélectionné',
+    'employees_selected_for_transfer' => ':count employé(s) sélectionné(s) pour le transfert',
+    'target_company' => 'Entreprise cible',
+    'select_target_company' => 'Sélectionner l\'entreprise cible',
+    'select_department' => 'Sélectionner un département',
+    'service' => 'Service',
+    'select_service' => 'Sélectionner un service',
+    'confirm_transfer' => 'Confirmer le transfert',
+    'company_transfer_disabled' => 'Le transfert d\'employés entre entreprises est actuellement désactivé dans les paramètres.',
+    'cannot_transfer_employee' => 'Vous n\'avez pas la permission de transférer cet employé.',
+    'invalid_target_company' => 'L\'entreprise cible sélectionnée est invalide ou non autorisée.',
+    'department_must_belong_to_company' => 'Le département sélectionné n\'appartient pas à l\'entreprise cible.',
+    'service_must_belong_to_department' => 'Le service sélectionné n\'appartient pas au département sélectionné.',
+    'no_employees_selected_for_transfer' => 'Aucun employé sélectionné pour le transfert.',
+    'employees_transferred_successfully' => ':count employé(s) transféré(s) avec succès vers :company !',
+    'employee_company_transferred_audit' => 'Employé :employee transféré de l\'entreprise :from vers :to',
 ];

@@ -14,6 +14,16 @@
                                 <label for="company">{{__('companies.company')}}</label>
                                 @if(auth()->user()->hasRole('supervisor'))
                                     <input type="text" class="form-control" value="{{$employee->company->name ?? __('employees.unknown_company')}}" disabled>
+                                @elseif($canTransferCompany ?? false)
+                                    <select wire:model.live="editCompanyId" class="form-select @error('editCompanyId') is-invalid @enderror">
+                                        <option value="">{{ __('employees.select_target_company') }}</option>
+                                        @foreach(($transferableCompanies ?? []) as $companyOption)
+                                            <option value="{{ $companyOption->id }}">{{ $companyOption->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('editCompanyId')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
                                 @else
                                     <input type="text" class="form-control  @error('company') is-invalid @enderror" name="company" value="{{$company->name ?? '' }}" disabled>
                                 @endif

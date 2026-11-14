@@ -30,6 +30,7 @@ class Index extends BaseImportComponent
 
     use WithBulkSelection, WithDataTable;
     use \App\Livewire\Traits\WithTestSms;
+    use \App\Livewire\Traits\WithEmployeeCompanyTransfer;
 
     private const DEFAULT_WORK_START_TIME = '08:00';
     private const DEFAULT_WORK_END_TIME = '17:30';
@@ -156,16 +157,23 @@ class Index extends BaseImportComponent
 
     public function updatedDepartmentId($department_id)
     {
-        if(!is_null($department_id)){
+        if (!empty($department_id)) {
             $this->services = Service::where('department_id', $department_id)->get();
+        } else {
+            $this->service_id = null;
+            $this->services = collect();
         }
     }
 
     public function updatedSelectedDepartmentId($department_id)
     {
-        if(!is_null($department_id)){
+        if (!empty($department_id)) {
             $this->department_id = $department_id;
             $this->services = Service::where('department_id', $department_id)->get();
+        } else {
+            $this->department_id = null;
+            $this->service_id = null;
+            $this->services = collect();
         }
     }
 
@@ -307,6 +315,13 @@ class Index extends BaseImportComponent
 
         $passwordChanged = !empty($this->password) && $this->password !== $this->employee->password;
 
+        $structure = $this->resolveUpdatedEmployeeCompanyAndStructure(
+            $this->employee,
+            $this->company?->id,
+            $this->department_id ?: $this->selectedDepartmentId,
+            $this->service_id
+        );
+
         $this->employee->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
@@ -321,15 +336,23 @@ class Index extends BaseImportComponent
             'net_salary' => $this->net_salary,
             'salary_grade' => $this->salary_grade,
             'contract_end' => $this->contract_end,
-            'company_id' => $this->company->id,
-            'department_id' => $this->department_id,
-            'service_id' => $this->service_id,
+            'company_id' => $structure['company_id'],
+            'department_id' => $structure['department_id'],
+            'service_id' => $structure['service_id'],
             'work_start_time' => $this->work_start_time,
             'date_of_birth' => $this->date_of_birth ?: null,
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ? true : false,
             'receive_sms_notifications' => $this->receive_sms_notifications === true || $this->receive_sms_notifications === "true" || $this->receive_sms_notifications === 1,
         ]);
+
+        if ($structure['company_changed']) {
+            $this->finalizeEmployeeCompanyTransfer(
+                $this->employee,
+                $structure['old_company_id'],
+                $structure['company_id']
+            );
+        }
 
         // Only update password if it was actually changed
         if ($passwordChanged) {
@@ -413,20 +436,15 @@ class Index extends BaseImportComponent
         $employee = User::withTrashed()->findOrFail($employeeId);
         
         // Check if employee has related records
-        $hasRelatedRecords = $employee->leaves()->count() > 0 ||
-                           $employee->tickings()->count() > 0 ||
-                           $employee->absences()->count() > 0 ||
-                           $employee->advanceSalaries()->count() > 0 ||
-                           $employee->overtimes()->count() > 0 ||
-                           $employee->payslips()->count() > 0 ||
-                           $employee->supDepartments()->count() > 0;
+        $hasRelatedRecords = $employee->hasRelatedRecords();
+        $allowCascadeDelete = \App\Services\FeatureConfigurationService::isForceDeleteEmployeesWithDataEnabled();
         
-        if ($hasRelatedRecords) {
+        if ($hasRelatedRecords && !$allowCascadeDelete) {
             $this->showToast(__('employees.cannot_permanently_delete_employee'), 'danger');
             return;
         }
         
-        $employee->forceDelete();
+        $employee->forceDeleteWithAllData();
 
         // Clear selection after deletion
         if (in_array($employeeId, $this->selectedEmployees ?? [])) {
@@ -561,17 +579,12 @@ class Index extends BaseImportComponent
             $employees = User::withTrashed()->whereIn('id', $targetIds)->get();
             $employeesWithRelatedRecords = [];
             $affectedRecords = [];
+            $allowCascadeDelete = \App\Services\FeatureConfigurationService::isForceDeleteEmployeesWithDataEnabled();
             
             foreach ($employees as $employee) {
-                $hasRelatedRecords = $employee->leaves()->count() > 0 ||
-                                   $employee->tickings()->count() > 0 ||
-                                   $employee->absences()->count() > 0 ||
-                                   $employee->advanceSalaries()->count() > 0 ||
-                                   $employee->overtimes()->count() > 0 ||
-                                   $employee->payslips()->count() > 0 ||
-                                   $employee->supDepartments()->count() > 0;
+                $hasRelatedRecords = $employee->hasRelatedRecords();
                 
-                if ($hasRelatedRecords) {
+                if ($hasRelatedRecords && !$allowCascadeDelete) {
                     $employeesWithRelatedRecords[] = $employee->name;
                 } else {
                     $affectedRecords[] = [
@@ -589,7 +602,7 @@ class Index extends BaseImportComponent
             }
             
             foreach ($employees as $employee) {
-                $employee->forceDelete();
+                $employee->forceDeleteWithAllData();
             }
             
             if (!empty($affectedRecords)) {
@@ -676,11 +689,15 @@ class Index extends BaseImportComponent
     public function initData($employee_id)
     {
         $employee = User::withTrashed()->findOrFail($employee_id);
-        $department = Department::findOrFail($employee->department_id);
+        $department = $employee->department_id ? Department::find($employee->department_id) : null;
 
         $this->isEditMode = true;
         $this->employee_id = $employee_id;
         $this->employee = $employee;
+        $this->editCompanyId = $employee->company_id;
+        if ($this->auth_role !== 'supervisor' && $employee->company) {
+            $this->departments = $employee->company->departments;
+        }
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
         $this->email = $employee->email;
@@ -697,7 +714,7 @@ class Index extends BaseImportComponent
         $this->work_start_time = Carbon::parse($employee->work_start_time)->format('H:i');
         $this->work_end_time = Carbon::parse($employee->work_end_time)->format('H:i');
         $this->status = $employee->status ? "true" : "false";
-        $this->services = $department->services;
+        $this->services = $department ? $department->services : collect([]);
         $this->date_of_birth = $employee->date_of_birth;
         $this->service_id = $employee->service_id;
         $this->department_id = $employee->department_id;
@@ -1184,6 +1201,10 @@ class Index extends BaseImportComponent
         $this->isEditMode = false;
         $this->employee_id = null;
         $this->employee = null;
+        $this->editCompanyId = null;
+        if ($this->auth_role !== 'supervisor' && $this->company) {
+            $this->departments = $this->company->departments;
+        }
         $this->reset([
             'first_name',
             'last_name',
@@ -1272,6 +1293,8 @@ class Index extends BaseImportComponent
             'active_employees' => $active_employees,
             'banned_employees' => $banned_employees,
             'deleted_employees' => $deleted_employees,
+            'canTransferCompany' => $this->isEmployeeCompanyTransferEnabled(),
+            'transferableCompanies' => $this->getTransferableCompanies(),
         ])->layout('components.layouts.dashboard');
     }
 

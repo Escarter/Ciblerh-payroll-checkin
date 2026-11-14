@@ -1,8 +1,8 @@
 <!-- Feature Configuration Section -->
-<div class="row">
+<div>
     <!-- SFTP Payslip Integration -->
-    <div class="col-12 order-2">
-        <div class="mb-5 card shadow-md card-raised">
+    <div x-show="$wire.activeTab === 'sftp'" x-cloak>
+        <div class="mb-4 card shadow-md card-raised">
             <div class="py-4 px-5 card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="card-title h5 mb-0">
@@ -541,54 +541,147 @@
         </div>
     </div>
 
-    <!-- Inactivity Deactivation -->
-    <div class="col-12 order-1">
-        <div class="mb-5 card shadow-md card-raised">
-            <div class="py-4 px-5 card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div class="card-title h5 mb-0">
-                        <i class="fas fa-user-slash text-warning me-2"></i>{{ __('settings.inactivity_deactivation') }}
+    <!-- Feature Policies & Automation -->
+    <div x-show="$wire.activeTab === 'features'" x-cloak>
+        <div class="row g-4">
+            <!-- Inactivity Deactivation -->
+            <div class="col-12">
+                <div class="card shadow-md card-raised">
+                    <div class="py-4 px-5 card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="card-title h5 mb-0">
+                                <i class="fas fa-user-slash text-warning me-2"></i>{{ __('settings.inactivity_deactivation') }}
+                            </div>
+                        </div>
+
+                        <x-form-items.form wire:submit="saveFeatureConfiguration">
+                            <div class="form-group mb-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" wire:model.live="inactivity_deactivation_enabled" id="inactivityEnabled">
+                                    <label class="form-check-label" for="inactivityEnabled">
+                                        <strong>{{ __('settings.enable_inactivity_deactivation') }}</strong>
+                                    </label>
+                                </div>
+                                <small class="d-block text-muted mt-2">{{ __('settings.inactivity_deactivation_description') }}</small>
+                            </div>
+
+                            @if ($inactivity_deactivation_enabled)
+                                <hr>
+                                <h6 class="text-primary mb-3">{{ __('settings.deactivation_settings') }}</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-2">
+                                            <label for="inactivity_months">{{ __('settings.inactivity_months_threshold') }}<span class="text-danger">*</span></label>
+                                            <input wire:model="inactivity_months_threshold" id="inactivity_months" type="number" min="1" max="24" class="form-control w-100 @error('inactivity_months_threshold') is-invalid @enderror" placeholder="{{ __('settings.inactivity_months_threshold') }}">
+                                            <small class="d-block text-muted mt-2">{{ __('settings.inactivity_months_threshold_help') }}</small>
+                                            @error('inactivity_months_threshold')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-2">
+                                            <label for="deactivation_time">{{ __('settings.deactivation_check_time') }}<span class="text-danger">*</span></label>
+                                            <input wire:model="deactivation_check_time" id="deactivation_time" type="time" class="form-control w-100 @error('deactivation_check_time') is-invalid @enderror">
+                                            <small class="d-block text-muted mt-2">{{ __('settings.deactivation_check_time_help') }}</small>
+                                            @error('deactivation_check_time')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="mt-4 mb-0 form-group d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary" wire:loading.attr="disabled">
+                                    <i class="fas fa-save me-2" wire:loading.class="spinner-border spinner-border-sm"></i>{{ __('common.save') }}
+                                </button>
+                            </div>
+                        </x-form-items.form>
                     </div>
                 </div>
+            </div>
 
-                <x-form-items.form wire:submit="saveFeatureConfiguration">
-                    <div class="form-group mb-4">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" wire:model.live="inactivity_deactivation_enabled" id="inactivityEnabled">
-                            <label class="form-check-label" for="inactivityEnabled">
-                                <strong>{{ __('settings.enable_inactivity_deactivation') }}</strong>
-                            </label>
+            <!-- Permanent Employee Deletion with Associated Data -->
+            <div class="col-lg-6">
+                <div class="card shadow-md card-raised h-100">
+                    <div class="py-4 px-5 card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="card-title h5 mb-0">
+                                    <i class="fas fa-user-times text-danger me-2"></i>{{ __('settings.employee_force_delete_title') }}
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" wire:model.live="allow_force_delete_employees_with_data" id="allowForceDeleteEmployeesWithData">
+                                    <label class="form-check-label" for="allowForceDeleteEmployeesWithData">
+                                        <strong>{{ __('settings.enable_employee_force_delete_with_data') }}</strong>
+                                    </label>
+                                </div>
+                                <small class="d-block text-muted mt-2">{{ __('settings.employee_force_delete_with_data_description') }}</small>
+                            </div>
+
+                            @if ($allow_force_delete_employees_with_data)
+                                <div class="alert alert-warning d-flex align-items-start mb-3" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                                    <div>
+                                        <strong>{{ __('settings.employee_force_delete_warning_title') }}</strong>
+                                        <div class="small mt-1">{{ __('settings.employee_force_delete_warning_body') }}</div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
-                        <small class="d-block text-muted mt-2">{{ __('settings.inactivity_deactivation_description') }}</small>
+
+                        <div class="mt-3 mb-0 form-group d-flex justify-content-end">
+                            <button type="button" wire:click="saveFeatureConfiguration" class="btn btn-primary" wire:loading.attr="disabled">
+                                <i class="fas fa-save me-2" wire:loading.class="spinner-border spinner-border-sm"></i>{{ __('common.save') }}
+                            </button>
+                        </div>
                     </div>
+                </div>
+            </div>
 
-                    @if ($inactivity_deactivation_enabled)
-                        <hr>
-                        <h6 class="text-primary mb-3">{{ __('settings.deactivation_settings') }}</h6>
-                        <div class="form-group mb-3">
-                            <label for="inactivity_months">{{ __('settings.inactivity_months_threshold') }}<span class="text-danger">*</span></label>
-                            <input wire:model="inactivity_months_threshold" id="inactivity_months" type="number" min="1" max="24" class="form-control w-100 @error('inactivity_months_threshold') is-invalid @enderror" placeholder="{{ __('settings.inactivity_months_threshold') }}">
-                            <small class="d-block text-muted mt-2">{{ __('settings.inactivity_months_threshold_help') }}</small>
-                            @error('inactivity_months_threshold')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="deactivation_time">{{ __('settings.deactivation_check_time') }}<span class="text-danger">*</span></label>
-                            <input wire:model="deactivation_check_time" id="deactivation_time" type="time" class="form-control w-100 @error('deactivation_check_time') is-invalid @enderror">
-                            <small class="d-block text-muted mt-2">{{ __('settings.deactivation_check_time_help') }}</small>
-                            @error('deactivation_check_time')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    @endif
+            <!-- Employee Company Transfer -->
+            <div class="col-lg-6">
+                <div class="card shadow-md card-raised h-100">
+                    <div class="py-4 px-5 card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="card-title h5 mb-0">
+                                    <i class="fas fa-exchange-alt text-primary me-2"></i>{{ __('settings.employee_company_transfer_title') }}
+                                </div>
+                            </div>
 
-                    <div class="mt-4 mb-0 form-group d-flex justify-content-end">
-                        <button type="submit" class="btn btn-primary" wire:loading.attr="disabled">
-                            <i class="fas fa-save me-2" wire:loading.class="spinner-border spinner-border-sm"></i>{{ __('common.save') }}
-                        </button>
+                            <div class="form-group mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" wire:model.live="allow_employee_company_transfer" id="allowEmployeeCompanyTransfer">
+                                    <label class="form-check-label" for="allowEmployeeCompanyTransfer">
+                                        <strong>{{ __('settings.enable_employee_company_transfer') }}</strong>
+                                    </label>
+                                </div>
+                                <small class="d-block text-muted mt-2">{{ __('settings.employee_company_transfer_description') }}</small>
+                            </div>
+
+                            @if ($allow_employee_company_transfer)
+                                <div class="alert alert-info d-flex align-items-start mb-3" role="alert">
+                                    <i class="fas fa-info-circle me-2 mt-1"></i>
+                                    <div>
+                                        <strong>{{ __('settings.employee_company_transfer_info_title') }}</strong>
+                                        <div class="small mt-1">{{ __('settings.employee_company_transfer_info_body') }}</div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="mt-3 mb-0 form-group d-flex justify-content-end">
+                            <button type="button" wire:click="saveFeatureConfiguration" class="btn btn-primary" wire:loading.attr="disabled">
+                                <i class="fas fa-save me-2" wire:loading.class="spinner-border spinner-border-sm"></i>{{ __('common.save') }}
+                            </button>
+                        </div>
                     </div>
-                </x-form-items.form>
+                </div>
             </div>
         </div>
     </div>

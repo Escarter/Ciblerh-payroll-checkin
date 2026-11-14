@@ -1,10 +1,97 @@
 <div>
     <x-delete-modal />
     <x-alert />
-    <div class='pb-0 mt-4'>
-        <div class="row">
+
+    <!-- Page Header & Breadcrumb -->
+    <div class="py-2 pb-3 d-flex flex-wrap justify-content-between align-items-end gap-2">
+        <div>
+            <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+                <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent mb-1">
+                    <li class="breadcrumb-item"><a href="{{ route('portal.dashboard') }}" wire:navigate>{{ __('dashboard.home') }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ __('common.settings') }}</li>
+                </ol>
+            </nav>
+            <h1 class="h4 mb-1">{{ __('settings.system_settings') }}</h1>
+            <p class="mb-0 text-muted small">{{ __('settings.settings_page_subtitle') }}</p>
+        </div>
+        <div>
+            <a href="{{ route('portal.settings.appearance') }}" wire:navigate class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-palette me-1"></i> {{ __('settings.appearance') }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Settings Navigation Tabs -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-2">
+            <ul class="nav nav-pills nav-fill flex-column flex-md-row gap-1" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button type="button"
+                        id="settings-tab-sms"
+                        wire:click="switchTab('sms')"
+                        class="nav-link d-flex align-items-center justify-content-center gap-2 py-2 px-3 {{ $activeTab === 'sms' ? 'active fw-semibold shadow-sm' : 'text-gray-700' }}"
+                        role="tab"
+                        aria-selected="{{ $activeTab === 'sms' ? 'true' : 'false' }}">
+                        <i class="fas fa-sms"></i>
+                        <span>{{ __('settings.tab_sms') }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button"
+                        id="settings-tab-email"
+                        wire:click="switchTab('email')"
+                        class="nav-link d-flex align-items-center justify-content-center gap-2 py-2 px-3 {{ $activeTab === 'email' ? 'active fw-semibold shadow-sm' : 'text-gray-700' }}"
+                        role="tab"
+                        aria-selected="{{ $activeTab === 'email' ? 'true' : 'false' }}">
+                        <i class="fas fa-envelope-open-text"></i>
+                        <span>{{ __('settings.tab_email') }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button"
+                        id="settings-tab-templates"
+                        wire:click="switchTab('templates')"
+                        class="nav-link d-flex align-items-center justify-content-center gap-2 py-2 px-3 {{ $activeTab === 'templates' ? 'active fw-semibold shadow-sm' : 'text-gray-700' }}"
+                        role="tab"
+                        aria-selected="{{ $activeTab === 'templates' ? 'true' : 'false' }}">
+                        <i class="fas fa-file-signature"></i>
+                        <span>{{ __('settings.tab_email_templates') }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button"
+                        id="settings-tab-sftp"
+                        wire:click="switchTab('sftp')"
+                        class="nav-link d-flex align-items-center justify-content-center gap-2 py-2 px-3 {{ $activeTab === 'sftp' ? 'active fw-semibold shadow-sm' : 'text-gray-700' }}"
+                        role="tab"
+                        aria-selected="{{ $activeTab === 'sftp' ? 'true' : 'false' }}">
+                        <i class="fas fa-network-wired"></i>
+                        <span>{{ __('settings.tab_sftp') }}</span>
+                        @if($sftp_sync_enabled)
+                            <span class="badge bg-success rounded-pill" style="font-size: 0.65rem;">ON</span>
+                        @endif
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button"
+                        id="settings-tab-features"
+                        wire:click="switchTab('features')"
+                        class="nav-link d-flex align-items-center justify-content-center gap-2 py-2 px-3 {{ $activeTab === 'features' ? 'active fw-semibold shadow-sm' : 'text-gray-700' }}"
+                        role="tab"
+                        aria-selected="{{ $activeTab === 'features' ? 'true' : 'false' }}">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>{{ __('settings.tab_features') }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class='pb-0'>
+        <!-- TAB 1: SMS Configuration -->
+        <div class="row g-4" x-show="$wire.activeTab === 'sms'" x-cloak>
             <div class="col-lg-7">
-                <div class="mb-5 card shadow-md card-raised" style="min-height: 600px;">
+                <div class="mb-4 card shadow-md card-raised">
                     <div class="py-4 px-5 card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="card-title h5 mb-0">{{__('settings.sms_package_configuration')}}</div>
@@ -179,63 +266,61 @@
                 </div>
             </div>
             <div class="col-lg-5">
-                <!-- Notifications preferences card-->
-                <div class="mb-5 d-flex flex-column" style="min-height: 600px;">
-                    <div class="px-3 mb-3 flex-fill d-flex">
-                        <div class='card card-body card-raised text-center pt-5 w-100'>
-                            <p class='display-3'>
-                                @if($sms_provider === 'orange_cm' && ($sms_balance === null || $sms_balance === ''))
-                                    {{ __('settings.sms_balance_not_available_short') }}
-                                @else
-                                    {{ $sms_balance ?? '—' }}
-                                @endif
-                            </p>
-                            <div class="card-title">{{__('settings.sms_balance')}}</div>
-                            <div class="mb-2">
-                                <button type="button" wire:click="refreshSmsBalance(null, true)" wire:loading.attr="disabled" wire:target="refreshSmsBalance" class="btn btn-sm btn-outline-secondary">
-                                    <span wire:loading.remove wire:target="refreshSmsBalance">{{ __('settings.refresh_sms_balance') }}</span>
-                                    <span wire:loading wire:target="refreshSmsBalance">...</span>
-                                </button>
-                            </div>
-                            <div class="mb-2 text-muted text-xs">
-                                @if($sms_provider === 'orange_cm')
-                                    {{ __('settings.sms_balance_orange_cm_help') }}
-                                @else
-                                    {{__('settings.you_can_check_sms_details')}}.
-                                @endif
-                            </div>
+                <!-- SMS Balance & Test SMS -->
+                <div class="d-flex flex-column gap-4">
+                    <div class='card card-body card-raised text-center py-4 w-100'>
+                        <p class='display-3 mb-1'>
+                            @if($sms_provider === 'orange_cm' && ($sms_balance === null || $sms_balance === ''))
+                                {{ __('settings.sms_balance_not_available_short') }}
+                            @else
+                                {{ $sms_balance ?? '—' }}
+                            @endif
+                        </p>
+                        <div class="card-title h6 mb-2">{{__('settings.sms_balance')}}</div>
+                        <div class="mb-2">
+                            <button type="button" wire:click="refreshSmsBalance(null, true)" wire:loading.attr="disabled" wire:target="refreshSmsBalance" class="btn btn-sm btn-outline-secondary">
+                                <span wire:loading.remove wire:target="refreshSmsBalance">{{ __('settings.refresh_sms_balance') }}</span>
+                                <span wire:loading wire:target="refreshSmsBalance">...</span>
+                            </button>
+                        </div>
+                        <div class="text-muted text-xs">
+                            @if($sms_provider === 'orange_cm')
+                                {{ __('settings.sms_balance_orange_cm_help') }}
+                            @else
+                                {{__('settings.you_can_check_sms_details')}}.
+                            @endif
                         </div>
                     </div>
-                    <div class="px-3 flex-fill d-flex">
-                        <div class="card card-body mt-3 w-100">
-                            <div class="h5 text-center pt-4">{{__('settings.test_sms_configuration')}}</div>
-                            <div class="mb-4 text-muted text-xs text-center">{{__('settings.verify_sms_setup')}}.</div>
-                            <x-form-items.form wire:submit="sendTestSms">
 
-                                <div class='form-group row mb-3'>
-                                    <div class='col'>
-                                        <label for="test_phone_number">{{ __('settings.enter_phone_number') }} <span class="text-danger">*</span></label>
-                                        <input wire:model="test_phone_number" id="test_phone_number" type="text" class="form-control w-100 @error('test_phone_number') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_phone_number') }}">
-                                    </div>
+                    <div class="card card-body card-raised w-100">
+                        <div class="h5 text-center pt-2 mb-1">{{__('settings.test_sms_configuration')}}</div>
+                        <div class="mb-4 text-muted text-xs text-center">{{__('settings.verify_sms_setup')}}.</div>
+                        <x-form-items.form wire:submit="sendTestSms">
+                            <div class='form-group row mb-3'>
+                                <div class='col'>
+                                    <label for="test_phone_number">{{ __('settings.enter_phone_number') }} <span class="text-danger">*</span></label>
+                                    <input wire:model="test_phone_number" id="test_phone_number" type="text" class="form-control w-100 @error('test_phone_number') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_phone_number') }}">
                                 </div>
-                                <div class="form-group mb-3">
-                                    <label for="test_sms_message">{{ __('settings.test_sms_message') }} <span class="text-danger">*</span></label>
-                                    <textarea wire:model="test_sms_message" id="test_sms_message" type="text" rows="4" class="form-control w-100 @error('test_sms_message') is-invalid @enderror" required autofocus placeholder="{{ __('settings.test_sms_message') }}"></textarea>
-                                </div>
-                                <div class="mt-4 mb-0 form-group d-flex justify-content-end">
-                                    <button type="submit" id="send-test-sms-btn" wire:click.prevent="sendTestSms" class="btn btn-primary" wire:loading.attr="disabled">
-                                        {{ __('settings.send_test_sms') }}
-                                    </button>
-                                </div>
-                            </x-form-items.form>
-                        </div>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="test_sms_message">{{ __('settings.test_sms_message') }} <span class="text-danger">*</span></label>
+                                <textarea wire:model="test_sms_message" id="test_sms_message" type="text" rows="4" class="form-control w-100 @error('test_sms_message') is-invalid @enderror" required autofocus placeholder="{{ __('settings.test_sms_message') }}"></textarea>
+                            </div>
+                            <div class="mt-4 mb-0 form-group d-flex justify-content-end">
+                                <button type="submit" id="send-test-sms-btn" wire:click.prevent="sendTestSms" class="btn btn-primary" wire:loading.attr="disabled">
+                                    {{ __('settings.send_test_sms') }}
+                                </button>
+                            </div>
+                        </x-form-items.form>
                     </div>
                 </div>
             </div>
-            <div class="mt-n3 pt-0">
-                <div class='row'>
-                    <div class='col-md-7'>
-                        <div class="mb-5 card card-raised" style="min-height: 600px;">
+        </div>
+
+        <!-- TAB 2: Email / SMTP Configuration -->
+        <div class="row g-4" x-show="$wire.activeTab === 'email'" x-cloak>
+            <div class='col-lg-7'>
+                <div class="mb-4 card card-raised">
                             <div class="py-4 px-5 card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="card-title h5 mb-0">{{__('settings.email_configuration')}}</div>
@@ -514,125 +599,121 @@
                         </div>
                     </div>
             <div class="col-lg-5">
-                <!-- Notifications preferences card-->
-                <div class="mb-5 card card-raised" style="min-height: 600px;">
-                    <div class="p-3 card-body">
-                        <div class="h5 text-center pt-4">{{__('settings.test_email_configuration')}}</div>
+                <!-- Test Email Configuration Card -->
+                <div class="mb-4 card card-raised">
+                    <div class="py-4 px-4 card-body">
+                        <div class="h5 text-center pt-2 mb-1">{{__('settings.test_email_configuration')}}</div>
                         <div class="mb-4 text-muted text-xs text-center">{{__('settings.test_email_setup_instructions')}}.</div>
-                        <x-form-items.form wire:submit="sendTestEmail" class="px-4 ">
-                                    <div class="form-group mb-2">
-                                        <label for="test_email_address">{{ __('settings.enter_email_address') }} <span class="text-danger">*</span></label>
-                                        <input wire:model="test_email_address" id="test_email_address" type="email" class="form-control w-100 @error('test_email_address') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_address') }}">
-                                    </div>
-                                    <div class="form-group mb-2">
-                                        <label for="test_email_message">{{ __('settings.enter_email_message') }} <span class="text-danger">*</span></label>
-                                        <textarea wire:model="test_email_message" id="test_email_message" type="text" class="form-control w-100 @error('test_email_message') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_message') }}"></textarea>
-                                    </div>
-                                    <div class="mt-3 mb-0 form-group d-flex justify-content-end">
-                                        <button type="submit" id="send-test-email-btn" wire:click.prevent="sendTestEmail" class="btn btn-primary" wire:loading.attr="disabled">
-                                            {{ __('settings.send_test_email') }}
-                                        </button>
-                                    </div>
-                                </x-form-items.form>
+                        <x-form-items.form wire:submit="sendTestEmail">
+                            <div class="form-group mb-3">
+                                <label for="test_email_address">{{ __('settings.enter_email_address') }} <span class="text-danger">*</span></label>
+                                <input wire:model="test_email_address" id="test_email_address" type="email" class="form-control w-100 @error('test_email_address') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_address') }}">
                             </div>
-                        </div>
+                            <div class="form-group mb-3">
+                                <label for="test_email_message">{{ __('settings.enter_email_message') }} <span class="text-danger">*</span></label>
+                                <textarea wire:model="test_email_message" id="test_email_message" rows="4" type="text" class="form-control w-100 @error('test_email_message') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_message') }}"></textarea>
+                            </div>
+                            <div class="mt-4 mb-0 form-group d-flex justify-content-end">
+                                <button type="submit" id="send-test-email-btn" wire:click.prevent="sendTestEmail" class="btn btn-primary" wire:loading.attr="disabled">
+                                    {{ __('settings.send_test_email') }}
+                                </button>
+                            </div>
+                        </x-form-items.form>
                     </div>
                 </div>
             </div>
-            <div class='mt-n3 pt-0'>
-                <div class='row'>
-                    <div class='col-md-6'>
-                        <div class="mb-5 card card-raised">
-                            <div class="py-4 px-5 card-body">
-                                <div class="card-title h5 ">{{__('settings.payslips_mail_configuration')}} </div>
-                                <x-form-items.form wire:submit="saveSmtpConfig">
+        </div>
 
-                                    <div class="form-group mb-2">
-                                        <label for="email_subject_en">{{ __('settings.enter_email_subject_english') }} <span class="text-danger">*</span></label>
-                                        <input wire:model="email_subject_en" id="email_subject_en" type="text" class="form-control w-100 @error('email_subject_en') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_subject_english') }}">
-                                    </div>
-
-                                    <div class="form-group mb-2" wire:ignore>
-                                        <label for="email_content_en">{{ __('settings.enter_email_content_english') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                                        <textarea wire:model="email_content_en" id="email_content_en" class="email_content_en form-control w-100 @error('email_content_en') is-invalid @enderror" placeholder="{{ __('settings.enter_email_content_english') }}">
-                                                {!! $email_content_en !!}
-                                            </textarea>
-                                    </div>
-                                    <div class="form-group mb-2">
-                                        <label for="welcome_email_subject_fr">{{ __('settings.enter_email_subject_french') }} <span class="text-danger">*</span></label>
-                                        <input wire:model="email_subject_fr" id="email_subject_fr" type="text" class="form-control w-100 @error('email_subject_fr') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_subject_french') }}">
-                                    </div>
-                                    <div class=" form-group mb-2" wire:ignore>
-                                        <label for="email_content_fr">{{ __('settings.enter_email_content_french') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                                        <textarea wire:model="email_content_fr" id="email_content_fr" class="email_content_fr form-control w-100 @error('email_content_fr') is-invalid @enderror" placeholder="{{ __('settings.enter_email_content_french') }}">
-                                                     {!! $email_content_fr !!}
-                                            </textarea>
-                                    </div>
-
-                                    <div class='text-xs text-danger ' style="font-size:small">
-                                        {{__('settings.do_not_remove_email_placeholders')}} <strong class="fw-bolder"> :name: </strong>,{{__('settings.email_placeholder_note')}}
-                                    </div>
-                                    <div class="mt-4 mb-0 form-group d-flex justify-content-end">
-                                        <button type="submit" id="save-birthday-email-config-btn" wire:click.prevent="saveSmtpConfig" class="btn btn-primary" wire:loading.attr="disabled">
-                                            {{ __('settings.save_mail_config') }}
-                                        </button>
-                                    </div>
-
-                                </x-form-items.form>
-                            </div>
+        <!-- TAB 3: Email Templates (Payslip & Welcome Emails) -->
+        <div class="row g-4" x-show="$wire.activeTab === 'templates'" x-cloak>
+            <div class='col-lg-6'>
+                <div class="mb-4 card card-raised h-100">
+                    <div class="py-4 px-5 card-body">
+                        <div class="card-title h5 mb-3">
+                            <i class="fas fa-file-invoice-dollar text-primary me-2"></i>{{__('settings.payslips_mail_configuration')}}
                         </div>
+                        <x-form-items.form wire:submit="saveSmtpConfig">
+                            <div class="form-group mb-3">
+                                <label for="email_subject_en">{{ __('settings.enter_email_subject_english') }} <span class="text-danger">*</span></label>
+                                <input wire:model="email_subject_en" id="email_subject_en" type="text" class="form-control w-100 @error('email_subject_en') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_subject_english') }}">
+                            </div>
+
+                            <div class="form-group mb-3" wire:ignore>
+                                <label for="email_content_en">{{ __('settings.enter_email_content_english') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <textarea wire:model="email_content_en" id="email_content_en" class="email_content_en form-control w-100 @error('email_content_en') is-invalid @enderror" placeholder="{{ __('settings.enter_email_content_english') }}">
+                                    {!! $email_content_en !!}
+                                </textarea>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="email_subject_fr">{{ __('settings.enter_email_subject_french') }} <span class="text-danger">*</span></label>
+                                <input wire:model="email_subject_fr" id="email_subject_fr" type="text" class="form-control w-100 @error('email_subject_fr') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_email_subject_french') }}">
+                            </div>
+                            <div class="form-group mb-3" wire:ignore>
+                                <label for="email_content_fr">{{ __('settings.enter_email_content_french') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <textarea wire:model="email_content_fr" id="email_content_fr" class="email_content_fr form-control w-100 @error('email_content_fr') is-invalid @enderror" placeholder="{{ __('settings.enter_email_content_french') }}">
+                                    {!! $email_content_fr !!}
+                                </textarea>
+                            </div>
+
+                            <div class='text-xs text-danger' style="font-size:small">
+                                {{__('settings.do_not_remove_email_placeholders')}} <strong class="fw-bolder"> :name: </strong>,{{__('settings.email_placeholder_note')}}
+                            </div>
+                            <div class="mt-4 mb-0 form-group d-flex justify-content-end">
+                                <button type="submit" id="save-birthday-email-config-btn" wire:click.prevent="saveSmtpConfig" class="btn btn-primary" wire:loading.attr="disabled">
+                                    {{ __('settings.save_mail_config') }}
+                                </button>
+                            </div>
+                        </x-form-items.form>
                     </div>
-                    <div class='row col-md-6'>
-                        <div class="mb-5 card card-raised">
-                            <div class="py-4 px-5 card-body">
-                                <div class="card-title h5 ">{{__('settings.welcome_email_configuration')}} </div>
-                                <x-form-items.form wire:submit="saveSmtpConfig">
-                                    <div class="form-group mb-2">
-                                        <label for="welcome_email_subject_en">{{ __('settings.enter_welcome_email_subject_english') }} <span class="text-danger">*</span></label>
-                                        <input wire:model="welcome_email_subject_en" id="welcome_email_subject_en" type="text" class="form-control w-100 @error('welcome_email_subject_en') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_welcome_email_subject_english') }}">
-                                    </div>
-
-                                    <div class="form-group mb-2" wire:ignore>
-                                        <label for="welcome_email_content_en">{{ __('settings.enter_welcome_email_content_english') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                                        <textarea wire:model="welcome_email_content_en" id="welcome_email_content_en" class="welcome_email_content_en form-control w-100 @error('welcome_email_content_en') is-invalid @enderror" placeholder="{{ __('settings.enter_welcome_email_content_english') }}">
-                                                {!! $welcome_email_content_en !!}
-                                            </textarea>
-                                    </div>
-                                    <div class="form-group mb-2">
-                                        <label for="welcome_email_subject_fr">{{ __('settings.enter_welcome_email_subject_french') }} <span class="text-danger">*</span></label>
-                                        <input wire:model="welcome_email_subject_fr" id="welcome_email_subject_fr" type="text" class="form-control w-100 @error('welcome_email_subject_fr') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_welcome_email_subject_french') }}">
-                                    </div>
-                                    <div class=" form-group mb-2" wire:ignore>
-                                        <label for="welcome_email_content_fr">{{ __('settings.enter_welcome_email_content_french') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
-                                        <textarea wire:model="welcome_email_content_fr" id="welcome_email_content_fr" class="welcome_email_content_fr form-control w-100 @error('welcome_email_content_fr') is-invalid @enderror" placeholder="{{ __('settings.enter_welcome_email_content_french') }}">
-                                                     {!! $welcome_email_content_fr !!}
-                                            </textarea>
-                                    </div>
-
-                                    <div class='text-xs text-danger ' style="font-size:small">
-                                        {{__('settings.do_not_remove_welcome_placeholders')}} <strong class="fw-bolder"> :name: </strong>, <strong class="fw-bolder"> :username: </strong> , <strong class="fw-bolder"> :site_url: </strong> and <strong class="fw-bolder"> :password: </strong>,{{__('settings.welcome_placeholders_note')}}
-                                    </div>
-                                    <div class="mt-4 mb-0 form-group d-flex justify-content-end">
-                                        <button type="submit" id="save-welcome-email-config-btn" wire:click.prevent="saveSmtpConfig" class="btn btn-primary" wire:loading.attr="disabled">
-                                            {{ __('settings.save_welcome_email_config') }}
-                                        </button>
-                                    </div>
-                                </x-form-items.form>
-                            </div>
+                </div>
+            </div>
+            <div class='col-lg-6'>
+                <div class="mb-4 card card-raised h-100">
+                    <div class="py-4 px-5 card-body">
+                        <div class="card-title h5 mb-3">
+                            <i class="fas fa-user-check text-success me-2"></i>{{__('settings.welcome_email_configuration')}}
                         </div>
+                        <x-form-items.form wire:submit="saveSmtpConfig">
+                            <div class="form-group mb-3">
+                                <label for="welcome_email_subject_en">{{ __('settings.enter_welcome_email_subject_english') }} <span class="text-danger">*</span></label>
+                                <input wire:model="welcome_email_subject_en" id="welcome_email_subject_en" type="text" class="form-control w-100 @error('welcome_email_subject_en') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_welcome_email_subject_english') }}">
+                            </div>
+
+                            <div class="form-group mb-3" wire:ignore>
+                                <label for="welcome_email_content_en">{{ __('settings.enter_welcome_email_content_english') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <textarea wire:model="welcome_email_content_en" id="welcome_email_content_en" class="welcome_email_content_en form-control w-100 @error('welcome_email_content_en') is-invalid @enderror" placeholder="{{ __('settings.enter_welcome_email_content_english') }}">
+                                    {!! $welcome_email_content_en !!}
+                                </textarea>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label for="welcome_email_subject_fr">{{ __('settings.enter_welcome_email_subject_french') }} <span class="text-danger">*</span></label>
+                                <input wire:model="welcome_email_subject_fr" id="welcome_email_subject_fr" type="text" class="form-control w-100 @error('welcome_email_subject_fr') is-invalid @enderror" required autofocus placeholder="{{ __('settings.enter_welcome_email_subject_french') }}">
+                            </div>
+                            <div class="form-group mb-3" wire:ignore>
+                                <label for="welcome_email_content_fr">{{ __('settings.enter_welcome_email_content_french') }} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <textarea wire:model="welcome_email_content_fr" id="welcome_email_content_fr" class="welcome_email_content_fr form-control w-100 @error('welcome_email_content_fr') is-invalid @enderror" placeholder="{{ __('settings.enter_welcome_email_content_french') }}">
+                                    {!! $welcome_email_content_fr !!}
+                                </textarea>
+                            </div>
+
+                            <div class='text-xs text-danger' style="font-size:small">
+                                {{__('settings.do_not_remove_welcome_placeholders')}} <strong class="fw-bolder"> :name: </strong>, <strong class="fw-bolder"> :username: </strong> , <strong class="fw-bolder"> :site_url: </strong> and <strong class="fw-bolder"> :password: </strong>,{{__('settings.welcome_placeholders_note')}}
+                            </div>
+                            <div class="mt-4 mb-0 form-group d-flex justify-content-end">
+                                <button type="submit" id="save-welcome-email-config-btn" wire:click.prevent="saveSmtpConfig" class="btn btn-primary" wire:loading.attr="disabled">
+                                    {{ __('settings.save_welcome_email_config') }}
+                                </button>
+                            </div>
+                        </x-form-items.form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Feature Configuration Section -->
-    <div class='pb-0 mt-4'>
-        <div class="row">
-            <div class="col-lg-12">
-                @include('livewire.portal.settings.partials.feature-configuration')
-            </div>
-        </div>
+    <!-- TAB 4 & TAB 5: SFTP & Feature Configuration Section -->
+    <div class='pb-0'>
+        @include('livewire.portal.settings.partials.feature-configuration')
     </div>
 
     @include('livewire.portal.settings.partials.sms-provider-guide-modal')
@@ -652,11 +733,11 @@
             @this.set('email_content_fr', editor2.getContent())
         });
         var editor3 = new MediumEditor('.welcome_email_content_fr');
-        editor2.subscribe('blur', function(event, editable) {
+        editor3.subscribe('blur', function(event, editable) {
             @this.set('welcome_email_content_fr', editor3.getContent())
         });
         var editor4 = new MediumEditor('.welcome_email_content_en');
-        editor2.subscribe('blur', function(event, editable) {
+        editor4.subscribe('blur', function(event, editable) {
             @this.set('welcome_email_content_en', editor4.getContent())
         });
 

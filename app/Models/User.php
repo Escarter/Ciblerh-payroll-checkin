@@ -409,6 +409,98 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->hasMany(Payslip::class, 'employee_id');
     }
 
+    public function annualDeclarations(): HasMany
+    {
+        return $this->hasMany(AnnualDeclaration::class, 'employee_id');
+    }
+
+    /**
+     * Check whether the employee has any related records (including soft-deleted ones).
+     */
+    public function hasRelatedRecords(): bool
+    {
+        return $this->leaves()->withTrashed()->exists() ||
+               $this->tickings()->withTrashed()->exists() ||
+               $this->absences()->withTrashed()->exists() ||
+               $this->advanceSalaries()->withTrashed()->exists() ||
+               $this->overtimes()->withTrashed()->exists() ||
+               $this->payslips()->withTrashed()->exists() ||
+               $this->annualDeclarations()->withTrashed()->exists() ||
+               $this->supDepartments()->exists();
+    }
+
+    /**
+     * Permanently delete this employee and all associated data (payslips, PDF files, leaves,
+     * tickings, absences, advance salaries, overtimes, annual declarations, supervisor/manager links).
+     */
+    public function forceDeleteWithAllData(): void
+    {
+        \Illuminate\Support\Facades\DB::transaction(function () {
+            // 1. Delete physical PDF files for payslips & force-delete payslip records
+            $payslips = $this->payslips()->withTrashed()->get();
+            foreach ($payslips as $payslip) {
+                if (!empty($payslip->file) && \Illuminate\Support\Facades\Storage::disk('modified')->exists($payslip->file)) {
+                    \Illuminate\Support\Facades\Storage::disk('modified')->delete($payslip->file);
+                }
+            }
+            $this->payslips()->withTrashed()->forceDelete();
+
+            // 2. Delete physical PDF files for annual declarations & force-delete records
+            if (\Illuminate\Support\Facades\Schema::hasTable('annual_declarations')) {
+                $declarations = $this->annualDeclarations()->withTrashed()->get();
+                foreach ($declarations as $declaration) {
+                    if (!empty($declaration->file) && \Illuminate\Support\Facades\Storage::disk('modified')->exists($declaration->file)) {
+                        \Illuminate\Support\Facades\Storage::disk('modified')->delete($declaration->file);
+                    }
+                }
+                $this->annualDeclarations()->withTrashed()->forceDelete();
+            }
+
+            // 3. Force-delete HR & attendance records (including soft-deleted ones)
+            $this->leaves()->withTrashed()->forceDelete();
+            $this->tickings()->withTrashed()->forceDelete();
+            $this->absences()->withTrashed()->forceDelete();
+            $this->advanceSalaries()->withTrashed()->forceDelete();
+            $this->overtimes()->withTrashed()->forceDelete();
+
+            // 4. Remove supervisor & manager assignments
+            $this->supDepartments()->delete();
+            $this->managerCompanies()->detach();
+
+            // 5. Detach Spatie roles & permissions
+            $this->roles()->detach();
+            $this->permissions()->detach();
+
+            // 6. Nullify author_id references across tables where this user was the author
+            foreach ([
+                'users',
+                'companies',
+                'departments',
+                'services',
+                'absences',
+                'overtimes',
+                'advance_salaries',
+                'tickings',
+                'audit_logs',
+                'leaves',
+                'send_payslip_processes',
+                'payslips',
+                'leave_types',
+                'settings',
+                'send_annual_declaration_processes',
+            ] as $tableName) {
+                if (\Illuminate\Support\Facades\Schema::hasTable($tableName) && \Illuminate\Support\Facades\Schema::hasColumn($tableName, 'author_id')) {
+                    \Illuminate\Support\Facades\DB::table($tableName)
+                        ->where('author_id', $this->id)
+                        ->update(['author_id' => null]);
+                }
+            }
+
+            // 7. Finally, permanently delete the user record
+            $this->forceDelete();
+        });
+    }
+
     public static function search($query, $user = null)
     {
         $authUser = $user ?? auth()->user();

@@ -66,11 +66,28 @@ class FeatureConfigurationService
     }
 
     /**
+     * Check if permanent deletion of employees with associated data is enabled
+     */
+    public static function isForceDeleteEmployeesWithDataEnabled(): bool
+    {
+        $config = self::getConfiguration();
+        return (bool) ($config['allow_force_delete_employees_with_data'] ?? false);
+    }
+
+    /**
      * Check if SFTP sync is enabled
      */
     public static function isSftpSyncEnabled(): bool
     {
         return self::getSftpConfig()['enabled'];
+    }
+
+    /**
+     * Check if moving/transferring employees between companies is enabled
+     */
+    public static function isEmployeeCompanyTransferEnabled(): bool
+    {
+        return (bool) (self::getConfiguration()['allow_employee_company_transfer'] ?? false);
     }
 
     /**
@@ -162,6 +179,7 @@ class FeatureConfigurationService
                 'inactivity_deactivation_enabled' => $setting->inactivity_deactivation_enabled ?? false,
                 'inactivity_months_threshold' => $setting->inactivity_months_threshold ?? 6,
                 'deactivation_check_time' => $setting->deactivation_check_time ?? '02:00',
+                'allow_force_delete_employees_with_data' => $setting->allow_force_delete_employees_with_data ?? false,
                 'sftp_sync_enabled' => $setting->sftp_sync_enabled ?? false,
                 'sftp_host' => $setting->sftp_host ?? null,
                 'sftp_port' => $setting->sftp_port ?? 22,
@@ -188,6 +206,7 @@ class FeatureConfigurationService
                 'sftp_auto_match_threshold' => $setting->sftp_auto_match_threshold ?? 80,
                 'sftp_auto_match_min_strategy' => $setting->sftp_auto_match_min_strategy ?? 'reverse_partial_match',
                 'sftp_auto_match_notification_email' => $setting->sftp_auto_match_notification_email ?? null,
+                'allow_employee_company_transfer' => (bool) ($setting->allow_employee_company_transfer ?? false),
             ];
         });
     }

@@ -40,6 +40,7 @@ return [
     // Error Messages
     'cannot_permanently_delete_employee' => 'Cannot permanently delete employee. It has related records.',
     'cannot_permanently_delete_employees' => 'Cannot permanently delete the following employees as they have related records: ',
+    'cascade_delete_warning' => 'All associated data for this employee (payslips, PDF files, annual declarations, leaves, check-ins, absences, advance salaries, and overtimes) will also be permanently deleted.',
     'no_permission_assign_roles' => 'You do not have permission to assign the following roles: ',
     'maximum_2_roles_allowed' => 'A user can have a maximum of 2 roles.',
 
@@ -639,4 +640,27 @@ return [
     'test_sms_failed' => 'Test SMS failed',
     'test_sms_default_message' => 'Test SMS from :app. If you received this message, SMS delivery is working.',
     'send_test_sms' => 'Send test SMS',
+
+    // Employee Company Transfer
+    'move_to_company' => 'Move to Company',
+    'transfer_to_company' => 'Transfer to Company',
+    'transfer_to_company_title' => 'Transfer Employee(s) to Another Company',
+    'transfer_to_company_info_title' => 'Historical Data Preserved',
+    'transfer_to_company_info_body' => 'Transferring an employee updates their current company, department, and service. Historical payslips, leaves, check-ins, absences, overtimes, and advance salaries remain tied to the company where they were recorded.',
+    'selected_employee' => 'Selected employee',
+    'employees_selected_for_transfer' => ':count employee(s) selected for transfer',
+    'target_company' => 'Target Company',
+    'select_target_company' => 'Select target company',
+    'select_department' => 'Select department',
+    'service' => 'Service',
+    'select_service' => 'Select service',
+    'confirm_transfer' => 'Confirm Transfer',
+    'company_transfer_disabled' => 'Employee company transfer is currently disabled in settings.',
+    'cannot_transfer_employee' => 'You do not have permission to transfer this employee.',
+    'invalid_target_company' => 'The selected target company is invalid or unauthorized.',
+    'department_must_belong_to_company' => 'The selected department does not belong to the target company.',
+    'service_must_belong_to_department' => 'The selected service does not belong to the selected department.',
+    'no_employees_selected_for_transfer' => 'No employees selected for transfer.',
+    'employees_transferred_successfully' => ':count employee(s) successfully transferred to :company!',
+    'employee_company_transferred_audit' => 'Transferred employee :employee from company :from to :to',
 ];

@@ -88,10 +88,15 @@ class Index extends Component
     public $birthday_sms_message_en;
     public $birthday_sms_message_fr;
 
+    // Active tab on settings page
+    public $activeTab = 'sms';
+
     // Feature Configuration Properties
     public $inactivity_deactivation_enabled = false;
     public $inactivity_months_threshold = 6;
     public $deactivation_check_time = '02:00';
+    public $allow_force_delete_employees_with_data = false;
+    public $allow_employee_company_transfer = false;
 
     public $sftp_sync_enabled = false;
     // Legacy single-user props kept for backward-compat display only (HTTP API fallback)
@@ -194,9 +199,16 @@ class Index extends Component
         $this->birthday_sms_message_fr = !empty($this->setting) ? (!empty($this->setting->birthday_sms_message_fr) ? $this->setting->birthday_sms_message_fr : "Joyeux anniversaire! :name:, Je te souhaite une journée fantastique pleine de joie et une année à venir remplie de succès. Profite bien de ta journée spéciale!") :'';
 
         // Feature Configuration initialization
+        $requestedTab = request()->query('tab');
+        if (in_array($requestedTab, ['sms', 'email', 'templates', 'sftp', 'features'], true)) {
+            $this->activeTab = $requestedTab;
+        }
+
         $this->inactivity_deactivation_enabled = $this->setting ? (bool) $this->setting->inactivity_deactivation_enabled : false;
         $this->inactivity_months_threshold = !empty($this->setting) ? $this->setting->inactivity_months_threshold : 6;
         $this->deactivation_check_time = !empty($this->setting) ? $this->setting->deactivation_check_time : '02:00';
+        $this->allow_force_delete_employees_with_data = $this->setting ? (bool) $this->setting->allow_force_delete_employees_with_data : false;
+        $this->allow_employee_company_transfer = $this->setting ? (bool) $this->setting->allow_employee_company_transfer : false;
 
         $this->sftp_sync_enabled = $this->setting ? (bool) $this->setting->sftp_sync_enabled : false;
         $this->sftp_push_username = !empty($this->setting) ? $this->setting->sftp_push_username : '';
@@ -530,6 +542,13 @@ class Index extends Component
         }
     }
 
+    public function switchTab(string $tab): void
+    {
+        if (in_array($tab, ['sms', 'email', 'templates', 'sftp', 'features'], true)) {
+            $this->activeTab = $tab;
+        }
+    }
+
     public function saveFeatureConfiguration()
     {
         $setting = Setting::updateOrCreate(
@@ -539,10 +558,13 @@ class Index extends Component
                 'inactivity_deactivation_enabled' => $this->inactivity_deactivation_enabled,
                 'inactivity_months_threshold' => $this->inactivity_months_threshold,
                 'deactivation_check_time' => $this->deactivation_check_time,
+                'allow_force_delete_employees_with_data' => (bool) $this->allow_force_delete_employees_with_data,
+                'allow_employee_company_transfer' => (bool) $this->allow_employee_company_transfer,
             ]
         );
 
         if ($setting) {
+            \App\Services\FeatureConfigurationService::refreshConfiguration();
             $this->showToast(__('common.saved_successfully'), 'success');
         }
     }

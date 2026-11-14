@@ -30,6 +30,7 @@ class All extends BaseImportComponent
 
     use WithBulkSelection, WithDataTable;
     use \App\Livewire\Traits\WithTestSms;
+    use \App\Livewire\Traits\WithEmployeeCompanyTransfer;
 
     private const DEFAULT_WORK_START_TIME = '08:00';
     private const DEFAULT_WORK_END_TIME = '17:30';
@@ -391,6 +392,13 @@ class All extends BaseImportComponent
             return;
         }
 
+        $structure = $this->resolveUpdatedEmployeeCompanyAndStructure(
+            $this->employee,
+            $this->company?->id,
+            $this->selectedDepartmentId,
+            $this->service_id
+        );
+
         $this->employee->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
@@ -403,9 +411,9 @@ class All extends BaseImportComponent
             'net_salary' => $this->net_salary,
             'salary_grade' => $this->salary_grade,
             'contract_end' => $this->contract_end,
-            'company_id' => $this->company?->id,
-            'department_id' => $this->selectedDepartmentId,
-            'service_id' => $this->service_id,
+            'company_id' => $structure['company_id'],
+            'department_id' => $structure['department_id'],
+            'service_id' => $structure['service_id'],
             'work_start_time' => $this->work_start_time,
             'date_of_birth' => $this->date_of_birth,
             'work_end_time' => $this->work_end_time,
@@ -416,6 +424,14 @@ class All extends BaseImportComponent
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
             // 'pdf_password' => Str::random(10),
         ]);
+
+        if ($structure['company_changed']) {
+            $this->finalizeEmployeeCompanyTransfer(
+                $this->employee,
+                $structure['old_company_id'],
+                $structure['company_id']
+            );
+        }
 
         // Validate that employee role is always included
         if (!in_array('employee', $this->selected_roles)) {
@@ -479,7 +495,7 @@ class All extends BaseImportComponent
             } elseif ($this->employee_id) {
                 $employeeId = $this->employee_id;
             } else {
-                $this->showToast('No employee selected', 'danger');
+                $this->showToast(__('employees.no_employee_selected'), 'danger');
                 return;
             }
         }
@@ -487,20 +503,15 @@ class All extends BaseImportComponent
         $employee = User::withTrashed()->findOrFail($employeeId);
         
         // Check if employee has related records
-        $hasRelatedRecords = $employee->leaves()->count() > 0 ||
-                           $employee->tickings()->count() > 0 ||
-                           $employee->absences()->count() > 0 ||
-                           $employee->advanceSalaries()->count() > 0 ||
-                           $employee->overtimes()->count() > 0 ||
-                           $employee->payslips()->count() > 0 ||
-                           $employee->supDepartments()->count() > 0;
+        $hasRelatedRecords = $employee->hasRelatedRecords();
+        $allowCascadeDelete = \App\Services\FeatureConfigurationService::isForceDeleteEmployeesWithDataEnabled();
         
-        if ($hasRelatedRecords) {
+        if ($hasRelatedRecords && !$allowCascadeDelete) {
             $this->showToast(__('employees.cannot_permanently_delete_employee'), 'danger');
             return;
         }
         
-        $employee->forceDelete();
+        $employee->forceDeleteWithAllData();
 
         // Clear selection after deletion
         $this->selectedEmployees = [];
@@ -619,17 +630,12 @@ class All extends BaseImportComponent
             $employees = User::withTrashed()->whereIn('id', $selectedArray)->get();
             $employeesWithRelatedRecords = [];
             $affectedRecords = [];
+            $allowCascadeDelete = \App\Services\FeatureConfigurationService::isForceDeleteEmployeesWithDataEnabled();
 
             foreach ($employees as $employee) {
-                $hasRelatedRecords = $employee->leaves()->count() > 0 ||
-                                   $employee->tickings()->count() > 0 ||
-                                   $employee->absences()->count() > 0 ||
-                                   $employee->advanceSalaries()->count() > 0 ||
-                                   $employee->overtimes()->count() > 0 ||
-                                   $employee->payslips()->count() > 0 ||
-                                   $employee->supDepartments()->count() > 0;
+                $hasRelatedRecords = $employee->hasRelatedRecords();
 
-                if ($hasRelatedRecords) {
+                if ($hasRelatedRecords && !$allowCascadeDelete) {
                     $employeesWithRelatedRecords[] = $employee->name;
                 } else {
                     $affectedRecords[] = [
@@ -647,7 +653,7 @@ class All extends BaseImportComponent
             }
 
             foreach ($employees as $employee) {
-                $employee->forceDelete();
+                $employee->forceDeleteWithAllData();
             }
 
             if (!empty($affectedRecords)) {
@@ -909,6 +915,7 @@ class All extends BaseImportComponent
         $this->isEditMode = true;
         $this->employee_id = $employee_id;
         $this->company = $employee->company;
+        $this->editCompanyId = $employee->company_id;
         $this->departments = $this->company
             ? ($this->role === 'supervisor' ? Department::where('company_id', $this->company->id)->supervisor()->get() : $this->company->departments)
             : collect([]);
@@ -1021,6 +1028,7 @@ class All extends BaseImportComponent
         $this->employee = null;
         $this->employee_file = null;
         $this->selectedCompanyId = null;
+        $this->editCompanyId = null;
         $this->reset([
             'first_name',
             'last_name',
@@ -1351,6 +1359,8 @@ class All extends BaseImportComponent
             'deleted_employees' => $deleted_employees,
             'banned_employees' => $banned_employees,
             'companies' => $companies,
+            'canTransferCompany' => $this->isEmployeeCompanyTransferEnabled(),
+            'transferableCompanies' => $this->getTransferableCompanies(),
         ])->layout('components.layouts.dashboard');
     }
 
