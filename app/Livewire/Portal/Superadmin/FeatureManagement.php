@@ -13,6 +13,9 @@ class FeatureManagement extends Component
     use WithPagination;
 
     public $searchUser = '';
+    public $searchFeature = '';
+    public $selectedCategory = 'all';
+    public $statusFilter = 'all'; // 'all', 'active', 'disabled'
     public $activeTab = 'features'; // 'features' or 'superadmins'
 
     protected $paginationTheme = 'bootstrap';
@@ -24,15 +27,24 @@ class FeatureManagement extends Component
         }
     }
 
+    public function resetFilters()
+    {
+        $this->searchFeature = '';
+        $this->selectedCategory = 'all';
+        $this->statusFilter = 'all';
+    }
+
     public function toggleFeature($featureId)
     {
         $feature = PlatformFeature::findOrFail($featureId);
         $feature->is_enabled = !$feature->is_enabled;
         $feature->save();
 
+        \Illuminate\Support\Facades\Cache::forget(PlatformFeature::CACHE_KEY);
+
         session()->flash('success', __("Feature ':name' is now :status.", [
             'name' => $feature->name,
-            'status' => $feature->is_enabled ? 'enabled' : 'disabled',
+            'status' => $feature->is_enabled ? 'enabled & visible' : 'disabled & hidden from navigation',
         ]));
     }
 
@@ -77,10 +89,37 @@ class FeatureManagement extends Component
     public function render()
     {
         $allFeatures = PlatformFeature::orderBy('category')->orderBy('name')->get();
-        $features = $allFeatures->groupBy('category');
         $totalFeatures = $allFeatures->count();
         $enabledCount = $allFeatures->where('is_enabled', true)->count();
         $disabledCount = $allFeatures->where('is_enabled', false)->count();
+
+        // Unique categories with counts
+        $categoryCounts = $allFeatures->groupBy('category')->map->count();
+
+        // Apply filters
+        $filteredFeatures = $allFeatures;
+
+        if (filled($this->searchFeature)) {
+            $search = mb_strtolower(trim($this->searchFeature));
+            $filteredFeatures = $filteredFeatures->filter(function ($item) use ($search) {
+                return str_contains(mb_strtolower($item->name), $search)
+                    || str_contains(mb_strtolower($item->key), $search)
+                    || str_contains(mb_strtolower($item->description ?? ''), $search)
+                    || str_contains(mb_strtolower($item->category ?? ''), $search);
+            });
+        }
+
+        if ($this->selectedCategory !== 'all') {
+            $filteredFeatures = $filteredFeatures->where('category', $this->selectedCategory);
+        }
+
+        if ($this->statusFilter === 'active') {
+            $filteredFeatures = $filteredFeatures->where('is_enabled', true);
+        } elseif ($this->statusFilter === 'disabled') {
+            $filteredFeatures = $filteredFeatures->where('is_enabled', false);
+        }
+
+        $features = $filteredFeatures->groupBy('category');
 
         $superadmins = User::withoutGlobalScope('hideSuperadmins')
             ->role('superadmin')
@@ -104,6 +143,8 @@ class FeatureManagement extends Component
             'totalFeatures' => $totalFeatures,
             'enabledCount' => $enabledCount,
             'disabledCount' => $disabledCount,
+            'filteredCount' => $filteredFeatures->count(),
+            'categoryCounts' => $categoryCounts,
             'superadmins' => $superadmins,
             'candidates' => $candidates,
         ])->layout('components.layouts.dashboard');

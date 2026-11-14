@@ -92,7 +92,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Register @feature and @superadmin Blade directives
-        \Blade::if('feature', function (string $key, bool $allowSuperadminBypass = true) {
+        \Blade::if('feature', function (string $key, bool $allowSuperadminBypass = false) {
             return \App\Models\PlatformFeature::isEnabled($key, $allowSuperadminBypass);
         });
 

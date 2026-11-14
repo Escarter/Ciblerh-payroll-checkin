@@ -278,17 +278,21 @@
                                     </span>
                                     <div class="multi-level {{ $request->routeIs('portal.reports.*') || $request->routeIs('portal.download-jobs.*') ? '' : 'collapse' }}" role="list" id="submenu-user" aria-expanded="false">
                                         <ul class="flex-column nav gap-0">
+                                            @feature('checklogs')
                                             <li class="nav-item {{ $request->routeIs('portal.reports.checklogs') ? 'active' : '' }}">
                                                 <a href="{{route('portal.reports.checklogs')}}" class="nav-link ">
                                                     <span class="sidebar-text-contracted">C</span>
                                                     <span class="sidebar-text">{{__('common.checkins')}}</span>
                                                 </a>
                                             </li>
+                                            @endfeature
+                                            @feature('overtimes')
                                             <li class="nav-item {{ $request->routeIs('portal.reports.overtime') ? 'active' : '' }}">
                                                 <a href="{{route('portal.reports.overtime')}}" class="nav-link">
                                                     <span class="sidebar-text-contracted">O</span><span class="sidebar-text">{{__('common.overtime')}}</span>
                                                 </a>
                                             </li>
+                                            @endfeature
                                             <li class="nav-item {{ $request->routeIs('portal.reports.payslip') ? 'active' : '' }}">
                                                 <a href="{{route('portal.reports.payslip')}}" class="nav-link">
                                                     <span class="sidebar-text-contracted">P</span><span class="sidebar-text">{{__('common.payslips')}}</span>

@@ -48,9 +48,10 @@ class PlatformFeature extends Model
 
     /**
      * Check if a feature is enabled.
-     * Superadmins always bypass feature disabled checks.
+     * When allowSuperadminBypass is true, superadmins bypass disabled checks.
+     * By default, disabled features are strictly disabled for everyone (including admins).
      */
-    public static function isEnabled(string $key, bool $allowSuperadminBypass = true): bool
+    public static function isEnabled(string $key, bool $allowSuperadminBypass = false): bool
     {
         if ($allowSuperadminBypass && auth()->check() && auth()->user()->hasRole('superadmin')) {
             return true;
