@@ -16,11 +16,11 @@
     };
 @endphp
 
-<div class="card card-body border-0 shadow mb-4" id="two-factor-section">
+<div class="card card-body border-0 shadow mt-3 mb-4 text-gray-700" id="two-factor-section">
     <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
         <div>
             <div class="d-flex flex-wrap align-items-center gap-2">
-                <h2 class="h5 mb-0">{{ __('two_factor.card_title') }}</h2>
+                <h2 class="h5 mb-0 text-dark">{{ __('two_factor.card_title') }}</h2>
                 @if($mfaEnabled)
                     <span class="badge bg-success">
                         {{ __('two_factor.status_enabled_via', ['method' => $currentMethodLabel]) }}
@@ -63,7 +63,7 @@
     @if($mfaEnabled && $twoFactorChosenMethod === '')
         {{-- Active enrollment summary + quick actions --}}
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 rounded-3 bg-light border mb-3">
-            <div class="small text-muted">
+            <div class="small text-gray-700">
                 @if($currentMethod === 'authenticator')
                     {{ __('two_factor.active_summary_authenticator') }}
                 @elseif($currentMethod === 'sms')
@@ -245,11 +245,13 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
             <button
                 type="button"
+                data-no-collapse
                 @click="showActivity = !showActivity"
-                class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold text-secondary"
+                class="d-inline-flex align-items-center gap-1 border-0 bg-transparent p-0 fw-semibold text-gray-600 small"
+                style="cursor: pointer;"
             >
-                <span>{{ __('two_factor.recent_security_activity') }} ({{ method_exists($mfaSecurityEvents, 'total') ? $mfaSecurityEvents->total() : $mfaSecurityEvents->count() }})</span>
-                <span x-text="showActivity ? '▲' : '▼'" class="ms-1 small"></span>
+                <span class="text-gray-600">{{ __('two_factor.recent_security_activity') }} ({{ method_exists($mfaSecurityEvents, 'total') ? $mfaSecurityEvents->total() : $mfaSecurityEvents->count() }})</span>
+                <span x-text="showActivity ? '▲' : '▼'" class="ms-1 text-gray-500" style="font-size: 0.7rem;"></span>
             </button>
 
             <div x-show="showActivity" x-cloak style="min-width: 220px;">

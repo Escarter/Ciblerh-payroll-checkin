@@ -260,9 +260,24 @@ html[data-theme="dark"] .modal-backdrop.show { opacity: .65; }
 html[data-theme="dark"] #payslipTaskDetailsModal .card,
 html[data-theme="dark"] #payslipTaskDetailsModal .card.bg-light,
 html[data-theme="dark"] #payslipTaskDetailsModal .card-body .card.bg-light,
-html[data-theme="dark"] #payslipTaskDetailsModal .timeline-content { background: var(--rf-surface-2) !important; }
-html[data-theme="dark"] #payslipTaskDetailsModal .card-header { background: transparent !important; }
+html[data-theme="dark"] #payslipDetailsModal .card,
+html[data-theme="dark"] #payslipDetailsModal .card.bg-light,
+html[data-theme="dark"] #payslipDetailsModal .card-body .card.bg-light,
+html[data-theme="dark"] .modal-content .card,
+html[data-theme="dark"] .timeline-content,
+html[data-theme="dark"] #payslipTaskDetailsModal .timeline-content,
+html[data-theme="dark"] #payslipDetailsModal .timeline-content { background: var(--rf-surface-2) !important; }
+html[data-theme="dark"] .timeline::before { background: var(--rf-line) !important; }
+html[data-theme="dark"] .timeline-marker { border-color: var(--rf-surface-1) !important; box-shadow: 0 0 0 2px var(--rf-line) !important; }
+html[data-theme="dark"] .timeline-content h6,
+html[data-theme="dark"] .timeline-content strong { color: var(--rf-ink) !important; }
+html[data-theme="dark"] .timeline-content p { color: var(--rf-text) !important; }
+html[data-theme="dark"] .timeline-content small { color: var(--rf-muted) !important; }
+html[data-theme="dark"] #payslipTaskDetailsModal .card-header,
+html[data-theme="dark"] #payslipDetailsModal .card-header,
+html[data-theme="dark"] .modal-content .card-header { background: transparent !important; border-color: var(--rf-line) !important; }
 html[data-theme="dark"] #payslipTaskDetailsModal .progress,
+html[data-theme="dark"] #payslipDetailsModal .progress,
 html[data-theme="dark"] .progress,
 html[data-theme="dark"] .rf-progress { background: #263449 !important; }
 html[data-theme="dark"] #payslipTaskDetailsModal .alert-success,
@@ -551,3 +566,19 @@ html[data-theme="dark"] .rf-auth-sub { color: var(--rf-muted); }
 html[data-theme="dark"] .rf-check input[type="checkbox"] { background-color: var(--rf-surface-2); border-color: var(--rf-line); }
 html[data-theme="dark"] .rf-check input[type="checkbox"]:checked { background-color: var(--rf-brand); border-color: var(--rf-brand); }
 html[data-theme="dark"] .rf-auth-submit { color: #0b1220; }
+
+/* Profile photo upload tile in dark mode */
+html[data-theme="dark"] .rf-avatar-upload-tile {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.14);
+}
+html[data-theme="dark"] .rf-avatar-upload-tile:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.24);
+}
+html[data-theme="dark"] .rf-avatar-upload-initials {
+    color: #a1a1aa;
+}
+html[data-theme="dark"] .rf-photo-upload-row {
+    border-bottom-color: var(--rf-line) !important;
+}

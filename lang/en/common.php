@@ -758,4 +758,11 @@ return [
     'upload_transparent_white_background_signature' => 'Upload a signature with a transparent or white background',
     'user' => 'User',
     'validating_sample' => 'Validating sample...',
+    'profile_photo' => 'Profile photo',
+    'profile_photo_hint' => 'Click the box to upload a photo (PNG, JPG or WebP, max 2 MB).',
+    'remove_photo' => 'Remove photo',
+    'confirm_remove_photo' => 'Remove this profile photo?',
+    'photo_saved_successfully' => 'Profile photo saved.',
+    'photo_removed_successfully' => 'Profile photo removed.',
+    'photo_unreadable' => 'The uploaded file could not be read as an image.',
 ];

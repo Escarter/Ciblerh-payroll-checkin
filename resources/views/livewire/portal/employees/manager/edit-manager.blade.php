@@ -9,6 +9,18 @@
                         <p>{{__('employees.edit_and_update_manager_details')}}</p>
                     </div>
                     <x-form-items.form wire:submit="updateManager" class="form-modal">
+                        @php
+                            $mgrInitials = strtoupper(substr((string)$first_name, 0, 1) . substr((string)$last_name, 0, 1)) ?: ($employee?->initials ?: '—');
+                            $mgrPreview = ($photo && method_exists($photo, 'isPreviewable') && $photo->isPreviewable())
+                                ? $photo->temporaryUrl()
+                                : $employee?->photoUrl();
+                        @endphp
+                        @include('livewire.partials.profile-photo-upload', [
+                            'user' => $employee,
+                            'initials' => $mgrInitials,
+                            'previewUrl' => $mgrPreview,
+                            'hasPhoto' => !empty($employee?->photo_path) || !empty($photo),
+                        ])
                         <div class='form-group mb-4'>
                             <x-choices-multi-select
                                 id="edit_manager_roles"

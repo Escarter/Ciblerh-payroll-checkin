@@ -1,6 +1,6 @@
 <div>
     <x-alert />
-    <div class='container pt-3 pt-lg-4 pb-4 pb-lg-3 text-white'>
+    <div class='container pt-3 pt-lg-4 pb-4 pb-lg-3'>
         <div class='d-flex flex-wrap align-items-center  justify-content-between '>
             <a href="{{route('employee.dashboard')}}" wire:navigate class="">
                 <svg class="icon me-1 text-gray-500 bg-gray-300 rounded-circle p-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -32,6 +32,7 @@
             <div class='col-md-6 '>
                 <div class='card card-body text-gray-700'>
                     <h5 class="pb-3">{{__('employees.personal_details')}}</h5>
+                    @include('livewire.partials.profile-photo-upload')
                     <x-form-items.form wire:submit.prevent="updateProfile" nctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12'>

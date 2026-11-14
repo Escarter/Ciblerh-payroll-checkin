@@ -4,7 +4,7 @@
                             <div class="user-card d-flex d-md-none justify-content-between justify-content-md-center pb-4">
                                 @auth
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar-md me-3 d-flex align-items-center justify-content-center fw-bold rounded bg-gray-50 shadow "><span class="p-2 text-secondary ">{{auth()->user()->initials}}</span></div>
+                                    <x-user-avatar :user="auth()->user()" class="avatar-md me-3 d-flex align-items-center justify-content-center fw-bold rounded bg-gray-50 shadow" text-class="p-2 text-secondary" />
                                     <div class="d-block ">
                                         <h2 class="h5 mb-0">{{auth()->user()->first_name}}</h2>
                                         <a class="dropdown-item d-flex align-items-center" href="{{ route('logout') }}" onclick="event.preventDefault();

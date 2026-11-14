@@ -19,6 +19,18 @@
                     </div>
                     <x-form-items.form wire:submit="{{ $isEditMode ? 'update' : 'store' }}" class="form-modal">
                         <input type='hidden' name='employee_id' value="{{ $employee_id ?? '' }}" id="EmployeeId">
+                        @php
+                            $empInitials = strtoupper(substr((string)$first_name, 0, 1) . substr((string)$last_name, 0, 1)) ?: ($employee?->initials ?: '—');
+                            $empPreview = ($photo && method_exists($photo, 'isPreviewable') && $photo->isPreviewable())
+                                ? $photo->temporaryUrl()
+                                : ($isEditMode ? $employee?->photoUrl() : null);
+                        @endphp
+                        @include('livewire.partials.profile-photo-upload', [
+                            'user' => $isEditMode ? $employee : null,
+                            'initials' => $empInitials,
+                            'previewUrl' => $empPreview,
+                            'hasPhoto' => ($isEditMode && !empty($employee?->photo_path)) || !empty($photo),
+                        ])
                         <div class="form-group mb-2 row">
                             <div class='col-md-6 col-xs-12' wire:key="emp-form-company-{{ $employee_id ?? 'new' }}-{{ $isEditMode ? 'edit' : 'create' }}">
                                 <label for="company">{{__('companies.company')}}</label>

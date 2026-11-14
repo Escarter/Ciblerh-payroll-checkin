@@ -9,6 +9,16 @@
                         <p>{{__('employees.create_a_new_manager')}}</p>
                     </div>
                     <x-form-items.form wire:submit="store"  class="form-modal">
+                        @php
+                            $mgrInitials = strtoupper(substr((string)$first_name, 0, 1) . substr((string)$last_name, 0, 1)) ?: '—';
+                            $mgrPreview = ($photo && method_exists($photo, 'isPreviewable') && $photo->isPreviewable()) ? $photo->temporaryUrl() : null;
+                        @endphp
+                        @include('livewire.partials.profile-photo-upload', [
+                            'user' => null,
+                            'initials' => $mgrInitials,
+                            'previewUrl' => $mgrPreview,
+                            'hasPhoto' => !empty($photo),
+                        ])
                         <div class='form-group mb-4'>
                             <x-choices-multi-select
                                 id="create_manager_roles"

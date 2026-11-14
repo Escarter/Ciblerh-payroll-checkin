@@ -32,6 +32,7 @@ class All extends BaseImportComponent
     use \App\Livewire\Traits\WithTestSms;
     use \App\Livewire\Traits\WithEmployeeCompanyTransfer;
     use \App\Livewire\Traits\WithAdminTwoFactorActions;
+    use \App\Livewire\Traits\ManagesEmployeePhoto;
 
     private const DEFAULT_WORK_START_TIME = '08:00';
     private const DEFAULT_WORK_END_TIME = '17:30';
@@ -272,6 +273,7 @@ class All extends BaseImportComponent
 
         // Assign multiple roles - use syncRoles instead of assignRole for arrays
         $user->syncRoles($this->selected_roles);
+        $this->persistEmployeePhotoIfUploaded($user);
 
         event(new EmployeeCreated($user, $this->password));
 
@@ -367,6 +369,7 @@ class All extends BaseImportComponent
 
         // Sync roles (this will remove old roles and assign new ones)
         $this->employee->syncRoles($this->selected_roles);
+        $this->persistEmployeePhotoIfUploaded($this->employee);
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.manager_updated_successfully'), 'EditManagerModal');
@@ -462,6 +465,7 @@ class All extends BaseImportComponent
 
         // Sync roles (this will remove old roles and assign new ones)
         $this->employee->syncRoles($this->selected_roles);
+        $this->persistEmployeePhotoIfUploaded($this->employee);
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.employee_updated_successfully'), 'EmployeeModal');

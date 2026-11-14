@@ -70,7 +70,12 @@
             @if($user->canSwitchPortals())
             <a href="{{ route('portal.dashboard') }}" class="emp-pill d-none d-lg-inline-flex" title="Admin Portal">{!! $svg('switch', 'emp-ico emp-ico-sm') !!} Admin</a>
             @endif
-            <a href="{{ route('employee.profile') }}" wire:navigate class="emp-avatar" title="{{ __('common.profile') }}">{{ $user->initials }}</a>
+            <a href="{{ route('employee.profile') }}" wire:navigate class="emp-avatar position-relative overflow-hidden" title="{{ __('common.profile') }}">
+                <span>{{ $user->initials }}</span>
+                @if($user->photoUrl(true))
+                    <img src="{{ $user->photoUrl(true) }}" alt="{{ $user->name }}" width="35" height="35" loading="lazy" decoding="async" onerror="this.remove()" class="rf-avatar-img position-absolute top-0 start-0 w-100 h-100">
+                @endif
+            </a>
             <a href="{{ route('logout') }}" class="emp-pill emp-pill-danger d-none d-lg-inline-flex" title="Logout">{!! $svg('logout', 'emp-ico emp-ico-sm') !!} Logout</a>
         </div>
     </div>

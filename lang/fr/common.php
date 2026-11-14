@@ -760,4 +760,11 @@ return [
     'upload_transparent_white_background_signature' => 'Téléversez une signature avec un fond transparent ou blanc',
     'user' => 'Utilisateur',
     'validating_sample' => 'Validation de l\'échantillon...',
+    'profile_photo' => 'Photo de profil',
+    'profile_photo_hint' => 'Cliquez sur le cadre pour téléverser une photo (PNG, JPG ou WebP, max 2 Mo).',
+    'remove_photo' => 'Supprimer la photo',
+    'confirm_remove_photo' => 'Supprimer cette photo de profil ?',
+    'photo_saved_successfully' => 'Photo de profil enregistrée.',
+    'photo_removed_successfully' => 'Photo de profil supprimée.',
+    'photo_unreadable' => 'Le fichier téléversé n\'a pas pu être lu comme une image.',
 ];

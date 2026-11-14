@@ -25,7 +25,12 @@
             @if($u->canSwitchPortals())
             <a href="{{ route('employee.dashboard') }}" class="emp-pill" title="Employee Portal">{!! $sv('M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4') !!}<span class="d-none d-lg-inline">Employee</span></a>
             @endif
-            <a href="{{ route('portal.profile-setting') }}" wire:navigate class="emp-avatar" title="{{ __('common.profile') }}">{{ $u->initials }}</a>
+            <a href="{{ route('portal.profile-setting') }}" wire:navigate class="emp-avatar position-relative overflow-hidden" title="{{ __('common.profile') }}">
+                <span>{{ $u->initials }}</span>
+                @if($u->photoUrl(true))
+                    <img src="{{ $u->photoUrl(true) }}" alt="{{ $u->name }}" width="35" height="35" loading="lazy" decoding="async" onerror="this.remove()" class="rf-avatar-img position-absolute top-0 start-0 w-100 h-100">
+                @endif
+            </a>
             <a href="{{ route('logout') }}" wire:navigate class="emp-pill emp-pill-danger" title="Logout">{!! $sv('M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1') !!}<span class="d-none d-lg-inline">Logout</span></a>
         </div>
         @endauth

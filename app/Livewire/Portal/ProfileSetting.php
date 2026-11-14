@@ -26,6 +26,7 @@ class ProfileSetting extends Component
     public $password;
     public $password_confirmation;
     public $signature;
+    public $photo;
     public $date_of_birth;
     public $preferred_language;
     
@@ -38,7 +39,41 @@ class ProfileSetting extends Component
         $this->position = auth()->user()->position;
         $this->phone_number = auth()->user()->phone_number;
         $this->date_of_birth = auth()->user()->date_of_birth;
+        $this->preferred_language = auth()->user()->preferred_language;
         $this->initTwoFactorEnrolment();
+    }
+
+    public function updatedPhoto(\App\Services\ProfilePhotoService $photos): void
+    {
+        $this->authorizeAbility('profile-update');
+        $this->validate([
+            'photo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+        ]);
+
+        $user = auth()->user();
+        $oldPath = $user->photo_path;
+        $newPath = $photos->store($this->photo, 'profile-photos');
+
+        $user->update(['photo_path' => $newPath]);
+        if ($oldPath && $oldPath !== $newPath) {
+            $photos->delete($oldPath);
+        }
+
+        $this->photo = null;
+        $this->refresh(__('common.photo_saved_successfully'));
+    }
+
+    public function removePhoto(\App\Services\ProfilePhotoService $photos): void
+    {
+        $this->authorizeAbility('profile-update');
+        $user = auth()->user();
+        if (!empty($user->photo_path)) {
+            $photos->delete($user->photo_path);
+            $user->update(['photo_path' => null]);
+        }
+
+        $this->photo = null;
+        $this->refresh(__('common.photo_removed_successfully'));
     }
 
     public function updateProfile()

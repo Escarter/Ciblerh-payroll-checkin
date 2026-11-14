@@ -289,6 +289,22 @@ class User extends Authenticatable implements HasLocalePreference
         return strtoupper(Str::substr($this->first_name, 0, 1)) . "" . strtoupper(Str::substr($this->last_name, 0, 1));
     }
 
+    public function photoUrl(bool $small = false): ?string
+    {
+        if (blank($this->photo_path)) {
+            return null;
+        }
+
+        $url = \Illuminate\Support\Facades\Storage::disk('public')->url($this->photo_path);
+
+        return $small ? \App\Services\ProfilePhotoService::smallUrl($url) : $url;
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photoUrl();
+    }
+
     public function scopeSupervisor($query)
     {
         $user = auth()->user();
@@ -526,7 +542,10 @@ class User extends Authenticatable implements HasLocalePreference
                 }
             }
 
-            // 7. Finally, permanently delete the user record
+            // 7. Delete profile photo files if present, then permanently delete the user record
+            if (!empty($this->photo_path)) {
+                app(\App\Services\ProfilePhotoService::class)->delete($this->photo_path);
+            }
             $this->forceDelete();
         });
     }

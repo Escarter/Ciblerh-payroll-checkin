@@ -32,6 +32,7 @@
             <div class='col-md-7'>
                 <div class='card p-3 text-gray-700'>
                     <h5 class="pb-3">{{__('common.personal_details')}}</h5>
+                    @include('livewire.partials.profile-photo-upload')
                     <x-form-items.form wire:submit="updateProfile" nctype="multipart/form-data" class="form-modal">
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
@@ -166,7 +167,9 @@
                     </x-form-items.form>
                 </div>
 
-                @include('livewire.partials.two-factor.manage')
+                <div class="mt-3">
+                    @include('livewire.partials.two-factor.manage')
+                </div>
             </div>
         </div>
     </div>

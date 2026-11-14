@@ -785,7 +785,9 @@ main.content .table tbody td:last-child > * + * { margin-left: .35rem; }
 #payslipTaskDetailsModal .task-info-item small { text-transform: uppercase; letter-spacing: .04em; font-size: .68rem; }
 #payslipTaskDetailsModal .alert { border: 1px solid transparent; border-radius: var(--rf-radius); padding: 1rem 1.25rem; }
 #payslipTaskDetailsModal .progress { background: #eef2f7; box-shadow: none !important; }
-#payslipTaskDetailsModal .timeline-content { background: #f8fafc; border-radius: .7rem; }
+#payslipTaskDetailsModal .timeline-content,
+#payslipDetailsModal .timeline-content,
+.timeline-content { background: #f8fafc; border-radius: .7rem; }
 
 /* Searchable single selects (Choices.js) */
 .rf-search-select .choices { margin-bottom: 0; }
@@ -1449,4 +1451,62 @@ html:not([data-theme="dark"]) main.content hr {
 .rf-modal-close:hover {
     background: #f1f5f9 !important;
     color: var(--rf-ink);
+}
+
+/* ---- SchoolOS-style Profile Photo Avatar & Upload Tile ---- */
+.rf-avatar-img {
+    object-fit: cover;
+    border-radius: inherit;
+    z-index: 1;
+}
+.rf-avatar-upload-tile {
+    width: 5rem;
+    height: 5rem;
+    border-radius: .75rem;
+    background: #f4f4f5;
+    border: 2px dashed #e4e4e7;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+    margin-bottom: 0;
+}
+.rf-avatar-upload-tile:hover {
+    background: #e4e4e7;
+    border-color: #d4d4d8;
+}
+.rf-avatar-upload-initials {
+    font-size: 1.5rem;
+    color: #71717a;
+    user-select: none;
+}
+.rf-avatar-upload-img {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.rf-avatar-upload-hover {
+    background: rgba(24, 24, 27, 0.4);
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+.rf-avatar-upload-tile:hover .rf-avatar-upload-hover {
+    opacity: 1;
+}
+.rf-avatar-upload-loading {
+    background: rgba(24, 24, 27, 0.5);
+}
+
+/* ---------- Two-Factor Management Card ---------- */
+#two-factor-section {
+    color: var(--rf-text, #334155) !important;
+}
+#two-factor-section h2,
+#two-factor-section .h5 {
+    color: var(--rf-ink, #0f172a) !important;
+}
+#two-factor-section .text-muted {
+    color: var(--rf-muted, #64748b) !important;
+}
+#two-factor-section .bg-light {
+    background-color: #f8fafc !important;
+    color: var(--rf-text, #334155) !important;
 }

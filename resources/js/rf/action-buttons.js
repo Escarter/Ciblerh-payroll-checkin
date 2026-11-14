@@ -62,7 +62,7 @@
     function colourise(root) {
         (root || document).querySelectorAll('.btn, .rf-icon-btn').forEach((el) => {
             if (el.dataset.rfAct || el.closest('.modal, .dropdown-menu, .pagination, .emp-tabbar, [role="tablist"], .nav-tabs')) return;
-            if (el.matches('.btn-close, [data-no-collapse]')) return;
+            if (el.matches('.btn-close, .btn-link, [data-no-collapse]')) return;
             const solid = /\bbtn-(primary|success|danger|warning|info|tertiary)\b/.test(el.className);
             if (el.classList.contains('rf-icon-btn') && /rf-icon-btn-(primary|success|warning|danger)/.test(el.className)) {
                 el.dataset.rfAct = '1';
