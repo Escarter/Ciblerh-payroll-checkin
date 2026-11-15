@@ -13,7 +13,7 @@
             </ol>
         </nav>
 
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
                 <div class="d-flex align-items-center gap-2 mb-1">
                     <span class="badge bg-danger text-uppercase px-2 py-1 fw-bold" style="letter-spacing: .08em; font-size: 0.7rem;">
@@ -29,44 +29,35 @@
                     Toggle system-wide feature flags, control module visibility across all navigation, and manage stealth superadmin accounts.
                 </p>
             </div>
-        </div>
-    </div>
 
-    <!-- Navigation Tabs Card (Standard Portal Pattern with Generous Spacing) -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-body p-2">
-            <ul class="nav nav-pills flex-column flex-sm-row gap-2" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button 
-                        type="button" 
-                        wire:click="$set('activeTab', 'features')" 
-                        class="nav-link d-flex align-items-center justify-content-center gap-2 py-2 px-4 {{ $activeTab === 'features' ? 'active fw-semibold shadow-sm' : 'text-gray-700' }}"
-                        role="tab"
-                        aria-selected="{{ $activeTab === 'features' ? 'true' : 'false' }}"
-                    >
-                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                        <span>Platform Features</span>
-                        <span class="badge rounded-pill ms-1 {{ $activeTab === 'features' ? 'bg-white text-primary' : 'bg-gray-200 text-gray-800' }}">
-                            {{ $totalFeatures }}
-                        </span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button 
-                        type="button" 
-                        wire:click="$set('activeTab', 'superadmins')" 
-                        class="nav-link d-flex align-items-center justify-content-center gap-2 py-2 px-4 {{ $activeTab === 'superadmins' ? 'active fw-semibold shadow-sm bg-danger border-danger text-white' : 'text-gray-700' }}"
-                        role="tab"
-                        aria-selected="{{ $activeTab === 'superadmins' ? 'true' : 'false' }}"
-                    >
-                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                        <span>Manage Superadmins</span>
-                        <span class="badge rounded-pill ms-1 {{ $activeTab === 'superadmins' ? 'bg-white text-danger' : 'bg-gray-200 text-gray-800' }}">
-                            {{ $superadmins->count() }}
-                        </span>
-                    </button>
-                </li>
-            </ul>
+            <!-- Two individual header action buttons aligned right -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button 
+                    type="button" 
+                    wire:click="$set('activeTab', 'features')" 
+                    class="sa-header-btn {{ $activeTab === 'features' ? 'active-features' : '' }}"
+                    title="View and configure platform features"
+                >
+                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                    <span>Platform Features</span>
+                    <span class="sa-header-badge {{ $activeTab === 'features' ? 'sa-badge-active' : 'sa-badge-inactive' }}">
+                        {{ $totalFeatures }}
+                    </span>
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('activeTab', 'superadmins')" 
+                    class="sa-header-btn {{ $activeTab === 'superadmins' ? 'active-superadmins' : '' }}"
+                    title="Manage stealth superadmin accounts"
+                >
+                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <span>Manage Superadmins</span>
+                    <span class="sa-header-badge {{ $activeTab === 'superadmins' ? 'sa-badge-active' : 'sa-badge-inactive' }}">
+                        {{ $superadmins->count() }}
+                    </span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -86,7 +77,7 @@
                     <div>
                         <div class="text-muted small text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: .05em;">Total Features</div>
                         <div class="h4 mb-0 fw-bold text-gray-900">{{ $totalFeatures }}</div>
-                        <span class="small text-muted" style="font-size: 0.75rem;">Across {{ $categoryCounts->count() }} domains</span>
+                        <span class="small text-muted" style="font-size: 0.75rem;">Across {{ count($categoryCounts) }} domains</span>
                     </div>
                 </div>
             </div>
@@ -539,6 +530,97 @@
     @endif
 
 <style>
+    /* Header Action Buttons (Aligned Right) */
+    .sa-header-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0.95rem;
+        font-size: 0.825rem;
+        font-weight: 600;
+        border-radius: 9px;
+        border: 1px solid var(--rf-line, #e2e8f0);
+        background: var(--rf-surface, #ffffff);
+        color: var(--rf-text, #334155);
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+        text-decoration: none;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        white-space: nowrap;
+    }
+    .sa-header-btn:hover {
+        background: var(--rf-surface-2, #f8fafc);
+        color: var(--rf-ink, #0f172a);
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+    }
+    .sa-header-btn.active-features {
+        background: var(--rf-brand, #1d4ba0) !important;
+        border-color: var(--rf-brand, #1d4ba0) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--rf-brand, #1d4ba0) 35%, transparent) !important;
+    }
+    .sa-header-btn.active-features svg {
+        color: #ffffff !important;
+    }
+    .sa-header-btn.active-superadmins {
+        background: #e11d48 !important;
+        border-color: #e11d48 !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(225, 29, 72, 0.35) !important;
+    }
+    .sa-header-btn.active-superadmins svg {
+        color: #ffffff !important;
+    }
+    .sa-header-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.15rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+    .sa-badge-active {
+        background: rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+    }
+    .sa-badge-inactive {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    /* Dark Mode styling for Header Action Buttons */
+    html[data-theme="dark"] .sa-header-btn {
+        background: var(--rf-surface, #131c2e);
+        border-color: var(--rf-line, #263244);
+        color: var(--rf-text, #cbd5e1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+    html[data-theme="dark"] .sa-header-btn:hover {
+        background: var(--rf-surface-2, #1a2539);
+        color: #ffffff;
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    html[data-theme="dark"] .sa-header-btn.active-features {
+        background: var(--rf-brand, #3b82f6) !important;
+        border-color: var(--rf-brand, #3b82f6) !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4) !important;
+    }
+    html[data-theme="dark"] .sa-header-btn.active-superadmins {
+        background: #e11d48 !important;
+        border-color: #e11d48 !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 10px rgba(225, 29, 72, 0.45) !important;
+    }
+    html[data-theme="dark"] .sa-badge-inactive {
+        background: rgba(255, 255, 255, 0.08);
+        color: #94a3b8;
+    }
+
     html[data-theme="dark"] .sa-feature-disabled {
         background: rgba(30, 41, 59, 0.4) !important;
         border-top-color: var(--rf-line) !important;

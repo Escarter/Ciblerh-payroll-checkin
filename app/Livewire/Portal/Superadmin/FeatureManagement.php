@@ -153,6 +153,11 @@ class FeatureManagement extends Component
         }
 
         return view('livewire.portal.superadmin.feature-management', [
+            'activeTab' => $this->activeTab,
+            'statusFilter' => $this->statusFilter,
+            'searchFeature' => $this->searchFeature,
+            'selectedCategory' => $this->selectedCategory,
+            'searchUser' => $this->searchUser,
             'features' => $features,
             'totalFeatures' => $totalFeatures,
             'enabledCount' => $enabledCount,

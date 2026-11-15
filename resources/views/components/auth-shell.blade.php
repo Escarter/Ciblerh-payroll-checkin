@@ -252,6 +252,13 @@
                         @endif
                     </div>
                 </div>
+            @elseif ($badge)
+                <div class="rf-auth-code-wrap">
+                    <div class="rf-auth-code-pill">
+                        <span class="rf-auth-code-dot"></span>
+                        <span class="rf-auth-code-val">{{ $badge }}</span>
+                    </div>
+                </div>
             @endif
 
             <h1>{{ $title }}</h1>
