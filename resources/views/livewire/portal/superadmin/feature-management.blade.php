@@ -185,34 +185,31 @@
                         </select>
                     </div>
 
-                    <!-- Status Filter Buttons with clean spacing between each button on the same line -->
-                    <div class="sa-filter-btn-group flex-shrink-0" style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Status Filter Segmented Control -->
+                    <div class="sa-filter-segmented flex-shrink-0" role="group" aria-label="Feature status filter">
                         <button 
                             type="button" 
                             wire:click="$set('statusFilter', 'all')" 
-                            class="sa-filter-btn {{ $statusFilter === 'all' ? 'sa-btn-all-active' : 'sa-btn-all-inactive' }}"
-                            style="border-radius: 8px !important; margin: 0 4px 0 0;"
+                            class="sa-seg-btn {{ $statusFilter === 'all' ? 'active sa-seg-all' : '' }}"
                             title="Show all features"
                         >
-                            All ({{ $totalFeatures }})
+                            All <span class="sa-seg-count">({{ $totalFeatures }})</span>
                         </button>
                         <button 
                             type="button" 
                             wire:click="$set('statusFilter', 'active')" 
-                            class="sa-filter-btn {{ $statusFilter === 'active' ? 'sa-btn-active-active' : 'sa-btn-active-inactive' }}"
-                            style="border-radius: 8px !important; margin: 0 4px 0 0;"
+                            class="sa-seg-btn {{ $statusFilter === 'active' ? 'active sa-seg-active' : '' }}"
                             title="Show active features only"
                         >
-                            Active ({{ $enabledCount }})
+                            Active <span class="sa-seg-count">({{ $enabledCount }})</span>
                         </button>
                         <button 
                             type="button" 
                             wire:click="$set('statusFilter', 'disabled')" 
-                            class="sa-filter-btn {{ $statusFilter === 'disabled' ? 'sa-btn-off-active' : 'sa-btn-off-inactive' }}"
-                            style="border-radius: 8px !important; margin: 0;"
+                            class="sa-seg-btn {{ $statusFilter === 'disabled' ? 'active sa-seg-off' : '' }}"
                             title="Show disabled features only"
                         >
-                            Off ({{ $disabledCount }})
+                            Off <span class="sa-seg-count">({{ $disabledCount }})</span>
                         </button>
                     </div>
                 </div>
@@ -540,9 +537,7 @@
             </div>
         </div>
     @endif
-</div>
 
-@push('styles')
 <style>
     html[data-theme="dark"] .sa-feature-disabled {
         background: rgba(30, 41, 59, 0.4) !important;
@@ -650,113 +645,83 @@
         100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
-    /* Status Filter Segmented Buttons with guaranteed spacing */
-    .sa-filter-btn-group {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .sa-filter-btn {
+    /* Status Filter Segmented Control */
+    .sa-filter-segmented {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        padding: 0.45rem 0.95rem;
-        font-size: 0.825rem;
-        font-weight: 600;
-        border-radius: 8px !important;
-        border: 1px solid transparent;
-        white-space: nowrap;
-        cursor: pointer;
-        transition: all 0.15s ease-in-out;
-        text-decoration: none;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        gap: 3px;
     }
-    .sa-filter-btn:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    .sa-seg-btn {
+        border: 0 !important;
+        background: transparent !important;
+        padding: 6px 14px !important;
+        border-radius: 7px !important;
+        font-size: 0.825rem !important;
+        font-weight: 600 !important;
+        color: #64748b !important;
+        cursor: pointer !important;
+        transition: all 0.15s ease-in-out !important;
+        white-space: nowrap !important;
+        outline: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        box-shadow: none !important;
     }
-
-    /* ALL BUTTON */
-    .sa-btn-all-active {
-        background-color: #3b82f6 !important;
-        border-color: #3b82f6 !important;
+    .sa-seg-btn:hover {
+        color: #0f172a !important;
+        background: rgba(0, 0, 0, 0.05) !important;
+    }
+    .sa-seg-btn.active.sa-seg-all {
+        background: #3b82f6 !important;
         color: #ffffff !important;
-        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3) !important;
+        box-shadow: 0 1px 4px rgba(59, 130, 246, 0.35) !important;
     }
-    .sa-btn-all-inactive {
-        background-color: #f1f5f9;
-        border-color: #cbd5e1;
-        color: #475569;
-    }
-    .sa-btn-all-inactive:hover {
-        background-color: #e2e8f0;
-        color: #1e293b;
-        border-color: #94a3b8;
-    }
-    html[data-theme="dark"] .sa-btn-all-inactive {
-        background-color: rgba(59, 130, 246, 0.12) !important;
-        border-color: rgba(59, 130, 246, 0.35) !important;
-        color: #93c5fd !important;
-    }
-    html[data-theme="dark"] .sa-btn-all-inactive:hover {
-        background-color: rgba(59, 130, 246, 0.22) !important;
-        border-color: #60a5fa !important;
+    .sa-seg-btn.active.sa-seg-active {
+        background: #10b981 !important;
         color: #ffffff !important;
+        box-shadow: 0 1px 4px rgba(16, 185, 129, 0.35) !important;
     }
-
-    /* ACTIVE BUTTON */
-    .sa-btn-active-active {
-        background-color: #10b981 !important;
-        border-color: #10b981 !important;
-        color: #ffffff !important;
-        box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3) !important;
-    }
-    .sa-btn-active-inactive {
-        background-color: rgba(16, 185, 129, 0.08);
-        border-color: rgba(16, 185, 129, 0.35);
-        color: #047857;
-    }
-    .sa-btn-active-inactive:hover {
-        background-color: rgba(16, 185, 129, 0.16);
-        border-color: #10b981;
-        color: #065f46;
-    }
-    html[data-theme="dark"] .sa-btn-active-inactive {
-        background-color: rgba(16, 185, 129, 0.14) !important;
-        border-color: rgba(16, 185, 129, 0.45) !important;
-        color: #6ee7b7 !important;
-    }
-    html[data-theme="dark"] .sa-btn-active-inactive:hover {
-        background-color: rgba(16, 185, 129, 0.24) !important;
-        border-color: #34d399 !important;
-        color: #ffffff !important;
-    }
-
-    /* OFF / DISABLED BUTTON */
-    .sa-btn-off-active {
-        background-color: #f59e0b !important;
-        border-color: #f59e0b !important;
+    .sa-seg-btn.active.sa-seg-off {
+        background: #f59e0b !important;
         color: #111827 !important;
-        box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3) !important;
+        box-shadow: 0 1px 4px rgba(245, 158, 11, 0.35) !important;
     }
-    .sa-btn-off-inactive {
-        background-color: rgba(245, 158, 11, 0.08);
-        border-color: rgba(245, 158, 11, 0.35);
-        color: #b45309;
+    .sa-seg-count {
+        font-size: 0.775rem;
+        opacity: 0.85;
     }
-    .sa-btn-off-inactive:hover {
-        background-color: rgba(245, 158, 11, 0.16);
-        border-color: #f59e0b;
-        color: #92400e;
+
+    /* Dark Mode styling for segmented control */
+    html[data-theme="dark"] .sa-filter-segmented {
+        background: rgba(15, 23, 42, 0.7) !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
     }
-    html[data-theme="dark"] .sa-btn-off-inactive {
-        background-color: rgba(245, 158, 11, 0.14) !important;
-        border-color: rgba(245, 158, 11, 0.45) !important;
-        color: #fcd34d !important;
+    html[data-theme="dark"] .sa-seg-btn {
+        color: #94a3b8 !important;
     }
-    html[data-theme="dark"] .sa-btn-off-inactive:hover {
-        background-color: rgba(245, 158, 11, 0.24) !important;
-        border-color: #fbbf24 !important;
+    html[data-theme="dark"] .sa-seg-btn:hover {
+        color: #f1f5f9 !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+    }
+    html[data-theme="dark"] .sa-seg-btn.active.sa-seg-all {
+        background: #3b82f6 !important;
         color: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    }
+    html[data-theme="dark"] .sa-seg-btn.active.sa-seg-active {
+        background: #10b981 !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4) !important;
+    }
+    html[data-theme="dark"] .sa-seg-btn.active.sa-seg-off {
+        background: #f59e0b !important;
+        color: #0f172a !important;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4) !important;
     }
 
     /* Enhanced Switch */
@@ -771,4 +736,4 @@
         border-color: #10b981 !important;
     }
 </style>
-@endpush
+</div>

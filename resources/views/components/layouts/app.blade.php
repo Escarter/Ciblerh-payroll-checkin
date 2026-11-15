@@ -44,6 +44,7 @@
         /* Sidebar and content layout live in resources/css/refined.css */
     </style>
     @livewireStyles
+    @stack('styles')
 
     <!-- Alpine.js Choices Multi-Select Component -->
     <script>
