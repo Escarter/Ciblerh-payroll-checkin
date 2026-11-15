@@ -170,9 +170,9 @@
         <!-- Search & Filter Toolbar Card -->
         <div class="card border-0 shadow-sm rounded-3 mb-4">
             <div class="card-body p-3">
-                <div class="row g-3 align-items-center">
+                <div class="d-flex align-items-center gap-2 flex-wrap flex-xl-nowrap">
                     <!-- Search Input -->
-                    <div class="col-lg-5 col-md-6">
+                    <div class="flex-grow-1" style="min-width: 220px;">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0 text-muted ps-3 pe-2">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -192,40 +192,37 @@
                     </div>
 
                     <!-- Category Domain Filter -->
-                    <div class="col-lg-4 col-md-6">
+                    <div class="flex-shrink-0" style="min-width: 200px; max-width: 260px;">
                         <select wire:model.live="selectedCategory" class="form-select py-2 text-gray-800">
-                            <option value="all">All Functional Domains ({{ $totalFeatures }})</option>
+                            <option value="all">All Domains ({{ $totalFeatures }})</option>
                             @foreach($categoryCounts as $catName => $count)
                                 <option value="{{ $catName }}">{{ ucfirst(str_replace('_', ' ', $catName)) }} ({{ $count }})</option>
                             @endforeach
                         </select>
                     </div>
 
-                    <!-- Status Filter Segmented Buttons -->
-                    <div class="col-lg-4 col-12 d-flex justify-content-lg-end align-items-center gap-2 flex-wrap">
+                    <!-- Status Filter Buttons with spacing between each button on the same line -->
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
                         <button 
                             type="button" 
                             wire:click="$set('statusFilter', 'all')" 
-                            class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center transition-all {{ $statusFilter === 'all' ? 'btn-primary text-white shadow-sm' : 'sa-filter-btn' }}"
+                            class="btn btn-sm py-2 px-3 text-nowrap {{ $statusFilter === 'all' ? 'btn-primary' : 'btn-outline-secondary' }}"
                         >
-                            All
-                            <span class="badge rounded-pill ms-2 {{ $statusFilter === 'all' ? 'bg-white text-primary' : 'bg-secondary-soft text-muted' }}" style="font-size: 0.72rem;">{{ $totalFeatures }}</span>
+                            All ({{ $totalFeatures }})
                         </button>
                         <button 
                             type="button" 
                             wire:click="$set('statusFilter', 'active')" 
-                            class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center transition-all {{ $statusFilter === 'active' ? 'btn-success text-white shadow-sm' : 'sa-filter-btn' }}"
+                            class="btn btn-sm py-2 px-3 text-nowrap {{ $statusFilter === 'active' ? 'btn-success text-white' : 'btn-outline-secondary' }}"
                         >
-                            Active
-                            <span class="badge rounded-pill ms-2 {{ $statusFilter === 'active' ? 'bg-white text-success' : 'bg-success-soft text-success' }}" style="font-size: 0.72rem;">{{ $enabledCount }}</span>
+                            Active ({{ $enabledCount }})
                         </button>
                         <button 
                             type="button" 
                             wire:click="$set('statusFilter', 'disabled')" 
-                            class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center transition-all {{ $statusFilter === 'disabled' ? 'btn-warning text-dark shadow-sm' : 'sa-filter-btn' }}"
+                            class="btn btn-sm py-2 px-3 text-nowrap {{ $statusFilter === 'disabled' ? 'btn-warning text-dark' : 'btn-outline-secondary' }}"
                         >
-                            Off
-                            <span class="badge rounded-pill ms-2 {{ $statusFilter === 'disabled' ? 'bg-white text-dark' : 'bg-secondary-soft text-muted' }}" style="font-size: 0.72rem;">{{ $disabledCount }}</span>
+                            Off ({{ $disabledCount }})
                         </button>
                     </div>
                 </div>
@@ -521,27 +518,6 @@
 
 @push('styles')
 <style>
-    /* Filter Pill Buttons */
-    .sa-filter-btn {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        color: #475569;
-    }
-    .sa-filter-btn:hover {
-        background: #edf2f7;
-        color: #0f172a;
-        border-color: #cbd5e1;
-    }
-    html[data-theme="dark"] .sa-filter-btn {
-        background: var(--rf-surface-2) !important;
-        border-color: var(--rf-line) !important;
-        color: var(--rf-text) !important;
-    }
-    html[data-theme="dark"] .sa-filter-btn:hover {
-        background: rgba(109, 155, 240, 0.15) !important;
-        color: var(--rf-ink) !important;
-        border-color: var(--rf-accent) !important;
-    }
     html[data-theme="dark"] .sa-feature-disabled {
         background: rgba(30, 41, 59, 0.4) !important;
         border-top-color: var(--rf-line) !important;
