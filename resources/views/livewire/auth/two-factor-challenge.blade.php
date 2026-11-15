@@ -75,17 +75,20 @@
 
             <button
                 type="submit"
-                class="rf-auth-submit btn-loading"
+                class="rf-auth-submit"
                 wire:loading.attr="disabled"
+                wire:target="verify"
                 @if($lockedSeconds > 0) disabled @endif
             >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.15rem; height: 1.15rem;">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-                <span wire:loading.remove wire:target="verify">{{ __('two_factor.verify_and_continue') }}</span>
-                <span wire:loading wire:target="verify" class="d-inline-flex align-items-center gap-2">
-                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                    {{ __('two_factor.verifying') }}
+                <span wire:loading.remove wire:target="verify">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.15rem; height: 1.15rem; margin-right: .4rem; vertical-align: -0.15em;">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <span>{{ __('two_factor.verify_and_continue') }}</span>
+                </span>
+                <span wire:loading wire:target="verify">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" style="width: 1.15rem; height: 1.15rem; vertical-align: -0.15em;"></span>
+                    <span>{{ __('two_factor.verifying') }}</span>
                 </span>
             </button>
         </form>
