@@ -154,11 +154,11 @@
         <!-- Search & Filter Toolbar Card -->
         <div class="card border-0 shadow-sm rounded-3 mb-4">
             <div class="card-body p-3">
-                <div class="d-flex align-items-center gap-2 flex-wrap flex-xl-nowrap">
+                <div class="d-flex align-items-center gap-3 flex-wrap flex-lg-nowrap">
                     <!-- Search Input -->
-                    <div class="flex-grow-1" style="min-width: 220px;">
+                    <div class="flex-grow-1" style="min-width: 200px;">
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0 text-muted ps-3 pe-2">
+                            <span class="input-group-text border-end-0 text-muted ps-3 pe-2" style="background: transparent;">
                                 <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             </span>
                             <input 
@@ -176,7 +176,7 @@
                     </div>
 
                     <!-- Category Domain Filter -->
-                    <div class="flex-shrink-0" style="min-width: 200px; max-width: 260px;">
+                    <div class="flex-shrink-0" style="min-width: 180px; max-width: 240px;">
                         <select wire:model.live="selectedCategory" class="form-select py-2 text-gray-800">
                             <option value="all">All Domains ({{ $totalFeatures }})</option>
                             @foreach($categoryCounts as $catName => $count)
@@ -185,26 +185,32 @@
                         </select>
                     </div>
 
-                    <!-- Status Filter Buttons with spacing between each button on the same line -->
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <!-- Status Filter Buttons with clean spacing between each button on the same line -->
+                    <div class="sa-filter-btn-group flex-shrink-0" style="display: flex; align-items: center; gap: 8px;">
                         <button 
                             type="button" 
                             wire:click="$set('statusFilter', 'all')" 
-                            class="btn btn-sm py-2 px-3 text-nowrap {{ $statusFilter === 'all' ? 'btn-primary' : 'btn-outline-secondary' }}"
+                            class="sa-filter-btn {{ $statusFilter === 'all' ? 'sa-btn-all-active' : 'sa-btn-all-inactive' }}"
+                            style="border-radius: 8px !important; margin: 0 4px 0 0;"
+                            title="Show all features"
                         >
                             All ({{ $totalFeatures }})
                         </button>
                         <button 
                             type="button" 
                             wire:click="$set('statusFilter', 'active')" 
-                            class="btn btn-sm py-2 px-3 text-nowrap {{ $statusFilter === 'active' ? 'btn-success text-white' : 'btn-outline-secondary' }}"
+                            class="sa-filter-btn {{ $statusFilter === 'active' ? 'sa-btn-active-active' : 'sa-btn-active-inactive' }}"
+                            style="border-radius: 8px !important; margin: 0 4px 0 0;"
+                            title="Show active features only"
                         >
                             Active ({{ $enabledCount }})
                         </button>
                         <button 
                             type="button" 
                             wire:click="$set('statusFilter', 'disabled')" 
-                            class="btn btn-sm py-2 px-3 text-nowrap {{ $statusFilter === 'disabled' ? 'btn-warning text-dark' : 'btn-outline-secondary' }}"
+                            class="sa-filter-btn {{ $statusFilter === 'disabled' ? 'sa-btn-off-active' : 'sa-btn-off-inactive' }}"
+                            style="border-radius: 8px !important; margin: 0;"
+                            title="Show disabled features only"
                         >
                             Off ({{ $disabledCount }})
                         </button>
@@ -642,6 +648,115 @@
         0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
         70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
         100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Status Filter Segmented Buttons with guaranteed spacing */
+    .sa-filter-btn-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sa-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.45rem 0.95rem;
+        font-size: 0.825rem;
+        font-weight: 600;
+        border-radius: 8px !important;
+        border: 1px solid transparent;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.15s ease-in-out;
+        text-decoration: none;
+    }
+    .sa-filter-btn:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    /* ALL BUTTON */
+    .sa-btn-all-active {
+        background-color: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3) !important;
+    }
+    .sa-btn-all-inactive {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #475569;
+    }
+    .sa-btn-all-inactive:hover {
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-color: #94a3b8;
+    }
+    html[data-theme="dark"] .sa-btn-all-inactive {
+        background-color: rgba(59, 130, 246, 0.12) !important;
+        border-color: rgba(59, 130, 246, 0.35) !important;
+        color: #93c5fd !important;
+    }
+    html[data-theme="dark"] .sa-btn-all-inactive:hover {
+        background-color: rgba(59, 130, 246, 0.22) !important;
+        border-color: #60a5fa !important;
+        color: #ffffff !important;
+    }
+
+    /* ACTIVE BUTTON */
+    .sa-btn-active-active {
+        background-color: #10b981 !important;
+        border-color: #10b981 !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3) !important;
+    }
+    .sa-btn-active-inactive {
+        background-color: rgba(16, 185, 129, 0.08);
+        border-color: rgba(16, 185, 129, 0.35);
+        color: #047857;
+    }
+    .sa-btn-active-inactive:hover {
+        background-color: rgba(16, 185, 129, 0.16);
+        border-color: #10b981;
+        color: #065f46;
+    }
+    html[data-theme="dark"] .sa-btn-active-inactive {
+        background-color: rgba(16, 185, 129, 0.14) !important;
+        border-color: rgba(16, 185, 129, 0.45) !important;
+        color: #6ee7b7 !important;
+    }
+    html[data-theme="dark"] .sa-btn-active-inactive:hover {
+        background-color: rgba(16, 185, 129, 0.24) !important;
+        border-color: #34d399 !important;
+        color: #ffffff !important;
+    }
+
+    /* OFF / DISABLED BUTTON */
+    .sa-btn-off-active {
+        background-color: #f59e0b !important;
+        border-color: #f59e0b !important;
+        color: #111827 !important;
+        box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3) !important;
+    }
+    .sa-btn-off-inactive {
+        background-color: rgba(245, 158, 11, 0.08);
+        border-color: rgba(245, 158, 11, 0.35);
+        color: #b45309;
+    }
+    .sa-btn-off-inactive:hover {
+        background-color: rgba(245, 158, 11, 0.16);
+        border-color: #f59e0b;
+        color: #92400e;
+    }
+    html[data-theme="dark"] .sa-btn-off-inactive {
+        background-color: rgba(245, 158, 11, 0.14) !important;
+        border-color: rgba(245, 158, 11, 0.45) !important;
+        color: #fcd34d !important;
+    }
+    html[data-theme="dark"] .sa-btn-off-inactive:hover {
+        background-color: rgba(245, 158, 11, 0.24) !important;
+        border-color: #fbbf24 !important;
+        color: #ffffff !important;
     }
 
     /* Enhanced Switch */
