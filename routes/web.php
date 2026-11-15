@@ -40,13 +40,13 @@ Route::middleware(['auth'])->prefix('two-factor')->group(function () {
 });
 
 
-Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']], function () {
+Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee', 'feature:employee_portal']], function () {
     Route::get('/dashboard', App\Livewire\Employee\Dashboard::class)->name('employee.dashboard');
 
     Route::get('/profile', App\Livewire\Employee\Profile::class)->name('employee.profile');
 
     //AuditLogs
-    Route::prefix('auditlogs')->group(function () {
+    Route::prefix('auditlogs')->middleware('feature:audit_logs')->group(function () {
         Route::get('/', App\Livewire\Employee\AuditLogs\Index::class)->name('employee.auditlogs');
     });
 
@@ -65,12 +65,12 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']]
     });
 
     //Absences
-    Route::prefix('absences')->group(function () {
+    Route::prefix('absences')->middleware('feature:absences')->group(function () {
         Route::get('/', App\Livewire\Employee\Absences\Index::class)->name('employee.absences');
     });
 
     //Payslip
-    Route::prefix('payslips')->group(function () {
+    Route::prefix('payslips')->middleware('feature:payslip_history')->group(function () {
         Route::get('/', App\Livewire\Employee\Payslip\Index::class)->name('employee.payslips');
         Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('employee.payslip.view-pdf');
     });
@@ -80,7 +80,7 @@ Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']]
         Route::get('/{id}/view-pdf', [App\Http\Controllers\AnnualDeclarationViewController::class, 'viewPdf'])->name('employee.annual-declaration.view-pdf');
     });
     //Leaves
-    Route::prefix('leaves')->group(function () {
+    Route::prefix('leaves')->middleware('feature:leaves')->group(function () {
         Route::get('/', App\Livewire\Employee\Leaves\Index::class)->name('employee.leaves');
     });
 
@@ -142,8 +142,8 @@ Route::group(
         Route::prefix('checklogs')->middleware('feature:checklogs')->group(function () {
             Route::get('/', App\Livewire\Portal\Checklogs\Index::class)->name('portal.checklogs.index');
         });
-        //Checklog management
-        Route::prefix('absences')->group(function () {
+        //Absences
+        Route::prefix('absences')->middleware('feature:absences')->group(function () {
             Route::get('/', App\Livewire\Portal\Absences\Index::class)->name('portal.absences.index');
         });
 
@@ -155,9 +155,9 @@ Route::group(
 
         //Payslip Salaries
         Route::prefix('payslips')->group(function () {
-            Route::get('/', App\Livewire\Portal\Payslips\Index::class)->name('portal.payslips.index');
+            Route::get('/', App\Livewire\Portal\Payslips\Index::class)->name('portal.payslips.index')->middleware('feature:payslip_sending');
             Route::get('/{id}/details', App\Livewire\Portal\Payslips\Details::class)->name('portal.payslips.details');
-            Route::get('/history', App\Livewire\Portal\Payslips\All::class)->name('portal.payslips.history');
+            Route::get('/history', App\Livewire\Portal\Payslips\All::class)->name('portal.payslips.history')->middleware('feature:payslip_history');
             Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('portal.payslips.view-pdf');
             Route::get('/sftp/validator', App\Livewire\Portal\Payslips\SftpPayslipValidator::class)->name('portal.payslips.sftp-validator')->middleware(['can:manage-payslips', 'feature:sftp_validator']);
         });
@@ -170,7 +170,7 @@ Route::group(
         });
 
         //Leave Management
-        Route::prefix('leaves')->group(function () {
+        Route::prefix('leaves')->middleware('feature:leaves')->group(function () {
             Route::get('/', App\Livewire\Portal\Leaves\Index::class)->name('portal.leaves.index');
             Route::get('/types', App\Livewire\Portal\Leaves\Types\Index::class)->name('portal.leaves.types');
         });
@@ -196,7 +196,7 @@ Route::group(
         });
 
         // Holidays
-        Route::get('/holidays', App\Livewire\Portal\Holidays\Index::class)->name('portal.holidays.index');
+        Route::get('/holidays', App\Livewire\Portal\Holidays\Index::class)->name('portal.holidays.index')->middleware('feature:holiday_calendar');
 
         //Checklog management
         Route::prefix('reports')->group(function () {
@@ -207,12 +207,12 @@ Route::group(
         });
 
         //Download Jobs
-        Route::get('/download-jobs', App\Livewire\Portal\DownloadJobs\Index::class)->name('portal.download-jobs.index');
+        Route::get('/download-jobs', App\Livewire\Portal\DownloadJobs\Index::class)->name('portal.download-jobs.index')->middleware('feature:import_export');
 
         //Import Jobs
-        Route::get('/import-jobs', App\Livewire\Portal\ImportJobs\Index::class)->name('portal.import-jobs.index');
-        Route::get('/import-wizard', App\Livewire\ImportWizard::class)->name('portal.import-wizard');
-        Route::get('/export-wizard', App\Livewire\ExportWizard::class)->name('portal.export-wizard');
+        Route::get('/import-jobs', App\Livewire\Portal\ImportJobs\Index::class)->name('portal.import-jobs.index')->middleware('feature:import_export');
+        Route::get('/import-wizard', App\Livewire\ImportWizard::class)->name('portal.import-wizard')->middleware('feature:import_export');
+        Route::get('/export-wizard', App\Livewire\ExportWizard::class)->name('portal.export-wizard')->middleware('feature:import_export');
         Route::get('/download-template/{filename}', function($filename) {
             $path = public_path('templates/' . $filename);
             if (!file_exists($path)) {

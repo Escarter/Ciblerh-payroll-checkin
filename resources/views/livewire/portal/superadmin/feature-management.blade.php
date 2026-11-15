@@ -70,22 +70,6 @@
         </div>
     </div>
 
-    <!-- Alert Notifications -->
-    @if (session()->has('success'))
-        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
-            <svg class="icon icon-xs text-success flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div class="flex-grow-1 small fw-medium">{{ session('success') }}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
-    @if (session()->has('error'))
-        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
-            <svg class="icon icon-xs text-danger flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div class="flex-grow-1 small fw-medium">{{ session('error') }}</div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
 
     <!-- KPI Metric Summary Cards -->
     <div class="row g-3 mb-4">
@@ -261,8 +245,8 @@
                                 <span class="sa-category-icon rounded-2 p-2 d-inline-flex align-items-center justify-content-center 
                                     @if(in_array($category, ['security', 'compliance'])) bg-danger-soft text-danger
                                     @elseif(in_array($category, ['finance', 'payroll'])) bg-success-soft text-success
-                                    @elseif($category === 'attendance') bg-info-soft text-info
-                                    @elseif($category === 'notifications') bg-warning-soft text-warning
+                                    @elseif(in_array($category, ['attendance', 'portals'])) bg-info-soft text-info
+                                    @elseif(in_array($category, ['notifications', 'operations'])) bg-warning-soft text-warning
                                     @else bg-primary-soft text-primary
                                     @endif
                                 ">
@@ -280,6 +264,10 @@
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                     @elseif($category === 'employees')
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    @elseif($category === 'portals')
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    @elseif($category === 'operations')
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                                     @else
                                         <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                                     @endif
@@ -391,7 +379,7 @@
                                     <tr>
                                         <th class="border-0 px-4 py-3 small text-uppercase fw-bold text-muted">User Account</th>
                                         <th class="border-0 px-3 py-3 small text-uppercase fw-bold text-muted">Contact / Status</th>
-                                        <th class="border-0 px-4 py-3 small text-uppercase fw-bold text-muted text-end">Privilege</th>
+                                        <th class="border-0 px-4 py-3 small text-uppercase fw-bold text-muted text-end">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -399,7 +387,12 @@
                                         <tr class="align-middle">
                                             <td class="px-4 py-3">
                                                 <div class="d-flex align-items-center gap-3">
-                                                    <x-user-avatar :user="$sa" size="36" class="rounded-circle shadow-sm" />
+                                                    <x-user-avatar 
+                                                        :user="$sa" 
+                                                        size="lg" 
+                                                        class="rounded-circle shadow-sm d-flex align-items-center justify-content-center fw-bold bg-primary text-white" 
+                                                        style="width: 50px; height: 50px; min-width: 50px; font-size: 1.1rem;" 
+                                                    />
                                                     <div>
                                                         <div class="fw-bold text-gray-900 d-flex align-items-center gap-2">
                                                             {{ $sa->name }}
@@ -420,18 +413,22 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 text-end">
-                                                @if($sa->id !== auth()->id() && $superadmins->count() > 1)
+                                                @if($sa->id !== auth()->id())
                                                     <button 
                                                         type="button" 
-                                                        wire:click="revokeSuperadmin({{ $sa->id }})" 
-                                                        wire:confirm="Revoke top-level Superadmin privileges from {{ $sa->name }}?"
-                                                        class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1"
+                                                        wire:click="removeSuperadmin({{ $sa->id }})" 
+                                                        wire:confirm="Remove Superadmin privileges from {{ $sa->name }}?"
+                                                        class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1.5 shadow-sm fw-medium"
+                                                        title="Remove from Superadmin list"
                                                     >
-                                                        Revoke
+                                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                        Remove
                                                     </button>
                                                 @else
-                                                    <span class="badge bg-gray-100 text-gray-500 rounded-pill px-3 py-1">
-                                                        Permanent
+                                                    <span class="badge bg-light text-muted border rounded-pill px-3 py-1.5" title="You cannot remove your own active superadmin account">
+                                                        Your Account
                                                     </span>
                                                 @endif
                                             </td>
@@ -481,7 +478,12 @@
                                 @forelse($candidates as $candidate)
                                     <div class="list-group-item d-flex justify-content-between align-items-center py-3 px-3">
                                         <div class="d-flex align-items-center gap-3">
-                                            <x-user-avatar :user="$candidate" size="32" class="rounded-circle shadow-sm" />
+                                            <x-user-avatar 
+                                                :user="$candidate" 
+                                                size="md" 
+                                                class="rounded-circle shadow-sm d-flex align-items-center justify-content-center fw-bold bg-primary text-white" 
+                                                style="width: 44px; height: 44px; min-width: 44px; font-size: 0.95rem;" 
+                                            />
                                             <div>
                                                 <span class="fw-bold small d-block text-gray-900">{{ $candidate->name }}</span>
                                                 <small class="text-muted" style="font-size: .75rem;">{{ $candidate->email }}</small>
@@ -489,14 +491,32 @@
                                         </div>
                                         <div>
                                             @if($candidate->hasRole('superadmin'))
-                                                <span class="badge bg-success-soft text-success rounded-pill px-3 py-1">Superadmin</span>
+                                                @if($candidate->id !== auth()->id())
+                                                    <button 
+                                                        type="button" 
+                                                        wire:click="removeSuperadmin({{ $candidate->id }})" 
+                                                        wire:confirm="Remove {{ $candidate->name }} from Superadmins?"
+                                                        class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-medium d-inline-flex align-items-center gap-1 shadow-sm"
+                                                        title="Remove from Superadmin list"
+                                                    >
+                                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                        </svg>
+                                                        Remove
+                                                    </button>
+                                                @else
+                                                    <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1">Your Account</span>
+                                                @endif
                                             @else
                                                 <button 
                                                     type="button" 
                                                     wire:click="makeSuperadmin({{ $candidate->id }})" 
                                                     wire:confirm="Promote {{ $candidate->name }} to Superadmin?"
-                                                    class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-semibold"
+                                                    class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-sm"
                                                 >
+                                                    <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                                    </svg>
                                                     Promote
                                                 </button>
                                             @endif

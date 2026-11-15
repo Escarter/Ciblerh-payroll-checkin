@@ -23,7 +23,7 @@
                 <a href="{{ route('language-switcher', ['locale' => 'en']) }}" wire:navigate class="{{ \App::isLocale('en') ? 'on' : '' }}">EN</a>
             </div>
             @if($u->canSwitchPortals())
-            <a href="{{ route('employee.dashboard') }}" class="emp-pill" title="Employee Portal">{!! $sv('M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4') !!}<span class="d-none d-lg-inline">Employee</span></a>
+            <a href="{{ route('employee.dashboard') }}" class="emp-pill" data-feature-item="employee_portal" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('employee_portal')]) title="Employee Portal">{!! $sv('M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4') !!}<span class="d-none d-lg-inline">Employee</span></a>
             @endif
             <a href="{{ route('portal.profile-setting') }}" wire:navigate class="emp-avatar position-relative overflow-hidden" title="{{ __('common.profile') }}">
                 <span>{{ $u->initials }}</span>

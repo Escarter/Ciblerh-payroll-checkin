@@ -402,7 +402,21 @@
             });
 
             // Handle toast notifications
-            window.Livewire.on('showToast', (params) => {
+            let lastToastTime = 0;
+            let lastToastMsg = '';
+            const handleToastNotification = (params) => {
+                const data = Array.isArray(params) ? (params[0] || {}) : (params?.detail ? (Array.isArray(params.detail) ? params.detail[0] : params.detail) : (params || {}));
+                const message = data.message || params?.message || '';
+                const type = data.type || params?.type || 'success';
+                if (!message) return;
+
+                const now = Date.now();
+                if (message === lastToastMsg && (now - lastToastTime) < 500) {
+                    return; // Ignore duplicate toast within 500ms
+                }
+                lastToastTime = now;
+                lastToastMsg = message;
+
                 let toastContainer = document.getElementById('toast-container');
                 if (!toastContainer) {
                     toastContainer = document.createElement('div');
@@ -413,7 +427,7 @@
                 }
 
                 const toastEl = document.createElement('div');
-                toastEl.className = `toast align-items-center text-white bg-${params.type || 'success'} border-0`;
+                toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
                 toastEl.setAttribute('role', 'alert');
                 toastEl.setAttribute('aria-live', 'assertive');
                 toastEl.setAttribute('aria-atomic', 'true');
@@ -421,7 +435,7 @@
                 toastEl.innerHTML = `
                     <div class="d-flex">
                         <div class="toast-body">
-                            ${params.message}
+                            ${message}
                         </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                     </div>
@@ -431,12 +445,32 @@
 
                 const toast = new bootstrap.Toast(toastEl, {
                     autohide: true,
-                    delay: 5000
+                    delay: 4500
                 });
                 toast.show();
 
                 toastEl.addEventListener('hidden.bs.toast', () => {
                     toastEl.remove();
+                });
+            };
+
+            window.Livewire.on('showToast', handleToastNotification);
+            window.Livewire.on('show-toast', handleToastNotification);
+
+            // Reactively toggle sidebar & navbar items immediately without manual page refresh
+            window.Livewire.on('feature-toggled', (params) => {
+                const data = Array.isArray(params) ? (params[0] || {}) : (params?.detail ? (Array.isArray(params.detail) ? params.detail[0] : params.detail) : (params || {}));
+                const key = data.key;
+                const enabled = Boolean(data.enabled);
+                if (!key) return;
+
+                document.querySelectorAll(`[data-feature-item="${key}"]`).forEach((el) => {
+                    if (enabled) {
+                        el.style.removeProperty('display');
+                        el.classList.remove('d-none');
+                    } else {
+                        el.style.setProperty('display', 'none', 'important');
+                    }
                 });
             });
 

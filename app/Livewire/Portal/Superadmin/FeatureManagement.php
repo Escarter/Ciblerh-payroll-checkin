@@ -25,6 +25,8 @@ class FeatureManagement extends Component
         if (!auth()->check() || !auth()->user()->hasRole('superadmin')) {
             abort(403, 'Unauthorized access.');
         }
+
+        PlatformFeature::syncDefaultFeatures();
     }
 
     public function resetFilters()
@@ -32,6 +34,11 @@ class FeatureManagement extends Component
         $this->searchFeature = '';
         $this->selectedCategory = 'all';
         $this->statusFilter = 'all';
+    }
+
+    public function showToast($message, $type = 'success')
+    {
+        $this->dispatch('showToast', message: $message, type: $type);
     }
 
     public function toggleFeature($featureId)
@@ -42,10 +49,10 @@ class FeatureManagement extends Component
 
         \Illuminate\Support\Facades\Cache::forget(PlatformFeature::CACHE_KEY);
 
-        session()->flash('success', __("Feature ':name' is now :status.", [
-            'name' => $feature->name,
-            'status' => $feature->is_enabled ? 'enabled & visible' : 'disabled & hidden from navigation',
-        ]));
+        $status = $feature->is_enabled ? 'enabled & visible' : 'disabled & hidden from navigation';
+        $this->showToast("Feature '{$feature->name}' is now {$status}.", $feature->is_enabled ? 'success' : 'warning');
+
+        $this->dispatch('feature-toggled', key: $feature->key, enabled: (bool) $feature->is_enabled);
     }
 
     public function makeSuperadmin($userId)
@@ -61,7 +68,9 @@ class FeatureManagement extends Component
             $user->assignRole($role);
             \Illuminate\Support\Facades\Cache::forget('is_superadmin_' . $userId);
             \Illuminate\Support\Facades\Cache::forget('superadmin_user_ids');
-            session()->flash('success', "User '{$user->name}' ({$user->email}) is now a Superadmin.");
+            $this->showToast("User '{$user->name}' is now a Superadmin.", 'success');
+        } else {
+            $this->showToast("User '{$user->name}' is already a Superadmin.", 'info');
         }
     }
 
@@ -70,20 +79,25 @@ class FeatureManagement extends Component
         $user = User::withoutGlobalScope('hideSuperadmins')->findOrFail($userId);
 
         if ($user->id === auth()->id()) {
-            session()->flash('error', 'You cannot revoke your own Superadmin privileges.');
+            $this->showToast('You cannot remove your own Superadmin account.', 'danger');
             return;
         }
 
         $superadminCount = User::withoutGlobalScope('hideSuperadmins')->role('superadmin')->count();
         if ($superadminCount <= 1) {
-            session()->flash('error', 'Cannot revoke the last remaining Superadmin.');
+            $this->showToast('Cannot remove the last remaining Superadmin.', 'danger');
             return;
         }
 
         $user->removeRole('superadmin');
         \Illuminate\Support\Facades\Cache::forget('is_superadmin_' . $userId);
         \Illuminate\Support\Facades\Cache::forget('superadmin_user_ids');
-        session()->flash('success', "Superadmin privilege revoked from '{$user->name}'.");
+        $this->showToast("Superadmin privilege removed from '{$user->name}'.", 'success');
+    }
+
+    public function removeSuperadmin($userId)
+    {
+        return $this->revokeSuperadmin($userId);
     }
 
     public function render()

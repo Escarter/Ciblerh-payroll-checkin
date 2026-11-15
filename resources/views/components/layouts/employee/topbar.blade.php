@@ -16,11 +16,11 @@
     $allLinks = [
         'employee.dashboard' => ['employee.dashboard', __('common.dashboard'), 'home'],
         'employee.checklogs' => \App\Models\PlatformFeature::isEnabled('checklogs') ? ['employee.checklogs', __('employees.checkins'), 'check'] : null,
-        'employee.payslips' => ['employee.payslips', __('common.payslips'), 'cash'],
-        'employee.leaves' => ['employee.leaves', __('employees.leave'), 'leave'],
+        'employee.payslips' => \App\Models\PlatformFeature::isEnabled('payslip_history') ? ['employee.payslips', __('common.payslips'), 'cash'] : null,
+        'employee.leaves' => \App\Models\PlatformFeature::isEnabled('leaves') ? ['employee.leaves', __('employees.leave'), 'leave'] : null,
         'employee.overtimes' => \App\Models\PlatformFeature::isEnabled('overtimes') ? ['employee.overtimes', __('common.overtime'), 'clock'] : null,
         'employee.advance-salaries' => \App\Models\PlatformFeature::isEnabled('advance_salaries') ? ['employee.advance-salaries', __('employees.advance_salary_short'), 'cash'] : null,
-        'employee.absences' => ['employee.absences', __('employees.absence'), 'calendar'],
+        'employee.absences' => \App\Models\PlatformFeature::isEnabled('absences') ? ['employee.absences', __('employees.absence'), 'calendar'] : null,
         'employee.annual-declarations' => \App\Models\PlatformFeature::isEnabled('annual_declarations') ? ['employee.annual-declarations', __('annual_declarations.annual_declarations'), 'doc'] : null,
     ];
     $links = array_values(array_filter($allLinks));

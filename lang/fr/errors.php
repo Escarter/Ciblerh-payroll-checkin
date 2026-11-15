@@ -31,6 +31,14 @@ return [
     '500_message' => 'Désolé, quelque chose s\'est mal passé de notre côté. Nous travaillons à résoudre ce problème. Veuillez réessayer plus tard ou contacter le support si le problème persiste.',
     'try_again' => 'Réessayer',
 
+    // 401 - Unauthorized
+    '401_title' => 'Non Autorisé',
+    '401_message' => 'Désolé, vous devez être connecté pour accéder à cette page. Veuillez vous connecter et réessayer.',
+
+    // 429 - Too Many Requests
+    '429_title' => 'Trop de Requêtes',
+    '429_message' => 'Désolé, vous avez envoyé trop de requêtes en peu de temps. Veuillez patienter un instant avant de réessayer.',
+
     // 503 - Service Unavailable
     '503_title' => 'Service Indisponible',
     '503_message' => 'Désolé, notre service est temporairement indisponible. Nous effectuons une maintenance ou connaissons un trafic élevé. Veuillez revenir bientôt.',

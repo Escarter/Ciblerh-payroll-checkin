@@ -98,9 +98,8 @@
                                 @endhasrole
                                 @canany(['ticking-read','overtime-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
-                                @feature('checklogs')
                                 @can('ticking-read')
-                                <li class="nav-item {{ $request->routeIs('portal.checklogs.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.checklogs.*') ? 'active' : '' }}" data-feature-item="checklogs" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('checklogs')])>
                                     <a href="{{route('portal.checklogs.index')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -113,10 +112,8 @@
                                     </a>
                                 </li>
                                 @endcan
-                                @endfeature
-                                @feature('overtimes')
                                 @can('overtime-read')
-                                <li class="nav-item {{ $request->routeIs('portal.overtimes.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.overtimes.*') ? 'active' : '' }}" data-feature-item="overtimes" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('overtimes')])>
                                     <a href="{{route('portal.overtimes.index')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -129,13 +126,11 @@
                                     </a>
                                 </li>
                                 @endcan
-                                @endfeature
                                 @endcanany
                                 @canany(['advance_salary-read','absence-read'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
-                                @feature('advance_salaries')
                                 @can('advance_salary-read')
-                                <li class="nav-item {{ $request->routeIs('portal.advance-salaries.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.advance-salaries.*') ? 'active' : '' }}" data-feature-item="advance_salaries" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('advance_salaries')])>
                                     <a href="{{route('portal.advance-salaries.index')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -148,9 +143,8 @@
                                     </a>
                                 </li>
                                 @endcan
-                                @endfeature
                                 @can('absence-read')
-                                <li class="nav-item {{ $request->routeIs('portal.absences.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.absences.*') ? 'active' : '' }}" data-feature-item="absences" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('absences')])>
                                     <a href="{{route('portal.absences.index')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -166,9 +160,8 @@
                                 @endcanany
                                 @canany(['payslip-read','payslip-sending','manage-payslips'])
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
-                                @feature('sftp_validator')
                                 @can('manage-payslips')
-                                <li class="nav-item {{ $request->routeIs('portal.payslips.sftp-validator') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.payslips.sftp-validator') ? 'active' : '' }}" data-feature-item="sftp_validator" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('sftp_validator')])>
                                     <a href="{{route('portal.payslips.sftp-validator')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -181,9 +174,8 @@
                                     </a>
                                 </li>
                                 @endcan
-                                @endfeature
                                 @can('payslip-sending')
-                                <li class="nav-item {{ $request->routeIs('portal.payslips.index') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.payslips.index') ? 'active' : '' }}" data-feature-item="payslip_sending" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('payslip_sending')])>
                                     <a href="{{route('portal.payslips.index')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -196,9 +188,8 @@
                                     </a>
                                 </li>
                                 @endcan
-                                @feature('annual_declarations')
                                 @can('payslip-read')
-                                <li class="nav-item {{ $request->routeIs('portal.annual-declarations.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.annual-declarations.*') ? 'active' : '' }}" data-feature-item="annual_declarations" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('annual_declarations')])>
                                     <a href="{{route('portal.annual-declarations.index')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -211,9 +202,8 @@
                                     </a>
                                 </li>
                                 @endcan
-                                @endfeature
                                 @can('payslip-read')
-                                <li class="nav-item {{ $request->routeIs('portal.payslips.history') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.payslips.history') ? 'active' : '' }}" data-feature-item="payslip_history" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('payslip_history')])>
                                     <a href="{{route('portal.payslips.history')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -229,9 +219,9 @@
                                 @endcan
                                 @endcanany
                                 @canany(['leave-read','leave_type-read'])
-                                <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>
+                                <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600" data-feature-item="leaves" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('leaves')])></li>
                                 @can('leave-read')
-                                <li class="nav-item {{ $request->routeIs('portal.leaves.index') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.leaves.index') ? 'active' : '' }}" data-feature-item="leaves" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('leaves')])>
                                     <a href="{{route('portal.leaves.index')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -245,7 +235,7 @@
                                 </li>
                                 @endcan
                                 @can('leave_type-read')
-                                <li class="nav-item {{ $request->routeIs('portal.leaves.types') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.leaves.types') ? 'active' : '' }}" data-feature-item="leaves" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('leaves')])>
                                     <a href="{{route('portal.leaves.types')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -278,27 +268,23 @@
                                     </span>
                                     <div class="multi-level {{ $request->routeIs('portal.reports.*') || $request->routeIs('portal.download-jobs.*') ? '' : 'collapse' }}" role="list" id="submenu-user" aria-expanded="false">
                                         <ul class="flex-column nav gap-0">
-                                            @feature('checklogs')
-                                            <li class="nav-item {{ $request->routeIs('portal.reports.checklogs') ? 'active' : '' }}">
+                                            <li class="nav-item {{ $request->routeIs('portal.reports.checklogs') ? 'active' : '' }}" data-feature-item="checklogs" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('checklogs')])>
                                                 <a href="{{route('portal.reports.checklogs')}}" class="nav-link ">
                                                     <span class="sidebar-text-contracted">C</span>
                                                     <span class="sidebar-text">{{__('common.checkins')}}</span>
                                                 </a>
                                             </li>
-                                            @endfeature
-                                            @feature('overtimes')
-                                            <li class="nav-item {{ $request->routeIs('portal.reports.overtime') ? 'active' : '' }}">
+                                            <li class="nav-item {{ $request->routeIs('portal.reports.overtime') ? 'active' : '' }}" data-feature-item="overtimes" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('overtimes')])>
                                                 <a href="{{route('portal.reports.overtime')}}" class="nav-link">
                                                     <span class="sidebar-text-contracted">O</span><span class="sidebar-text">{{__('common.overtime')}}</span>
                                                 </a>
                                             </li>
-                                            @endfeature
                                             <li class="nav-item {{ $request->routeIs('portal.reports.payslip') ? 'active' : '' }}">
                                                 <a href="{{route('portal.reports.payslip')}}" class="nav-link">
                                                     <span class="sidebar-text-contracted">P</span><span class="sidebar-text">{{__('common.payslips')}}</span>
                                                 </a>
                                             </li>
-                                            <li class="nav-item {{ $request->routeIs('portal.download-jobs.*') ? 'active' : '' }}">
+                                            <li class="nav-item {{ $request->routeIs('portal.download-jobs.*') ? 'active' : '' }}" data-feature-item="import_export" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('import_export')])>
                                                 <a href="{{route('portal.download-jobs.index')}}" class="nav-link">
                                                     <span class="sidebar-text-contracted">G</span><span class="sidebar-text">{{__('common.generate')}}</span>
                                                 </a>
@@ -309,7 +295,7 @@
                                 @endif
 
                                 @can('importjob-read')
-                                <li class="nav-item {{ ($request->routeIs('portal.import-jobs.*') || $request->routeIs('portal.import-wizard')) ? 'active' : '' }}">
+                                <li class="nav-item {{ ($request->routeIs('portal.import-jobs.*') || $request->routeIs('portal.import-wizard')) ? 'active' : '' }}" data-feature-item="import_export" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('import_export')])>
                                     <a href="{{route('portal.import-jobs.index')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -322,7 +308,7 @@
                                     </a>
                                 </li>
                                 @endcan
-                                <li class="nav-item {{ $request->routeIs('portal.export-wizard') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.export-wizard') ? 'active' : '' }}" data-feature-item="import_export" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('import_export')])>
                                     <a href="{{route('portal.export-wizard')}}" class="nav-link d-flex align-items-center justify-content-between">
                                         <span>
                                             <span class="sidebar-icon">
@@ -369,7 +355,7 @@
                                         <span class="sidebar-text">{{ __('settings.appearance') }}</span>
                                     </a>
                                 </li>
-                                <li class="nav-item {{ $request->routeIs('portal.holidays.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.holidays.*') ? 'active' : '' }}" data-feature-item="holiday_calendar" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('holiday_calendar')])>
                                     <a href="{{ route('portal.holidays.index') }}" class="nav-link">
                                         <span class="sidebar-icon">
                                             <svg class="icon icon-sm me-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -380,8 +366,7 @@
                                     </a>
                                 </li>
                                 @endcan
-                                @feature('audit_logs')
-                                <li class="nav-item {{ $request->routeIs('portal.auditlogs.*') ? 'active' : '' }}">
+                                <li class="nav-item {{ $request->routeIs('portal.auditlogs.*') ? 'active' : '' }}" data-feature-item="audit_logs" @style(['display: none !important' => !\App\Models\PlatformFeature::isEnabled('audit_logs')])>
                                     <a href="{{route('portal.auditlogs.index')}}" class="nav-link">
                                         <span class="sidebar-icon">
                                             <svg class="icon icon-sm me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -391,7 +376,6 @@
                                         <span class="sidebar-text">{{__('common.audit_logs')}}</span>
                                     </a>
                                 </li>
-                                @endfeature
 
                                 @superadmin
                                 <li role="separator" class="dropdown-divider mt-2 mb-2 border-gray-600"></li>

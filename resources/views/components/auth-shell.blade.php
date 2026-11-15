@@ -1,4 +1,13 @@
-@props(['title', 'subtitle' => null, 'back' => false, 'wide' => false])
+@props([
+    'title',
+    'subtitle' => null,
+    'back' => false,
+    'backUrl' => null,
+    'backLabel' => null,
+    'wide' => false,
+    'code' => null,
+    'badge' => null,
+])
 
 @php
     $authBg = \App\Support\Branding::get('auth_bg');
@@ -34,6 +43,140 @@
     }
     .rf-auth-form.rf-auth-form-wide {
         max-width: 640px;
+    }
+    .rf-auth-back-wrap {
+        display: block;
+        margin-bottom: 1.25rem;
+    }
+    .rf-auth-back {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        font-weight: 600;
+        font-size: .85rem;
+        color: var(--rf-brand);
+        text-decoration: none;
+        margin-bottom: 0;
+    }
+    .rf-auth-back:hover {
+        color: var(--rf-brand-hover, var(--rf-brand));
+        text-decoration: underline;
+    }
+    .rf-auth-code-wrap {
+        display: block;
+        margin-bottom: 1.25rem;
+    }
+    .rf-auth-code-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .35rem .85rem;
+        border-radius: 999px;
+        font-size: .82rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+        background: var(--rf-brand-soft);
+        color: var(--rf-brand);
+        border: 1px solid var(--rf-brand-ring);
+        width: fit-content;
+    }
+    .rf-auth-code-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+    .rf-auth-code-val {
+        font-weight: 800;
+    }
+    .rf-auth-code-sep {
+        opacity: .45;
+    }
+    .rf-auth-submit,
+    a.rf-auth-submit,
+    button.rf-auth-submit {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: .6rem !important;
+        width: 100% !important;
+        height: 3.25rem !important;
+        border: 0 !important;
+        border-radius: .8rem !important;
+        background: var(--rf-brand) !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        transition: filter .15s, transform .15s, box-shadow .15s !important;
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--rf-brand) 30%, transparent) !important;
+    }
+    .rf-auth-submit:hover,
+    a.rf-auth-submit:hover,
+    button.rf-auth-submit:hover {
+        filter: brightness(1.08) !important;
+        color: #ffffff !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--rf-brand) 40%, transparent) !important;
+    }
+    .rf-auth-submit svg,
+    a.rf-auth-submit svg {
+        color: #ffffff !important;
+        stroke: currentColor !important;
+    }
+    html[data-theme="dark"] .rf-auth-submit,
+    html[data-theme="dark"] a.rf-auth-submit {
+        color: #0b1220 !important;
+        background: var(--rf-brand) !important;
+    }
+    html[data-theme="dark"] .rf-auth-submit svg,
+    html[data-theme="dark"] a.rf-auth-submit svg {
+        color: #0b1220 !important;
+        stroke: currentColor !important;
+    }
+    .rf-auth-secondary,
+    a.rf-auth-secondary {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: .6rem !important;
+        width: 100% !important;
+        height: 3.25rem !important;
+        border: 1px solid var(--rf-line, #e8ecf2) !important;
+        border-radius: .8rem !important;
+        background: var(--rf-surface, #ffffff) !important;
+        color: var(--rf-text, #334155) !important;
+        font-weight: 600 !important;
+        font-size: .95rem !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        transition: all .15s var(--rf-ease) !important;
+    }
+    .rf-auth-secondary:hover,
+    a.rf-auth-secondary:hover {
+        background: var(--rf-brand-soft) !important;
+        border-color: var(--rf-brand) !important;
+        color: var(--rf-brand) !important;
+        transform: translateY(-1px) !important;
+    }
+    html[data-theme="dark"] .rf-auth-secondary,
+    html[data-theme="dark"] a.rf-auth-secondary {
+        background: var(--rf-surface, #131c2e) !important;
+        border-color: var(--rf-line, #263244) !important;
+        color: var(--rf-text, #cbd5e1) !important;
+    }
+    html[data-theme="dark"] .rf-auth-secondary:hover,
+    html[data-theme="dark"] a.rf-auth-secondary:hover {
+        background: var(--rf-brand-soft) !important;
+        border-color: var(--rf-brand) !important;
+        color: var(--rf-brand) !important;
+    }
+    .rf-error-action-stack {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+        margin-top: 1.75rem;
     }
 </style>
 
@@ -88,12 +231,29 @@
 
         <div class="rf-auth-form {{ $wide ? 'rf-auth-form-wide' : '' }}">
             <x-brand-logo class="rf-auth-mobile-logo" text-class="rf-auth-mobile-logo" />
+
             @if ($back)
-                <a href="{{ route('login') }}" class="rf-auth-back">
-                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 12H5m6-6l-6 6 6 6"/></svg>
-                    {{ __('auth.back_to_log_in') }}
-                </a>
+                <div class="rf-auth-back-wrap">
+                    <a href="{{ $backUrl ?: route('login') }}" class="rf-auth-back">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M19 12H5m6-6l-6 6 6 6"/></svg>
+                        <span>{{ $backLabel ?: __('auth.back_to_log_in') }}</span>
+                    </a>
+                </div>
             @endif
+
+            @if ($code)
+                <div class="rf-auth-code-wrap">
+                    <div class="rf-auth-code-pill">
+                        <span class="rf-auth-code-dot"></span>
+                        <span class="rf-auth-code-val">HTTP {{ $code }}</span>
+                        @if ($badge && $badge !== $title)
+                            <span class="rf-auth-code-sep">·</span>
+                            <span class="rf-auth-code-badge">{{ $badge }}</span>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <h1>{{ $title }}</h1>
             @if ($subtitle)<p class="rf-auth-sub">{{ $subtitle }}</p>@endif
 

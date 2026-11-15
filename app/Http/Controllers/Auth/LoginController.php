@@ -81,6 +81,11 @@ class LoginController extends Controller
                     flash(__('common.contract_expired_contact_supervisor'))->error()->important();
                     return redirect()->back()->withInput($request->input());
                 }else{
+                    if (!\App\Models\PlatformFeature::isEnabled('employee_portal')) {
+                        auth()->logout();
+                        flash(__('The Employee Self-Service Portal is currently disabled by system administration.'))->warning()->important();
+                        return redirect()->route('login');
+                    }
                     flash(__('common.welcome_back_user', ['user' => auth()->user()->name]))->success();
                     return redirect()->route('employee.dashboard');
                 }
