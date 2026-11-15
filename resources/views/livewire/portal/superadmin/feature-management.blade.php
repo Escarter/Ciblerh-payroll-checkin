@@ -202,30 +202,31 @@
                     </div>
 
                     <!-- Status Filter Segmented Buttons -->
-                    <div class="col-lg-3 col-12 d-flex justify-content-lg-end">
-                        <div class="btn-group w-100" role="group">
-                            <button 
-                                type="button" 
-                                wire:click="$set('statusFilter', 'all')" 
-                                class="btn btn-sm py-2 {{ $statusFilter === 'all' ? 'btn-primary' : 'btn-outline-secondary' }}"
-                            >
-                                All ({{ $totalFeatures }})
-                            </button>
-                            <button 
-                                type="button" 
-                                wire:click="$set('statusFilter', 'active')" 
-                                class="btn btn-sm py-2 {{ $statusFilter === 'active' ? 'btn-success text-white' : 'btn-outline-secondary' }}"
-                            >
-                                Active ({{ $enabledCount }})
-                            </button>
-                            <button 
-                                type="button" 
-                                wire:click="$set('statusFilter', 'disabled')" 
-                                class="btn btn-sm py-2 {{ $statusFilter === 'disabled' ? 'btn-warning text-dark' : 'btn-outline-secondary' }}"
-                            >
-                                Off ({{ $disabledCount }})
-                            </button>
-                        </div>
+                    <div class="col-lg-4 col-12 d-flex justify-content-lg-end align-items-center gap-2 flex-wrap">
+                        <button 
+                            type="button" 
+                            wire:click="$set('statusFilter', 'all')" 
+                            class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center transition-all {{ $statusFilter === 'all' ? 'btn-primary text-white shadow-sm' : 'sa-filter-btn' }}"
+                        >
+                            All
+                            <span class="badge rounded-pill ms-2 {{ $statusFilter === 'all' ? 'bg-white text-primary' : 'bg-secondary-soft text-muted' }}" style="font-size: 0.72rem;">{{ $totalFeatures }}</span>
+                        </button>
+                        <button 
+                            type="button" 
+                            wire:click="$set('statusFilter', 'active')" 
+                            class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center transition-all {{ $statusFilter === 'active' ? 'btn-success text-white shadow-sm' : 'sa-filter-btn' }}"
+                        >
+                            Active
+                            <span class="badge rounded-pill ms-2 {{ $statusFilter === 'active' ? 'bg-white text-success' : 'bg-success-soft text-success' }}" style="font-size: 0.72rem;">{{ $enabledCount }}</span>
+                        </button>
+                        <button 
+                            type="button" 
+                            wire:click="$set('statusFilter', 'disabled')" 
+                            class="btn btn-sm rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center transition-all {{ $statusFilter === 'disabled' ? 'btn-warning text-dark shadow-sm' : 'sa-filter-btn' }}"
+                        >
+                            Off
+                            <span class="badge rounded-pill ms-2 {{ $statusFilter === 'disabled' ? 'bg-white text-dark' : 'bg-secondary-soft text-muted' }}" style="font-size: 0.72rem;">{{ $disabledCount }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -520,6 +521,46 @@
 
 @push('styles')
 <style>
+    /* Filter Pill Buttons */
+    .sa-filter-btn {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+    }
+    .sa-filter-btn:hover {
+        background: #edf2f7;
+        color: #0f172a;
+        border-color: #cbd5e1;
+    }
+    html[data-theme="dark"] .sa-filter-btn {
+        background: var(--rf-surface-2) !important;
+        border-color: var(--rf-line) !important;
+        color: var(--rf-text) !important;
+    }
+    html[data-theme="dark"] .sa-filter-btn:hover {
+        background: rgba(109, 155, 240, 0.15) !important;
+        color: var(--rf-ink) !important;
+        border-color: var(--rf-accent) !important;
+    }
+    html[data-theme="dark"] .sa-feature-disabled {
+        background: rgba(30, 41, 59, 0.4) !important;
+        border-top-color: var(--rf-line) !important;
+    }
+    html[data-theme="dark"] .sa-stat-card {
+        background: var(--rf-surface) !important;
+        border-color: var(--rf-line) !important;
+    }
+    html[data-theme="dark"] .sa-feature-card {
+        background: var(--rf-surface) !important;
+        border-color: var(--rf-line) !important;
+    }
+    html[data-theme="dark"] .bg-primary-soft { background-color: rgba(59, 130, 246, 0.16) !important; color: #93c5fd !important; }
+    html[data-theme="dark"] .bg-success-soft { background-color: rgba(16, 185, 129, 0.16) !important; color: #6ee7b7 !important; }
+    html[data-theme="dark"] .bg-danger-soft { background-color: rgba(239, 68, 68, 0.16) !important; color: #fca5a5 !important; }
+    html[data-theme="dark"] .bg-warning-soft { background-color: rgba(245, 158, 11, 0.16) !important; color: #fcd34d !important; }
+    html[data-theme="dark"] .bg-info-soft { background-color: rgba(14, 165, 233, 0.16) !important; color: #7dd3fc !important; }
+    html[data-theme="dark"] .bg-secondary-soft { background-color: rgba(148, 163, 184, 0.16) !important; color: #cbd5e1 !important; }
+
     /* Stat Cards */
     .sa-stat-card {
         background: #ffffff;
