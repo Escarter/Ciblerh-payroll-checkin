@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use App\Models\Traits\HasUUID;
@@ -9,7 +10,6 @@ use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +25,8 @@ class User extends Authenticatable implements HasLocalePreference
 
     const STATUS_ACTIVE = 1;
     const STATUS_BANNED = 0;
+    const DEFAULT_WORK_START_TIME = '08:00:00';
+    const DEFAULT_WORK_END_TIME = '17:30:00';
     /**
      * The attributes that are mass assignable.
      *
@@ -40,6 +42,8 @@ class User extends Authenticatable implements HasLocalePreference
     protected $hidden = [
         'password',
         'remember_token',
+        'mfa_secret',
+        'mfa_totp_timestep',
     ];
 
     /**
@@ -58,8 +62,118 @@ class User extends Authenticatable implements HasLocalePreference
         'receive_email_notifications' => 'boolean',
         'email_bounced' => 'boolean',
         'email_bounced_at' => 'datetime',
-        'email_bounce_type' => 'string'
+        'email_bounce_type' => 'string',
+        'last_payslip_received_at' => 'datetime',
+        'deactivated_at' => 'datetime',
+        'mfa_enabled' => 'boolean',
+        'mfa_required' => 'boolean',
+        'mfa_secret' => 'encrypted',
+        'mfa_totp_timestep' => 'integer',
+        'mfa_confirmed_at' => 'datetime',
+        'mfa_last_used_at' => 'datetime',
     ];
+
+    /**
+     * Check safely whether the current request/session belongs to a superadmin
+     * without triggering Eloquent queries or re-entrant auth user resolution.
+     */
+    public static function isCurrentSuperAdmin(): bool
+    {
+        if (app()->runningInConsole() || !app()->bound('auth')) {
+            return false;
+        }
+
+        try {
+            $guard = auth()->guard();
+            $authId = null;
+
+            if ($guard->hasUser()) {
+                $authId = $guard->user()?->getAuthIdentifier();
+            } elseif (app()->bound('session') && session()->isStarted()) {
+                $sessionKey = $guard->getName();
+                $authId = session()->get($sessionKey);
+            }
+
+            if (!$authId) {
+                return false;
+            }
+
+            static $requestCache = [];
+            if (isset($requestCache[$authId])) {
+                return $requestCache[$authId];
+            }
+
+            $isSuper = \Illuminate\Support\Facades\Cache::remember('is_superadmin_' . $authId, 300, function () use ($authId) {
+                return \Illuminate\Support\Facades\DB::table('model_has_roles')
+                    ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                    ->where('model_has_roles.model_type', User::class)
+                    ->where('model_has_roles.model_id', $authId)
+                    ->where('roles.name', 'superadmin')
+                    ->exists();
+            });
+
+            return $requestCache[$authId] = (bool) $isSuper;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    protected static function booted(): void
+    {
+        // When not logged in as a superadmin, hide superadmins from all queries
+        static::addGlobalScope('hideSuperadmins', function (Builder $builder) {
+            if (app()->runningInConsole()) {
+                return;
+            }
+
+            static $isResolving = false;
+            if ($isResolving) {
+                return;
+            }
+
+            $isResolving = true;
+            try {
+                if (static::isCurrentSuperAdmin()) {
+                    return;
+                }
+
+                // If not authenticated or no active session (e.g. login credentials lookup),
+                // do not hide superadmins so authentication / login works
+                if (!app()->bound('session') || !session()->isStarted()) {
+                    return;
+                }
+
+                $guard = auth()->guard();
+                $hasAuthId = $guard->hasUser() || session()->has($guard->getName());
+                if (!$hasAuthId) {
+                    return;
+                }
+
+                $superadminIds = \Illuminate\Support\Facades\Cache::remember('superadmin_user_ids', 300, function () {
+                    return \Illuminate\Support\Facades\DB::table('model_has_roles')
+                        ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                        ->where('model_has_roles.model_type', User::class)
+                        ->where('roles.name', 'superadmin')
+                        ->pluck('model_has_roles.model_id')
+                        ->toArray();
+                });
+
+                if (!empty($superadminIds)) {
+                    $builder->whereNotIn($builder->getModel()->getTable() . '.id', $superadminIds);
+                }
+            } finally {
+                $isResolving = false;
+            }
+        });
+
+        static::creating(function (User $user) {
+            $user->applyDefaultWorkTimes();
+        });
+
+        static::updating(function (User $user) {
+            $user->applyDefaultWorkTimes();
+        });
+    }
 
     /**
      * Get the user's preferred locale.
@@ -71,10 +185,173 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->preferred_language;
     }
 
-    protected function Matricule(): Attribute
+    public function applyDefaultWorkTimes(): void
+    {
+        if (blank($this->work_start_time)) {
+            $this->work_start_time = self::DEFAULT_WORK_START_TIME;
+        }
+
+        if (blank($this->work_end_time)) {
+            $this->work_end_time = self::DEFAULT_WORK_END_TIME;
+        }
+    }
+
+    /**
+     * Trim and uppercase matricule for storage and display (Unicode-aware so mixed/local casing is canonical).
+     */
+    public static function normalizeMatricule(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $trimmed = mb_trim($value, null, 'UTF-8');
+        if ($trimmed === '') {
+            return '';
+        }
+
+        return mb_strtoupper($trimmed, 'UTF-8');
+    }
+
+    /**
+     * Whether the matricule appears as a word token in PDF-extracted text (case-insensitive, Unicode).
+     */
+    public static function matriculeTokenExistsInPdfText(string $pdfText, ?string $matricule): bool
+    {
+        $needle = self::normalizeMatricule($matricule);
+        if ($needle === null || $needle === '') {
+            return false;
+        }
+
+        // pdftotext output may contain bytes that are not valid UTF-8 — this depends on the
+        // PDF's embedded fonts/encoding and the poppler build on the host, so the same payslip
+        // can extract as clean UTF-8 locally yet carry a stray byte in production. A single
+        // invalid byte makes preg_match() with the /u flag return false for the WHOLE string,
+        // which would silently report EVERY matricule as "not found" even when it is plainly
+        // present. Sanitize to valid UTF-8 first so detection is robust across environments.
+        $haystack = self::sanitizePdfTextToUtf8($pdfText);
+
+        $pattern = preg_quote($needle, '/');
+
+        return (bool) preg_match('/\b' . $pattern . '\b/iu', $haystack);
+    }
+
+    /**
+     * Return a guaranteed-valid UTF-8 string by dropping any malformed byte sequences.
+     * Used before Unicode (/u) regex matching against externally-extracted text such as
+     * pdftotext output, whose byte validity varies with the source PDF and the host build.
+     */
+    public static function sanitizePdfTextToUtf8(string $text): string
+    {
+        if ($text === '' || mb_check_encoding($text, 'UTF-8')) {
+            return $text;
+        }
+
+        $previous = ini_set('mbstring.substitute_character', 'none');
+        $clean = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        if ($previous !== false) {
+            ini_set('mbstring.substitute_character', $previous);
+        }
+
+        return $clean;
+    }
+
+    public static function normalizeEmailLocalPart(?string $email): ?string
+    {
+        if ($email === null || !str_contains($email, '@')) {
+            return null;
+        }
+
+        $localPart = explode('@', trim($email), 2)[0];
+
+        return $localPart === '' ? null : strtolower($localPart);
+    }
+
+    public function scopeWhereEmailLocalPart(Builder $query, string $localPart): Builder
+    {
+        $normalized = strtolower(trim($localPart));
+        if ($normalized === '') {
+            return $query->whereRaw('1 = 0');
+        }
+
+        $driver = $query->getConnection()->getDriverName();
+
+        if ($driver === 'sqlite') {
+            return $query->whereRaw("LOWER(substr(email, 1, instr(email, '@') - 1)) = ?", [$normalized]);
+        }
+
+        return $query->whereRaw("LOWER(SUBSTRING_INDEX(email, '@', 1)) = ?", [$normalized]);
+    }
+
+    public static function findConflictingEmailLocalPart(string $email, ?int $ignoreUserId = null): ?self
+    {
+        $normalizedEmail = strtolower(trim($email));
+        $localPart = self::normalizeEmailLocalPart($email);
+
+        if ($localPart === null) {
+            return null;
+        }
+
+        $query = static::query()->whereEmailLocalPart($localPart);
+
+        if ($ignoreUserId) {
+            $query->where('id', '!=', $ignoreUserId);
+        }
+
+        return $query->get()->first(
+            fn (self $user) => strtolower(trim((string) $user->getRawOriginal('email') ?: $user->email)) !== $normalizedEmail
+        );
+    }
+
+    public static function findConflictingMatricule(string $matricule, ?string $email = null, ?int $ignoreUserId = null): ?self
+    {
+        $normalizedMatricule = self::normalizeMatricule($matricule);
+        if ($normalizedMatricule === null || $normalizedMatricule === '') {
+            return null;
+        }
+
+        $query = static::query()->where('matricule', $normalizedMatricule);
+
+        if ($ignoreUserId) {
+            $query->where('id', '!=', $ignoreUserId);
+        }
+
+        $existing = $query->first();
+        if (!$existing) {
+            return null;
+        }
+
+        if ($email !== null && strtolower(trim($existing->email)) === strtolower(trim($email))) {
+            return null;
+        }
+
+        return $existing;
+    }
+
+    protected function professionalPhoneNumber(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => self::normalizePhoneValue($value));
+    }
+
+    protected function personalPhoneNumber(): Attribute
+    {
+        return Attribute::make(set: fn ($value) => self::normalizePhoneValue($value));
+    }
+
+    private static function normalizePhoneValue($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        return preg_replace('/[^0-9+]/', '', (string) $value) ?: null;
+    }
+
+    protected function matricule(): Attribute
     {
         return Attribute::make(
-            get: fn (string $value) => strtoupper($value),
+            get: fn (?string $value) => static::normalizeMatricule($value),
+            set: fn (?string $value) => static::normalizeMatricule($value),
         );
     }
 
@@ -101,6 +378,22 @@ class User extends Authenticatable implements HasLocalePreference
     public function getInitialsAttribute()
     {
         return strtoupper(Str::substr($this->first_name, 0, 1)) . "" . strtoupper(Str::substr($this->last_name, 0, 1));
+    }
+
+    public function photoUrl(bool $small = false): ?string
+    {
+        if (blank($this->photo_path)) {
+            return null;
+        }
+
+        $url = \Illuminate\Support\Facades\Storage::disk('public')->url($this->photo_path);
+
+        return $small ? \App\Services\ProfilePhotoService::smallUrl($url) : $url;
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photoUrl();
     }
 
     public function scopeSupervisor($query)
@@ -130,7 +423,7 @@ class User extends Authenticatable implements HasLocalePreference
     {
         return match($this->status){
             true => __('common.active'),
-            false => __('Banned'),
+            false => __('common.banned'),
             default => __('common.active'),
         };
     }
@@ -154,6 +447,17 @@ class User extends Authenticatable implements HasLocalePreference
     public function leaves()
     {
         return $this->hasMany(Leave::class,'user_id');
+    }
+
+    /**
+     * Get total approved leave days used by this user (manager-approved leaves only).
+     */
+    public function getUsedLeaveDaysAttribute(): float
+    {
+        return (float) $this->leaves()
+            ->where('manager_approval_status', Leave::MANAGER_APPROVAL_APPROVED)
+            ->get()
+            ->sum(fn (Leave $leave) => $leave->start_date->diffInDays($leave->end_date) + 1);
     }
     public function auditlogs()
     {
@@ -220,6 +524,123 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->hasMany(Payslip::class, 'employee_id');
     }
 
+    public function annualDeclarations(): HasMany
+    {
+        return $this->hasMany(AnnualDeclaration::class, 'employee_id');
+    }
+
+    public function mfaRecoveryCodes(): HasMany
+    {
+        return $this->hasMany(MfaRecoveryCode::class, 'user_id');
+    }
+
+    public function mfaSecurityEvents(): HasMany
+    {
+        return $this->hasMany(MfaSecurityEvent::class, 'user_id');
+    }
+
+    public function trustedDevices(): HasMany
+    {
+        return $this->hasMany(TrustedDevice::class, 'user_id');
+    }
+
+    /**
+     * Check whether the employee has any related records (including soft-deleted ones).
+     */
+    public function hasRelatedRecords(): bool
+    {
+        return $this->leaves()->withTrashed()->exists() ||
+               $this->tickings()->withTrashed()->exists() ||
+               $this->absences()->withTrashed()->exists() ||
+               $this->advanceSalaries()->withTrashed()->exists() ||
+               $this->overtimes()->withTrashed()->exists() ||
+               $this->payslips()->withTrashed()->exists() ||
+               $this->annualDeclarations()->withTrashed()->exists() ||
+               $this->supDepartments()->exists();
+    }
+
+    /**
+     * Permanently delete this employee and all associated data (payslips, PDF files, leaves,
+     * tickings, absences, advance salaries, overtimes, annual declarations, supervisor/manager links).
+     */
+    public function forceDeleteWithAllData(): void
+    {
+        \Illuminate\Support\Facades\DB::transaction(function () {
+            // 1. Delete physical PDF files for payslips & force-delete payslip records
+            $payslips = $this->payslips()->withTrashed()->get();
+            foreach ($payslips as $payslip) {
+                if (!empty($payslip->file) && \Illuminate\Support\Facades\Storage::disk('modified')->exists($payslip->file)) {
+                    \Illuminate\Support\Facades\Storage::disk('modified')->delete($payslip->file);
+                }
+            }
+            $this->payslips()->withTrashed()->forceDelete();
+
+            // 2. Delete physical PDF files for annual declarations & force-delete records
+            if (\Illuminate\Support\Facades\Schema::hasTable('annual_declarations')) {
+                $declarations = $this->annualDeclarations()->withTrashed()->get();
+                foreach ($declarations as $declaration) {
+                    if (!empty($declaration->file) && \Illuminate\Support\Facades\Storage::disk('modified')->exists($declaration->file)) {
+                        \Illuminate\Support\Facades\Storage::disk('modified')->delete($declaration->file);
+                    }
+                }
+                $this->annualDeclarations()->withTrashed()->forceDelete();
+            }
+
+            // 3. Force-delete HR & attendance records (including soft-deleted ones)
+            $this->leaves()->withTrashed()->forceDelete();
+            $this->tickings()->withTrashed()->forceDelete();
+            $this->absences()->withTrashed()->forceDelete();
+            $this->advanceSalaries()->withTrashed()->forceDelete();
+            $this->overtimes()->withTrashed()->forceDelete();
+
+            // 4. Remove supervisor & manager assignments
+            $this->supDepartments()->delete();
+            $this->managerCompanies()->detach();
+
+            // 4b. Clean up MFA records if tables exist
+            foreach (['mfa_recovery_codes', 'mfa_security_events', 'mfa_trusted_devices'] as $mfaTable) {
+                if (\Illuminate\Support\Facades\Schema::hasTable($mfaTable)) {
+                    \Illuminate\Support\Facades\DB::table($mfaTable)->where('user_id', $this->id)->delete();
+                }
+            }
+
+            // 5. Detach Spatie roles & permissions
+            $this->roles()->detach();
+            $this->permissions()->detach();
+
+            // 6. Nullify author_id references across tables where this user was the author
+            foreach ([
+                'users',
+                'companies',
+                'departments',
+                'services',
+                'absences',
+                'overtimes',
+                'advance_salaries',
+                'tickings',
+                'audit_logs',
+                'leaves',
+                'send_payslip_processes',
+                'payslips',
+                'leave_types',
+                'settings',
+                'send_annual_declaration_processes',
+            ] as $tableName) {
+                if (\Illuminate\Support\Facades\Schema::hasTable($tableName) && \Illuminate\Support\Facades\Schema::hasColumn($tableName, 'author_id')) {
+                    \Illuminate\Support\Facades\DB::table($tableName)
+                        ->where('author_id', $this->id)
+                        ->update(['author_id' => null]);
+                }
+            }
+
+            // 7. Delete profile photo files if present, then permanently delete the user record
+            if (!empty($this->photo_path)) {
+                app(\App\Services\ProfilePhotoService::class)->delete($this->photo_path);
+            }
+            $this->forceDelete();
+        });
+    }
+
     public static function search($query, $user = null)
     {
         $authUser = $user ?? auth()->user();
@@ -243,6 +664,7 @@ class User extends Authenticatable implements HasLocalePreference
                 $q->orWhere('matricule', 'like', '%' . $query . '%');
                 $q->orWhere('professional_phone_number', 'like', '%' . $query . '%');
                 $q->orWhere('personal_phone_number', 'like', '%' . $query . '%');
+                $q->orWhere('pdf_password', 'like', '%' . $query . '%');
                 $q->orWhereHas('service', function ($q) use ($query) {
                     $q->where('name', 'like', '%' . $query . '%');
                 });
@@ -279,5 +701,13 @@ class User extends Authenticatable implements HasLocalePreference
     public function isAdminUser()
     {
         return $this->hasAnyRole(['admin', 'manager', 'supervisor']);
+    }
+
+    /**
+     * Send the password reset notification using the app's dynamic mail settings.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }

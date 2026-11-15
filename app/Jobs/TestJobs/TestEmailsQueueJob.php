@@ -41,3 +41,5 @@ class TestEmailsQueueJob implements ShouldQueue
         Log::error("TestEmailsQueueJob failed - Test ID: {$this->testId}, Error: " . $exception->getMessage());
     }
 }
+
+

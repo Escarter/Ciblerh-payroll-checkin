@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -11,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('import_jobs')) {
+            return;
+        }
+
         Schema::create('import_jobs', function (Blueprint $table) {
             $table->id();
             $table->string('uuid')->unique();
@@ -47,6 +52,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::table('migrations')->where('migration', '2026_05_11_105752_create_import_jobs_table')->exists()) {
+            return;
+        }
+
         Schema::dropIfExists('import_jobs');
     }
 };

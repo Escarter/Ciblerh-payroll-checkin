@@ -9,6 +9,8 @@ use App\Models\Role;
 
 class UserRoles extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
     public $user;
     public $userId;
     public $userRoles = [];
@@ -25,9 +27,7 @@ class UserRoles extends Component
 
     public function showUserRoles($userId)
     {
-        if (!Gate::allows('employee-view')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-view');
 
         $this->userId = $userId;
         $this->user = User::with('roles')->findOrFail($userId);
@@ -50,9 +50,7 @@ class UserRoles extends Component
 
     public function assignRoles()
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
         // Validate role assignment permissions based on user role
         $userRole = auth()->user()->getRoleNames()->first();

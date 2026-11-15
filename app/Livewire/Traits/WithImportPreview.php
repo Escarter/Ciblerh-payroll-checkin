@@ -151,24 +151,24 @@ trait WithImportPreview
             $this->dispatch('showPreviewChanged', true);
 
         } catch (\Exception $e) {
-            $errorMessage = $e->getMessage();
+            $dangerMessage = $e->getMessage();
 
-            // Provide more user-friendly error messages
-            if (str_contains($errorMessage, 'Maximum execution time')) {
-                $errorMessage = __('common.file_processing_timeout');
-            } elseif (str_contains($errorMessage, 'Allowed memory size')) {
-                $errorMessage = __('common.file_too_large_memory');
+            // Provide more user-friendly danger messages
+            if (str_contains($dangerMessage, 'Maximum execution time')) {
+                $dangerMessage = __('common.file_processing_timeout');
+            } elseif (str_contains($dangerMessage, 'Allowed memory size')) {
+                $dangerMessage = __('common.file_too_large_memory');
             }
 
-            Log::error('Import preview processing failed', [
-                'error' => $e->getMessage(),
+            Log::danger('Import preview processing failed', [
+                'danger' => $e->getMessage(),
                 'user_id' => auth()->id(),
                 'file' => $this->getFileProperty() ? $this->getFileProperty()->getClientOriginalName() : 'unknown'
             ]);
 
             $this->dispatch("showToast", message: __('common.preview_processing_failed', [
-                'error' => $errorMessage
-            ]), type: "error");
+                'danger' => $dangerMessage
+            ]), type: "danger");
         } finally {
             $this->isProcessingPreview = false;
             $this->processingStep = '';
@@ -356,12 +356,12 @@ trait WithImportPreview
                 'skip_preview' => false
             ];
         } catch (\Exception $e) {
-            // Restore original timeout even on error
+            // Restore original timeout even on danger
             if (isset($originalTimeout)) {
                 set_time_limit($originalTimeout);
             }
 
-            throw new \Exception(__('common.file_structure_error', ['error' => $e->getMessage()]));
+            throw new \Exception(__('common.file_structure_danger', ['danger' => $e->getMessage()]));
         }
     }
 
@@ -440,13 +440,13 @@ trait WithImportPreview
                 ->toArray();
 
         } catch (\Exception $e) {
-            // Restore original timeout even on error
+            // Restore original timeout even on danger
             if (isset($originalTimeout)) {
                 set_time_limit($originalTimeout);
             }
 
             \Log::warning('Sample data extraction failed, using empty sample', [
-                'error' => $e->getMessage(),
+                'danger' => $e->getMessage(),
                 'user_id' => auth()->id()
             ]);
 
@@ -472,20 +472,20 @@ trait WithImportPreview
                 if (!$validationResult['valid']) {
                     $this->previewErrors[] = [
                         'row' => $row['row_number'],
-                        'errors' => $validationResult['errors'],
+                        'dangers' => $validationResult['dangers'],
                         'warnings' => $validationResult['warnings'] ?? []
                     ];
                 }
             } catch (\Exception $e) {
                 $row['validation'] = [
                     'valid' => false,
-                    'errors' => [__('common.row_validation_error', ['error' => $e->getMessage()])],
+                    'dangers' => [__('common.row_validation_danger', ['danger' => $e->getMessage()])],
                     'warnings' => []
                 ];
 
                 $this->previewErrors[] = [
                     'row' => $row['row_number'],
-                    'errors' => [__('common.row_validation_error', ['error' => $e->getMessage()])],
+                    'dangers' => [__('common.row_validation_danger', ['danger' => $e->getMessage()])],
                     'warnings' => []
                 ];
             }
@@ -536,20 +536,20 @@ trait WithImportPreview
                 if (!$validationResult['valid']) {
                     $this->previewErrors[] = [
                         'row' => $row['row_number'],
-                        'errors' => $validationResult['errors'],
+                        'dangers' => $validationResult['dangers'],
                         'warnings' => $validationResult['warnings'] ?? []
                     ];
                 }
             } catch (\Exception $e) {
                 $row['validation'] = [
                     'valid' => false,
-                    'errors' => [__('common.row_validation_error', ['error' => $e->getMessage()])],
+                    'dangers' => [__('common.row_validation_danger', ['danger' => $e->getMessage()])],
                     'warnings' => []
                 ];
 
                 $this->previewErrors[] = [
                     'row' => $row['row_number'],
-                    'errors' => [__('common.row_validation_error', ['error' => $e->getMessage()])],
+                    'dangers' => [__('common.row_validation_danger', ['danger' => $e->getMessage()])],
                     'warnings' => []
                 ];
             }
@@ -587,7 +587,7 @@ trait WithImportPreview
         // Default implementation - should be overridden
         return [
             'valid' => true,
-            'errors' => [],
+            'dangers' => [],
             'warnings' => [],
             'parsed_data' => $rowData
         ];
@@ -688,12 +688,12 @@ trait WithImportPreview
     public function getPreviewStats(): array
     {
         $validRows = count(array_filter($this->previewData, fn($row) => $row['validation']['valid'] ?? false));
-        $errorRows = count($this->previewErrors);
+        $dangerRows = count($this->previewErrors);
 
         return [
             'total_preview_rows' => $this->processedRows,
             'valid_rows' => $validRows,
-            'error_rows' => $errorRows,
+            'danger_rows' => $dangerRows,
             'total_file_rows' => $this->totalRows,
             'has_large_file' => $this->hasLargeFile
         ];
@@ -741,15 +741,15 @@ trait WithImportPreview
             $this->processPreview();
             $this->currentStep = 'preview';
         } catch (\Exception $e) {
-            Log::error('Import field validation failed', [
-                'error' => $e->getMessage(),
+            Log::danger('Import field validation failed', [
+                'danger' => $e->getMessage(),
                 'user_id' => auth()->id(),
                 'file' => $this->getFileProperty()
             ]);
 
-            $this->dispatch("showToast", message: __('common.field_validation_error', [
-                'error' => $e->getMessage()
-            ]), type: "error");
+            $this->dispatch("showToast", message: __('common.field_validation_danger', [
+                'danger' => $e->getMessage()
+            ]), type: "danger");
         }
     }
 
@@ -799,10 +799,10 @@ trait WithImportPreview
 
         } catch (\Exception $e) {
             if ($e instanceof \Exception && str_contains($e->getMessage(), 'missing_required_columns')) {
-                throw $e; // Re-throw our custom validation errors
+                throw $e; // Re-throw our custom validation dangers
             }
 
-            // Handle Excel reading errors
+            // Handle Excel reading dangers
             throw new \Exception(__('common.invalid_file_format_or_corrupted'));
         }
     }
@@ -841,19 +841,19 @@ trait WithImportPreview
     }
 
     /**
-     * Get validation error summary
+     * Get validation danger summary
      */
     public function getValidationSummary(): string
     {
         $stats = $this->getPreviewStats();
 
-        if ($stats['error_rows'] === 0) {
+        if ($stats['danger_rows'] === 0) {
             return __('common.preview_all_valid');
         }
 
         return __('common.preview_validation_summary', [
             'valid' => $stats['valid_rows'],
-            'errors' => $stats['error_rows'],
+            'dangers' => $stats['danger_rows'],
             'total' => $stats['total_preview_rows']
         ]);
     }

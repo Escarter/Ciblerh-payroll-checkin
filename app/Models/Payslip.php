@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,6 +16,7 @@ class Payslip extends Model
     const STATUS_SUCCESSFUL = 1;
     const STATUS_FAILED = 2;
     const STATUS_DISABLED = 3; // SMS notifications disabled for employee
+    const STATUS_SKIPPED = 4; // SMS skipped (not attempted) when email fails/is disabled
     //used only for reporting view
     const SMS_STATUS_PENDING = 3;
     const SMS_STATUS_SUCCESSFUL = 4;
@@ -27,12 +29,20 @@ class Payslip extends Model
     const DELIVERY_STATUS_BOUNCED = 'bounced';
     const DELIVERY_STATUS_COMPLAINED = 'complained';
 
+    // SMS delivery status constants (handset delivery, reported by the provider's DR callback)
+    const SMS_DELIVERY_STATUS_PENDING = 'pending';
+    const SMS_DELIVERY_STATUS_DELIVERED = 'delivered';
+    const SMS_DELIVERY_STATUS_FAILED = 'failed';
+    const SMS_DELIVERY_STATUS_EXPIRED = 'expired';
+    const SMS_DELIVERY_STATUS_REJECTED = 'rejected';
+
     protected $guarded  = [];
 
     protected $casts = [
         'email_bounced' => 'boolean',
         'email_bounced_at' => 'datetime',
         'email_retry_count' => 'integer',
+        'last_email_retry_at' => 'datetime',
         'sms_status_note' => 'string',
         'email_status_note' => 'string',
         'encryption_status_note' => 'string',
@@ -84,6 +94,16 @@ class Payslip extends Model
         };
     }
 
+    public function getMonthAttribute($value)
+    {
+        return normalizeMonthToEnglishName($value) ?? $value;
+    }
+
+    public function setMonthAttribute($value): void
+    {
+        $this->attributes['month'] = normalizeMonthToEnglishName($value) ?? $value;
+    }
+
     public function getNameAttribute()
     {
         return $this->first_name . " " . $this->last_name;
@@ -119,6 +139,57 @@ class Payslip extends Model
     public function department()
     {
         return $this->belongsTo(Department::class,'department_id');
+    }
+
+    /**
+     * Payslips an employee can see: linked by user id, or by matricule within the same company.
+     * Deduplicates by month/year so duplicate accounts do not list the same period twice.
+     */
+    public function scopeVisibleToEmployee(Builder $query, User $user): Builder
+    {
+        $normalizedMatricule = User::normalizeMatricule($user->matricule);
+        $table = $query->getModel()->getTable();
+
+        return $query->whereIn($table . '.id', function ($sub) use ($user, $normalizedMatricule, $table) {
+            $sub->selectRaw('MAX(id)')
+                ->from($table)
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($user, $normalizedMatricule) {
+                    $q->where('employee_id', $user->id);
+
+                    if ($normalizedMatricule !== null && $normalizedMatricule !== '') {
+                        $q->orWhere(function ($q2) use ($user, $normalizedMatricule) {
+                            if ($user->company_id) {
+                                $q2->where('company_id', $user->company_id);
+                            }
+                            $q2->whereRaw('UPPER(TRIM(matricule)) = ?', [$normalizedMatricule]);
+                        });
+                    }
+                })
+                ->groupBy('year', 'month');
+        });
+    }
+
+    public function isVisibleToEmployee(User $user): bool
+    {
+        if ($this->trashed()) {
+            return false;
+        }
+
+        if ($this->employee_id === $user->id) {
+            return true;
+        }
+
+        $normalizedMatricule = User::normalizeMatricule($user->matricule);
+        if ($normalizedMatricule === null || $normalizedMatricule === '' || blank($this->matricule)) {
+            return false;
+        }
+
+        if ($user->company_id && $this->company_id !== $user->company_id) {
+            return false;
+        }
+
+        return User::normalizeMatricule($this->matricule) === $normalizedMatricule;
     }
 
     public static function search($query)

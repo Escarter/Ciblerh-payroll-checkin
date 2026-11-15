@@ -8,10 +8,13 @@ trait WithRolePermissions
     public $selectedRolePermissions = [];
     public $selectAllRolePermissions = false;
     public $RolePermissions = [
-        'View' => 'role-read',
-        'Update' => 'role-update',
-        'Delete' => 'role-delete',
-        'Create' => 'role-create',
+        'common.view' => 'role-read',
+        'common.update' => 'role-update',
+        'common.delete' => 'role-delete',
+        'common.create' => 'role-create',
+        'common.restore' => 'role-restore',
+        'common.bulk_delete' => 'role-bulkdelete',
+        'common.bulk_restore' => 'role-bulkrestore',
     ];
 
     public function rolePermissionClearFields()

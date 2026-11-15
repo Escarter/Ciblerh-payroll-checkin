@@ -3,20 +3,27 @@
 namespace App\Livewire\Portal\Leaves;
 
 use App\Models\Leave;
+use App\Mail\LeaveStatusNotification;
 use Livewire\Component;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 
 class Index extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
 
     //Create, Edit, Delete, View Post props
     public ?string $start_time = null;
     public ?string $end_time = null;
+    public ?string $start_date = null;
+    public ?string $end_date = null;
     public ?string $leave_reason = null;
     public ?string $leave_type = null;
     public ?int $manager_approval_status = 1;
@@ -55,22 +62,7 @@ class Index extends Component
 
 
     //Toggle the $bulkDisabled on or off based on the count of selected posts
-    public function updatedselectAll($value)
-    {
-        if ($value) {
-            $this->selectedLeaves = match ($this->role) {
-                "supervisor" => Leave::search($this->query)->supervisor()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "manager" => Leave::search($this->query)->manager()->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "admin" => Leave::search($this->query)->with('user')->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage)->pluck('id')->toArray(),
-                "default" => [],
-            };
-            $this->updatedselectedLeaves();
-        } else {
-            $this->selectedLeaves = [];
-            $this->updatedselectedLeaves();
-        }
-    }
-    //Toggle the $bulkDisabled on or off based on the count of selected posts
+        //Toggle the $bulkDisabled on or off based on the count of selected posts
     public function updatedselectedLeaves()
     {
         $this->bulkDisabled = count($this->selectedLeaves) < 2;
@@ -118,27 +110,100 @@ class Index extends Component
     //Bulk update
     public function bulkApproval()
     {
+        // Check permission based on approval status
+        if ($this->bulk_approval_status) {
+            $this->authorizeAbility('leave-bulkapproval');
+        } else {
+            $this->authorizeAbility('leave-bulkrejection');
+        }
+
+        // Fetch records before updating for audit logging
+        $leaves = Leave::whereIn('id', $this->selectedLeaves)->with('user')->get();
+        
+        // Capture old values for all records
+        $affectedRecords = [];
+        foreach ($leaves as $leave) {
+            if ($this->role === "supervisor") {
+                $affectedRecords[] = [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date->format('Y-m-d'),
+                    'old_supervisor_approval_status' => $leave->supervisor_approval_status,
+                    'old_supervisor_approval_reason' => $leave->supervisor_approval_reason,
+                ];
+            } else {
+                $affectedRecords[] = [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date->format('Y-m-d'),
+                    'old_manager_approval_status' => $leave->manager_approval_status,
+                    'old_manager_approval_reason' => $leave->manager_approval_reason,
+                ];
+            }
+        }
+
+        // Perform bulk update
         if ($this->role === "supervisor") {
             Leave::whereIn('id', $this->selectedLeaves)->update([
                 'supervisor_approval_status' => $this->supervisor_approval_status,
                 'supervisor_approval_reason' => $this->supervisor_approval_reason,
             ]);
         } else {
-
-            Leave::whereIn('id', $this->selectedLeaves)->update([
-                'manager_approval_status' => $this->manager_approval_status,
-                'manager_approval_reason' => $this->manager_approval_reason,
-            ]);
+            foreach ($leaves as $leave) {
+                $leave->update([
+                    'manager_approval_status' => $this->manager_approval_status,
+                    'manager_approval_reason' => $this->manager_approval_reason,
+                ]);
+                if ($this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED) {
+                    $days = Carbon::parse($leave->start_date)->diffInDays(Carbon::parse($leave->end_date)) + 1;
+                    $leave->user->decrement('remaining_leave_days', $days);
+                }
+                if ($leave->user->receive_email_notifications && $leave->user->email) {
+                    Mail::to($leave->user->email)->send(new LeaveStatusNotification(
+                        $leave->fresh(),
+                        $leave->user,
+                        $this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED
+                    ));
+                }
+            }
         }
+
+        // Create a single audit log entry for the bulk operation
+        $actionType = $this->bulk_approval_status ? 'leave_approved' : 'leave_rejected';
+        $user = auth()->user();
+        
+        $newValues = $this->role === "supervisor" 
+            ? ['supervisor_approval_status' => $this->supervisor_approval_status, 'supervisor_approval_reason' => $this->supervisor_approval_reason]
+            : ['manager_approval_status' => $this->manager_approval_status, 'manager_approval_reason' => $this->manager_approval_reason];
+        
+        auditLog(
+            $user,
+            $actionType,
+            'web',
+            $this->bulk_approval_status ? 'bulk_approved_leaves' : 'bulk_rejected_leaves',
+            null, // No single model for bulk operations
+            [], // Old values aggregated in metadata
+            $newValues,
+            [
+                'translation_key' => $this->bulk_approval_status ? 'bulk_approved_leaves' : 'bulk_rejected_leaves',
+                'translation_params' => ['count' => count($leaves)],
+                'bulk_operation' => true,
+                'operation_type' => $this->bulk_approval_status ? 'bulk_approval' : 'bulk_rejection',
+                'affected_count' => count($leaves),
+                'affected_ids' => $leaves->pluck('id')->toArray(),
+                'affected_records' => $affectedRecords,
+                'role' => $this->role,
+                'new_values' => $newValues,
+            ]
+        );
+
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('leaves.leave_successfully_updated'), 'EditBulkLeaveModal');
     }
 
     public function update()
     {
-        if (!Gate::allows('leave-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-update');
         $this->validate();
 
         if ($this->role === "supervisor") {
@@ -156,12 +221,21 @@ class Index extends Component
                         'manager_approval_reason' => $this->manager_approval_reason,
                     ]);
 
-                    if($this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED){
-
-                        $this->leave->user->decrement('remaining_leave_days', Carbon::parse($this->leave->start_date)->diffInDays(Carbon::parse( $this->leave->end_date)));
+                    if ($this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED) {
+                        $days = Carbon::parse($this->leave->start_date)->diffInDays(Carbon::parse($this->leave->end_date)) + 1;
+                        $this->leave->user->decrement('remaining_leave_days', $days);
                     }
                 }
             );
+
+            $user = $this->leave->user;
+            if ($user->receive_email_notifications && $user->email) {
+                Mail::to($user->email)->send(new LeaveStatusNotification(
+                    $this->leave->fresh(),
+                    $user,
+                    $this->manager_approval_status === Leave::MANAGER_APPROVAL_APPROVED
+                ));
+            }
         }
 
         $this->clearFields();
@@ -169,9 +243,7 @@ class Index extends Component
     }
     public function delete()
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-delete');
 
         if (!empty($this->leave)) {
             $this->leave->delete(); // Already using soft delete
@@ -183,9 +255,7 @@ class Index extends Component
 
     public function restore()
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-restore');
 
         $leave = Leave::withTrashed()->findOrFail($this->leave_id);
         $leave->restore();
@@ -193,22 +263,63 @@ class Index extends Component
         $this->closeModalAndFlashMessage(__('leaves.leave_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($leaveId)
+    public function forceDelete($leaveId = null)
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
+        $this->authorizeAbility('leave-delete');
+
+        // If no leaveId provided, try to get it from selectedLeavesForDelete
+        if (!$leaveId) {
+            if (!empty($this->selectedLeavesForDelete) && is_array($this->selectedLeavesForDelete)) {
+                $leaveId = $this->selectedLeavesForDelete[0] ?? null;
+            } elseif ($this->leave_id) {
+                $leaveId = $this->leave_id;
+            } else {
+                $this->showToast(__('leaves.no_leave_selected'), 'danger');
+                return;
+            }
         }
 
         $leave = Leave::withTrashed()->findOrFail($leaveId);
         $leave->forceDelete();
+
+        // Clear selection after deletion
+        if (in_array($leaveId, $this->selectedLeavesForDelete ?? [])) {
+            $this->selectedLeavesForDelete = array_diff($this->selectedLeavesForDelete, [$leaveId]);
+        }
+        $this->leave_id = null;
 
         $this->closeModalAndFlashMessage(__('leaves.leave_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
+        $this->authorizeAbility('leave-bulkdelete');
+
+        $targetIds = [];
+        $operation = 'soft_delete';
+        if (!empty($this->selectedLeaves)) {
+            $targetIds = $this->selectedLeaves;
+            $operation = 'soft_delete_active';
+        } elseif (!empty($this->selectedLeavesForDelete)) {
+            $targetIds = $this->selectedLeavesForDelete;
+            $operation = 'soft_delete_deleted_tab';
+        }
+
+        $leaves = collect();
+        $affectedRecords = [];
+        if (!empty($targetIds)) {
+            $leaves = Leave::withTrashed()->whereIn('id', $targetIds)->with('user')->get();
+            $affectedRecords = $leaves->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date ? $leave->start_date->format('Y-m-d') : null,
+                    'supervisor_approval_status' => $leave->supervisor_approval_status,
+                    'supervisor_approval_reason' => $leave->supervisor_approval_reason,
+                    'manager_approval_status' => $leave->manager_approval_status,
+                    'manager_approval_reason' => $leave->manager_approval_reason,
+                ];
+            })->toArray();
         }
 
         // Handle both active tab (selectedLeaves) and deleted tab (selectedLeavesForDelete)
@@ -223,13 +334,49 @@ class Index extends Component
             $this->selectedLeavesForDelete = [];
         }
 
+        if ($leaves->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'leave_bulk_deleted',
+                'web',
+                'bulk_deleted_leaves',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'bulk_deleted_leaves',
+                    'translation_params' => ['count' => $leaves->count()],
+                    'bulk_operation' => true,
+                    'operation_type' => $operation,
+                    'affected_count' => $leaves->count(),
+                    'affected_ids' => $leaves->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
         $this->closeModalAndFlashMessage(__('leaves.selected_leaves_moved_to_trash'), 'BulkDeleteModal');
     }
 
     public function bulkRestore()
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
+        $this->authorizeAbility('leave-bulkrestore');
+
+        $leaves = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedLeavesForDelete)) {
+            $leaves = Leave::withTrashed()->whereIn('id', $this->selectedLeavesForDelete)->with('user')->get();
+            $affectedRecords = $leaves->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date ? $leave->start_date->format('Y-m-d') : null,
+                    'supervisor_approval_status' => $leave->supervisor_approval_status,
+                    'supervisor_approval_reason' => $leave->supervisor_approval_reason,
+                    'manager_approval_status' => $leave->manager_approval_status,
+                    'manager_approval_reason' => $leave->manager_approval_reason,
+                ];
+            })->toArray();
         }
 
         if (!empty($this->selectedLeavesForDelete)) {
@@ -237,18 +384,75 @@ class Index extends Component
             $this->selectedLeavesForDelete = [];
         }
 
+        if ($leaves->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'leave_bulk_restored',
+                'web',
+                'bulk_restored_leaves',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'bulk_restored_leaves',
+                    'translation_params' => ['count' => $leaves->count()],
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_restore',
+                    'affected_count' => $leaves->count(),
+                    'affected_ids' => $leaves->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
+        }
+
         $this->closeModalAndFlashMessage(__('leaves.selected_leaves_restored'), 'BulkRestoreModal');
     }
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('leave-delete')) {
-            return abort(401);
+        $this->authorizeAbility('leave-delete');
+
+        $leaves = collect();
+        $affectedRecords = [];
+        if (!empty($this->selectedLeavesForDelete)) {
+            $leaves = Leave::withTrashed()->whereIn('id', $this->selectedLeavesForDelete)->with('user')->get();
+            $affectedRecords = $leaves->map(function ($leave) {
+                return [
+                    'id' => $leave->id,
+                    'user_name' => $leave->user->name ?? 'User',
+                    'date' => $leave->start_date ? $leave->start_date->format('Y-m-d') : null,
+                    'supervisor_approval_status' => $leave->supervisor_approval_status,
+                    'supervisor_approval_reason' => $leave->supervisor_approval_reason,
+                    'manager_approval_status' => $leave->manager_approval_status,
+                    'manager_approval_reason' => $leave->manager_approval_reason,
+                ];
+            })->toArray();
         }
 
         if (!empty($this->selectedLeavesForDelete)) {
             Leave::withTrashed()->whereIn('id', $this->selectedLeavesForDelete)->forceDelete();
             $this->selectedLeavesForDelete = [];
+        }
+
+        if ($leaves->count() > 0) {
+            auditLog(
+                auth()->user(),
+                'leave_bulk_force_deleted',
+                'web',
+                'bulk_force_deleted_leaves',
+                null,
+                [],
+                [],
+                [
+                    'translation_key' => 'bulk_force_deleted_leaves',
+                    'translation_params' => ['count' => $leaves->count()],
+                    'bulk_operation' => true,
+                    'operation_type' => 'bulk_force_delete',
+                    'affected_count' => $leaves->count(),
+                    'affected_ids' => $leaves->pluck('id')->toArray(),
+                    'affected_records' => $affectedRecords,
+                ]
+            );
         }
 
         $this->closeModalAndFlashMessage(__('leaves.selected_leaves_permanently_deleted'), 'BulkForceDeleteModal');
@@ -257,62 +461,25 @@ class Index extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedLeavesForDelete = [];
-        $this->selectAllForDelete = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAllForDelete()
+    protected function bulkSelectionChanged(string $tab): void
     {
-        if ($this->selectAllForDelete) {
-            $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
-        } else {
-            $this->selectedLeavesForDelete = [];
+        if ($tab === 'active') {
+            $this->updatedselectedLeaves();
         }
     }
 
-    public function toggleLeaveSelectionForDelete($leaveId)
+    protected function bulkSelectionMap(): array
     {
-        if (in_array($leaveId, $this->selectedLeavesForDelete)) {
-            $this->selectedLeavesForDelete = array_diff($this->selectedLeavesForDelete, [$leaveId]);
-        } else {
-            $this->selectedLeavesForDelete[] = $leaveId;
-        }
-
-        $this->selectAllForDelete = count($this->selectedLeavesForDelete) === $this->getLeaves()->count();
+        return [
+            'active' => ['selectedLeaves', 'selectAll'],
+            'deleted' => ['selectedLeavesForDelete', 'selectAllForDelete'],
+        ];
     }
 
-    public function selectAllVisible()
-    {
-        $this->selectedLeaves = $this->getLeaves()->pluck('id')->toArray();
-    }
-
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedLeavesForDelete = $this->getLeaves()->pluck('id')->toArray();
-    }
-
-    public function selectAllLeaves()
-    {
-        $this->selectedLeaves = match ($this->role) {
-            'supervisor' => Leave::search($this->query)->supervisor()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => Leave::search($this->query)->manager()->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => Leave::search($this->query)->with(['user', 'company'])->whereNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-        $this->updatedselectedLeaves();
-    }
-
-    public function selectAllDeletedLeaves()
-    {
-        $this->selectedLeavesForDelete = match ($this->role) {
-            'supervisor' => Leave::search($this->query)->supervisor()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'manager' => Leave::search($this->query)->manager()->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            'admin' => Leave::search($this->query)->with(['user', 'company'])->withTrashed()->whereNotNull('deleted_at')->pluck('id')->toArray(),
-            default => [],
-        };
-    }
-
-    private function getLeaves()
+    protected function bulkQuery()
     {
         $query = Leave::search($this->query)->with(['user']);
 
@@ -331,7 +498,12 @@ class Index extends Component
             default => [],
         };
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getLeaves()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function export()
@@ -348,6 +520,8 @@ class Index extends Component
             'user',
             'start_time',
             'end_time',
+            'start_date',
+            'end_date',
             'manager_approval_status', 'manager_approval_reason',
             'supervisor_approval_status', 'supervisor_approval_reason',
             'leave_reason',
@@ -359,9 +533,7 @@ class Index extends Component
 
     public function render()
     {
-        if (!Gate::allows('leave-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave-read');
 
         $leaves = $this->getLeaves();
 

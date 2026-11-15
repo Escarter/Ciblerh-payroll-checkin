@@ -41,6 +41,7 @@ class ImportDataJob implements ShouldQueue
     protected $userId;
     protected $companyId;
     protected $departmentId;
+    protected $serviceId;
     protected $autoCreateEntities;
     protected $sendWelcomeEmails;
     protected $importId;
@@ -51,13 +52,14 @@ class ImportDataJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(string $importType, string $filePath, int $userId, ?int $companyId = null, ?int $departmentId = null, bool $autoCreateEntities = false, bool $sendWelcomeEmails = false, ?int $importJobId = null)
+    public function __construct(string $importType, string $filePath, int $userId, ?int $companyId = null, ?int $departmentId = null, ?int $serviceId = null, bool $autoCreateEntities = false, bool $sendWelcomeEmails = false, ?int $importJobId = null)
     {
         $this->importType = $importType;
         $this->filePath = $filePath;
         $this->userId = $userId;
         $this->companyId = $companyId;
         $this->departmentId = $departmentId;
+        $this->serviceId = $serviceId;
         $this->autoCreateEntities = $autoCreateEntities;
         $this->sendWelcomeEmails = $sendWelcomeEmails;
         $this->importJobId = $importJobId;
@@ -72,7 +74,24 @@ class ImportDataJob implements ShouldQueue
      */
     protected function createImportJobRecord(): void
     {
-        Log::info("Creating ImportJob record", [
+        // Check if a job with the same file_path and user_id already exists and is still processing
+        $existingJob = ImportJob::where('file_path', $this->filePath)
+            ->where('user_id', $this->userId)
+            ->whereIn('status', [ImportJob::STATUS_PENDING, ImportJob::STATUS_PROCESSING])
+            ->orderBy('created_at', 'desc')
+            ->first();
+            
+        if ($existingJob) {
+            Log::info("Found existing ImportJob record, reusing it", [
+                'existing_job_id' => $existingJob->id,
+                'status' => $existingJob->status,
+                'file_path' => $this->filePath
+            ]);
+            $this->importJob = $existingJob;
+            return;
+        }
+        
+        Log::info("Creating new ImportJob record", [
             'import_id' => $this->importId,
             'import_type' => $this->importType,
             'user_id' => $this->userId
@@ -178,13 +197,33 @@ class ImportDataJob implements ShouldQueue
 
         try {
             // Ensure import job record exists and is loaded
-            if (!$this->importJob && $this->importJobId) {
+            // Only create a new one if we don't have an importJobId and don't have an importJob
+            if ($this->importJobId) {
+                // Try to load existing import job by ID
                 $this->importJob = ImportJob::find($this->importJobId);
+                if (!$this->importJob) {
+                    Log::warning("ImportJob with ID {$this->importJobId} not found, creating new one", [
+                        'import_job_id' => $this->importJobId,
+                        'import_type' => $this->importType
+                    ]);
+                    $this->createImportJobRecord();
+                } else {
+                    Log::info("Loaded existing ImportJob", [
+                        'import_job_id' => $this->importJob->id,
+                        'status' => $this->importJob->status
+                    ]);
+                }
+            } else {
+                // No importJobId provided - check if importJob already exists (shouldn't happen, but be safe)
+                if (!$this->importJob) {
+                    Log::info("No importJobId provided, creating new ImportJob record");
+                    $this->createImportJobRecord();
+                }
             }
-
-            // Create import job record if it doesn't exist (for jobs without importJobId)
-            if (!$this->importJob) {
-                $this->createImportJobRecord();
+            
+            // Ensure we have a valid importJob at this point
+            if (!$this->importJob || !$this->importJob->exists) {
+                throw new \Exception('Failed to initialize ImportJob record');
             }
 
             Log::info("Starting background import", [
@@ -274,12 +313,26 @@ class ImportDataJob implements ShouldQueue
                 'user_id' => $this->userId
             ]);
 
-            // Update record with failure
-            $this->importJob->update([
-                'status' => ImportJob::STATUS_FAILED,
-                'error_message' => $e->getMessage(),
-                'completed_at' => now(),
-            ]);
+            // Update record with failure (only if importJob exists)
+            if ($this->importJob && $this->importJob->exists) {
+                $this->importJob->update([
+                    'status' => ImportJob::STATUS_FAILED,
+                    'error_message' => $e->getMessage(),
+                    'completed_at' => now(),
+                ]);
+            } else {
+                // If importJob doesn't exist, create it for error tracking
+                if (!$this->importJob) {
+                    $this->createImportJobRecord();
+                }
+                if ($this->importJob) {
+                    $this->importJob->update([
+                        'status' => ImportJob::STATUS_FAILED,
+                        'error_message' => $e->getMessage(),
+                        'completed_at' => now(),
+                    ]);
+                }
+            }
 
             // Store failure results
             $this->importResults = [
@@ -441,12 +494,62 @@ class ImportDataJob implements ShouldQueue
                         if (!$department) {
                             throw new \Exception('Department not found for employee import');
                         }
+                        \Log::info('ImportDataJob: Department context found', [
+                            'department_id' => $department->id,
+                            'department_name' => $department->name
+                        ]);
+                    } else {
+                        \Log::warning('ImportDataJob: No departmentId provided', [
+                            'department_id' => $this->departmentId
+                        ]);
                     }
 
                     $service = null;
-                    // Note: Service context would need to be added to ImportDataJob if needed
+                    if ($this->serviceId) {
+                        $service = \App\Models\Service::find($this->serviceId);
+                        if (!$service) {
+                            throw new \Exception('Service not found for employee import');
+                        }
+                        \Log::info('ImportDataJob: Service context found', [
+                            'service_id' => $service->id,
+                            'service_name' => $service->name
+                        ]);
+                    }
 
-                    return new EmployeeImport($company, $department, $service, $this->autoCreateEntities, $this->userId, $this->sendWelcomeEmails);
+                    // Find user model instance, just like we do for company, department, service
+                    $user = null;
+                    if ($this->userId) {
+                        $user = \App\Models\User::find($this->userId);
+                        if (!$user) {
+                            throw new \Exception('User not found for employee import');
+                        }
+                        \Log::info('ImportDataJob: User context found', [
+                            'user_id' => $user->id,
+                            'user_email' => $user->email
+                        ]);
+                    } else {
+                        \Log::warning('ImportDataJob: No userId provided');
+                    }
+
+                    \Log::info('ImportDataJob: Creating EmployeeImport instance', [
+                        'company_id' => $company->id,
+                        'department_id' => $department ? $department->id : null,
+                        'service_id' => $service ? $service->id : null,
+                        'has_department' => !is_null($department),
+                        'has_service' => !is_null($service),
+                        'user_id' => $user ? $user->id : null,
+                        'has_user' => !is_null($user)
+                    ]);
+
+                    return new EmployeeImport(
+                        $company,
+                        $department,
+                        $service,
+                        $this->autoCreateEntities,
+                        $user,
+                        $this->sendWelcomeEmails,
+                        $this->importJob?->id
+                    );
                 } else {
                     throw new \Exception('Company ID required for employee import');
                 }
@@ -506,6 +609,9 @@ class ImportDataJob implements ShouldQueue
             case 'leave_types':
                 return new LeaveTypeImport($this->userId);
 
+            case 'holidays':
+                return new \App\Imports\HolidayImport($this->userId, $this->companyId);
+
             default:
                 throw new \Exception("Unknown import type: {$this->importType}");
         }
@@ -529,10 +635,37 @@ class ImportDataJob implements ShouldQueue
                 ]);
             }
 
-            auditLog($user, $this->importType . '_imported', 'background', $message);
+            auditLog(
+                $user, 
+                $this->importType . '_imported', 
+                'background', 
+                $message,
+                null, // No specific model for bulk imports
+                [], // No old values
+                [], // No new values
+                [
+                    'import_type' => $this->importType,
+                    'import_id' => $this->importId ?? null,
+                    'import_job_id' => $this->importJob->id ?? null,
+                    'imported_count' => $this->importResults['imported_count'] ?? 0,
+                    'failed_count' => $this->importResults['failed_count'] ?? 0,
+                ] // Enhanced metadata
+            );
         } else {
-            auditLog($user, $this->importType . '_import_failed', 'background',
-                __('common.import_failed_detailed', ['error' => $this->importResults['error']])
+            auditLog(
+                $user, 
+                $this->importType . '_import_failed', 
+                'background',
+                __('common.import_failed_detailed', ['error' => $this->importResults['error']]),
+                null, // No specific model
+                [], // No old values
+                [], // No new values
+                [
+                    'import_type' => $this->importType,
+                    'import_id' => $this->importId ?? null,
+                    'import_job_id' => $this->importJob->id ?? null,
+                    'error' => $this->importResults['error'] ?? null,
+                ] // Enhanced metadata with error details
             );
         }
 

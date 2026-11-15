@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{ $isEditMode ? __('services.edit_service') : __('services.create_service') }}</h1>
-                        <p>{{ $isEditMode ? __('services.edit_service_details') : __('services.create_new_service_to_manage') }} &#128522;</p>
+                        <p>{{ $isEditMode ? __('services.edit_service_details') : __('services.create_new_service_to_manage') }}</p>
                     </div>
                     <x-form-items.form wire:submit="{{ $isEditMode ? 'update' : 'store' }}">
                         <div class='form-group mb-4 row'>
@@ -19,15 +19,15 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="name">{{__('common.name')}}</label>
-                            <input wire:model="name" id="service-name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
+                            <label for="name">{{__('common.name')}} <span class="text-danger">*</span></label>
+                            <input wire:model="name" id="service-name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name" placeholder="{{__('common.name')}}">
                             @error('name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
                         @if($isEditMode)
                         <div class='form-group mb-4'>
-                            <label for="is_active">{{__('common.status')}}?</label>
+                            <label for="is_active">{{__('common.status')}}? <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model="is_active" id="service-is-active" name="is_active" class="form-select  @error('is_active') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1" {{ ($is_active == true || $is_active == 1) ? 'selected' : '' }}>{{__('common.active')}}</option>

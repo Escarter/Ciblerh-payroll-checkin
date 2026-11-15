@@ -78,6 +78,13 @@ return [
             'transport' => 'array',
         ],
 
+        'mandrill' => [
+            'transport'  => 'mandrill-api',
+            'key'        => env('MANDRILL_KEY'),
+            'from_email' => env('MAIL_FROM_ADDRESS', ''),
+            'from_name'  => env('MAIL_FROM_NAME', ''),
+        ],
+
         'failover' => [
             'transport' => 'failover',
             'mailers' => [

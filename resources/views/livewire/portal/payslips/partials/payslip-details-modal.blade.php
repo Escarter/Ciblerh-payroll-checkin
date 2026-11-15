@@ -15,7 +15,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
                         </button>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="closePayslipDetailsModal" aria-label="Close"></button>
                     </div>
                 </div>
                 <div class="modal-body">
@@ -59,11 +59,17 @@
                                                 @endif
                                                 <div>
                                                     <strong class="text-sm">{{__('payslips.department')}}:</strong>
-                                                    <p class="mb-0 text-sm">{{ $selectedPayslip->sendProcess->department?->name ?? __('payslips.department_deleted') }}</p>
+                                                    <p class="mb-0 text-sm">
+                                                        @if($selectedPayslip->sendProcess->department_id)
+                                                            {{ $selectedPayslip->sendProcess->department?->name ?? __('payslips.department_deleted') }}
+                                                        @else
+                                                            {{ $selectedPayslip->sendProcess->company?->name ?? __('payslips.company_deleted') }}
+                                                        @endif
+                                                    </p>
                                                 </div>
                                                 <div>
                                                     <strong class="text-sm">{{__('common.period')}}:</strong>
-                                                    <p class="mb-0 text-sm">{{ $selectedPayslip->sendProcess->month }} {{ $selectedPayslip->sendProcess->year }}</p>
+                                                    <p class="mb-0 text-sm">{{ getMonthName($selectedPayslip->sendProcess->month) }} {{ $selectedPayslip->sendProcess->year }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -108,17 +114,68 @@
                                         <div class="col-md-6">
                                             <div class="d-flex align-items-center gap-2">
                                                 <div class="status-indicator {{ $selectedPayslip->email_sent_status == 1 ? 'bg-success' : ($selectedPayslip->email_sent_status == 2 ? 'bg-danger' : ($selectedPayslip->email_sent_status == 3 ? 'bg-secondary' : 'bg-warning')) }}"></div>
-                                                <div>
+                                                <div class="flex-grow-1">
                                                     <strong class="text-sm">{{__('common.email')}}</strong>
                                                     <p class="mb-0 text-sm">
                                                         @if($selectedPayslip->email_sent_status == 1)
-                                                            <span class="badge badge-lg bg-success">{{__('common.sent')}}</span>
+                                                            <span class="badge badge-lg bg-success">{{__('common.successful')}}</span>
                                                         @elseif($selectedPayslip->email_sent_status == 2)
                                                             <span class="badge badge-lg bg-danger">{{__('common.failed')}}</span>
                                                         @elseif($selectedPayslip->email_sent_status == 3)
                                                             <span class="badge badge-lg bg-secondary">{{__('payslips.disabled')}}</span>
                                                         @else
                                                             <span class="badge badge-lg bg-warning">{{__('common.pending')}}</span>
+                                                        @endif
+                                                    </p>
+                                                    @php
+                                                        $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                                                        $retryCount = $selectedPayslip->email_retry_count ?? 0;
+                                                    @endphp
+                                                    @if($selectedPayslip->email_sent_status == 2 || ($selectedPayslip->email_sent_status == 0 && $retryCount > 0))
+                                                        <div class="mt-2">
+                                                            @if($retryCount > 0)
+                                                                <small class="text-muted d-block">
+                                                                    <strong>{{__('payslips.retry_count')}}:</strong> 
+                                                                    {{__('payslips.retry_count_info', ['count' => $retryCount, 'max' => $maxRetries])}}
+                                                                    @if($retryCount >= $maxRetries)
+                                                                        <span class="badge badge-sm bg-danger ms-1">{{__('payslips.max_retries_reached')}}</span>
+                                                                    @endif
+                                                                </small>
+                                                                @if($selectedPayslip->last_email_retry_at)
+                                                                    <small class="text-muted d-block mt-1">
+                                                                        <strong>{{__('payslips.last_retry_at')}}:</strong> 
+                                                                        {{ $selectedPayslip->last_email_retry_at->format('Y-m-d H:i:s') }}
+                                                                        <span class="text-muted">({{ $selectedPayslip->last_email_retry_at->diffForHumans() }})</span>
+                                                                    </small>
+                                                                @endif
+                                                            @else
+                                                                <small class="text-muted d-block">
+                                                                    {{__('payslips.no_retries_yet')}}
+                                                                </small>
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Email Delivery Status -->
+                                        <div class="col-md-6">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="status-indicator {{ $selectedPayslip->email_delivery_status === 'delivered' ? 'bg-success' : ($selectedPayslip->email_delivery_status === 'bounced' ? 'bg-danger' : ($selectedPayslip->email_delivery_status === 'complained' ? 'bg-warning' : ($selectedPayslip->email_delivery_status === 'sent' ? 'bg-info' : 'bg-secondary'))) }}"></div>
+                                                <div class="flex-grow-1">
+                                                    <strong class="text-sm">{{__('payslips.email_delivery_status')}}</strong>
+                                                    <p class="mb-0 text-sm">
+                                                        @if($selectedPayslip->email_delivery_status === 'delivered')
+                                                            <span class="badge badge-lg bg-success" title="{{$selectedPayslip->email_delivered_at}}">{{__('payslips.delivery_delivered')}}</span>
+                                                        @elseif($selectedPayslip->email_delivery_status === 'bounced')
+                                                            <span class="badge badge-lg bg-danger" title="{{$selectedPayslip->email_delivery_note}}">{{__('payslips.delivery_bounced')}}</span>
+                                                        @elseif($selectedPayslip->email_delivery_status === 'complained')
+                                                            <span class="badge badge-lg bg-warning text-dark" title="{{$selectedPayslip->email_delivery_note}}">{{__('payslips.delivery_spam')}}</span>
+                                                        @elseif($selectedPayslip->email_delivery_status === 'sent')
+                                                            <span class="badge badge-lg bg-info">{{__('payslips.delivery_sent')}}</span>
+                                                        @else
+                                                            <span class="badge badge-lg bg-secondary">{{__('payslips.delivery_pending')}}</span>
                                                         @endif
                                                     </p>
                                                 </div>
@@ -128,18 +185,25 @@
                                         <!-- SMS Status -->
                                         <div class="col-md-6">
                                             <div class="d-flex align-items-center gap-2">
-                                                <div class="status-indicator {{ $selectedPayslip->sms_sent_status == 1 ? 'bg-success' : ($selectedPayslip->sms_sent_status == 2 ? 'bg-danger' : ($selectedPayslip->sms_sent_status == 3 ? 'bg-secondary' : 'bg-warning')) }}"></div>
+                                                <div class="status-indicator {{ $selectedPayslip->sms_sent_status == 1 ? 'bg-success' : ($selectedPayslip->sms_sent_status == 2 ? 'bg-danger' : ($selectedPayslip->sms_sent_status == 3 ? 'bg-secondary' : ($selectedPayslip->sms_sent_status == 4 ? 'bg-info' : 'bg-warning'))) }}"></div>
                                                 <div>
                                                     <strong class="text-sm">{{__('common.sms')}}</strong>
                                                     <p class="mb-0 text-sm">
                                                         @if($selectedPayslip->sms_sent_status == 1)
-                                                            <span class="badge badge-lg bg-success">{{__('common.sent')}}</span>
+                                                            <span class="badge badge-lg bg-success">{{__('common.successful')}}</span>
                                                         @elseif($selectedPayslip->sms_sent_status == 2)
                                                             <span class="badge badge-lg bg-danger">{{__('common.failed')}}</span>
                                                         @elseif($selectedPayslip->sms_sent_status == 3)
                                                             <span class="badge badge-lg bg-secondary">{{__('payslips.disabled')}}</span>
+                                                        @elseif($selectedPayslip->sms_sent_status == 4)
+                                                            <span class="badge badge-lg bg-info">{{__('payslips.skipped')}}</span>
                                                         @else
                                                             <span class="badge badge-lg bg-warning">{{__('common.pending')}}</span>
+                                                            @if($selectedPayslip->created_at && $selectedPayslip->created_at->diffInHours(now()) > 1)
+                                                                <small class="d-block text-muted mt-1" title="{{__('payslips.pending_since')}}: {{ $selectedPayslip->created_at->format('Y-m-d H:i') }}">
+                                                                    {{__('payslips.pending_for')}}: {{ $selectedPayslip->created_at->diffForHumans() }}
+                                                                </small>
+                                                            @endif
                                                         @endif
                                                     </p>
                                                 </div>
@@ -170,7 +234,7 @@
                         </div>
 
                         <!-- Error Details Section -->
-                        @if($selectedPayslip->encryption_status == 2 || $selectedPayslip->email_sent_status == 2 || $selectedPayslip->sms_sent_status == 2)
+                        @if($selectedPayslip->encryption_status == 2 || $selectedPayslip->email_sent_status == 2 || $selectedPayslip->sms_sent_status == 2 || $selectedPayslip->sms_sent_status == 4 || !empty($selectedPayslip->failure_reason))
                         <div class="mb-4">
                             <div class="card border-danger">
                                 <div class="card-header bg-danger text-white">
@@ -182,6 +246,13 @@
                                     </h6>
                                 </div>
                                 <div class="card-body">
+                                    @if(!empty($selectedPayslip->failure_reason))
+                                    <div class="mb-3">
+                                        <strong class="text-danger small">{{__('common.error')}}:</strong>
+                                        <p class="text-muted small mb-0">{{ $this->getTranslatedFailureReason($selectedPayslip->failure_reason) }}</p>
+                                    </div>
+                                    @endif
+
                                     @if($selectedPayslip->encryption_status_note)
                                     <div class="mb-3">
                                         <strong class="text-danger small">{{__('payslips.encryption_error')}}:</strong>
@@ -284,7 +355,59 @@
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <div>
                                                         <h6 class="mb-1">{{__('payslips.email_failed')}}</h6>
-                                                        <p class="mb-1 text-muted small">{{__('payslips.failed_to_send_payslip_email')}}</p>
+                                                        <p class="mb-1 text-muted small">
+                                                            {{__('payslips.failed_to_send_payslip_email')}}
+                                                            @php
+                                                                $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                                                                $retryCount = $selectedPayslip->email_retry_count ?? 0;
+                                                            @endphp
+                                                            @if($retryCount > 0)
+                                                                <br>
+                                                                <span class="text-info">
+                                                                    {{__('payslips.retry_count_info', ['count' => $retryCount, 'max' => $maxRetries])}}
+                                                                    @if($retryCount >= $maxRetries)
+                                                                        - {{__('payslips.max_retries_reached')}}
+                                                                    @endif
+                                                                </span>
+                                                            @endif
+                                                        </p>
+                                                    </div>
+                                                    <small class="text-muted">{{ $selectedPayslip->updated_at->diffForHumans() }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        @php
+                                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                                            $retryCount = $selectedPayslip->email_retry_count ?? 0;
+                                        @endphp
+                                        @if($retryCount > 0 && $selectedPayslip->last_email_retry_at)
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker bg-info"></div>
+                                            <div class="timeline-content">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">{{__('payslips.last_retry_at')}}</h6>
+                                                        <p class="mb-1 text-muted small">
+                                                            {{__('payslips.retry_count')}}: {{ $retryCount }} / {{ $maxRetries }}
+                                                            @if($retryCount >= $maxRetries)
+                                                                <span class="badge badge-sm bg-danger ms-1">{{__('payslips.max_retries_reached')}}</span>
+                                                            @endif
+                                                        </p>
+                                                    </div>
+                                                    <small class="text-muted">{{ $selectedPayslip->last_email_retry_at->diffForHumans() }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+                                        @elseif($selectedPayslip->email_sent_status == 3)
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker bg-secondary"></div>
+                                            <div class="timeline-content">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">{{__('payslips.email_disabled')}}</h6>
+                                                        <p class="mb-1 text-muted small">{{__('payslips.email_notifications_disabled_for_this_employee')}}</p>
                                                     </div>
                                                     <small class="text-muted">{{ $selectedPayslip->updated_at->diffForHumans() }}</small>
                                                 </div>
@@ -319,6 +442,50 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        @elseif($selectedPayslip->sms_sent_status == 3)
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker bg-secondary"></div>
+                                            <div class="timeline-content">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">{{__('payslips.sms_disabled')}}</h6>
+                                                        <p class="mb-1 text-muted small">{{__('payslips.sms_notifications_disabled_for_this_employee')}}</p>
+                                                    </div>
+                                                    <small class="text-muted">{{ $selectedPayslip->updated_at->diffForHumans() }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @elseif($selectedPayslip->sms_sent_status == 4)
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker bg-info"></div>
+                                            <div class="timeline-content">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">{{__('payslips.sms_skipped')}}</h6>
+                                                        <p class="mb-1 text-muted small">{{ $selectedPayslip->sms_status_note ?? __('payslips.sms_not_attempted_email_failed') }}</p>
+                                                    </div>
+                                                    <small class="text-muted">{{ $selectedPayslip->updated_at->diffForHumans() }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @elseif($selectedPayslip->sms_sent_status == 0 || $selectedPayslip->sms_sent_status == null)
+                                        <div class="timeline-item">
+                                            <div class="timeline-marker bg-warning"></div>
+                                            <div class="timeline-content">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h6 class="mb-1">{{__('payslips.sms_pending')}}</h6>
+                                                        <p class="mb-1 text-muted small">
+                                                            {{__('payslips.sms_sending_in_progress')}}
+                                                            @if($selectedPayslip->created_at && $selectedPayslip->created_at->diffInHours(now()) > 1)
+                                                                <br><span class="text-warning">{{__('payslips.pending_for')}}: {{ $selectedPayslip->created_at->diffForHumans() }}</span>
+                                                            @endif
+                                                        </p>
+                                                    </div>
+                                                    <small class="text-muted">{{ $selectedPayslip->created_at->diffForHumans() }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
                                         @endif
                                     </div>
                                 </div>
@@ -348,11 +515,18 @@
                         @endif
                     </div>
                     <div>
-                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal" wire:click="closePayslipDetailsModal">
                             {{__('common.close')}}
                         </button>
-                        @if($selectedPayslip && $selectedPayslip->encryption_status == 1 && $selectedPayslip->file_path && Storage::disk('modified')->exists($selectedPayslip->file_path))
-                        <a href="{{ route('portal.payslips.download', $selectedPayslip->id) }}" class="btn btn-primary" target="_blank">
+                        @if($selectedPayslip && $selectedPayslip->encryption_status == 1 && Storage::disk('modified')->exists($selectedPayslip->file))
+                        <a href="{{ route('portal.payslips.view-pdf', $selectedPayslip->id) }}" class="btn btn-info me-2" target="_blank">
+                            <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            {{__('payslips.view_pdf')}}
+                        </a>
+                        <a href="#" wire:click.prevent="downloadPayslip({{ $selectedPayslip->id }})" class="btn btn-primary">
                             <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
@@ -362,7 +536,7 @@
                     </div>
                     @else
                     <div class="d-flex align-items-center justify-content-end">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="closePayslipDetailsModal">
                             {{__('common.close')}}
                         </button>
                     </div>
@@ -372,3 +546,4 @@
         </div>
     </div>
 </div>
+

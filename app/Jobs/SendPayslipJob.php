@@ -2,27 +2,21 @@
 
 namespace App\Jobs;
 
-use App\Models\Group;
 use App\Models\Payslip;
 use App\Models\Employee;
 use App\Mail\SendPayslip;
 use App\Jobs\RetryPayslipEmailJob;
-use Illuminate\Support\Str;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use App\Models\SendPayslipProcess;
 use Illuminate\Support\Collection;
-use Facade\FlareClient\Http\Client;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Queue;
 use Exception;
 
 class SendPayslipJob implements ShouldQueue
@@ -48,22 +42,29 @@ class SendPayslipJob implements ShouldQueue
      *
      * @var int
      */
-    public $timeout = 120;
+    public $timeout = 300;
 
     /**
      * Indicate if the job should be marked as failed on timeout.
+     * When false, the job is released back to the queue so partial sends can continue.
      *
      * @var bool
      */
-    public $failOnTimeout = true;
+    public $failOnTimeout = false;
 
     protected $employee_chunk;
     protected $destination;
     protected $month;
+    protected $year;
     protected $process_id;
     protected $user_id;
     protected static $sms_balance_checked = false;
     protected static $sms_balance = null;
+
+    // SMS failure tracking
+    protected $sms_failure_count = 0;
+    protected $sms_success_count = 0;
+    protected $sms_disabled_count = 0;
 
     /**
      * Create a new job instance.
@@ -75,8 +76,10 @@ class SendPayslipJob implements ShouldQueue
         $this->employee_chunk = $employee_chunk;
         $this->destination = $process->destination_directory;
         $this->month = $process->month;
+        $this->year = $process->year ?? now()->year;
         $this->user_id = $process->user_id;
         $this->process_id = $process->id;
+        $this->timeout = (int) config('ciblerh.send_payslip_job_timeout', 300);
         $this->queue = 'emails';
 
     }
@@ -98,38 +101,76 @@ class SendPayslipJob implements ShouldQueue
 
         $encrypted_files = Storage::disk('modified')->allFiles($this->destination);
 
-        Log::info($encrypted_files);
-
         // Check SMS balance once per job to avoid repeated API calls
         $sms_balance = null;
+        $sms_provider_healthy = true;
+        $sms_provider_error = null;
+
         if (!self::$sms_balance_checked) {
             $setting = \App\Models\Setting::first();
-            if (!empty($setting->sms_provider)) {
-                $sms_client = match ($setting->sms_provider) {
-                    'twilio' => new \App\Services\TwilioSMS($setting),
-                    'nexah' => new \App\Services\Nexah($setting),
-                    'aws_sns' => new \App\Services\AwsSnsSMS($setting),
-                    'orange_cm' => new \App\Services\OrangeCameroonSMS($setting),
-                    default => new \App\Services\Nexah($setting)
-                };
-
+            if (!empty($setting->sms_provider) && !empty($setting->sms_provider_username) && !empty($setting->sms_provider_password)) {
                 try {
+                    $sms_client = match ($setting->sms_provider) {
+                        'twilio' => new \App\Services\TwilioSMS($setting),
+                        'nexah' => new \App\Services\Nexah($setting),
+                        'aws_sns' => new \App\Services\AwsSnsSMS($setting),
+                        'orange_cm' => new \App\Services\OrangeCameroonSMS($setting),
+                        default => new \App\Services\Nexah($setting)
+                    };
+
                     $sms_balance = $sms_client->getBalance();
                     self::$sms_balance = $sms_balance;
                     self::$sms_balance_checked = true;
-                } catch (\Exception $e) {
-                    Log::warning('Failed to check SMS balance: ' . $e->getMessage());
+
+                    Log::info('SMS balance checked successfully', [
+                        'provider' => $setting->sms_provider,
+                        'balance_responsecode' => $sms_balance['responsecode'] ?? 'unknown',
+                        'balance_credit' => $sms_balance['credit'] ?? 'unknown'
+                    ]);
+                } catch (\Throwable $e) {
+                    $sms_provider_healthy = false;
+                    $sms_provider_error = $e->getMessage();
+
+                    Log::error('Failed to check SMS balance - SMS provider unhealthy', [
+                        'error' => $e->getMessage(),
+                        'provider' => $setting->sms_provider,
+                        'process_id' => $this->process_id,
+                        'trace' => $e->getTraceAsString()
+                    ]);
+
+                    // Record SMS provider failure in the process record
+                    $process = SendPayslipProcess::find($this->process_id);
+                    if ($process) {
+                        $existingReason = !empty($process->failure_reason) ? $process->failure_reason . ' | ' : '';
+                        $process->update([
+                            'failure_reason' => $existingReason . __('payslips.sms_provider_balance_check_failed', [
+                                'provider' => $setting->sms_provider,
+                                'error' => $e->getMessage()
+                            ])
+                        ]);
+                    }
                 }
+            } else {
+                $sms_provider_healthy = false;
+                $sms_provider_error = __('payslips.sms_provider_not_configured');
+
+                Log::warning('SMS provider not configured', [
+                    'process_id' => $this->process_id
+                ]);
             }
         } else {
             $sms_balance = self::$sms_balance;
         }
 
+        $processed_count = 0;
+        $error_count = 0;
+
         foreach ($this->employee_chunk as $employee) {
+            $processed_count++;
             // Early check: if there is already a successful payslip record for this employee/month/year, skip
             $existingSuccessful = Payslip::where('employee_id', $employee->id)
                 ->where('month', $this->month)
-                ->where('year', now()->year)
+                ->where('year', $this->year)
                 ->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
                 ->where('sms_sent_status', Payslip::STATUS_SUCCESSFUL)
                 ->first();
@@ -139,7 +180,7 @@ class SendPayslipJob implements ShouldQueue
                     'employee_id' => $employee->id,
                     'matricule' => $employee->matricule,
                     'month' => $this->month,
-                    'year' => now()->year
+                    'year' => $this->year
                 ]);
                 continue;
             }
@@ -147,7 +188,7 @@ class SendPayslipJob implements ShouldQueue
             // Early check: if there is a payslip record with encryption failed, mark email/SMS as skipped
             $existingFailed = Payslip::where('employee_id', $employee->id)
                 ->where('month', $this->month)
-                ->where('year', now()->year)
+                ->where('year', $this->year)
                 ->where('encryption_status', Payslip::STATUS_FAILED)
                 ->first();
             if ($existingFailed) {
@@ -169,25 +210,27 @@ class SendPayslipJob implements ShouldQueue
                 $encrypted_files = [$this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf'];
             }
 
-            collect($encrypted_files)->each(function ($file) use ($employee, $pay_month, $dest, $sms_balance) {
-
-                if (strpos($file, $employee->matricule .'_'.$pay_month.'.pdf') !== FALSE) {
+            try {
+            collect($encrypted_files)->each(function ($file) use ($employee, $pay_month, $dest, $sms_balance, $sms_provider_healthy, $sms_provider_error, &$record_exists) {
+                try {
+                if (strpos($file, $employee->matricule . '_' . $pay_month . '.pdf') !== false) {
 
                     $filePath = Storage::disk('modified')->path($file);
-                    Log::info($filePath);
 
                     // Get existing record if any
                         $record_exists = Payslip::where('employee_id',$employee->id)
                                                 ->where('month',$this->month)
-                                                ->where('year',now()->year)
+                                                ->where('year',$this->year)
                                                 ->first();
                         
-                    // Check if encryption failed - skip email/SMS if so
-                    if (!empty($record_exists) && $record_exists->encryption_status === Payslip::STATUS_FAILED) {
-                        Log::info('Skipping email/SMS for employee - encryption failed', [
+                    // Check if encryption failed or is still pending - skip email/SMS if so
+                    if (!empty($record_exists) && ($record_exists->encryption_status === Payslip::STATUS_FAILED || $record_exists->encryption_status === Payslip::STATUS_PENDING)) {
+                        $status = $record_exists->encryption_status === Payslip::STATUS_PENDING ? 'PENDING' : 'FAILED';
+                        Log::info('Skipping email/SMS for employee - encryption not ready', [
                             'employee_id' => $employee->id,
                             'matricule' => $employee->matricule,
-                            'failure_reason' => $record_exists->failure_reason
+                            'encryption_status' => $status,
+                            'failure_reason' => $record_exists->failure_reason ?? 'Still awaiting encryption finalization'
                         ]);
                         
                         // Update status to indicate email was skipped due to encryption failure
@@ -212,29 +255,88 @@ class SendPayslipJob implements ShouldQueue
 
                     $destination_file = $this->destination . '/' . $employee->matricule . '_' . $pay_month . '.pdf';
 
-                        if (empty($record_exists)) {
-                            // global utility function
-                            $record = createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $destination_file);
-                        } else {
-                            if ($record_exists->email_sent_status === Payslip::STATUS_SUCCESSFUL && $record_exists->sms_sent_status === Payslip::STATUS_SUCCESSFUL) {
-                                return;
-                            }
-                            $record = $record_exists;
-                        }
-
-                    // Check if employee has email notifications enabled
-                    if (isset($employee->receive_email_notifications) && !$employee->receive_email_notifications) {
+                    // Check if employee has email notifications enabled BEFORE creating/updating record
+                    // Refresh employee to ensure we have the latest notification preferences
+                    $employee->refresh();
+                    if ($employee->receive_email_notifications === false) {
                         Log::info('Email notifications disabled for employee', [
                             'employee_id' => $employee->id,
                             'matricule' => $employee->matricule
                         ]);
                         
-                        $record->update([
-                            'email_sent_status' => Payslip::STATUS_DISABLED,
-                            'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee')
-                        ]);
+                        // Update SMS status to skipped with clear message (SMS not attempted when email notifications disabled)
+                        $smsStatusNote = __('payslips.sms_not_attempted_email_disabled');
+                        
+                        if (empty($record_exists)) {
+                            // Create record with correct statuses from the start
+                            $record = Payslip::create([
+                                'user_id' => $this->user_id,
+                                'send_payslip_process_id' => $this->process_id,
+                                'employee_id' => $employee->id,
+                                'company_id' => $employee->company_id,
+                                'department_id' => $employee->department_id,
+                                'service_id' => $employee->service_id,
+                                'first_name' => $employee->first_name,
+                                'last_name' => $employee->last_name,
+                                'email' => $employee->email,
+                                'file' => $destination_file,
+                                'phone' => !is_null($employee->professional_phone_number) ? $employee->professional_phone_number : $employee->personal_phone_number,
+                                'matricule' => $employee->matricule,
+                                'month' => $pay_month,
+                                'year' => $this->year,
+                                'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+                                'email_sent_status' => Payslip::STATUS_DISABLED,
+                                'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee'),
+                                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                                'sms_status_note' => $smsStatusNote
+                            ]);
+                        } else {
+                            // Update existing record using direct database update to ensure persistence
+                            Payslip::where('id', $record_exists->id)->update([
+                                'email_sent_status' => Payslip::STATUS_DISABLED,
+                                'email_status_note' => __('payslips.email_notifications_disabled_for_this_employee'),
+                                'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                                'sms_status_note' => $smsStatusNote
+                            ]);
+                            
+                            // Verify the update was successful
+                            $record_exists->refresh();
+                            if ($record_exists->sms_sent_status !== Payslip::STATUS_SKIPPED) {
+                                Log::warning('SendPayslipJob: SMS status update failed for email disabled - retrying with model update', [
+                                    'payslip_id' => $record_exists->id,
+                                    'employee_id' => $employee->id,
+                                    'expected_status' => Payslip::STATUS_SKIPPED,
+                                    'actual_status' => $record_exists->sms_sent_status
+                                ]);
+                                // Fallback: try model update
+                                $record_exists->sms_sent_status = Payslip::STATUS_SKIPPED;
+                                $record_exists->sms_status_note = $smsStatusNote;
+                                $record_exists->email_sent_status = Payslip::STATUS_DISABLED;
+                                $record_exists->email_status_note = __('payslips.email_notifications_disabled_for_this_employee');
+                                $record_exists->save();
+                            }
+                        }
+                        
                         return; // Skip to next employee
                     }
+
+                        if (empty($record_exists)) {
+                            // global utility function
+                            $record = createPayslipRecord($employee, $pay_month, $this->process_id, $this->user_id, $destination_file, $this->year);
+                        } else {
+                            // Skip if already successfully sent (both email and SMS)
+                            if ($record_exists->email_sent_status === Payslip::STATUS_SUCCESSFUL && $record_exists->sms_sent_status === Payslip::STATUS_SUCCESSFUL) {
+                                return;
+                            }
+                            // If pending or failed, update file path if needed and continue processing
+                            if (empty($record_exists->file) || $record_exists->file !== $destination_file) {
+                                $record_exists->update(['file' => $destination_file]);
+                            }
+                            $record = $record_exists;
+                        }
+                        
+                        // Check if email was already sent successfully - if so, skip email sending and only retry SMS
+                        $emailAlreadySent = $record->email_sent_status === Payslip::STATUS_SUCCESSFUL;
 
                     // Check if email has bounced previously
                     if ($employee->email_bounced) {
@@ -244,8 +346,13 @@ class SendPayslipJob implements ShouldQueue
                             'bounce_reason' => $employee->email_bounce_reason
                         ]);
                         
+                        // Update SMS status to skipped with clear message (SMS not attempted when email bounces)
+                        $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                        
                         $record->update([
                             'email_sent_status' => Payslip::STATUS_FAILED,
+                            'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                            'sms_status_note' => $smsStatusNote,
                             'email_bounced' => true,
                             'email_bounced_at' => now(),
                             'email_bounce_reason' => __('payslips.email_previously_bounced') . ': ' . ($employee->email_bounce_reason ?? 'Unknown'),
@@ -258,141 +365,303 @@ class SendPayslipJob implements ShouldQueue
                     $emailToUse = !empty($employee->email) ? $employee->email : $employee->alternative_email;
                     
                     if (empty($emailToUse)) {
+                        // Update SMS status to skipped with clear message (SMS not attempted when no email)
+                        $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                        
                         $record->update([
                             'email_sent_status' => Payslip::STATUS_FAILED,
-                            'sms_sent_status' => Payslip::STATUS_FAILED,
+                            'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                            'sms_status_note' => $smsStatusNote,
                             'failure_reason' => __('payslips.no_valid_email_address')
                         ]);
                         return;
                     }
 
-                    try {
-                        setSavedSmtpCredentials();
+                            try {
+                            // Only send email if it hasn't been sent successfully yet
+                            if (!$emailAlreadySent) {
+                                try {
+                                    setSavedSmtpCredentials();
 
-                        Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination_file, $pay_month));
+                                    Mail::to(cleanString($emailToUse))->send(new SendPayslip($employee, $destination_file, $pay_month, $this->year));
 
-                        // Email accepted by mail server - delivery will be confirmed via webhooks
-                        $record->update([
-                            'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
-                            'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
-                            'email_sent_at' => now(),
-                            'email_retry_count' => 0,
-                            'last_email_retry_at' => null,
-                            'failure_reason' => null // Clear failure reason on success
-                        ]);
+                                    // Email accepted by mail server - delivery will be confirmed via webhooks
+                                    $record->update([
+                                        'email_sent_status' => Payslip::STATUS_SUCCESSFUL,
+                                        'email_delivery_status' => Payslip::DELIVERY_STATUS_SENT,
+                                        'email_sent_at' => now(),
+                                        'email_retry_count' => 0,
+                                        'last_email_retry_at' => null,
+                                        'failure_reason' => null // Clear failure reason on success
+                                    ]);
 
-                        sendSmsAndUpdateRecord($employee, $pay_month, $record, $sms_balance);
-                        Log::info('mail-sent');
-                    } catch (\Swift_TransportException $e) {
+                                    Log::info('Email sent successfully', [
+                                        'job_id' => $this->process_id,
+                                        'employee_id' => $employee->id,
+                                        'matricule' => $employee->matricule
+                                    ]);
+                                } catch (\Swift_TransportException $e) {
+                                    // Handle email sending errors - will be caught by outer catch blocks below
+                                    throw $e;
+                                } catch (\Swift_RfcComplianceException $e) {
+                                    throw $e;
+                                } catch (Exception $e) {
+                                    throw $e;
+                                }
+                            } else {
+                                Log::info('Email already sent successfully, skipping email send and only retrying SMS', [
+                                    'job_id' => $this->process_id,
+                                    'employee_id' => $employee->id,
+                                    'matricule' => $employee->matricule,
+                                    'email_sent_at' => $record->email_sent_at
+                                ]);
+                            }
 
-                        Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
-                        Log::info('' . PHP_EOL . '');
+                        // Send SMS and track results (always attempt SMS if it failed previously)
+                        try {
+                            $job_context = [
+                                'job_id' => $this->process_id,
+                                'job_type' => 'SendPayslipJob',
+                                'sms_provider_healthy' => $sms_provider_healthy,
+                                'sms_provider_error' => $sms_provider_error
+                            ];
+                            sendSmsAndUpdateRecord($employee, $pay_month, $record, $sms_balance, $job_context);
 
-                        // Preserve existing failure reason if encryption failed, append email failure
-                        $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason))
-                            ? $record->failure_reason . ' | '
-                            : '';
-
-                        $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                        $currentRetryCount = $record->email_retry_count ?? 0;
-
-                        if ($currentRetryCount < $maxRetries) {
-                            $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
-
-                            $record->update([
-                                'email_sent_status' => Payslip::STATUS_FAILED,
-                                'email_retry_count' => $currentRetryCount + 1,
-                                'last_email_retry_at' => now(),
-                                'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
-                                    'error' => $e->getMessage(),
-                                    'retry' => $currentRetryCount + 1,
-                                    'max' => $maxRetries
-                                ])
+                            // Track SMS sending results
+                            $smsStatus = $record->fresh()->sms_sent_status;
+                            if ($smsStatus === Payslip::STATUS_SUCCESSFUL) {
+                                $this->sms_success_count++;
+                                Log::info('SMS sent successfully', [
+                                    'job_id' => $this->process_id,
+                                    'employee_id' => $employee->id,
+                                    'matricule' => $employee->matricule,
+                                    'phone' => $employee->professional_phone_number ?? $employee->personal_phone_number
+                                ]);
+                            } elseif ($smsStatus === Payslip::STATUS_DISABLED) {
+                                $this->sms_disabled_count++;
+                                Log::info('SMS notifications disabled for employee', [
+                                    'job_id' => $this->process_id,
+                                    'employee_id' => $employee->id,
+                                    'matricule' => $employee->matricule
+                                ]);
+                            } else {
+                                $this->sms_failure_count++;
+                                Log::warning('SMS sending failed', [
+                                    'job_id' => $this->process_id,
+                                    'employee_id' => $employee->id,
+                                    'matricule' => $employee->matricule,
+                                    'phone' => $employee->professional_phone_number ?? $employee->personal_phone_number,
+                                    'sms_status' => $smsStatus,
+                                    'failure_reason' => $record->fresh()->failure_reason
+                                ]);
+                            }
+                        } catch (\Throwable $smsException) {
+                            $this->sms_failure_count++;
+                            Log::error('SMS sending threw unexpected exception', [
+                                'job_id' => $this->process_id,
+                                'employee_id' => $employee->id,
+                                'matricule' => $employee->matricule,
+                                'error' => $smsException->getMessage(),
+                                'trace' => $smsException->getTraceAsString()
                             ]);
 
-                            RetryPayslipEmailJob::dispatch($record->id)
-                                ->delay(now()->addSeconds($retryDelay));
-                        } else {
+                            // Update record with exception details
+                            $existingReason = !empty($record->failure_reason) ? $record->failure_reason . ' | ' : '';
                             $record->update([
-                                'email_sent_status' => Payslip::STATUS_FAILED,
                                 'sms_sent_status' => Payslip::STATUS_FAILED,
-                                'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
+                                'failure_reason' => $existingReason . __('payslips.sms_unexpected_error') . ': ' . $smsException->getMessage()
                             ]);
                         }
-                    } catch (\Swift_RfcComplianceException $e) {
-                        Log::info('------> err Swift_Rfc:' . $e->getMessage());
-                        Log::info('' . PHP_EOL . '');
 
-                        // Preserve existing failure reason if encryption failed, append email failure
-                        $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason))
-                            ? $record->failure_reason . ' | '
-                            : '';
+                        } catch (\Swift_TransportException $e) {
+                            // Only handle email exceptions if email wasn't already sent
+                            if (!$emailAlreadySent) {
 
-                        $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                        $currentRetryCount = $record->email_retry_count ?? 0;
+                            Log::info('------> err swift:--  ' . $e->getMessage()); // for log, remove if you not want it
+                                Log::info('' . PHP_EOL . '');
+                            
+                            // Preserve existing failure reason if encryption failed, append email failure
+                            $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason)) 
+                                ? $record->failure_reason . ' | ' 
+                                : '';
+                            
+                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                            $currentRetryCount = $record->email_retry_count ?? 0;
+                            
+                            if ($currentRetryCount < $maxRetries) {
+                                $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
+                                
+                                // Update SMS status to skipped with clear message (SMS not attempted when email fails)
+                                $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                                
+                                $record->update([
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                                    'sms_status_note' => $smsStatusNote,
+                                    'email_retry_count' => $currentRetryCount + 1,
+                                    'last_email_retry_at' => now(),
+                                    'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
+                                        'error' => $e->getMessage(),
+                                        'retry' => $currentRetryCount + 1,
+                                        'max' => $maxRetries
+                                    ])
+                                ]);
+                                
+                                RetryPayslipEmailJob::dispatch($record->id)
+                                    ->delay(now()->addSeconds($retryDelay));
+                            } else {
+                                // Update SMS status to skipped with clear message (SMS not attempted when email fails after max retries)
+                                $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                                
+                                $record->update([
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                                    'sms_status_note' => $smsStatusNote,
+                                    'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
+                                ]);
+                            }
+                            }
+                        } catch (\Swift_RfcComplianceException $e) {
+                            // Only handle if email wasn't already sent
+                            if (!$emailAlreadySent) {
+                                Log::info('------> err Swift_Rfc:' . $e->getMessage());
+                                Log::info('' . PHP_EOL . '');
 
-                        if ($currentRetryCount < $maxRetries) {
-                            $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
+                            // Preserve existing failure reason if encryption failed, append email failure
+                            $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason)) 
+                                ? $record->failure_reason . ' | ' 
+                                : '';
 
-                            $record->update([
-                                'email_sent_status' => Payslip::STATUS_FAILED,
-                                'email_retry_count' => $currentRetryCount + 1,
-                                'last_email_retry_at' => now(),
-                                'failure_reason' => $existingReason . __('payslips.email_rfc_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
-                                    'error' => $e->getMessage(),
-                                    'retry' => $currentRetryCount + 1,
-                                    'max' => $maxRetries
-                                ])
-                            ]);
+                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                            $currentRetryCount = $record->email_retry_count ?? 0;
+                            
+                            if ($currentRetryCount < $maxRetries) {
+                                $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
+                                
+                                // Update SMS status to skipped with clear message (SMS not attempted when email fails)
+                                $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                                
+                                $record->update([
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                                    'sms_status_note' => $smsStatusNote,
+                                    'email_retry_count' => $currentRetryCount + 1,
+                                    'last_email_retry_at' => now(),
+                                    'failure_reason' => $existingReason . __('payslips.email_rfc_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
+                                        'error' => $e->getMessage(),
+                                        'retry' => $currentRetryCount + 1,
+                                        'max' => $maxRetries
+                                    ])
+                                ]);
+                                
+                                RetryPayslipEmailJob::dispatch($record->id)
+                                    ->delay(now()->addSeconds($retryDelay));
+                            } else {
+                                // Update SMS status to skipped with clear message (SMS not attempted when email fails after max retries)
+                                $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                                
+                                $record->update([
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                                    'sms_status_note' => $smsStatusNote,
+                                    'failure_reason' => $existingReason . __('payslips.email_rfc_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
+                                ]);
+                            }
+                            }
+                        } catch (Exception $e) {
+                            // Only handle if email wasn't already sent
+                            if (!$emailAlreadySent) {
+                                Log::info('------> err' . $e->getMessage());
+                                Log::info('' . PHP_EOL . '');
 
-                            RetryPayslipEmailJob::dispatch($record->id)
-                                ->delay(now()->addSeconds($retryDelay));
-                        } else {
-                            $record->update([
-                                'email_sent_status' => Payslip::STATUS_FAILED,
-                                'sms_sent_status' => Payslip::STATUS_FAILED,
-                                'failure_reason' => $existingReason . __('payslips.email_rfc_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
-                            ]);
-                        }
-                    } catch (Exception $e) {
-                        Log::info('------> err' . $e->getMessage());
-                        Log::info('' . PHP_EOL . '');
+                            // Preserve existing failure reason if encryption failed, append email failure
+                            $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason)) 
+                                ? $record->failure_reason . ' | ' 
+                                : '';
 
-                        // Preserve existing failure reason if encryption failed, append email failure
-                        $existingReason = ($record->encryption_status === Payslip::STATUS_FAILED && !empty($record->failure_reason))
-                            ? $record->failure_reason . ' | '
-                            : '';
-
-                        $maxRetries = config('ciblerh.email_retry_attempts', 3);
-                        $currentRetryCount = $record->email_retry_count ?? 0;
-
-                        if ($currentRetryCount < $maxRetries) {
-                            $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
-
-                            $record->update([
-                                'email_sent_status' => Payslip::STATUS_FAILED,
-                                'email_retry_count' => $currentRetryCount + 1,
-                                'last_email_retry_at' => now(),
-                                'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
-                                    'error' => $e->getMessage(),
-                                    'retry' => $currentRetryCount + 1,
-                                    'max' => $maxRetries
-                                ])
-                            ]);
-
-                            RetryPayslipEmailJob::dispatch($record->id)
-                                ->delay(now()->addSeconds($retryDelay));
-                        } else {
-                            $record->update([
-                                'email_sent_status' => Payslip::STATUS_FAILED,
-                                'sms_sent_status' => Payslip::STATUS_FAILED,
-                                'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
-                            ]);
-                        }
-                    }
+                            $maxRetries = config('ciblerh.email_retry_attempts', 3);
+                            $currentRetryCount = $record->email_retry_count ?? 0;
+                            
+                            if ($currentRetryCount < $maxRetries) {
+                                $retryDelay = config('ciblerh.email_retry_delay', 60) * pow(2, $currentRetryCount);
+                                
+                                // Update SMS status to skipped with clear message (SMS not attempted when email fails)
+                                $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                                
+                                $record->update([
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                                    'sms_status_note' => $smsStatusNote,
+                                    'email_retry_count' => $currentRetryCount + 1,
+                                    'last_email_retry_at' => now(),
+                                    'failure_reason' => $existingReason . __('payslips.email_error') . ': ' . $e->getMessage() . '. ' . __('payslips.retry_scheduled', [
+                                        'error' => $e->getMessage(),
+                                        'retry' => $currentRetryCount + 1,
+                                        'max' => $maxRetries
+                                    ])
+                                ]);
+                                
+                                RetryPayslipEmailJob::dispatch($record->id)
+                                    ->delay(now()->addSeconds($retryDelay));
+                            } else {
+                                // Update SMS status to skipped with clear message (SMS not attempted when email fails after max retries)
+                                $smsStatusNote = __('payslips.sms_not_attempted_email_failed');
+                                
+                                $record->update([
+                                    'email_sent_status' => Payslip::STATUS_FAILED,
+                                    'sms_sent_status' => Payslip::STATUS_SKIPPED,
+                                    'sms_status_note' => $smsStatusNote,
+                                    'failure_reason' => $existingReason . __('payslips.email_error_after_max_retries', ['max' => $maxRetries, 'error' => $e->getMessage()])
+                                ]);
+                            }
+                            }
+                        } // End try-catch for email sending
                 } // End if (strpos check)
+                } catch (\Throwable $fileException) {
+                    Log::error('SendPayslipJob: Exception processing file in loop', [
+                        'employee_id' => $employee->id,
+                        'matricule' => $employee->matricule,
+                        'file' => $file,
+                        'error' => $fileException->getMessage(),
+                        'trace' => $fileException->getTraceAsString()
+                    ]);
+                    // Continue to next file instead of stopping
+                }
             }); // End each
+            } catch (\Throwable $employeeException) {
+                $error_count++;
+                Log::error('SendPayslipJob: Exception processing employee', [
+                    'job_id' => $this->process_id,
+                    'employee_id' => $employee->id,
+                    'matricule' => $employee->matricule,
+                    'error' => $employeeException->getMessage(),
+                    'error_class' => get_class($employeeException),
+                    'trace' => $employeeException->getTraceAsString()
+                ]);
+                // Continue to next employee instead of stopping the entire job
+            }
         } // End foreach
+        
+        Log::info('SendPayslipJob: Completed processing chunk', [
+            'job_id' => $this->process_id,
+            'total_employees' => count($this->employee_chunk),
+            'processed_count' => $processed_count,
+            'error_count' => $error_count,
+            'sms_success_count' => $this->sms_success_count,
+            'sms_failure_count' => $this->sms_failure_count,
+            'sms_disabled_count' => $this->sms_disabled_count
+        ]);
+
+        // Log SMS sending summary for this job chunk
+        Log::info('SMS sending summary for job chunk', [
+            'job_id' => $this->process_id,
+            'total_employees_processed' => count($this->employee_chunk),
+            'sms_success_count' => $this->sms_success_count,
+            'sms_failure_count' => $this->sms_failure_count,
+            'sms_disabled_count' => $this->sms_disabled_count,
+            'month' => $this->month,
+            'year' => now()->year
+        ]);
     }
 
     /**

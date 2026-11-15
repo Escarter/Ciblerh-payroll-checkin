@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\Payslip;
 use App\Models\Setting;
 use App\Services\Nexah;
+use App\Services\PayslipEmployeeDiagnosticService;
+use App\Services\PayslipEncryptionService;
 use Livewire\Component;
 use App\Mail\SendPayslip;
 use App\Services\TwilioSMS;
@@ -14,22 +16,38 @@ use App\Services\OrangeCameroonSMS;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Storage;
 
 class History extends Component
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     public $employee;
 
     public ?Payslip $payslip;
     public ?Payslip $selectedPayslip = null;
     
+    // Resend options
+    public $forceResendEmail = false;
+    public $forceResendSms = false;
+    
     // Soft delete properties
     public $activeTab = 'active';
     public $selectedPayslips = [];
     public $selectAll = false;
+
+    // Status filter properties
+    public $encryptionStatus = '';
+    public $emailStatus = '';
+    public $smsStatus = '';
+    public $overallStatus = '';
+
+    public array $employeeDiagnostic = [];
+    public bool $diagnosticRan = false;
 
     public function mount($employee_uuid)  
     {
@@ -42,6 +60,19 @@ class History extends Component
         if(!empty($payslip_id))
         {
             $this->payslip = Payslip::withTrashed()->findOrFail($payslip_id);
+            $this->payslip->refresh();
+            
+            // Auto-select force resend if status is successful, failed, or pending
+            $this->forceResendEmail = in_array($this->payslip->email_sent_status, [
+                Payslip::STATUS_SUCCESSFUL,
+                Payslip::STATUS_FAILED,
+                Payslip::STATUS_PENDING
+            ]);
+            $this->forceResendSms = in_array($this->payslip->sms_sent_status, [
+                Payslip::STATUS_SUCCESSFUL,
+                Payslip::STATUS_FAILED,
+                Payslip::STATUS_PENDING
+            ]);
         }
     }
 
@@ -49,15 +80,7 @@ class History extends Component
     {
         $payslip = Payslip::findOrFail($payslip_id);
 
-        // Check if encryption was successful
-        if ($payslip->encryption_status != 1) {
-            $this->showToast(__('payslips.encryption_not_successful'), 'danger');
-            return;
-        }
-
-        // Check if the file exists
-        if (!Storage::disk('modified')->exists($payslip->file)) {
-            $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
+        if (!$this->ensurePayslipAccessible($payslip)) {
             return;
         }
         
@@ -71,6 +94,94 @@ class History extends Component
             $this->showToast(__('payslips.unable_to_download_payslip'), 'danger');
         }
     }
+
+    public function viewPdf($payslip_id)
+    {
+        $payslip = Payslip::findOrFail($payslip_id);
+
+        if (!$this->ensurePayslipAccessible($payslip)) {
+            return;
+        }
+        
+        try {
+            $filePath = Storage::disk('modified')->path($payslip->file);
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+            ]);
+        } catch (\Exception $e) {
+            $this->showToast(__('payslips.unable_to_view_payslip'), 'danger');
+        }
+    }
+
+    private function ensurePayslipAccessible(Payslip $payslip): bool
+    {
+        if (empty($payslip->file) || !Storage::disk('modified')->exists($payslip->file)) {
+            $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
+            return false;
+        }
+
+        if ((int) $payslip->encryption_status !== Payslip::STATUS_SUCCESSFUL) {
+            $employee = User::find($payslip->employee_id) ?? $this->employee;
+            if (!app(PayslipEncryptionService::class)->ensureEncrypted($payslip->fresh(), $employee)) {
+                $this->showToast(__('payslips.encryption_not_successful'), 'danger');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function runEmployeePayslipDiagnostic(): void
+    {
+        $this->authorizeAbility('payslip-read');
+
+        $this->employeeDiagnostic = app(PayslipEmployeeDiagnosticService::class)->diagnose($this->employee);
+        $this->diagnosticRan = true;
+    }
+
+    public function relinkEmployeePayslips(): void
+    {
+        if (!auth()->user()?->hasRole('admin') && !Gate::allows('payslip-update')) {
+            abort(403);
+        }
+
+        $result = app(PayslipEmployeeDiagnosticService::class)->relinkPayslipsToEmployee($this->employee);
+        $this->runEmployeePayslipDiagnostic();
+
+        $this->showToast(__('payslips.employee_payslips_relinked', [
+            'relinked' => $result['relinked'],
+            'synced' => $result['matricules_synced'],
+        ]), $result['relinked'] > 0 || $result['matricules_synced'] > 0 ? 'success' : 'info');
+    }
+
+    public function restoreEmployeeDeletedPayslips(): void
+    {
+        if (!auth()->user()?->hasRole('admin') && !Gate::allows('payslip-restore')) {
+            abort(403);
+        }
+
+        $restored = app(PayslipEmployeeDiagnosticService::class)->restoreDeletedPayslips($this->employee);
+        $this->runEmployeePayslipDiagnostic();
+
+        $this->showToast(__('payslips.employee_deleted_payslips_restored', ['count' => $restored]), $restored > 0 ? 'success' : 'info');
+    }
+
+    public function encryptEmployeePayslips(): void
+    {
+        if (!auth()->user()?->hasRole('admin') && !Gate::allows('payslip-update')) {
+            abort(403);
+        }
+
+        $result = app(PayslipEmployeeDiagnosticService::class)->encryptVisiblePayslips($this->employee);
+        $this->runEmployeePayslipDiagnostic();
+
+        $this->showToast(__('payslips.employee_payslips_encrypted', [
+            'encrypted' => $result['encrypted'],
+            'failed' => $result['failed'],
+        ]), $result['failed'] > 0 ? 'warning' : 'success');
+    }
+
     public function resendEmail()
     {
         if (!empty($this->payslip)) {
@@ -93,7 +204,7 @@ class History extends Component
                         try {
                             setSavedSmtpCredentials();
 
-                            Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination_file, $this->payslip->month));
+                            Mail::to(cleanString($employee->email))->send(new SendPayslip($employee, $destination_file, $this->payslip->month, $this->payslip->year));
 
                             // Email accepted by mail server - mark as sent (not yet delivered)
                             // The MailSentListener will update to 'delivered' when Laravel confirms the send
@@ -112,9 +223,19 @@ class History extends Component
                             Log::info('mail-sent');
                             auditLog(
                                 auth()->user(),
-                                'send_sms',
+                                'send_email',
                                 'web',
-                                'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send email to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                                'send_email_to_employee',
+                                null,
+                                [],
+                                [],
+                                [
+                                    'translation_key' => 'send_email_to_employee',
+                                    'translation_params' => [
+                                        'user' => '<a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
+                                        'employee' => '<a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                                    ],
+                                ]
                             );
 
                             $this->closeModalAndFlashMessage(__('payslips.email_resent_successfully'), 'resendEmailModal');
@@ -196,7 +317,17 @@ class History extends Component
                     auth()->user(),
                     'send_sms',
                     'web',
-                    'User <a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a> send sms to  <a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                    'send_sms_to_employee',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'send_sms_to_employee',
+                        'translation_params' => [
+                            'user' => '<a href="/admin/users?user_id=' . auth()->user()->id . '">' . auth()->user()->name . '</a>',
+                            'employee' => '<a href="/admin/groups/' . $employee->group_id . '/employees?employee_id=' . $employee->id . '">' . $employee->name . '</a>'
+                        ],
+                    ]
                 );
                 $this->closeModalAndFlashMessage(__('payslips.sms_sent_successfully', ['user' => $employee->name]), 'resendSMSModal');
     
@@ -212,9 +343,7 @@ class History extends Component
 
     public function delete($payslipId = null)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         try {
             $payslip = $payslipId ? Payslip::findOrFail($payslipId) : $this->payslip;
@@ -234,9 +363,7 @@ class History extends Component
 
     public function restore($payslipId)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-restore');
 
         $payslip = Payslip::withTrashed()->findOrFail($payslipId);
         $payslip->restore();
@@ -246,9 +373,7 @@ class History extends Component
 
     public function forceDelete($payslipId = null)
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-delete');
 
         try {
             $payslip = $payslipId ? Payslip::withTrashed()->findOrFail($payslipId) : $this->payslip;
@@ -268,13 +393,48 @@ class History extends Component
 
     public function bulkDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
+        $this->authorizeAbility('payslip-bulkdelete');
+
+        $targetIds = $this->selectedPayslips ?? [];
+        $payslips = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $payslips = Payslip::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $payslips->map(function ($payslip) {
+                return [
+                    'id' => $payslip->id,
+                    'employee_id' => $payslip->employee_id,
+                    'month' => $payslip->month,
+                    'year' => $payslip->year,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedPayslips)) {
-            Payslip::whereIn('id', $this->selectedPayslips)->delete(); // Soft delete
+        if (!empty($targetIds)) {
+            Payslip::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedPayslips = [];
+
+            if ($payslips->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_bulk_deleted',
+                    'web',
+                    'bulk_deleted_payslips',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_deleted_payslips',
+                        'translation_params' => ['count' => $payslips->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $payslips->count(),
+                        'affected_ids' => $payslips->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('payslips.selected_payslips_moved_to_trash'), 'BulkDeleteModal');
@@ -282,13 +442,48 @@ class History extends Component
 
     public function bulkRestore()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
+        $this->authorizeAbility('payslip-bulkrestore');
+
+        $targetIds = $this->selectedPayslips ?? [];
+        $payslips = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $payslips = Payslip::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $payslips->map(function ($payslip) {
+                return [
+                    'id' => $payslip->id,
+                    'employee_id' => $payslip->employee_id,
+                    'month' => $payslip->month,
+                    'year' => $payslip->year,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedPayslips)) {
-            Payslip::withTrashed()->whereIn('id', $this->selectedPayslips)->restore();
+        if (!empty($targetIds)) {
+            Payslip::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedPayslips = [];
+
+            if ($payslips->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_bulk_restored',
+                    'web',
+                    'bulk_restored_payslips',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_payslips',
+                        'translation_params' => ['count' => $payslips->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $payslips->count(),
+                        'affected_ids' => $payslips->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('payslips.selected_payslips_restored'), 'BulkRestoreModal');
@@ -296,13 +491,48 @@ class History extends Component
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('payslip-delete')) {
-            return abort(401);
+        $this->authorizeAbility('payslip-delete');
+
+        $targetIds = $this->selectedPayslips ?? [];
+        $payslips = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $payslips = Payslip::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $payslips->map(function ($payslip) {
+                return [
+                    'id' => $payslip->id,
+                    'employee_id' => $payslip->employee_id,
+                    'month' => $payslip->month,
+                    'year' => $payslip->year,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedPayslips)) {
-            Payslip::withTrashed()->whereIn('id', $this->selectedPayslips)->forceDelete();
+        if (!empty($targetIds)) {
+            Payslip::withTrashed()->whereIn('id', $targetIds)->forceDelete();
             $this->selectedPayslips = [];
+
+            if ($payslips->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'payslip_bulk_force_deleted',
+                    'web',
+                    'bulk_force_deleted_payslips',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_payslips',
+                        'translation_params' => ['count' => $payslips->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $payslips->count(),
+                        'affected_ids' => $payslips->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('payslips.selected_payslips_permanently_deleted'), 'BulkForceDeleteModal');
@@ -311,8 +541,37 @@ class History extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedPayslips = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
+    }
+
+    public function resetFilters()
+    {
+        $this->encryptionStatus = '';
+        $this->emailStatus = '';
+        $this->smsStatus = '';
+        $this->overallStatus = '';
+        $this->query = '';
+        $this->resetPage();
+    }
+
+    public function updatedEncryptionStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedEmailStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSmsStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedOverallStatus()
+    {
+        $this->resetPage();
     }
 
     public function showPayslipDetails($payslip_id)
@@ -327,6 +586,176 @@ class History extends Component
         if ($this->selectedPayslip) {
             $this->selectedPayslip->refresh();
         }
+    }
+
+    public function getTranslatedFailureReason($failureReason)
+    {
+        if (empty($failureReason)) {
+            return '';
+        }
+
+        // Translate the "Email/SMS skipped: Encryption failed." prefix
+        $encryptionSkippedPrefix = __('payslips.encryption_failed_email_sms_skipped');
+        
+        // Check if failure reason starts with the encryption skipped prefix (in any language)
+        // We need to check both English and French versions
+        $englishPrefix = 'Email/SMS skipped: Encryption failed. ';
+        $frenchPrefix = 'Email/SMS ignoré: Échec du cryptage. ';
+        
+        $remainingReason = $failureReason;
+        $hasPrefix = false;
+        
+        if (strpos($failureReason, $englishPrefix) === 0) {
+            $remainingReason = substr($failureReason, strlen($englishPrefix));
+            $hasPrefix = true;
+        } elseif (strpos($failureReason, $frenchPrefix) === 0) {
+            $remainingReason = substr($failureReason, strlen($frenchPrefix));
+            $hasPrefix = true;
+        } elseif (strpos($failureReason, $encryptionSkippedPrefix) === 0) {
+            $remainingReason = substr($failureReason, strlen($encryptionSkippedPrefix));
+            $hasPrefix = true;
+        }
+        
+        // Translate the remaining reason if it matches known patterns
+        $translatedReason = $remainingReason;
+        
+        // Helper function to normalize month name to English for translation
+        $normalizeMonthName = function($monthName) {
+            $monthName = trim($monthName);
+            // French to English month mapping
+            $frenchToEnglish = [
+                'janvier' => 'January',
+                'février' => 'February',
+                'mars' => 'March',
+                'avril' => 'April',
+                'mai' => 'May',
+                'juin' => 'June',
+                'juillet' => 'July',
+                'août' => 'August',
+                'septembre' => 'September',
+                'octobre' => 'October',
+                'novembre' => 'November',
+                'décembre' => 'December',
+            ];
+            
+            $lowerMonth = mb_strtolower($monthName);
+            if (isset($frenchToEnglish[$lowerMonth])) {
+                return $frenchToEnglish[$lowerMonth];
+            }
+            // If it's already in English or not found, return as-is
+            return $monthName;
+        };
+        
+        // Pattern: "Matricule :matricule not found in any PDF file for month :month"
+        // English pattern
+        if (preg_match('/Matricule\s+([A-Z0-9]+)\s+not found in any PDF file for month\s+(.+)/i', $remainingReason, $matches)) {
+            $matricule = $matches[1];
+            $monthName = trim($matches[2]);
+            // Normalize month name to English, then translate to current locale
+            $normalizedMonth = $normalizeMonthName($monthName);
+            $translatedMonth = translateMonthName($normalizedMonth);
+            $translatedReason = __('payslips.matricule_not_found_in_pdf', [
+                'matricule' => $matricule,
+                'month' => $translatedMonth
+            ]);
+        }
+        // French pattern: "Matricule :matricule introuvable dans tout fichier PDF pour le mois :month"
+        elseif (preg_match('/Matricule\s+([A-Z0-9]+)\s+introuvable dans tout fichier PDF pour le mois\s+(.+)/i', $remainingReason, $matches)) {
+            $matricule = $matches[1];
+            $monthName = trim($matches[2]);
+            // Normalize month name to English, then translate to current locale
+            $normalizedMonth = $normalizeMonthName($monthName);
+            $translatedMonth = translateMonthName($normalizedMonth);
+            $translatedReason = __('payslips.matricule_not_found_in_pdf', [
+                'matricule' => $matricule,
+                'month' => $translatedMonth
+            ]);
+        }
+        // Also handle "User matricule is empty" pattern
+        elseif (preg_match('/User matricule is empty/i', $remainingReason) || 
+                preg_match('/Le matricule de l\'utilisateur est vide/i', $remainingReason)) {
+            $translatedReason = __('payslips.user_matricule_empty');
+        }
+        // Handle SMS provider error messages
+        elseif (preg_match('/SMS provider credentials are not configured/i', $remainingReason) ||
+                preg_match('/Les identifiants du fournisseur SMS ne sont pas configurés/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_credentials_not_configured');
+        }
+        elseif (preg_match('/SMS provider not configured/i', $remainingReason) ||
+                preg_match('/Fournisseur SMS non configuré/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_not_configured');
+        }
+        elseif (preg_match('/SMS provider initialization failed/i', $remainingReason) ||
+                preg_match('/Échec d\'initialisation du fournisseur SMS/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_initialization_failed');
+        }
+        elseif (preg_match('/SMS provider balance check failed for (.+): (.+)/i', $remainingReason, $matches) ||
+                preg_match('/Échec de vérification du solde SMS pour (.+): (.+)/i', $remainingReason, $matches)) {
+            $translatedReason = __('payslips.sms_provider_balance_check_failed', [
+                'provider' => trim($matches[1]),
+                'error' => trim($matches[2])
+            ]);
+        }
+        elseif (preg_match('/SMS provider unhealthy during balance check/i', $remainingReason) ||
+                preg_match('/Fournisseur SMS défaillant lors de la vérification du solde/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_unhealthy_during_balance_check');
+        }
+        elseif (preg_match('/SMS provider is unhealthy/i', $remainingReason) ||
+                preg_match('/Le fournisseur SMS est défaillant/i', $remainingReason)) {
+            $translatedReason = __('payslips.sms_provider_unhealthy');
+        }
+        elseif (preg_match('/SMS sending exception/i', $remainingReason) ||
+                preg_match('/Exception d\'envoi SMS/i', $remainingReason)) {
+            // Extract the error message after the colon if present
+            if (preg_match('/SMS sending exception:\s*(.+)/i', $remainingReason, $matches) ||
+                preg_match('/Exception d\'envoi SMS:\s*(.+)/i', $remainingReason, $matches)) {
+                $translatedReason = __('payslips.sms_sending_exception') . ': ' . trim($matches[1]);
+            } else {
+                $translatedReason = __('payslips.sms_sending_exception');
+            }
+        }
+        elseif (preg_match('/SMS sending failed with unexpected error/i', $remainingReason) ||
+                preg_match('/Échec d\'envoi SMS avec erreur inattendue/i', $remainingReason)) {
+            // Extract the error message after the colon if present
+            if (preg_match('/SMS sending failed with unexpected error:\s*(.+)/i', $remainingReason, $matches) ||
+                preg_match('/Échec d\'envoi SMS avec erreur inattendue:\s*(.+)/i', $remainingReason, $matches)) {
+                $translatedReason = __('payslips.sms_unexpected_error') . ': ' . trim($matches[1]);
+            } else {
+                $translatedReason = __('payslips.sms_unexpected_error');
+            }
+        }
+        elseif (preg_match('/No valid phone number for user/i', $remainingReason) ||
+                preg_match('/Aucun numéro de téléphone valide pour l\'utilisateur/i', $remainingReason)) {
+            $translatedReason = __('payslips.no_valid_phone_number_for_user');
+        }
+        elseif (preg_match('/Failed sending SMS/i', $remainingReason) ||
+                preg_match('/Échec d\'envoi de SMS/i', $remainingReason)) {
+            $translatedReason = __('payslips.failed_sending_sms');
+        }
+        elseif (preg_match('/Insufficient SMS Balance/i', $remainingReason) ||
+                preg_match('/Solde SMS insuffisant/i', $remainingReason)) {
+            $translatedReason = __('payslips.insufficient_sms_balance');
+        }
+        elseif (preg_match('/SMS provider configuration error/i', $remainingReason) ||
+                preg_match('/Erreur de configuration du fournisseur SMS/i', $remainingReason)) {
+            // Check if there's a specific error message after
+            if (preg_match('/SMS provider configuration error:\s*(.+)/i', $remainingReason, $matches) ||
+                preg_match('/Erreur de configuration du fournisseur SMS:\s*(.+)/i', $remainingReason, $matches)) {
+                $errorDetail = trim($matches[1]);
+                // Check if it's the null value error
+                if (preg_match('/Null value in provider configuration/i', $errorDetail) ||
+                    preg_match('/Valeur nulle dans la configuration du fournisseur/i', $errorDetail)) {
+                    $translatedReason = __('payslips.sms_provider_configuration_error') . ': ' . __('payslips.null_value_in_provider_config');
+                } else {
+                    $translatedReason = __('payslips.sms_provider_configuration_error') . ': ' . $errorDetail;
+                }
+            } else {
+                $translatedReason = __('payslips.sms_provider_configuration_error');
+            }
+        }
+        
+        // Return the translated prefix + translated reason if prefix exists, otherwise just the translated reason
+        return $hasPrefix ? $encryptionSkippedPrefix . $translatedReason : $translatedReason;
     }
 
     public function getPayslipOverallStatus($payslip)
@@ -347,46 +776,14 @@ class History extends Component
         return 'processing';
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            $this->selectedPayslips = $this->getPayslips()->pluck('id')->toArray();
-        } else {
-            $this->selectedPayslips = [];
-        }
+        return [
+            'active' => ['selectedPayslips', 'selectAll'],
+        ];
     }
 
-    public function selectAllVisible()
-    {
-        $this->selectedPayslips = $this->getPayslips()->pluck('id')->toArray();
-    }
-
-    public function selectAllPayslips()
-    {
-        $query = Payslip::where('employee_id', $this->employee->id);
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        $this->selectedPayslips = $query->pluck('id')->toArray();
-    }
-
-    public function togglePayslipSelection($payslipId)
-    {
-        if (in_array($payslipId, $this->selectedPayslips)) {
-            $this->selectedPayslips = array_diff($this->selectedPayslips, [$payslipId]);
-        } else {
-            $this->selectedPayslips[] = $payslipId;
-        }
-        
-        $this->selectAll = count($this->selectedPayslips) === $this->getPayslips()->count();
-    }
-
-    private function getPayslips()
+    protected function bulkQuery()
     {
         $query = Payslip::search($this->query)->where('employee_id', $this->employee->id);
 
@@ -397,14 +794,77 @@ class History extends Component
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        // Apply status filters
+        if ($this->encryptionStatus !== '' && $this->encryptionStatus !== 'all' && $this->encryptionStatus !== null) {
+            $query->where('encryption_status', (int)$this->encryptionStatus);
+        }
+
+        if ($this->emailStatus !== '' && $this->emailStatus !== 'all' && $this->emailStatus !== null) {
+            $query->where('email_sent_status', (int)$this->emailStatus);
+        }
+
+        if ($this->smsStatus !== '' && $this->smsStatus !== 'all' && $this->smsStatus !== null) {
+            $query->where('sms_sent_status', (int)$this->smsStatus);
+        }
+
+        // Apply overall status filter
+        if ($this->overallStatus !== '' && $this->overallStatus !== 'all' && $this->overallStatus !== null) {
+            $query->where(function ($q) {
+                switch ($this->overallStatus) {
+                    case 'success':
+                        $q->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+                          ->where(function ($subQ) {
+                              $subQ->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
+                                   ->orWhere('sms_sent_status', Payslip::STATUS_SUCCESSFUL);
+                          });
+                        break;
+                    case 'failed':
+                        $q->where(function ($subQ) {
+                            $subQ->where('encryption_status', Payslip::STATUS_FAILED)
+                                 ->orWhere(function ($subQ2) {
+                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+                                           ->where('email_sent_status', Payslip::STATUS_FAILED)
+                                           ->where(function ($subQ3) {
+                                               $subQ3->where('sms_sent_status', Payslip::STATUS_FAILED)
+                                                     ->orWhere('sms_sent_status', Payslip::STATUS_DISABLED);
+                                           });
+                                 });
+                        });
+                        break;
+                    case 'processing':
+                        $q->where(function ($subQ) {
+                            $subQ->where('encryption_status', Payslip::STATUS_PENDING)
+                                 ->orWhere(function ($subQ2) {
+                                     $subQ2->where('encryption_status', Payslip::STATUS_SUCCESSFUL)
+                                           ->where(function ($subQ3) {
+                                               $subQ3->where('email_sent_status', Payslip::STATUS_PENDING)
+                                                     ->orWhereNull('email_sent_status')
+                                                     ->orWhere(function ($subQ4) {
+                                                         $subQ4->where('email_sent_status', Payslip::STATUS_SUCCESSFUL)
+                                                               ->where(function ($subQ5) {
+                                                                   $subQ5->where('sms_sent_status', Payslip::STATUS_PENDING)
+                                                                         ->orWhereNull('sms_sent_status');
+                                                               });
+                                                     });
+                                           });
+                                 });
+                        });
+                        break;
+                }
+            });
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getPayslips()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function render()
     {
-        if (!Gate::allows('payslip-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('payslip-read');
 
         // if (auth()->user()->hasRole('employee') && $this->employee->department->author_id !== auth()->user()->id) {
         //     return abort(401);
@@ -415,36 +875,70 @@ class History extends Component
         // Get counts for active payslips (non-deleted)
         $active_payslips = Payslip::search($this->query)->where('employee_id', $this->employee->id)->whereNull('deleted_at')->count();
         $deleted_payslips = Payslip::search($this->query)->where('employee_id', $this->employee->id)->withTrashed()->whereNotNull('deleted_at')->count();
+        $visible_to_employee = Payslip::visibleToEmployee($this->employee)->count();
 
         return view('livewire.portal.employees.payslip.history', [
             'payslips' => $payslips,
-            'payslips_count' => $active_payslips, // Legacy for backward compatibility
+            'payslips_count' => $active_payslips,
             'active_payslips' => $active_payslips,
             'deleted_payslips' => $deleted_payslips,
+            'visible_to_employee' => $visible_to_employee,
         ])->layout('components.layouts.dashboard');
     }
 
     public function closePayslipDetailsModal()
     {
         $this->selectedPayslip = null;
+        $this->dispatch('close-payslip-details-modal');
     }
 
-    public function resendPayslip($payslipId)
+    public function resendPayslip()
     {
-        $payslip = Payslip::findOrFail($payslipId);
+        if (!empty($this->payslip)) {
+            // Refresh payslip to get latest status
+            $this->payslip->refresh();
 
-        // Check if payslip can be resent (failed or pending status)
-        if ($payslip->encryption_status == Payslip::STATUS_SUCCESSFUL &&
-            ($payslip->email_sent_status == Payslip::STATUS_FAILED ||
-             $payslip->sms_sent_status == Payslip::STATUS_FAILED ||
-             $payslip->email_sent_status == Payslip::STATUS_PENDING ||
-             $payslip->sms_sent_status == Payslip::STATUS_PENDING)) {
+            // Check if encryption is successful
+            if ($this->payslip->encryption_status !== Payslip::STATUS_SUCCESSFUL) {
+                $this->showToast(__('payslips.payslip_encryption_not_complete'), 'danger');
+                $this->dispatch('close-modal', id: 'resendPayslipModal');
+                return;
+            }
 
-            // Use the existing retry job
-            \App\Jobs\Single\ResendFailedPayslipJob::dispatch($payslip);
+            // Check if file exists
+            if (!\Illuminate\Support\Facades\Storage::disk('modified')->exists($this->payslip->file)) {
+                $this->showToast(__('payslips.payslip_file_not_found'), 'danger');
+                $this->dispatch('close-modal', id: 'resendPayslipModal');
+                return;
+            }
 
-            session()->flash('message', __('payslips.payslip_queued_for_resend'));
-            $this->closePayslipDetailsModal();
+            // Use unified resend function with user-selected options
+            $employee = \App\Models\User::findOrFail($this->payslip->employee_id);
+            $result = resendPayslipUnified($employee, $this->payslip, $this->payslip->file, [
+                'force_resend_email' => $this->forceResendEmail,
+                'force_resend_sms' => $this->forceResendSms,
+                'job_context' => [
+                    'source' => 'History::resendPayslip',
+                    'user_id' => auth()->id()
+                ]
+            ]);
+            
+            // Reset options after use
+            $this->forceResendEmail = false;
+            $this->forceResendSms = false;
+
+            if (!empty($result['errors'])) {
+                \Illuminate\Support\Facades\Log::warning('Payslip resend (History) completed with errors', [
+                    'payslip_id' => $this->payslip->id,
+                    'employee_id' => $employee->id,
+                    'errors' => $result['errors']
+                ]);
+                $this->showToast(__('payslips.payslip_resent_with_errors'), 'warning');
+            } else {
+                $this->showToast(__('payslips.employee_payslip_resent_successfully'), 'success');
+            }
+            
+            $this->dispatch('close-modal', id: 'resendPayslipModal');
         }
     }
 }

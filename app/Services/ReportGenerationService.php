@@ -53,16 +53,16 @@ class ReportGenerationService
     public static function getAvailableJobTypes(): array
     {
         return [
-            DownloadJob::TYPE_PAYSLIP_REPORT => __('Payslip Report'),
-            DownloadJob::TYPE_OVERTIME_REPORT => __('Overtime Report'),
-            DownloadJob::TYPE_CHECKLOG_REPORT => __('Checklog Report'),
-            DownloadJob::TYPE_EMPLOYEE_EXPORT => __('Employee Export'),
-            DownloadJob::TYPE_SERVICE_EXPORT => __('Service Export'),
-            DownloadJob::TYPE_COMPANY_EXPORT => __('Company Export'),
-            DownloadJob::TYPE_DEPARTMENT_EXPORT => __('Department Export'),
-            DownloadJob::TYPE_ADVANCE_SALARY_EXPORT => __('Advance Salary Export'),
-            DownloadJob::TYPE_ABSENCES_EXPORT => __('Absences Export'),
-            DownloadJob::TYPE_BULK_PAYSLIP_DOWNLOAD => __('Bulk Payslip Download'),
+            DownloadJob::TYPE_PAYSLIP_REPORT => __('reports.payslip_report'),
+            DownloadJob::TYPE_OVERTIME_REPORT => __('reports.overtime_report'),
+            DownloadJob::TYPE_CHECKLOG_REPORT => __('reports.checklog_report'),
+            DownloadJob::TYPE_EMPLOYEE_EXPORT => __('reports.employee_export'),
+            DownloadJob::TYPE_SERVICE_EXPORT => __('reports.service_export'),
+            DownloadJob::TYPE_COMPANY_EXPORT => __('reports.company_export'),
+            DownloadJob::TYPE_DEPARTMENT_EXPORT => __('reports.department_export'),
+            DownloadJob::TYPE_ADVANCE_SALARY_EXPORT => __('reports.advance_salary_export'),
+            DownloadJob::TYPE_ABSENCES_EXPORT => __('reports.absences_export'),
+            DownloadJob::TYPE_BULK_PAYSLIP_DOWNLOAD => __('reports.bulk_payslip_download'),
         ];
     }
 
@@ -72,9 +72,9 @@ class ReportGenerationService
     public static function getAvailableFormats(): array
     {
         return [
-            DownloadJob::FORMAT_XLSX => __('Excel (XLSX)'),
-            DownloadJob::FORMAT_PDF => __('PDF'),
-            DownloadJob::FORMAT_ZIP => __('ZIP Archive'),
+            DownloadJob::FORMAT_XLSX => __('download_jobs.excel_xlsx'),
+            DownloadJob::FORMAT_PDF => __('download_jobs.pdf'),
+            DownloadJob::FORMAT_ZIP => __('download_jobs.zip_archive'),
         ];
     }
 
@@ -84,7 +84,7 @@ class ReportGenerationService
     public static function validateJobConfiguration(string $jobType, string $format): bool
     {
         $validCombinations = [
-            DownloadJob::TYPE_BULK_PAYSLIP_DOWNLOAD => [DownloadJob::FORMAT_ZIP],
+            DownloadJob::TYPE_BULK_PAYSLIP_DOWNLOAD => [DownloadJob::FORMAT_ZIP, DownloadJob::FORMAT_PDF],
             DownloadJob::TYPE_PAYSLIP_REPORT => [DownloadJob::FORMAT_XLSX],
             DownloadJob::TYPE_OVERTIME_REPORT => [DownloadJob::FORMAT_XLSX],
             DownloadJob::TYPE_CHECKLOG_REPORT => [DownloadJob::FORMAT_XLSX],
@@ -162,11 +162,34 @@ class ReportGenerationService
         }
 
         // Add employee name if employee_id is present
-        if (isset($filters['employee_id']) && $filters['employee_id'] !== 'all') {
-            $employee = User::find($filters['employee_id']);
-            if ($employee) {
-                $enhanced['employee_name'] = $employee->name;
-                $enhanced['employee_email'] = $employee->email;
+        // Handle both single ID (string/int) and array of IDs
+        if (isset($filters['employee_id'])) {
+            if (is_array($filters['employee_id']) && !empty($filters['employee_id'])) {
+                // Multiple employees selected
+                $employeeIds = array_filter($filters['employee_id']);
+                if (!empty($employeeIds)) {
+                    $employees = User::whereIn('id', $employeeIds)->get();
+                    if ($employees->isNotEmpty()) {
+                        // Use map() instead of pluck() to access the name accessor
+                        $enhanced['employee_names'] = $employees->map(function($employee) {
+                            return $employee->name;
+                        })->toArray();
+                        $enhanced['employee_count'] = $employees->count();
+                    }
+                }
+            } elseif (!is_array($filters['employee_id']) && 
+                     $filters['employee_id'] !== 'all' && 
+                     $filters['employee_id'] !== null && 
+                     $filters['employee_id'] !== '') {
+                // Single employee (backward compatibility) - ensure it's not an array
+                $employeeId = is_numeric($filters['employee_id']) ? (int)$filters['employee_id'] : null;
+                if ($employeeId) {
+                    $employee = User::find($employeeId);
+                    if ($employee) {
+                        $enhanced['employee_name'] = $employee->name;
+                        $enhanced['employee_email'] = $employee->email;
+                    }
+                }
             }
         }
 
@@ -176,7 +199,7 @@ class ReportGenerationService
     /**
      * Dispatch the appropriate job to the queue
      */
-    private static function dispatchJob(DownloadJob $job): void
+    public static function dispatchJob(DownloadJob $job): void
     {
         $jobClass = match($job->job_type) {
             DownloadJob::TYPE_BULK_PAYSLIP_DOWNLOAD => \App\Jobs\DownloadJobs\BulkPayslipDownloadJob::class,

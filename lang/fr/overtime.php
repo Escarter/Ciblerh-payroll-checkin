@@ -81,4 +81,8 @@ return [
     'employee_overtime_bulk' => 'Heures supplémentaires des employés en lot',
     'items_selected' => 'éléments sélectionnés',
     'select_all_overtimes' => 'Sélectionner toutes les heures supplémentaires',
+
+    // Additional translation keys
+    'no_overtime_selected' => 'Aucune heure supplémentaire sélectionnée',
+    'select_all_deleted_overtimes' => 'Sélectionner toutes les heures supplémentaires supprimées',
 ];

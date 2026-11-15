@@ -7,6 +7,7 @@ use App\Models\LeaveType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use App\Imports\LeaveTypeImport;
 use App\Exports\LeaveTypeExport;
@@ -15,7 +16,9 @@ use Livewire\WithFileUploads;
 
 class Index extends BaseImportComponent
 {
-    use WithDataTable, WithFileUploads;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable, WithFileUploads;
 
     protected $importType = 'leave_types';
     protected $importPermission = 'leave_type-create';
@@ -74,9 +77,7 @@ class Index extends BaseImportComponent
 
     public function store()
     {
-        if (!Gate::allows('leave_type-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-create');
 
         $this->validate();
 
@@ -92,9 +93,7 @@ class Index extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('leave_type-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-update');
         $this->validate();
 
         DB::transaction(function () {
@@ -111,9 +110,7 @@ class Index extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('leave_type-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-delete');
 
         if (!empty($this->leave_type)) {
             $this->leave_type->delete(); // Already using soft delete
@@ -125,9 +122,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('leave_type-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-restore');
 
         $leaveType = LeaveType::withTrashed()->findOrFail($this->leave_type_id);
         $leaveType->restore();
@@ -135,27 +130,74 @@ class Index extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('leaves.leavetype_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($leaveTypeId)
+    public function forceDelete($leaveTypeId = null)
     {
-        if (!Gate::allows('leave_type-delete')) {
-            return abort(401);
+        $this->authorizeAbility('leave_type-delete');
+
+        // If no leaveTypeId provided, try to get it from selectedLeaveTypes
+        if (!$leaveTypeId) {
+            if (!empty($this->selectedLeaveTypes) && is_array($this->selectedLeaveTypes)) {
+                $leaveTypeId = $this->selectedLeaveTypes[0] ?? null;
+            } elseif ($this->leave_type_id) {
+                $leaveTypeId = $this->leave_type_id;
+            } else {
+                $this->showToast(__('leaves.no_leave_type_selected'), 'danger');
+                return;
+            }
         }
 
         $leaveType = LeaveType::withTrashed()->findOrFail($leaveTypeId);
         $leaveType->forceDelete();
+
+        // Clear selection after deletion
+        if (in_array($leaveTypeId, $this->selectedLeaveTypes ?? [])) {
+            $this->selectedLeaveTypes = array_diff($this->selectedLeaveTypes, [$leaveTypeId]);
+        }
+        $this->leave_type_id = null;
 
         $this->closeModalAndFlashMessage(__('leaves.leavetype_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('leave_type-delete')) {
-            return abort(401);
+        $this->authorizeAbility('leave_type-bulkdelete');
+
+        $targetIds = $this->selectedLeaveTypes ?? [];
+        $leaveTypes = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $leaveTypes = LeaveType::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $leaveTypes->map(function ($leaveType) {
+                return [
+                    'id' => $leaveType->id,
+                    'name' => $leaveType->name,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedLeaveTypes)) {
-            LeaveType::whereIn('id', $this->selectedLeaveTypes)->delete(); // Soft delete
+        if (!empty($targetIds)) {
+            LeaveType::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedLeaveTypes = [];
+
+            if ($leaveTypes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'leave_type_bulk_deleted',
+                    'web',
+                    'bulk_deleted_leave_types',
+                    null,
+                    [],
+                    [],
+                    [
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $leaveTypes->count(),
+                        'affected_ids' => $leaveTypes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('leaves.selected_leave_types_moved_to_trash'), 'BulkDeleteModal');
@@ -163,13 +205,46 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('leave_type-delete')) {
-            return abort(401);
+        $this->authorizeAbility('leave_type-bulkrestore');
+
+        $targetIds = $this->selectedLeaveTypes ?? [];
+        $leaveTypes = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $leaveTypes = LeaveType::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $leaveTypes->map(function ($leaveType) {
+                return [
+                    'id' => $leaveType->id,
+                    'name' => $leaveType->name,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedLeaveTypes)) {
-            LeaveType::withTrashed()->whereIn('id', $this->selectedLeaveTypes)->restore();
+        if (!empty($targetIds)) {
+            LeaveType::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedLeaveTypes = [];
+
+            if ($leaveTypes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'leave_type_bulk_restored',
+                    'web',
+                    'bulk_restored_leave_types',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_leave_types',
+                        'translation_params' => ['count' => $leaveTypes->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $leaveTypes->count(),
+                        'affected_ids' => $leaveTypes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('leaves.selected_leave_types_restored'), 'BulkRestoreModal');
@@ -177,13 +252,46 @@ class Index extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('leave_type-delete')) {
-            return abort(401);
+        $this->authorizeAbility('leave_type-delete');
+
+        $targetIds = $this->selectedLeaveTypes ?? [];
+        $leaveTypes = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $leaveTypes = LeaveType::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $leaveTypes->map(function ($leaveType) {
+                return [
+                    'id' => $leaveType->id,
+                    'name' => $leaveType->name,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedLeaveTypes)) {
-            LeaveType::withTrashed()->whereIn('id', $this->selectedLeaveTypes)->forceDelete();
+        if (!empty($targetIds)) {
+            LeaveType::withTrashed()->whereIn('id', $targetIds)->forceDelete();
             $this->selectedLeaveTypes = [];
+
+            if ($leaveTypes->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'leave_type_bulk_force_deleted',
+                    'web',
+                    'bulk_force_deleted_leave_types',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_leave_types',
+                        'translation_params' => ['count' => $leaveTypes->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => $leaveTypes->count(),
+                        'affected_ids' => $leaveTypes->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('leaves.selected_leave_types_permanently_deleted'), 'BulkForceDeleteModal');
@@ -192,31 +300,17 @@ class Index extends BaseImportComponent
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedLeaveTypes = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            $this->selectedLeaveTypes = $this->getLeaveTypes()->pluck('id')->toArray();
-        } else {
-            $this->selectedLeaveTypes = [];
-        }
+        return [
+            'active' => ['selectedLeaveTypes', 'selectAll'],
+        ];
     }
 
-    public function toggleLeaveTypeSelection($leaveTypeId)
-    {
-        if (in_array($leaveTypeId, $this->selectedLeaveTypes)) {
-            $this->selectedLeaveTypes = array_diff($this->selectedLeaveTypes, [$leaveTypeId]);
-        } else {
-            $this->selectedLeaveTypes[] = $leaveTypeId;
-        }
-        
-        $this->selectAll = count($this->selectedLeaveTypes) === $this->getLeaveTypes()->count();
-    }
-
-    private function getLeaveTypes()
+    protected function bulkQuery()
     {
         $query = LeaveType::search($this->query);
 
@@ -227,7 +321,12 @@ class Index extends BaseImportComponent
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getLeaveTypes()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
     public function import()
@@ -237,9 +336,7 @@ class Index extends BaseImportComponent
     }
     public function export()
     {
-        if (!Gate::allows('leave_type-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-read');
 
         auditLog(
             auth()->user(),
@@ -254,9 +351,7 @@ class Index extends BaseImportComponent
 
     public function render()
     {
-        if (!Gate::allows('leave_type-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('leave_type-read');
 
         $leave_types = $this->getLeaveTypes();
 

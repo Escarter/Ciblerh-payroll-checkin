@@ -80,7 +80,7 @@ class SinglePayslipPlan {
                     ? __('payslips.user_matricule_empty')
                     : __('payslips.matricule_not_found_in_pdf', [
                         'matricule' => $employee->matricule,
-                        'month' => $month
+                        'month' => translateMonthName($month)
                     ])
             ]);
             

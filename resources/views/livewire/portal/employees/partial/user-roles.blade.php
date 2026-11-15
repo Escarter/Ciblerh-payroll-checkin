@@ -2,7 +2,7 @@
     @if($showModal)
     <div wire:ignore.self class="modal fade show" style="display: block;" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content rf-roles">
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <svg class="icon icon-sm me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,9 +33,9 @@
                             @if(count($userRoles) > 0)
                                 <div class="list-group">
                                     @foreach($userRoles as $role)
-                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div class="list-group-item rf-role-row d-flex justify-content-between align-items-center">
                                             <div>
-                                                <span class="badge bg-primary me-2">{{ strtoupper(substr($role['name'], 0, 2)) }}</span>
+                                                <span class="rf-role-chip me-2">{{ strtoupper(substr($role['name'], 0, 2)) }}</span>
                                                 <span class="fw-medium">{{ ucfirst($role['name']) }}</span>
                                                 @if($role['name'] === 'employee')
                                                     <small class="text-muted">(Default)</small>
@@ -43,8 +43,8 @@
                                             </div>
                                             @if($role['name'] !== 'employee' || count($userRoles) > 1)
                                                 <button wire:click="removeRole({{ $role['id'] }})" 
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        onclick="return confirm('{{ __('employees.are_you_sure_remove_role') }}')"
+                                                        class="btn btn-sm rf-icon-btn rf-icon-btn-danger"
+                                                        onclick="return confirm('{{ __('employees.are_you_sure_remove_role') }}')">
                                                     <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                     </svg>
@@ -83,7 +83,7 @@
                                     <x-choices-multi-select
                                         id="user_roles_selection"
                                         wireModel="selectedRoles"
-                                        :options="$availableRoles->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
+                                        :options="collect($availableRoles)->pluck('name', 'name')->map(fn($name) => ucfirst($name))->toArray()"
                                         :selected="$selectedRoles"
                                         label="{{__('employees.select_roles_max_2') }}"
                                         help="{{__('common.maximum_2_roles_allowed')}}"
@@ -93,7 +93,7 @@
                                     @enderror
                                 </div>
                                 
-                                <button type="submit" class="btn btn-primary btn-sm w-100">
+                                <button type="submit" class="btn btn-primary w-100">
                                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>
@@ -101,7 +101,7 @@
                                 </button>
                             </form>
 
-                            <div class="mt-4 p-3 bg-light rounded">
+                            <div class="rf-role-note mt-4">
                                 <small class="text-muted">
                                     <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -118,7 +118,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" wire:click="closeModal">{{ __('common.close') }}</button>
+                    <button type="button" class="btn btn-outline-secondary" wire:click="closeModal">{{ __('common.close') }}</button>
                 </div>
             </div>
         </div>

@@ -96,6 +96,20 @@
                                     </div>
                                 </div>
                                 @endif
+
+                                @if($selectedJob->import_type === \App\Models\ImportJob::TYPE_EMPLOYEES && data_get($selectedJob->import_config, 'send_welcome_emails', false))
+                                    <div class="alert mt-3 {{ $selectedJobPendingWelcomeEmails > 0 ? 'alert-warning' : 'alert-success' }} mb-0">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <strong>{{ __('import_jobs.pending_welcome_emails') }}</strong>
+                                            <span class="badge {{ $selectedJobPendingWelcomeEmails > 0 ? 'bg-warning' : 'bg-success' }}">
+                                                {{ $selectedJobPendingWelcomeEmails }}
+                                            </span>
+                                        </div>
+                                        <small class="d-block mt-1">
+                                            {{ __('import_jobs.pending_welcome_emails_hint') }}
+                                        </small>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

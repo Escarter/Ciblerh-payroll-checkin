@@ -5,11 +5,11 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('companies.assign_manager')}}</h1>
-                        <p>{{__('companies.assign_manager_to_manage_company')}} &#128522;</p>
+                        <p>{{__('companies.assign_manager_to_manage_company')}}</p>
                     </div>
                     <form wire:submit.prevent="assignManager">
                         <div class='form-group mb-4'>
-                            <label for="company_id">{{__('companies.company')}}</label>
+                            <label for="company_id">{{__('companies.company')}} <span class="text-danger">*</span></label>
                             <select wire:model="company_id" name="company_id" class="form-select @error('company_id') is-invalid @enderror">
                                 <option value="">{{__('companies.select_company')}}</option>
                                 @foreach ($companies as $company)
@@ -21,7 +21,7 @@
                             @enderror
                         </div>
                         <div class='form-group mb-4'>
-                            <label for="manager_id">{{__('employees.manager')}}</label>
+                            <label for="manager_id">{{__('employees.manager')}} <span class="text-danger">*</span></label>
                             <select wire:model="manager_id" name="manager_id" class="form-select @error('manager_id') is-invalid @enderror">
                                 <option value="">{{__('employees.select_manager')}}</option>
                                 @foreach ($managers as $manager)

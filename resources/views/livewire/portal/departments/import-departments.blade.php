@@ -56,7 +56,7 @@
                              </div>
 
                              <div class="mb-4">
-                                 <label for="department_file" class="form-label">{{__('common.select_file')}}</label>
+                                 <label for="department_file" class="form-label">{{__('common.select_file')}} <span class="text-danger">*</span></label>
                                  <input wire:model="department_file" class="form-control @error('department_file') is-invalid @enderror" type="file" name="department_file" id="formFile" accept=".csv,.xlsx,.xls,.txt" required="">
                                  @error('department_file')
                                  <div class="invalid-feedback">{{$message}}</div>
@@ -168,7 +168,7 @@
                                                          $value = $row['data'][$key] ?? '';
                                                          $parsedValue = $row['validation']['parsed_data'][$key] ?? $value;
                                                      @endphp
-                                                     <span title="{{ $parsedValue !== $value ? 'Original: ' . $value : '' }}">
+                                                     <span title="{{ $parsedValue !== $value ? __('common.original') . ': ' . $value : '' }}">
                                                          {{ Str::limit($parsedValue, 30) }}
                                                      </span>
                                                  </td>

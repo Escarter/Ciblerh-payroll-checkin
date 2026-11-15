@@ -11,7 +11,7 @@
                         <p class="pt-2">{{__('common.you_wont_be_able_to_revert_this')}} &#128522;</p>
                     </div>
                     <div class="d-flex justify-content-center">
-                        <button type="button" wire:click="delete" id="confirm-delete-btn" class="btn btn-danger mx-3">{{__('common.confirm')}}</button>
+                        <button type="button" wire:click="delete" id="confirm-delete-btn" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('common.confirm')}}</button>
                         <button type="button" class="btn btn-gray-300 text-white " data-bs-dismiss="modal">{{__('common.cancel')}}</button>
                     </div>
                 </div>

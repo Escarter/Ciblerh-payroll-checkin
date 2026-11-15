@@ -118,4 +118,35 @@ return [
     'sector_required' => 'Company sector is required',
     'code_already_exists' => 'Company code already exists',
     'name_already_exists' => 'Company name already exists',
+
+    // Background import completion messages
+    'background_import_completed' => 'Background import completed successfully. :count records imported.',
+
+    // SMS Notifications
+    'bulk_sms_company_label' => 'Company-wide SMS notifications',
+    'bulk_sms_select_company' => 'Select Company',
+    'bulk_sms_company_help' => 'Disable or enable SMS notifications for all employees in a company',
+    'bulk_sms_disable_action' => 'Disable SMS for company',
+    'bulk_sms_enable_action' => 'Enable SMS for company',
+    'bulk_sms_select_company_first' => 'Please select a company first',
+    'bulk_sms_company_not_found' => 'Company not found',
+    'bulk_sms_company_role_not_allowed' => 'You do not have permission to manage SMS notifications',
+    'bulk_sms_disabled_for_company' => 'SMS notifications disabled for :count employees in :company',
+    'bulk_sms_enabled_for_company' => 'SMS notifications enabled for :count employees in :company',
+    'bulk_sms_disable_confirm' => 'Are you sure you want to disable SMS notifications?',
+    'bulk_sms_enable_confirm' => 'Are you sure you want to enable SMS notifications?',
+    'bulk_sms_disable_confirm_company_name' => 'Are you sure you want to disable SMS notifications for all employees in :company?',
+    'bulk_sms_enable_confirm_company_name' => 'Are you sure you want to enable SMS notifications for all employees in :company?',
+    'bulk_email_company_help' => 'Disable or enable email notifications for all employees in a company',
+    'bulk_email_disable_action' => 'Disable email for company',
+    'bulk_email_enable_action' => 'Enable email for company',
+    'bulk_email_disabled_for_company' => 'Email notifications disabled for :count employees in :company',
+    'bulk_email_enabled_for_company' => 'Email notifications enabled for :count employees in :company',
+    'manage_notifications_action' => 'Manage notifications',
+    'manage_notifications_title' => 'Manage company notifications',
+    'manage_notifications_help' => 'Choose a company, then enable or disable SMS and email notifications for its employees.',
+
+    // Additional translation keys
+    'select_company_required' => 'Please select a company',
+    'unknown_company' => 'Unknown company',
 ];

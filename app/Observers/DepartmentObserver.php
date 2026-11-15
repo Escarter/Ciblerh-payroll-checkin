@@ -18,7 +18,14 @@ class DepartmentObserver
             auth()->user(),
             'department_created',
             'web',
-            __('audit_logs.created_entity', ['entity' => 'department', 'name' => $department->name])
+            'created_entity',
+            $department,
+            [],
+            [],
+            [
+                'translation_key' => 'created_entity',
+                'translation_params' => ['entity' => 'department', 'name' => $department->name],
+            ]
         );
     }
 
@@ -34,7 +41,14 @@ class DepartmentObserver
             auth()->user(),
             'department_updated',
             'web',
-            __('audit_logs.updated_entity', ['entity' => 'department', 'name' => $department->name])
+            'updated_entity',
+            $department,
+            [],
+            [],
+            [
+                'translation_key' => 'updated_entity',
+                'translation_params' => ['entity' => 'department', 'name' => $department->name],
+            ]
         );
     }
 
@@ -50,7 +64,14 @@ class DepartmentObserver
             auth()->user(),
             'department_deleted',
             'web',
-            __('audit_logs.deleted_entity', ['entity' => 'department', 'name' => $department->name])
+            'deleted_entity',
+            $department,
+            [],
+            [],
+            [
+                'translation_key' => 'deleted_entity',
+                'translation_params' => ['entity' => 'department', 'name' => $department->name],
+            ]
         );
     }
 

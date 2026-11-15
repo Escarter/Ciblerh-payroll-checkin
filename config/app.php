@@ -18,6 +18,9 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Country calling code (digits only) assumed for phone numbers entered without one.
+    'phone_default_country_code' => env('PHONE_DEFAULT_COUNTRY_CODE', '237'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
@@ -388,6 +391,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         // App\Providers\HorizonServiceProvider::class,
+        App\Providers\ImportServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
     ])->toArray(),
 

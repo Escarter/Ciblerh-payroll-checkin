@@ -63,7 +63,7 @@ class Ticking extends Model
         if(!is_null($this->end_time)){
             return Carbon::parse($this->user->work_start_time)->diff(Carbon::parse($this->user->work_end_time)->subMinutes(90))->format('%H:%I');
         }
-        return __('Still workig 😓');
+        return __('common.still_working');
     }
     public function isApproved($status_owner = '')
     {
