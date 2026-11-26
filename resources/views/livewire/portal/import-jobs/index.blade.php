@@ -14,12 +14,14 @@
                 </svg>
                 {{__('common.refresh')}}
             </button>
-            <button wire:click="openCreateModal" class="btn btn-primary">
+            @can('importjob-create')
+            <a href="{{ route('portal.import-wizard') }}" class="btn btn-primary">
                 <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
                 {{__('import_jobs.create_new_import')}}
-            </button>
+            </a>
+            @endcan
         </div>
     </div>
 
@@ -145,11 +147,11 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.search')}}</label>
+                    <label class="form-label">{{__('common.search')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input type="text" class="form-control" wire:model.live.debounce.300ms="searchQuery" placeholder="{{__('common.search')}}...">
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.import_type')}}</label>
+                    <label class="form-label">{{__('common.import_type')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select class="form-select" wire:model.live="importTypeFilter">
                         <option value="">{{__('import_jobs.all_import_types')}}</option>
                         @foreach($availableImportTypes as $key => $type)
@@ -158,7 +160,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.status')}}</label>
+                    <label class="form-label">{{__('common.status')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <select class="form-select" wire:model.live="statusFilter">
                         <option value="">{{__('common.all')}}</option>
                         <option value="pending">{{__('common.pending')}}</option>
@@ -169,13 +171,13 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.date_from')}}</label>
+                    <label class="form-label">{{__('common.date_from')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input type="date" class="form-control" wire:model.live="dateFrom">
                 </div>
             </div>
             <div class="row g-3 mt-1">
                 <div class="col-md-3">
-                    <label class="form-label">{{__('common.date_to')}}</label>
+                    <label class="form-label">{{__('common.date_to')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                     <input type="date" class="form-control" wire:model.live="dateTo">
                 </div>
             </div>
@@ -183,6 +185,7 @@
     </div>
 
     <!-- Tab Buttons -->
+    @if(auth()->user()->can('importjob-bulkdelete') && auth()->user()->can('importjob-bulkrestore'))
     <div class="d-flex justify-content-between align-items-center mb-3">
         <!-- Left Side: Tab Buttons -->
         <div class="d-flex gap-2">
@@ -222,6 +225,7 @@
             <!-- Bulk Actions -->
             @if(count($selectedJobs) > 0)
             @if($activeTab === 'active')
+            @can('importjob-cancel')
             <button wire:click="bulkCancel" wire:confirm="{{__('import_jobs.confirm_bulk_cancel')}}" class="btn btn-sm btn-outline-warning d-flex align-items-center">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -229,7 +233,9 @@
                 {{__('import_jobs.bulk_cancel')}}
                 <span class="badge bg-light text-white ms-1">{{ count($selectedJobs) }}</span>
             </button>
+            @endcan
 
+            @can('importjob-bulkdelete')
             <button type="button" class="btn btn-sm btn-danger d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#BulkDeleteModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -237,7 +243,9 @@
                 {{__('common.move_to_trash')}}
                 <span class="badge bg-light text-white ms-1">{{ count($selectedJobs) }}</span>
             </button>
+            @endcan
             @else
+            @can('importjob-bulkrestore')
             <button wire:click="bulkRestore" class="btn btn-sm btn-outline-success d-flex align-items-center">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -245,7 +253,9 @@
                 {{__('common.restore_selected')}}
                 <span class="badge bg-success text-white ms-1">{{ count($selectedJobs) }}</span>
             </button>
+            @endcan
 
+            @can('importjob-delete')
             <button type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#BulkForceDeleteModal">
                 <svg class="icon icon-xs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -253,6 +263,7 @@
                 {{__('common.delete_forever')}}
                 <span class="badge bg-danger text-white ms-1">{{ count($selectedJobs) }}</span>
             </button>
+            @endcan
             @endif
 
             <button wire:click="$set('selectedJobs', [])"
@@ -265,25 +276,26 @@
             @endif
         </div>
     </div>
+    @endif
 
     <!-- Jobs Table -->
     <div class="card border-0 shadow">
         <div class="">
             <div class="table-responsive">
                 <table class="table table-hover table-bordered mb-0">
-                    <thead class="bg-light">
+                    <thead class="">
                         <tr>
-                            <th class="border-0">
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" wire:model.live="selectAll">
                                 </div>
                             </th>
-                            <th class="border-0">{{__('common.type')}}</th>
-                            <th class="border-0">{{__('common.file_name')}}</th>
-                            <th class="border-0">{{__('common.status')}}</th>
-                            <th class="border-0">{{__('common.progress')}}</th>
-                            <th class="border-0">{{__('common.created_at')}}</th>
-                            <th class="border-0">{{__('common.actions')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.type')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.file_name')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.status')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.progress')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_at')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.actions')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -309,6 +321,18 @@
                             </td>
                             <td>
                                 <span class="badge badge-lg bg-{{$job->status_badge}}">{{$job->status_display}}</span>
+                                @php
+                                    $jobPendingWelcomeEmails = (int) ($pendingWelcomeEmailCounts[$job->id] ?? 0);
+                                    $tracksWelcomeEmails = $job->import_type === \App\Models\ImportJob::TYPE_EMPLOYEES
+                                        && data_get($job->import_config, 'send_welcome_emails', false);
+                                @endphp
+                                @if($tracksWelcomeEmails && $jobPendingWelcomeEmails > 0)
+                                    <div>
+                                        <small class="text-warning fw-semibold">
+                                            {{ __('import_jobs.pending_welcome_emails_short', ['count' => $jobPendingWelcomeEmails]) }}
+                                        </small>
+                                    </div>
+                                @endif
                             </td>
                             <td>
                                 @if($job->status === 'processing')
@@ -333,42 +357,52 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     @if($activeTab === 'active')
-                                    <a href="#" wire:click="viewJobDetails({{$job->id}})" title="{{__('import_jobs.view_details')}}">
-                                        <svg class="icon icon-xs text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-primary" wire:click="viewJobDetails({{$job->id}})" title="{{__('import_jobs.view_details')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                         </svg>
                                     </a>
                                     @if($job->isFailed())
-                                    <a href="#" wire:click="retryModal({{$job->id}})" title="{{__('import_jobs.retry_job')}}">
-                                        <svg class="icon icon-xs text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    @can('importjob-update')
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-success" wire:click="retryModal({{$job->id}})" title="{{__('import_jobs.retry_job')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>
                                     </a>
+                                    @endcan
                                     @endif
                                     @if($job->can_be_cancelled)
-                                    <a href="#" wire:click="cancelJob({{$job->id}})" wire:confirm="{{__('import_jobs.confirm_cancel_job')}}" title="{{__('import_jobs.cancel_job')}}">
-                                        <svg class="icon icon-xs text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    @can('importjob-cancel')
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-warning" wire:click="cancelJob({{$job->id}})" wire:confirm="{{__('import_jobs.confirm_cancel_job')}}" title="{{__('import_jobs.cancel_job')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
                                     </a>
+                                    @endcan
                                     @endif
-                                    <a href="#" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" title="{{__('common.move_to_trash')}}">
-                                        <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    @can('importjob-delete')
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-danger" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#DeleteModal" title="{{__('common.move_to_trash')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </a>
+                                    @endcan
                                     @else
-                                    <a href="#" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('common.restore')}}">
-                                        <svg class="icon icon-xs text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    @can('importjob-update')
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-success" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#RestoreModal" title="{{__('common.restore')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>
                                     </a>
-                                    <a href="#" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" title="{{__('common.delete_forever')}}">
-                                        <svg class="icon icon-xs text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    @endcan
+                                    @can('importjob-delete')
+                                    <a href="#" class="rf-icon-btn rf-icon-btn-danger" wire:click="$set('job_id', {{$job->id}})" data-bs-toggle="modal" data-bs-target="#ForceDeleteModal" title="{{__('common.delete_forever')}}">
+                                        <svg class="icon icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
                                     </a>
+                                    @endcan
                                     @endif
                                 </div>
                             </td>
@@ -381,12 +415,14 @@
                                 </div>
                                 <h5 class="text-muted">{{__('import_jobs.no_jobs_found')}}</h5>
                                 <p class="text-muted">{{__('import_jobs.no_jobs_message')}}</p>
-                                <button wire:click="openCreateModal" class="btn btn-primary">
+                                @can('importjob-create')
+                                <a href="{{ route('portal.import-wizard') }}" class="btn btn-primary">
                                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                     </svg>
                                     {{__('import_jobs.create_new_import')}}
-                                </button>
+                                </a>
+                                @endcan
                             </td>
                         </tr>
                         @endforelse

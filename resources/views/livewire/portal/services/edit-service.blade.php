@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('services.edit_service')}}</h1>
-                        <p>{{__('services.edit_service_details')}} &#128522;</p>
+                        <p>{{__('services.edit_service_details')}}</p>
                     </div>
                     <x-form-items.form wire:submit="update">
 
@@ -22,15 +22,15 @@
                             </div>
                         </div>
                         <div class="form-group mb-4">
-                            <label for="name">{{__('common.name')}}</label>
-                            <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
+                            <label for="name">{{__('common.name')}} <span class="text-danger">*</span></label>
+                            <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name" placeholder="{{__('common.name')}}">
                             @error('name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
                         </div>
 
                         <div class='form-group mb-4'>
-                            <label for="is_active">{{__('common.status')}}?</label>
+                            <label for="is_active">{{__('common.status')}}? <small class="text-muted">({{ __('common.optional') }})</small></label>
                             <select wire:model="is_active" name="is_active" class="form-select  @error('is_active') is-invalid @enderror">
                                 <option value="">{{__('common.select_status')}}</option>
                                 <option value="1">{{__('common.active')}}</option>

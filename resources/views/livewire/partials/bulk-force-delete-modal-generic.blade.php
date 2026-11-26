@@ -10,6 +10,21 @@
                         <h1 class="mb-0 h2 fw-bolder">{{__('common.permanent_deletion')}}</h1>
                         <p class="pt-2">{{__('common.you_are_about_to_permanently_delete')}} <strong>{{ count($selectedItems ?? []) }} {{ $itemType ?? __('common.items') }}</strong> {{__('common.from_the_system')}}</p>
                         <p class="text-danger fw-bold">{{__('common.this_action_cannot_be_undone')}}</p>
+                        @php
+                            $isEmployeeCascadeDeleteEnabled = isset($itemType)
+                                && in_array($itemType, [__('employees.employee'), __('employees.employees')], true)
+                                && \App\Services\FeatureConfigurationService::isForceDeleteEmployeesWithDataEnabled();
+                        @endphp
+                        @if($isEmployeeCascadeDeleteEnabled)
+                            <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                                <svg class="icon icon-sm me-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                                <div>
+                                    <strong>{{__('common.warning')}}</strong> {{__('employees.cascade_delete_warning')}}
+                                </div>
+                            </div>
+                        @endif
                     </div>
                     <div class="d-flex justify-content-center">
                         <button type="button" wire:click="bulkForceDelete" class="btn btn-danger mx-3" data-bs-dismiss="modal">{{__('common.delete_forever')}}</button>

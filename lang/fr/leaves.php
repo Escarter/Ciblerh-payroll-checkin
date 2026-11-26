@@ -47,6 +47,7 @@ return [
 
     // Leave fields
     'leave_type' => 'Type de congé',
+    'leaves_type' => 'Types de congé',
     'start_date' => 'Date de début',
     'end_date' => 'Date de fin',
     'duration' => 'Durée',
@@ -72,6 +73,7 @@ return [
 
     // Validation
     'start_date_must_be_before_end_date' => 'La date de début doit être antérieure à la date de fin',
+    'insufficient_leave_balance' => 'Solde de congés insuffisant. Vous avez :balance jours restants mais avez demandé :requested jours.',
     'leave_request_submitted' => 'Demande de congé soumise avec succès - sympa 😍!',
     'selected_leave_days' => 'Les jours de congé sélectionnés sont',
 
@@ -122,4 +124,13 @@ return [
     'move_selected_leave_records_to_trash' => 'Déplacer les enregistrements de congé sélectionnés vers la corbeille',
     'restore_selected_leave_records' => 'Restaurer les enregistrements de congé sélectionnés',
     'permanently_delete_selected_leave_records' => 'Supprimer définitivement les enregistrements de congé sélectionnés',
+
+    // Additional translation keys
+    'leave_balance' => 'Solde de congé',
+    'no_leave_selected' => 'Aucun congé sélectionné',
+    'no_leave_type_selected' => 'Aucun type de congé sélectionné',
+    'remaining' => 'Restant',
+    'select_all_deleted_leaves' => 'Sélectionner tous les congés supprimés',
+    'select_all_leaves' => 'Sélectionner tous les congés',
+    'used' => 'Utilisé',
 ];

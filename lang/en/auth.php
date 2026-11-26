@@ -56,10 +56,36 @@ return [
 
     // Branding
     'ciberh' => 'CibeRH',
+    'password_label' => 'Password',
+    'show_password' => 'Show password',
+    'welcome_back' => 'Welcome back',
+    'welcome_sub' => 'Sign in to access your payslips, check-ins and HR documents.',
+    'hero_kicker' => 'YOUR HR, SIMPLIFIED',
+    'hero_title' => 'Everything HR, in one secure place.',
+    'hero_text' => 'A secure space for your payslips, annual declarations, leave and attendance.',
+    'feature_1' => 'Your payslips and annual declarations',
+    'feature_2' => 'Leave requests and attendance',
+    'feature_3' => 'Secure, private and always available',
+    'rights' => 'All rights reserved.',
     'hr' => 'HR',
     'e_mail_address' => 'E-mail Address',
     'language' => 'Language',
     'fr' => 'FR',
     'en' => 'EN',
 
+    // Email verification
+    'verify_email_address' => 'Verify Your Email Address',
+    'fresh_verification_link_sent' => 'A fresh verification link has been sent to your email address.',
+    'check_email_for_verification_link' => 'Before proceeding, please check your email for a verification link.',
+    'if_did_not_receive_email' => 'If you did not receive the email',
+    'click_here_to_request_another' => 'click here to request another',
+    'please_confirm_password' => 'Please confirm your password before continuing.',
+
+    // Test email
+    'test_email_subject' => 'Wima HR Test Email',
+
+    // Additional translation keys
+    'e-mail_address' => 'E-mail address',
+    'name' => 'Name',
+    'register' => 'Register',
 ];

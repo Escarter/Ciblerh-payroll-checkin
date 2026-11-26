@@ -5,7 +5,7 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('departments.create_department')}}</h1>
-                        <p>{{__('departments.create_new_department_to_manage')}} &#128522;</p>
+                        <p>{{__('departments.create_new_department_to_manage')}}</p>
                     </div>
                     <x-form-items.form wire:submit="store">
 
@@ -19,7 +19,7 @@
                             @endif
                         </div>
                         <div class='form-group mb-4'>
-                            <label for="supervisor_id">{{__('common.supervisor')}}</label>
+                            <label for="supervisor_id">{{__('common.supervisor')}} <span class="text-danger">*</span></label>
                             <select wire:model="supervisor_id" name="supervisor_id" class="form-select  @error('supervisor_id') is-invalid @enderror">
                                 <option value="">{{__("departments.select_supervisor")}}</option>
                                 @foreach ($supervisors as $supervisor)
@@ -31,8 +31,8 @@
                             @enderror
                         </div>
                         <div class="form-group mb-4">
-                            <label for="name">{{__('common.name')}}</label>
-                            <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name">
+                            <label for="name">{{__('common.name')}} <span class="text-danger">*</span></label>
+                            <input wire:model="name" type="text" class="form-control  @error('name') is-invalid @enderror" required="" name="name" placeholder="{{__('common.name')}}">
                             @error('name')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

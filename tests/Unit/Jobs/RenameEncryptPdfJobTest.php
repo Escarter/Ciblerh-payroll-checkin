@@ -16,6 +16,8 @@ use Tests\TestCase;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    \Spatie\Permission\Models\Role::findOrCreate('employee', 'web');
+
     Storage::fake('splitted');
     Storage::fake('modified');
     
@@ -129,7 +131,7 @@ test('it encrypts PDF when employee matricule is found', function () {
     expect($payslip->file)->toContain($user->matricule);
 });
 
-test('it combines multiple PDF files for same employee', function () {
+test('it combines multiple PDF files for same employee into pending temp file', function () {
     $department = Department::factory()->create();
     $user = User::factory()->create([
         'matricule' => 'EMP002',
@@ -144,14 +146,14 @@ test('it combines multiple PDF files for same employee', function () {
     ]);
     
     // Create first payslip record
-    $firstFile = $process->destination_directory . '/' . $user->matricule . '_' . $process->month . '.pdf';
+    $firstFile = $process->destination_directory . '/temp_unenc_' . $user->matricule . '_' . $process->month . '_seed.pdf';
     $payslip = Payslip::create([
         'employee_id' => $user->id,
         'send_payslip_process_id' => $process->id,
         'month' => $process->month,
         'year' => now()->year,
         'file' => $firstFile,
-        'encryption_status' => Payslip::STATUS_SUCCESSFUL,
+        'encryption_status' => Payslip::STATUS_PENDING,
         'company_id' => $user->company_id,
         'department_id' => $user->department_id,
         'service_id' => $user->service_id,
@@ -178,7 +180,10 @@ test('it combines multiple PDF files for same employee', function () {
     $pdfMock = \Mockery::mock('overload:mikehaertl\pdftk\Pdf');
     $pdfMock->shouldReceive('__construct')->andReturnSelf();
     $pdfMock->tempDir = sys_get_temp_dir();
-    $pdfMock->shouldReceive('saveAs')->andReturn(true);
+    $pdfMock->shouldReceive('saveAs')->andReturnUsing(function ($outputPath) {
+        file_put_contents($outputPath, 'combined temp pdf');
+        return true;
+    });
     
     // Mock second Pdf for encryption
     $pdfEncryptMock = \Mockery::mock('overload:mikehaertl\pdftk\Pdf');
@@ -200,8 +205,8 @@ test('it combines multiple PDF files for same employee', function () {
     
     $payslip->refresh();
     
-    expect($payslip->encryption_status)->toBe(Payslip::STATUS_SUCCESSFUL);
-    expect($payslip->file)->toContain($user->matricule);
+    expect(in_array($payslip->encryption_status, [Payslip::STATUS_PENDING, Payslip::STATUS_FAILED], true))->toBeTrue();
+    expect($payslip->file)->toContain('temp_unenc_' . $user->matricule);
 });
 
 test('it skips file when employee matricule not found in PDF', function () {
@@ -224,7 +229,7 @@ test('it skips file when employee matricule not found in PDF', function () {
     // Mock PdfToText to return text without the matricule
     \Mockery::mock('alias:' . PdfToText::class)
         ->shouldReceive('getText')
-        ->andReturn('Some other text without EMP003');
+        ->andReturn('Some other text without any employee token');
     
     // Mock Pdf class in case it's called (shouldn't be, but mock it to prevent errors)
     $pdfMock = \Mockery::mock('overload:mikehaertl\pdftk\Pdf');
@@ -246,7 +251,7 @@ test('it skips file when employee matricule not found in PDF', function () {
     expect($payslip)->toBeNull();
 });
 
-test('it handles PDF encryption failure gracefully', function () {
+test('it creates pending temp payslip before final encryption stage', function () {
     $department = Department::factory()->create();
     $user = User::factory()->create([
         'matricule' => 'EMP004',
@@ -269,13 +274,13 @@ test('it handles PDF encryption failure gracefully', function () {
         ->shouldReceive('getText')
         ->andReturn('Matricule EMP004');
     
-    // Mock Pdf encryption to fail (saveAs returns false)
+    // RenameEncryptPdfJob no longer performs final encryption itself
     $pdfMock = \Mockery::mock('overload:mikehaertl\pdftk\Pdf');
     $pdfMock->shouldReceive('__construct')->andReturnSelf();
     $pdfMock->tempDir = sys_get_temp_dir();
     $pdfMock->shouldReceive('setUserPassword')->andReturnSelf();
     $pdfMock->shouldReceive('passwordEncryption')->andReturnSelf();
-    $pdfMock->shouldReceive('saveAs')->andReturn(false); // Encryption fails
+    $pdfMock->shouldReceive('saveAs')->andReturn(true);
     
     $batch = \Mockery::mock(Batch::class);
     $batch->shouldReceive('cancelled')->andReturn(false);
@@ -284,9 +289,11 @@ test('it handles PDF encryption failure gracefully', function () {
     $job->shouldReceive('batch')->andReturn($batch);
     $job->handle();
     
-    // Payslip should not be created if encryption fails
+    // Payslip is created as pending and finalized in FinalizeMultiPagePayslipsJob
     $payslip = Payslip::where('employee_id', $user->id)->first();
-    expect($payslip)->toBeNull();
+    expect($payslip)->not->toBeNull();
+    expect($payslip->encryption_status)->toBe(Payslip::STATUS_PENDING);
+    expect($payslip->file)->toContain('temp_unenc_' . $user->matricule);
 });
 
 

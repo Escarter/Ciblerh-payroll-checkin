@@ -1,3 +1,3 @@
 @component('mail::message')
-{!! $message !!}
+{!! $content ?? 'No credentials provided.' !!}
 @endcomponent

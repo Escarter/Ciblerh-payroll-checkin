@@ -6,9 +6,21 @@
                     <div class="mb-4 mt-md-0">
 
                         <h1 class="mb-0 h4">{{__('employees.update_manager_details')}}</h1>
-                        <p>{{__('employees.edit_and_update_manager_details')}} &#128522;</p>
+                        <p>{{__('employees.edit_and_update_manager_details')}}</p>
                     </div>
                     <x-form-items.form wire:submit="updateManager" class="form-modal">
+                        @php
+                            $mgrInitials = strtoupper(substr((string)$first_name, 0, 1) . substr((string)$last_name, 0, 1)) ?: ($employee?->initials ?: '—');
+                            $mgrPreview = ($photo && method_exists($photo, 'isPreviewable') && $photo->isPreviewable())
+                                ? $photo->temporaryUrl()
+                                : $employee?->photoUrl();
+                        @endphp
+                        @include('livewire.partials.profile-photo-upload', [
+                            'user' => $employee,
+                            'initials' => $mgrInitials,
+                            'previewUrl' => $mgrPreview,
+                            'hasPhoto' => !empty($employee?->photo_path) || !empty($photo),
+                        ])
                         <div class='form-group mb-4'>
                             <x-choices-multi-select
                                 id="edit_manager_roles"
@@ -24,14 +36,14 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="first_name">{{__('employees.first_name')}}</label>
+                                <label for="first_name">{{__('employees.first_name')}} <span class="text-danger">*</span></label>
                                 <input wire:model="first_name" type="text" class="form-control  @error('first_name') is-invalid @enderror" placeholder="{{__('employees.first_name_placeholder')}}" required="" name="first_name">
                                 @error('first_name')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="last_name">{{__('employees.last_name')}}</label>
+                                <label for="last_name">{{__('employees.last_name')}} <span class="text-danger">*</span></label>
                                 <input wire:model="last_name" type="text" class="form-control  @error('last_name') is-invalid @enderror" placeholder="{{__('employees.last_name_placeholder')}}" required="" name="last_name">
                                 @error('last_name')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -40,14 +52,14 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="matricule">{{__('employees.matricule')}}</label>
+                                <label for="matricule">{{__('employees.matricule')}} <span class="text-danger">*</span></label>
                                 <input wire:model="matricule" type="text" class="form-control @error('matricule') is-invalid @enderror" placeholder="{{__('employees.matricule_placeholder')}}" required="" name="matricule">
                                 @error('matricule')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="email">{{__('employees.email')}}</label>
+                                <label for="email">{{__('employees.email')}} <span class="text-danger">*</span></label>
                                 <input wire:model="email" type="email" class="form-control @error('email') is-invalid @enderror" placeholder="{{__('employees.email_placeholder')}}" required="" name="email">
                                 @error('email')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -57,23 +69,30 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="professional_phone_number">{{__('common.prof_phone_number')}}</label>
+                                <label for="professional_phone_number">{{__('common.prof_phone_number')}} <span class="text-danger">*</span></label>
                                 <input wire:model="professional_phone_number" type="text" class="form-control  @error('professional_phone_number') is-invalid @enderror" placeholder="{{__('employees.phone_placeholder')}}" name="professional_phone_number">
                                 @error('professional_phone_number')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="personal_phone_number">{{__('common.personal_phone_number')}}</label>
+                                <label for="personal_phone_number">{{__('common.personal_phone_number')}} <span class="text-danger">*</span></label>
                                 <input wire:model="personal_phone_number" type="text" class="form-control  @error('personal_phone_number') is-invalid @enderror" placeholder="{{__('employees.phone_placeholder')}}" name="personal_phone_number">
                                 @error('personal_phone_number')
+                                <div class="invalid-feedback">{{$message}}</div>
+                                @enderror
+                            </div>
+                            <div class='col-md-6 col-xs-12'>
+                                <label for="mobile_money_number">{{__('employees.mobile_money_number')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <input wire:model="mobile_money_number" type="text" class="form-control  @error('mobile_money_number') is-invalid @enderror" placeholder="{{__('employees.mobile_money_placeholder')}}" name="mobile_money_number">
+                                @error('mobile_money_number')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror
                             </div>
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-12 col-xs-12'>
-                                <label for="date_of_birth">{{__('common.date_of_birth')}}</label>
+                                <label for="date_of_birth">{{__('common.date_of_birth')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <input wire:model="date_of_birth" type="date" class="form-control  @error('date_of_birth') is-invalid @enderror" name="date_of_birth">
                                 @error('date_of_birth')
                                 <div class="invalid-feedback">{{$message}}</div>
@@ -82,7 +101,7 @@
                         </div>
                         <div class="form-group mb-4 row">
                             <div class='col-md-6 col-xs-12'>
-                                <label for="status">{{__('common.status')}}</label>
+                                <label for="status">{{__('common.status')}} <small class="text-muted">({{ __('common.optional') }})</small></label>
                                 <select wire:model="status" name="status" class="form-select  @error('status') is-invalid @enderror">
                                     <option value="">{{__("Select status")}}</option>
                                     <option value="true" @if($status === true || $status === "true") selected @endif>{{__('common.active')}}</option>
@@ -93,8 +112,8 @@
                                 @enderror
                             </div>
                             <div class='col-md-6 col-xs-12'>
-                                <label for="password">{{__("Update Manager's Password")}}</label>
-                                <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password">
+                                <label for="password">{{__("Update Manager's Password")}} <small class="text-muted">({{ __('common.optional') }})</small></label>
+                                <input wire:model="password" type="text" class="form-control  @error('password') is-invalid @enderror" autofocus="" name="password" placeholder="{{__("Update Manager's Password")}}">
                                 @error('password')
                                 <div class="invalid-feedback">{{$message}}</div>
                                 @enderror

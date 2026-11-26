@@ -5,13 +5,13 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('absences.bulk_absence')}} {{$bulk_approval_status ? __('common.approve') : __('common.reject')}} </h1>
-                        <p>{{__('absences.employee_absence_bulk')}} {{$bulk_approval_status ? __('common.approve') : __('common.reject')}} &#128522;</p>
+                        <p>{{__('absences.employee_absence_bulk')}} {{$bulk_approval_status ? __('common.approve') : __('common.reject')}}</p>
                     </div>
                     <x-form-items.form wire:submit="bulkApproval">
 
                         <div class="form-group mb-4">
-                            <label for="bulk_approval_reason">{{$bulk_approval_status ? __('common.approve') : __('common.reject')}} {{__('common.reason')}}</label>
-                            <textarea wire:model="approval_reason" id="bulk_approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='3' rows="3"></textarea>
+                            <label for="bulk_approval_reason">{{$bulk_approval_status ? __('common.approve') : __('common.reject')}} {{__('common.reason')}} <span class="text-danger">*</span></label>
+                            <textarea wire:model="approval_reason" id="bulk_approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='3' rows="3" placeholder="{{$bulk_approval_status ? __('common.approve') : __('common.reject')}} {{__('common.reason')}}"></textarea>
                             @error('approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror

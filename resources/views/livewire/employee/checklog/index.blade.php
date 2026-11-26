@@ -101,12 +101,12 @@
 
         <div class="row py-2 text-gray-500 mt-3">
             <div class="col-md-3 mb-2">
-                <label for="search">{{__('common.search')}}: </label>
+                <label for="search">{{__('common.search')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <input wire:model="query" id="search" type="text" placeholder="{{__('common.search_placeholder')}}" class="form-control">
                 <p class="badge badge-info" wire:model="resultCount">{{$resultCount}}</p>
             </div>
             <div class="col-md-3 mb-2">
-                <label for="orderBy">{{__('common.order_by')}}: </label>
+                <label for="orderBy">{{__('common.order_by')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model="orderBy" id="orderBy" class="form-select">
                     <option value="start_time">{{__('employees.checkin_time')}}</option>
                     <option value="end_time">{{__('employees.checkout_time')}}</option>
@@ -117,7 +117,7 @@
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="direction">{{__('common.order_direction')}}: </label>
+                <label for="direction">{{__('common.order_direction')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model="orderAsc" id="direction" class="form-select">
                     <option value="asc">{{__('common.ascending')}}</option>
                     <option value="desc">{{__('common.descending')}}</option>
@@ -125,7 +125,7 @@
             </div>
 
             <div class="col-md-3 mb-2">
-                <label for="perPage">{{__('common.items_per_page')}}: </label>
+                <label for="perPage">{{__('common.items_per_page')}}:  <small class="text-muted">({{ __('common.optional') }})</small></label>
                 <select wire:model="perPage" id="perPage" class="form-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -137,6 +137,7 @@
         </div>
 
         <!-- Tab Buttons and Bulk Actions (Same Line) -->
+        @if(auth()->user()->can('ticking-bulkdelete') && auth()->user()->can('ticking-bulkrestore'))
         <div class="d-flex justify-content-between align-items-center mb-3">
             <!-- Tab Buttons (Left) -->
             <div class="d-flex gap-2">
@@ -177,7 +178,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllChecklogs" href="#">{{__('checklog.select_all_checklogs')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('checklog.select_all_checklogs')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selected', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -186,7 +187,7 @@
                     <!-- Active Tab Bulk Actions -->
                     @if(count($selected) > 0)
                     <div class="d-flex align-items-center gap-2">
-                        @can('ticking-delete')
+                        @can('ticking-bulkdelete')
                         <button type="button"
                             class="btn btn-sm btn-outline-danger d-flex align-items-center"
                             data-bs-toggle="modal"
@@ -221,8 +222,8 @@
                             @endif
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisibleForDelete" href="#">{{__('absences.select_all_visible')}}</a></li>
-                            <li><a class="dropdown-item" wire:click.prevent="selectAllDeletedChecklogs" href="#">{{__('checklog.select_all_deleted_checklogs')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllVisible" href="#">{{__('absences.select_all_visible')}}</a></li>
+                            <li><a class="dropdown-item" wire:click.prevent="selectAllMatching" href="#">{{__('checklog.select_all_deleted_checklogs')}}</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" wire:click.prevent="$set('selectedChecklogsForDelete', [])" href="#">{{__('absences.deselect_all')}}</a></li>
                         </ul>
@@ -231,7 +232,7 @@
                     <!-- Deleted Tab Bulk Actions -->
                     @if(count($selectedChecklogsForDelete) > 0)
                     <div class="d-flex align-items-center gap-2">
-                        @can('ticking-delete')
+                        @can('ticking-bulkrestore')
                         <button data-bs-toggle="modal" data-bs-target="#BulkRestoreModal"
                             class="btn btn-sm btn-outline-success d-flex align-items-center me-2"
                             title="{{ __('absences.restore_selected_absence_records') }}">
@@ -267,33 +268,33 @@
                 @endif
             @endif
         </div>
+        @endif
 
         @if(count($checklogs) > 0)
         <div class="card">
             <div class="table-responsive pb-3 text-gray-700">
                 <table class="table employee-table table-hover align-items-center " id="">
-                    <thead>
+                    <thead class="">
                         <tr>
-                            <th class="border-bottom">
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">
                                 <div class="form-check d-flex justify-content-center align-items-center">
                                     @if($activeTab === 'active')
                                     <input class="form-check-input p-2" wire:model.live="selectAll" type="checkbox">
                                     @else
                                     <input class="form-check-input p-2"
                                         wire:model.live="selectAllForDelete"
-                                        type="checkbox"
-                                        wire:click="toggleSelectAllForDelete">
+                                        type="checkbox">
                                     @endif
                                 </div>
                             </th>
-                            <th class="border-bottom">{{__('overtime.hours_worked')}}</th>
-                            <th class="border-bottom">{{__('employees.checkin_time')}}</th>
-                            <th class="border-bottom">{{__('employees.expected_checkout_time')}}</th>
-                            <th class="border-bottom">{{__('employees.checkout_time')}}</th>
-                            <th class="border-bottom">{{__('common.sup_approval')}}</th>
-                            <th class="border-bottom">{{__('common.mgr_approval')}}</th>
-                            <th class="border-bottom">{{__('common.created_date')}}</th>
-                            <th class="border-bottom">{{__('common.action')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('overtime.hours_worked')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.checkin_time')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.expected_checkout_time')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('employees.checkout_time')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.sup_approval')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.mgr_approval')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.created_date')}}</th>
+                            <th class="border-0 px-4 py-2 text-muted fw-medium">{{__('common.action')}}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -304,9 +305,9 @@
                                     @if($activeTab === 'active')
                                     <input class="form-check-input" wire:model.live="selected" value="{{$checklog->id}}" type="checkbox">
                                     @else
-                                    <input class="form-check-input"
+                                    <input wire:key="sel-{{ $checklog->id }}-{{ in_array($checklog->id, $selectedChecklogsForDelete) ? 1 : 0 }}" class="form-check-input"
                                         type="checkbox"
-                                        wire:click="toggleChecklogSelectionForDelete({{ $checklog->id }})"
+                                        wire:click="toggleSelection({{ $checklog->id }})"
                                         {{ in_array($checklog->id, $selectedChecklogsForDelete) ? 'checked' : '' }}>
                                     @endif
                                 </div>
@@ -370,7 +371,7 @@
         <div class='border-prim rounded p-4 d-flex justify-content-center align-items-center flex-column'>
             <img src="{{asset('/img/empty.svg')}}" alt='{{__("common.nothing_here")}}' class="text-center  w-25 h-25">
             <div class="text-center text-gray-800 mt-2">
-                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}} &#128540;</h4>
+                <h4 class="fs-4 fw-bold">{{__('common.oops_nothing_here')}}</h4>
                 <p>{{__('employees.record_checkin_message')}}</p>
             </div>
         </div>

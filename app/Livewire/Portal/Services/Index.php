@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Portal\Services;
 
-use App\Models\Company;
 use App\Models\Service;
+use App\Models\User;
 use App\Livewire\BaseImportComponent;
 use App\Models\Department;
 use Illuminate\Support\Str;
@@ -11,13 +11,16 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use App\Exports\ServiceExport;
 use App\Imports\ServiceImport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends BaseImportComponent
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
 
     protected $importType = 'services';
     protected $importPermission = 'service-create';
@@ -40,6 +43,9 @@ class Index extends BaseImportComponent
     public $activeTab = 'active';
     public $selectedServices = [];
     public $selectAll = false;
+
+    // Notification modal properties
+    public $smsServiceActionId;
 
     //Update & Store Rules
     protected array $rules = [
@@ -69,9 +75,7 @@ class Index extends BaseImportComponent
     }
     public function store()
     {
-        if (!Gate::allows('service-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-create');
         $this->validate();
 
         Service::create([
@@ -87,9 +91,7 @@ class Index extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('service-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-update');
         $this->validate();
 
         $this->service->update([
@@ -103,9 +105,7 @@ class Index extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('service-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-delete');
 
         if (!empty($this->service)) {
             $this->service->delete(); // Already using soft delete
@@ -117,9 +117,7 @@ class Index extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('service-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-restore');
 
         $service = Service::withTrashed()->findOrFail($this->service_id);
         $service->restore();
@@ -127,10 +125,20 @@ class Index extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('services.service_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($serviceId)
+    public function forceDelete($serviceId = null)
     {
-        if (!Gate::allows('service-delete')) {
-            return abort(401);
+        $this->authorizeAbility('service-delete');
+
+        // If no serviceId provided, try to get it from selectedServices
+        if (!$serviceId) {
+            if (!empty($this->selectedServices) && is_array($this->selectedServices)) {
+                $serviceId = $this->selectedServices[0] ?? null;
+            } elseif ($this->service_id) {
+                $serviceId = $this->service_id;
+            } else {
+                $this->showToast(__('services.no_service_selected'), 'danger');
+                return;
+            }
         }
 
         $service = Service::withTrashed()->findOrFail($serviceId);
@@ -143,18 +151,59 @@ class Index extends BaseImportComponent
         
         $service->forceDelete();
 
+        // Clear selection after deletion
+        if (in_array($serviceId, $this->selectedServices ?? [])) {
+            $this->selectedServices = array_diff($this->selectedServices, [$serviceId]);
+        }
+        $this->service_id = null;
+
         $this->closeModalAndFlashMessage(__('services.service_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('service-delete')) {
-            return abort(401);
+        $this->authorizeAbility('service-bulkdelete');
+
+        $targetIds = $this->selectedServices ?? [];
+        $services = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $services = Service::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $services->map(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'name' => $service->name,
+                    'department_id' => $service->department_id,
+                    'company_id' => $service->company_id,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedServices)) {
-            Service::whereIn('id', $this->selectedServices)->delete(); // Soft delete
+        if (!empty($targetIds)) {
+            Service::whereIn('id', $targetIds)->delete(); // Soft delete
             $this->selectedServices = [];
+
+            if ($services->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'service_bulk_deleted',
+                    'web',
+                    'bulk_deleted_services',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_deleted_services',
+                        'translation_params' => ['count' => $services->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $services->count(),
+                        'affected_ids' => $services->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('services.selected_services_moved_to_trash'), 'BulkDeleteModal');
@@ -162,13 +211,48 @@ class Index extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('service-delete')) {
-            return abort(401);
+        $this->authorizeAbility('service-bulkrestore');
+
+        $targetIds = $this->selectedServices ?? [];
+        $services = collect();
+        $affectedRecords = [];
+
+        if (!empty($targetIds)) {
+            $services = Service::withTrashed()->whereIn('id', $targetIds)->get();
+            $affectedRecords = $services->map(function ($service) {
+                return [
+                    'id' => $service->id,
+                    'name' => $service->name,
+                    'department_id' => $service->department_id,
+                    'company_id' => $service->company_id,
+                ];
+            })->toArray();
         }
 
-        if (!empty($this->selectedServices)) {
-            Service::withTrashed()->whereIn('id', $this->selectedServices)->restore();
+        if (!empty($targetIds)) {
+            Service::withTrashed()->whereIn('id', $targetIds)->restore();
             $this->selectedServices = [];
+
+            if ($services->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'service_bulk_restored',
+                    'web',
+                    'bulk_restored_services',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_services',
+                        'translation_params' => ['count' => $services->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $services->count(),
+                        'affected_ids' => $services->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('services.selected_services_restored'), 'BulkRestoreModal');
@@ -176,17 +260,23 @@ class Index extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('service-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-delete');
 
         if (!empty($this->selectedServices)) {
             $servicesWithTickings = [];
+            $affectedRecords = [];
             
             foreach ($this->selectedServices as $serviceId) {
                 $service = Service::withTrashed()->find($serviceId);
                 if ($service && $service->tickings()->count() > 0) {
                     $servicesWithTickings[] = $service->name;
+                } elseif ($service) {
+                    $affectedRecords[] = [
+                        'id' => $service->id,
+                        'name' => $service->name,
+                        'department_id' => $service->department_id,
+                        'company_id' => $service->company_id,
+                    ];
                 }
             }
             
@@ -198,6 +288,27 @@ class Index extends BaseImportComponent
             
             Service::withTrashed()->whereIn('id', $this->selectedServices)->forceDelete();
             $this->selectedServices = [];
+
+            if (!empty($affectedRecords)) {
+                auditLog(
+                    auth()->user(),
+                    'service_bulk_force_deleted',
+                    'web',
+                    'bulk_force_deleted_services',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_services',
+                        'translation_params' => ['count' => count($affectedRecords)],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => count($affectedRecords),
+                        'affected_ids' => array_column($affectedRecords, 'id'),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
+            }
         }
 
         $this->closeModalAndFlashMessage(__('services.selected_services_permanently_deleted'), 'BulkForceDeleteModal');
@@ -206,31 +317,17 @@ class Index extends BaseImportComponent
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedServices = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkSelectionMap(): array
     {
-        if ($this->selectAll) {
-            $this->selectedServices = $this->getServices()->pluck('id')->toArray();
-        } else {
-            $this->selectedServices = [];
-        }
+        return [
+            'active' => ['selectedServices', 'selectAll'],
+        ];
     }
 
-    public function toggleServiceSelection($serviceId)
-    {
-        if (in_array($serviceId, $this->selectedServices)) {
-            $this->selectedServices = array_diff($this->selectedServices, [$serviceId]);
-        } else {
-            $this->selectedServices[] = $serviceId;
-        }
-        
-        $this->selectAll = count($this->selectedServices) === $this->getServices()->count();
-    }
-
-    private function getServices()
+    protected function bulkQuery()
     {
         $query = Service::search($this->query)->with(['department','company'])->where('department_id', $this->department->id);
 
@@ -241,7 +338,12 @@ class Index extends BaseImportComponent
             $query->whereNull('deleted_at');
         }
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        return $query->orderBy($this->orderBy, $this->orderAsc);
+    }
+
+    private function getServices()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
     }
 
 
@@ -251,7 +353,14 @@ class Index extends BaseImportComponent
             auth()->user(),
             'service_exported',
             'web',
-            __('services.exported_excel_file_for_services') . $this->department->name
+            'exported_services_for_department',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'exported_services_for_department',
+                'translation_params' => ['department' => $this->department->name],
+            ]
         );
         return (new ServiceExport($this->department, $this->query))->download(ucfirst($this->department->name) . '-Services-' . Str::random(5) . '.xlsx');
     }
@@ -268,9 +377,7 @@ class Index extends BaseImportComponent
     }
     public function render()
     {
-        if (!Gate::allows('service-read')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('service-read');
 
         $services = $this->getServices();
 
@@ -363,6 +470,85 @@ class Index extends BaseImportComponent
     protected function getDepartmentId(): ?int
     {
         return $this->department ? $this->department->id : null;
+    }
+
+    public function openServiceNotificationsModal()
+    {
+        $this->authorizeAbility('service-update');
+
+        $this->dispatch('open-modal', 'ServiceSmsToggleModal');
+    }
+
+    /**
+     * Bulk toggle SMS notifications for all employees in a service
+     */
+    public function bulkToggleServiceSmsNotifications(bool $enabled)
+    {
+        if (!Gate::allows('service-update')) {
+            $this->showToast(__('services.bulk_sms_service_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $targetServiceId = $this->smsServiceActionId;
+
+        if (!$targetServiceId) {
+            $this->showToast(__('services.bulk_sms_select_service_first'), 'danger');
+            return;
+        }
+
+        $service = Service::find($targetServiceId);
+        if (!$service) {
+            $this->showToast(__('services.bulk_sms_service_not_found'), 'danger');
+            return;
+        }
+
+        // Update all active employees assigned to this service (through department)
+        $affectedCount = User::query()
+            ->where('company_id', $service->company_id)
+            ->where('department_id', $service->department_id)
+            ->whereNull('deleted_at')
+            ->where('receive_sms_notifications', '!=', $enabled)
+            ->update(['receive_sms_notifications' => $enabled]);
+
+        $message = $enabled 
+            ? __('services.bulk_sms_enabled_for_service', ['service' => $service->name, 'count' => $affectedCount])
+            : __('services.bulk_sms_disabled_for_service', ['service' => $service->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
+    }
+
+    public function bulkToggleServiceEmailNotifications(bool $enabled)
+    {
+        if (!Gate::allows('service-update')) {
+            $this->showToast(__('services.bulk_sms_service_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $targetServiceId = $this->smsServiceActionId;
+
+        if (!$targetServiceId) {
+            $this->showToast(__('services.bulk_sms_select_service_first'), 'danger');
+            return;
+        }
+
+        $service = Service::find($targetServiceId);
+        if (!$service) {
+            $this->showToast(__('services.bulk_sms_service_not_found'), 'danger');
+            return;
+        }
+
+        $affectedCount = User::query()
+            ->where('company_id', $service->company_id)
+            ->where('department_id', $service->department_id)
+            ->whereNull('deleted_at')
+            ->where('receive_email_notifications', '!=', $enabled)
+            ->update(['receive_email_notifications' => $enabled]);
+
+        $message = $enabled
+            ? __('services.bulk_email_enabled_for_service', ['service' => $service->name, 'count' => $affectedCount])
+            : __('services.bulk_email_disabled_for_service', ['service' => $service->name, 'count' => $affectedCount]);
+
+        $this->showToast($message, 'success');
     }
 
     /**

@@ -31,6 +31,14 @@ return [
     '500_message' => 'Sorry, something went wrong on our end. We\'re working to fix this issue. Please try again later or contact support if the problem persists.',
     'try_again' => 'Try Again',
 
+    // 401 - Unauthorized
+    '401_title' => 'Unauthorized',
+    '401_message' => 'Sorry, you need to be signed in to access this page. Please log in and try again.',
+
+    // 429 - Too Many Requests
+    '429_title' => 'Too Many Requests',
+    '429_message' => 'Sorry, you have made too many requests in a short period of time. Please slow down and wait a moment before trying again.',
+
     // 503 - Service Unavailable
     '503_title' => 'Service Unavailable',
     '503_message' => 'Sorry, our service is temporarily unavailable. We\'re performing maintenance or experiencing high traffic. Please check back soon.',

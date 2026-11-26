@@ -1,0 +1,296 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\PayslipMatchingProposal;
+use App\Models\SendPayslipProcess;
+use App\Models\SendAnnualDeclarationProcess;
+use App\Jobs\Plan\AnnualDeclarationSendingPlan;
+use App\Models\User;
+use App\Jobs\Plan\PayslipSendingPlan;
+use App\Services\PayslipProcessGuardService;
+use App\Services\PayslipProcessStartResult;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Throwable;
+
+class ProcessValidatedPayslipsJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels {
+        SerializesModels::__unserialize as restoreSerializedModels;
+    }
+
+    public $tries = 1;
+    public $timeout = 600;
+    public $failOnTimeout = true;
+
+    private const FAIL_NOT_VALIDATED = 'PV_NOT_VALIDATED';
+    private const FAIL_NO_COMPANY = 'PV_NO_COMPANY';
+    private const FAIL_NOT_DOWNLOADED = 'PV_NOT_DOWNLOADED';
+    private const FAIL_LOCAL_FILE_MISSING = 'PV_LOCAL_FILE_MISSING';
+    private const FAIL_PERIOD_ALREADY_HANDLED = 'PV_PERIOD_ALREADY_HANDLED';
+    private const FAIL_PROCESSING_EXCEPTION = 'PV_PROCESSING_EXCEPTION';
+    private const FAIL_JOB_PERMANENT = 'PV_JOB_PERMANENT_FAILURE';
+
+    private PayslipMatchingProposal $proposal;
+
+    /**
+     * Create a new job instance.
+     */
+    public function __construct(PayslipMatchingProposal $proposal)
+    {
+        $this->proposal = $proposal;
+        $this->onQueue('processing');
+    }
+
+    /**
+     * Execute the job.
+     * Uses pre-downloaded SFTP file and creates SendPayslipProcess
+     * to plug into existing PayslipSendingPlan workflow
+     */
+    public function handle(): void
+    {
+        try {
+            // Verify proposal is in validated state
+            if ($this->proposal->status !== PayslipMatchingProposal::STATUS_VALIDATED) {
+                \Log::warning("[" . self::FAIL_NOT_VALIDATED . "] Proposal {$this->proposal->id} is not validated. Current status: {$this->proposal->status}", [
+                    'failure_code' => self::FAIL_NOT_VALIDATED,
+                    'proposal_id' => $this->proposal->id,
+                    'status' => $this->proposal->status,
+                ]);
+                return;
+            }
+
+            // Company must always be set
+            if (!$this->proposal->matched_to_company_id) {
+                $this->proposal->update([
+                    'status' => PayslipMatchingProposal::STATUS_FAILED,
+                    'rejection_reason' => $this->formatFailureReason(self::FAIL_NO_COMPANY, 'No company assigned to this proposal.'),
+                ]);
+                \Log::error("[" . self::FAIL_NO_COMPANY . "] Cannot process proposal {$this->proposal->id}: No company assigned", [
+                    'failure_code' => self::FAIL_NO_COMPANY,
+                    'proposal_id' => $this->proposal->id,
+                ]);
+                return;
+            }
+
+            // Verify file was successfully downloaded during fetch phase
+            if ($this->proposal->download_status !== 'downloaded' || !$this->proposal->local_file_path) {
+                $this->proposal->update([
+                    'status' => PayslipMatchingProposal::STATUS_FAILED,
+                    'rejection_reason' => $this->formatFailureReason(
+                        self::FAIL_NOT_DOWNLOADED,
+                        'File was not successfully downloaded from SFTP: ' . ($this->proposal->download_error ?? 'Unknown error')
+                    ),
+                ]);
+                \Log::error("[" . self::FAIL_NOT_DOWNLOADED . "] Cannot process proposal {$this->proposal->id}: File download failed", [
+                    'failure_code' => self::FAIL_NOT_DOWNLOADED,
+                    'proposal_id' => $this->proposal->id,
+                    'download_status' => $this->proposal->download_status,
+                    'download_error' => $this->proposal->download_error,
+                ]);
+                return;
+            }
+
+            // Resolve local file path (self-heals stale path after archive moves)
+            $rawFilePath = $this->proposal->resolveExistingLocalFilePath();
+
+            // Verify file still exists in storage
+            if (!$rawFilePath || !file_exists($rawFilePath)) {
+                $this->proposal->update([
+                    'status' => PayslipMatchingProposal::STATUS_FAILED,
+                    'rejection_reason' => $this->formatFailureReason(
+                        self::FAIL_LOCAL_FILE_MISSING,
+                        'Local file no longer exists: ' . ($this->proposal->local_file_path ?? 'unknown path')
+                    ),
+                ]);
+                \Log::error("[" . self::FAIL_LOCAL_FILE_MISSING . "] File not found for proposal {$this->proposal->id}: " . ($this->proposal->local_file_path ?? 'unknown path'), [
+                    'failure_code' => self::FAIL_LOCAL_FILE_MISSING,
+                    'proposal_id' => $this->proposal->id,
+                    'local_file_path' => $this->proposal->local_file_path,
+                    'resolved_raw_file_path' => $rawFilePath,
+                ]);
+                return;
+            }
+
+            if ($this->proposal->isAnnualDeclaration()) {
+                $this->startAnnualDeclarationProcess($rawFilePath);
+                return;
+            }
+
+            // Create SendPayslipProcess record
+            // This triggers the standard splitting/encryption/sending pipeline
+            $guard = app(PayslipProcessGuardService::class);
+            $evaluation = $guard->evaluateStart(
+                $this->proposal->matched_to_department_id,
+                (int) $this->proposal->matched_to_company_id,
+                $this->proposal->matched_month,
+                (int) $this->proposal->matched_year,
+            );
+
+            if ($evaluation->action === PayslipProcessStartResult::ACTION_BLOCK) {
+                $message = $evaluation->message() ?? __('payslips.process_already_running_or_completed');
+                $this->proposal->update([
+                    'rejection_reason' => $message,
+                ]);
+                \Log::warning("[" . self::FAIL_PERIOD_ALREADY_HANDLED . "] Blocked duplicate payslip process for proposal {$this->proposal->id}", [
+                    'failure_code' => self::FAIL_PERIOD_ALREADY_HANDLED,
+                    'proposal_id' => $this->proposal->id,
+                    'existing_process_id' => $evaluation->process?->id,
+                    'message' => $message,
+                ]);
+                return;
+            }
+
+            $destinationDirectory = $this->proposal->matched_to_department_id
+                ? "dept_{$this->proposal->matched_to_department_id}_" . date('YmdHis')
+                : "sftp_company_{$this->proposal->matched_to_company_id}_" . date('YmdHis');
+
+            if ($evaluation->action === PayslipProcessStartResult::ACTION_RESUME_EXISTING) {
+                $sendPayslipProcess = $guard->prepareForResume(
+                    $evaluation->process,
+                    $rawFilePath,
+                    $destinationDirectory,
+                    auth()->id() ?? 1,
+                    $this->proposal->id,
+                );
+            } else {
+                $sendPayslipProcess = SendPayslipProcess::create([
+                    'user_id' => auth()->id() ?? 1,  // System user or authenticated user
+                    'department_id' => $this->proposal->matched_to_department_id ?? null,
+                    'company_id' => $this->proposal->matched_to_company_id,
+                    'month' => $this->proposal->matched_month,
+                    'year' => $this->proposal->matched_year,
+                    'raw_file' => $rawFilePath,  // Full filesystem path to local file
+                    'sftp_proposal_id' => $this->proposal->id, // Direct link for reliable status callbacks
+                    'destination_directory' => $destinationDirectory,
+                    'status' => 'processing',
+                    'percentage_completion' => 0,
+                ]);
+            }
+
+            // Log the processing action
+            $user = auth()->user()
+                ?? User::find($sendPayslipProcess->user_id)
+                ?? User::role('admin')->first();
+
+            if ($user) {
+                auditLog(
+                    $user,
+                    'sftp_payslip_processing_started',
+                    'queue',
+                    "SFTP payslip {$this->proposal->file_name} queued for processing",
+                    $sendPayslipProcess,
+                    [],
+                    $sendPayslipProcess->getAttributes(),
+                    [
+                        'sftp_proposal_id' => $this->proposal->id,
+                        'source' => 'sftp',
+                    ]
+                );
+            } else {
+                \Log::warning('Skipping SFTP processing audit log: no user available', [
+                    'proposal_id' => $this->proposal->id,
+                    'process_id' => $sendPayslipProcess->id,
+                ]);
+            }
+
+            // Start the full pipeline: split → rename/encrypt → finalize → send
+            PayslipSendingPlan::start($sendPayslipProcess);
+
+            \Log::info("SFTP payslip {$this->proposal->file_name} queued for processing via PayslipSendingPlan. Process ID: {$sendPayslipProcess->id}");
+
+            // IMPORTANT: Do not mark proposal as processed here.
+            // PayslipSendingPlan is asynchronous; proposal status is finalized
+            // when the downstream SendPayslipProcess completes.
+
+        } catch (Throwable $e) {
+            \Log::error("[" . self::FAIL_PROCESSING_EXCEPTION . "] Error processing validated SFTP proposal {$this->proposal->id}: " . $e->getMessage(), [
+                'failure_code' => self::FAIL_PROCESSING_EXCEPTION,
+                'proposal_id' => $this->proposal->id,
+                'exception' => $e,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            $this->proposal->update([
+                'status' => PayslipMatchingProposal::STATUS_FAILED,
+                'rejection_reason' => $this->formatFailureReason(self::FAIL_PROCESSING_EXCEPTION, 'Processing error: ' . $e->getMessage()),
+            ]);
+
+            throw $e;
+        }
+    }
+
+    private function startAnnualDeclarationProcess(string $rawFilePath): void
+    {
+        $year = (int) $this->proposal->matched_year;
+        $blocking = SendAnnualDeclarationProcess::blockingProcessFor(
+            (int) $this->proposal->matched_to_company_id,
+            $this->proposal->matched_to_department_id ? (int) $this->proposal->matched_to_department_id : null,
+            $year
+        );
+
+        if ($blocking) {
+            $this->proposal->update(['rejection_reason' => __('annual_declarations.process_already_running_or_completed')]);
+            \Log::warning("[" . self::FAIL_PERIOD_ALREADY_HANDLED . "] Blocked duplicate annual declaration process for proposal {$this->proposal->id}", [
+                'existing_process_id' => $blocking->id,
+            ]);
+            return;
+        }
+
+        $process = SendAnnualDeclarationProcess::create([
+            'user_id' => auth()->id() ?? $this->proposal->matched_by_user_id ?? 1,
+            'company_id' => $this->proposal->matched_to_company_id,
+            'department_id' => $this->proposal->matched_to_department_id,
+            'raw_file' => $rawFilePath,
+            'destination_directory' => 'annual_' . $this->proposal->matched_to_company_id . '_' . $year . '_' . date('YmdHis'),
+            'year' => $year,
+            'sftp_proposal_id' => $this->proposal->id,
+            'status' => SendAnnualDeclarationProcess::STATUS_PROCESSING,
+            'percentage_completion' => 0,
+        ]);
+
+        AnnualDeclarationSendingPlan::start($process);
+
+        \Log::info("SFTP annual declaration {$this->proposal->file_name} queued. Process ID: {$process->id}");
+    }
+
+    /**
+     * Handle job failure
+     */
+    public function failed(Throwable $exception): void
+    {
+        \Log::error("[" . self::FAIL_JOB_PERMANENT . "] ProcessValidatedPayslipsJob permanently failed for proposal {$this->proposal->id}: " . $exception->getMessage(), [
+            'failure_code' => self::FAIL_JOB_PERMANENT,
+            'proposal_id' => $this->proposal->id,
+            'exception' => $exception,
+        ]);
+    }
+
+    /**
+     * Re-hydrate the job after unserialization.
+     * If the proposal was deleted (e.g. during an outage), silently discard the job
+     * instead of crashing with ModelNotFoundException.
+     */
+    public function __unserialize(array $data): void
+    {
+        try {
+            $this->restoreSerializedModels($data);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            \Log::warning('ProcessValidatedPayslipsJob: proposal no longer exists, discarding stale job.', [
+                'exception' => $e->getMessage(),
+            ]);
+            // Mark as deleted so handle() is never called
+            $this->delete();
+        }
+    }
+
+    private function formatFailureReason(string $code, string $message): string
+    {
+        return '[' . $code . '] ' . $message;
+    }
+}

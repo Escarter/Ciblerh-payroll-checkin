@@ -4,13 +4,18 @@ namespace App\Livewire\Employee;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Illuminate\Support\Facades\Gate;
 use App\Rules\CurrentPasswordCheckRule;
+use App\Services\TrustedDeviceService;
 use Illuminate\Support\Facades\Hash;
 
 class Profile extends Component
 {
+    use \App\Livewire\Traits\AuthorizesAbilities;
+    use \App\Livewire\Traits\ManagesOwnTwoFactor;
     use WithFileUploads;
+    use WithPagination;
     public $first_name;
     public $last_name;
     public $email;
@@ -20,9 +25,11 @@ class Profile extends Component
     public $password;
     public $password_confirmation;
     public $signature;
+    public $photo;
     public $preferred_language;
     public $professional_phone_number;
     public $personal_phone_number;
+    public $mobile_money_number;
     public $pdf_password;
     public $work_time;
     public $date_of_birth;
@@ -36,36 +43,68 @@ class Profile extends Component
         $this->position = auth()->user()->position;
         $this->professional_phone_number = auth()->user()->professional_phone_number;
         $this->personal_phone_number = auth()->user()->personal_phone_number;
+        $this->mobile_money_number = auth()->user()->mobile_money_number;
         $this->pdf_password = auth()->user()->pdf_password;
         $this->work_time = auth()->user()->work_start_time ." - ". auth()->user()->work_end_time;
         $this->preferred_language = auth()->user()->preferred_language;
         $this->date_of_birth = !empty(auth()->user()->date_of_birth) ? auth()->user()->date_of_birth->format('Y-m-d') : '';
+        $this->initTwoFactorEnrolment();
+    }
+
+    public function updatedPhoto(\App\Services\ProfilePhotoService $photos): void
+    {
+        $this->authorizeAbility('profile-update');
+        $this->validate([
+            'photo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048'],
+        ]);
+
+        $user = auth()->user();
+        $oldPath = $user->photo_path;
+        $newPath = $photos->store($this->photo, 'profile-photos');
+
+        $user->update(['photo_path' => $newPath]);
+        if ($oldPath && $oldPath !== $newPath) {
+            $photos->delete($oldPath);
+        }
+
+        $this->photo = null;
+        $this->refresh(__('common.photo_saved_successfully'));
+    }
+
+    public function removePhoto(\App\Services\ProfilePhotoService $photos): void
+    {
+        $this->authorizeAbility('profile-update');
+        $user = auth()->user();
+        if (!empty($user->photo_path)) {
+            $photos->delete($user->photo_path);
+            $user->update(['photo_path' => null]);
+        }
+
+        $this->photo = null;
+        $this->refresh(__('common.photo_removed_successfully'));
     }
 
     public function updateProfile()
     {
-        if (!Gate::allows('profile-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('profile-update');
         auth()->user()->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
             'professional_phone_number' => $this->professional_phone_number,
             'personal_phone_number' => $this->personal_phone_number,
+            'mobile_money_number' => $this->mobile_money_number,
             'position' => $this->position,
             'matricule' => $this->matricule,
             'preferred_language' => $this->preferred_language,
-            'date_of_birth' => $this->date_of_birth,
+            'date_of_birth' => $this->date_of_birth ?: null,
         ]);
 
-        $this->refresh(__('Profile updated successfully!'));
+        $this->refresh(__('auth.profile_updated_successfully'));
     }
     public function saveSignature()
     {
-        if (!Gate::allows('profile-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('profile-update');
         if ($this->signature) {
             if(!empty(auth()->user()->signature_path)){
 
@@ -73,7 +112,7 @@ class Profile extends Component
             auth()->user()->update(['signature_path' => $this->signature->storePublicly('signatures', 'attachments')]);
         }
 
-        $this->refresh(__('Signature saved successfully!'));
+        $this->refresh(__('auth.signature_saved_successfully'));
     }
     public function passwordReset()
     {
@@ -84,10 +123,11 @@ class Profile extends Component
         ]);
 
         auth()->user()->update(['password' => Hash::make($this->password)]);
+        app(TrustedDeviceService::class)->forgetAll(auth()->user());
 
         $this->reset(['current_password','password','password_confirmation']);
 
-        $this->refresh(__('Password reseted successfully!'));
+        $this->refresh(__('auth.password_reseted_successfully'));
     }
     public function refresh($message)
     {
@@ -95,6 +135,6 @@ class Profile extends Component
     }
     public function render()
     {
-        return view('livewire.employee.profile')->layout('components.layouts.employee.master');
+        return view('livewire.employee.profile', $this->twoFactorViewData())->layout('components.layouts.employee.master');
     }
 }

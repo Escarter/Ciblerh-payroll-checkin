@@ -9,21 +9,27 @@ trait WithTickOvertimePermissions
     public $selectedTickingPermissions = [];
     public $selectAllTickingPermissions = false;
     public $TickingPermissions = [
-        'View' => 'ticking-read',
-        'Update' => 'ticking-update',
-        'Delete' => 'ticking-delete',
-        'Create' => 'ticking-create',
-        'Export' => 'ticking-export',
+        'common.view' => 'ticking-read',
+        'common.update' => 'ticking-update',
+        'common.delete' => 'ticking-delete',
+        'common.create' => 'ticking-create',
+        'common.export' => 'ticking-export',
+        'common.restore' => 'ticking-restore',
+        'common.bulk_delete' => 'ticking-bulkdelete',
+        'common.bulk_restore' => 'ticking-bulkrestore',
     ];
 
     public $selectedOvertimePermissions = [];
     public $selectAllOvertimePermissions = false;
     public $OvertimePermissions = [
-        'View' => 'overtime-read',
-        'Update' => 'overtime-update',
-        'Delete' => 'overtime-delete',
-        'Create' => 'overtime-create',
-        'Export' => 'overtime-export',
+        'common.view' => 'overtime-read',
+        'common.update' => 'overtime-update',
+        'common.delete' => 'overtime-delete',
+        'common.create' => 'overtime-create',
+        'common.export' => 'overtime-export',
+        'common.restore' => 'overtime-restore',
+        'common.bulk_delete' => 'overtime-bulkdelete',
+        'common.bulk_restore' => 'overtime-bulkrestore',
     ];
     
     public function overtimeAndTickingPermissionClearFields()

@@ -34,42 +34,53 @@ Auth::routes(['register'=>'false']);
 
 Route::any('/logout', [LoginController::class, 'logout']);
 
+Route::middleware(['auth'])->prefix('two-factor')->group(function () {
+    Route::get('/challenge', App\Livewire\Auth\TwoFactorChallenge::class)->name('two-factor.challenge');
+    Route::get('/setup', App\Livewire\Auth\TwoFactorSetup::class)->name('two-factor.setup');
+});
 
-Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee']], function () {
+
+Route::group(['prefix' => 'employee', 'middleware' => ['auth', 'role:employee', 'feature:employee_portal']], function () {
     Route::get('/dashboard', App\Livewire\Employee\Dashboard::class)->name('employee.dashboard');
 
     Route::get('/profile', App\Livewire\Employee\Profile::class)->name('employee.profile');
 
     //AuditLogs
-    Route::prefix('auditlogs')->group(function () {
+    Route::prefix('auditlogs')->middleware('feature:audit_logs')->group(function () {
         Route::get('/', App\Livewire\Employee\AuditLogs\Index::class)->name('employee.auditlogs');
     });
 
 
-    Route::prefix('checklogs')->group(function(){
+    Route::prefix('checklogs')->middleware('feature:checklogs')->group(function(){
         Route::get('/', App\Livewire\Employee\Checklog\Index::class)->name('employee.checklogs');
     });
 
-    Route::prefix('overtimes')->group(function () {
+    Route::prefix('overtimes')->middleware('feature:overtimes')->group(function () {
         Route::get('/', App\Livewire\Employee\Overtime\Index::class)->name('employee.overtimes');
     });
 
     //Advance Salary
-    Route::prefix('advance-salaries')->group(function () {
+    Route::prefix('advance-salaries')->middleware('feature:advance_salaries')->group(function () {
         Route::get('/', App\Livewire\Employee\AdvanceSalary\Index::class)->name('employee.advance-salaries');
     });
 
     //Absences
-    Route::prefix('absences')->group(function () {
+    Route::prefix('absences')->middleware('feature:absences')->group(function () {
         Route::get('/', App\Livewire\Employee\Absences\Index::class)->name('employee.absences');
     });
 
     //Payslip
-    Route::prefix('payslips')->group(function () {
+    Route::prefix('payslips')->middleware('feature:payslip_history')->group(function () {
         Route::get('/', App\Livewire\Employee\Payslip\Index::class)->name('employee.payslips');
+        Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('employee.payslip.view-pdf');
+    });
+    //Annual declarations
+    Route::prefix('annual-declarations')->middleware('feature:annual_declarations')->group(function () {
+        Route::get('/', App\Livewire\Employee\AnnualDeclarations\Index::class)->name('employee.annual-declarations');
+        Route::get('/{id}/view-pdf', [App\Http\Controllers\AnnualDeclarationViewController::class, 'viewPdf'])->name('employee.annual-declaration.view-pdf');
     });
     //Leaves
-    Route::prefix('leaves')->group(function () {
+    Route::prefix('leaves')->middleware('feature:leaves')->group(function () {
         Route::get('/', App\Livewire\Employee\Leaves\Index::class)->name('employee.leaves');
     });
 
@@ -124,39 +135,48 @@ Route::group(
         });
         
         //Overtime management
-        Route::prefix('overtimes')->group(function () {
+        Route::prefix('overtimes')->middleware('feature:overtimes')->group(function () {
             Route::get('/', App\Livewire\Portal\Overtimes\Index::class)->name('portal.overtimes.index');
         });
         //Checklog management
-        Route::prefix('checklogs')->group(function () {
+        Route::prefix('checklogs')->middleware('feature:checklogs')->group(function () {
             Route::get('/', App\Livewire\Portal\Checklogs\Index::class)->name('portal.checklogs.index');
         });
-        //Checklog management
-        Route::prefix('absences')->group(function () {
+        //Absences
+        Route::prefix('absences')->middleware('feature:absences')->group(function () {
             Route::get('/', App\Livewire\Portal\Absences\Index::class)->name('portal.absences.index');
         });
 
         //Advance Salaries
-        Route::prefix('advance-salaries')->group(function () {
+        Route::prefix('advance-salaries')->middleware('feature:advance_salaries')->group(function () {
             Route::get('/', App\Livewire\Portal\AdvanceSalaries\Index::class)->name('portal.advance-salaries.index');
         });
        
 
         //Payslip Salaries
         Route::prefix('payslips')->group(function () {
-            Route::get('/', App\Livewire\Portal\Payslips\Index::class)->name('portal.payslips.index');
+            Route::get('/', App\Livewire\Portal\Payslips\Index::class)->name('portal.payslips.index')->middleware('feature:payslip_sending');
             Route::get('/{id}/details', App\Livewire\Portal\Payslips\Details::class)->name('portal.payslips.details');
-            Route::get('/history', App\Livewire\Portal\Payslips\All::class)->name('portal.payslips.history');
+            Route::get('/history', App\Livewire\Portal\Payslips\All::class)->name('portal.payslips.history')->middleware('feature:payslip_history');
+            Route::get('/{id}/view-pdf', [App\Http\Controllers\PayslipViewController::class, 'viewPdf'])->name('portal.payslips.view-pdf');
+            Route::get('/sftp/validator', App\Livewire\Portal\Payslips\SftpPayslipValidator::class)->name('portal.payslips.sftp-validator')->middleware(['can:manage-payslips', 'feature:sftp_validator']);
+        });
+
+        //Annual declarations
+        Route::prefix('annual-declarations')->middleware('feature:annual_declarations')->group(function () {
+            Route::get('/', App\Livewire\Portal\AnnualDeclarations\Index::class)->name('portal.annual-declarations.index');
+            Route::get('/{id}/details', App\Livewire\Portal\AnnualDeclarations\Details::class)->name('portal.annual-declarations.details');
+            Route::get('/{id}/view-pdf', [App\Http\Controllers\AnnualDeclarationViewController::class, 'viewPdf'])->name('portal.annual-declarations.view-pdf');
         });
 
         //Leave Management
-        Route::prefix('leaves')->group(function () {
+        Route::prefix('leaves')->middleware('feature:leaves')->group(function () {
             Route::get('/', App\Livewire\Portal\Leaves\Index::class)->name('portal.leaves.index');
             Route::get('/types', App\Livewire\Portal\Leaves\Types\Index::class)->name('portal.leaves.types');
         });
 
         //AuditLogs
-        Route::prefix('auditlogs')->group(function () {
+        Route::prefix('auditlogs')->middleware('feature:audit_logs')->group(function () {
             Route::get('/', App\Livewire\Portal\AuditLogs\Index::class)->name('portal.auditlogs.index');
         });
 
@@ -167,7 +187,16 @@ Route::group(
         //Setting
         Route::prefix('settings')->group(function () {
             Route::get('/', App\Livewire\Portal\Settings\Index::class)->name('portal.settings.index');
+            Route::get('/appearance', App\Livewire\Portal\Settings\Appearance::class)->name('portal.settings.appearance');
         });
+
+        //Superadmin Console
+        Route::prefix('superadmin')->middleware('superadmin')->group(function () {
+            Route::get('/features', App\Livewire\Portal\Superadmin\FeatureManagement::class)->name('portal.superadmin.features');
+        });
+
+        // Holidays
+        Route::get('/holidays', App\Livewire\Portal\Holidays\Index::class)->name('portal.holidays.index')->middleware('feature:holiday_calendar');
 
         //Checklog management
         Route::prefix('reports')->group(function () {
@@ -178,10 +207,12 @@ Route::group(
         });
 
         //Download Jobs
-        Route::get('/download-jobs', App\Livewire\Portal\DownloadJobs\Index::class)->name('portal.download-jobs.index');
+        Route::get('/download-jobs', App\Livewire\Portal\DownloadJobs\Index::class)->name('portal.download-jobs.index')->middleware('feature:import_export');
 
         //Import Jobs
-        Route::get('/import-jobs', App\Livewire\Portal\ImportJobs\Index::class)->name('portal.import-jobs.index');
+        Route::get('/import-jobs', App\Livewire\Portal\ImportJobs\Index::class)->name('portal.import-jobs.index')->middleware('feature:import_export');
+        Route::get('/import-wizard', App\Livewire\ImportWizard::class)->name('portal.import-wizard')->middleware('feature:import_export');
+        Route::get('/export-wizard', App\Livewire\ExportWizard::class)->name('portal.export-wizard')->middleware('feature:import_export');
         Route::get('/download-template/{filename}', function($filename) {
             $path = public_path('templates/' . $filename);
             if (!file_exists($path)) {
@@ -217,4 +248,9 @@ Route::prefix('webhooks/email')->group(function () {
     Route::post('mailgun', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'mailgun']);
     Route::post('ses', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'ses']);
     Route::post('postmark', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'postmark']);
+    Route::post('mailchimp', [App\Http\Controllers\Webhooks\EmailWebhookController::class, 'mailchimp']);
 });
+
+// Orange Cameroun SMS delivery-report (DR) callback (no auth; protected by optional shared token)
+Route::post('webhooks/orange-sms/dr', [App\Http\Controllers\Webhooks\OrangeSmsWebhookController::class, 'deliveryReport'])
+    ->name('webhooks.orange-sms.dr');

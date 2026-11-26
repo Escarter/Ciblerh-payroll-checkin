@@ -216,3 +216,5 @@ class TestQueuesCommand extends Command
         $this->info('   - Database failed_jobs table for failures');
     }
 }
+
+

@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<x-layouts.app>
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -18,11 +16,11 @@
                     {{ __('auth.if_did_not_receive_email') }},
                     <form class="d-inline" method="POST" action="{{ route('verification.resend') }}">
                         @csrf
-                        <button type="submit" class="btn btn-link p-0 m-0 align-baseline">{{ __('click here to request another') }}</button>.
+                        <button type="submit" class="btn btn-link p-0 m-0 align-baseline">{{ __('auth.click_here_to_request_another') }}</button>.
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
-@endsection
+</x-layouts.app>

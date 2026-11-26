@@ -14,17 +14,28 @@ use Livewire\WithFileUploads;
 use App\Events\EmployeeCreated;
 use App\Exports\EmployeeExport;
 use App\Imports\EmployeeImport;
+use App\Livewire\Traits\WithBulkSelection;
 use App\Livewire\Traits\WithDataTable;
 use App\Models\Role;
 use App\Rules\PhoneNumber;
 use App\Rules\ValidEmail;
+use App\Support\EmployeeIdentityRules;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Database\Eloquent\Collection;
 
 class All extends BaseImportComponent
 {
-    use WithDataTable;
+    use \App\Livewire\Traits\AuthorizesAbilities;
+
+    use WithBulkSelection, WithDataTable;
+    use \App\Livewire\Traits\WithTestSms;
+    use \App\Livewire\Traits\WithEmployeeCompanyTransfer;
+    use \App\Livewire\Traits\WithAdminTwoFactorActions;
+    use \App\Livewire\Traits\ManagesEmployeePhoto;
+
+    private const DEFAULT_WORK_START_TIME = '08:00';
+    private const DEFAULT_WORK_END_TIME = '17:30';
 
     protected $importType = 'employees';
     protected $importPermission = 'employee-import';
@@ -44,6 +55,9 @@ class All extends BaseImportComponent
     public $email = null;
     public $professional_phone_number = null;
     public $personal_phone_number = null;
+    public $mobile_money_number = null;
+    public $remaining_leave_days = null;
+    public $monthly_leave_allocation = null;
     public $net_salary = null;
     public $contract_end = null;
     public $matricule = null;
@@ -62,8 +76,8 @@ class All extends BaseImportComponent
     public $employee_file = null;
     public $role = null;
     public $auth_role = null;
-    public bool $receive_sms_notifications = true;
-    public bool $receive_email_notifications = true;
+    public $receive_sms_notifications = true;
+    public $receive_email_notifications = true;
     public $alternative_email = null;
     public $isEditMode = false;
     
@@ -72,6 +86,10 @@ class All extends BaseImportComponent
     public $selectedEmployees = [];
     public $selectedEmployeesForDelete = [];
     public $selectAll = false;
+
+    // Filter props / notification modal
+    public string $filterCompany = '';
+    public $smsCompanyActionId = null;
 
     //Update & Store Rules - using string-based validation to avoid new expressions in property
     protected array $rules = [
@@ -84,13 +102,12 @@ class All extends BaseImportComponent
         'selectedCompanyId' => 'required_if:!company,null',
     ];
 
-    public function mount()
+    public function mount($employeeId = null)
     {
         $this->initializePreview();
 
         $this->roles = auth()->user()->hasRole('admin') ? Role::orderBy('name', 'desc')->get() : Role::whereNotIn('name', ['admin'])->orderBy('name', 'desc')->get();
-        $this->work_start_time = Carbon::parse('08:00')->format('H:i');
-        $this->work_end_time = Carbon::parse('17:30')->format('H:i');
+        $this->setDefaultWorkTimes();
 
         $this->auth_role = auth()->user()->getRoleNames()->first();
     }
@@ -177,55 +194,64 @@ class All extends BaseImportComponent
 
     public function store()
     {
-        if (!Gate::allows('employee-create')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-create');
+        $this->setDefaultWorkTimes();
+        // Updated validation - only 5 fields are mandatory
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
-            'matricule' => 'required',
+            'matricule' => EmployeeIdentityRules::matricule(null, $this->email),
             'professional_phone_number' => ['required', new PhoneNumber()],
-            'personal_phone_number' => ['required', new PhoneNumber()],
-            'password' => 'required',
-            'date_of_birth' => 'required|date',
-            'email' => ['required', new ValidEmail(), 'unique:users'],
-            'selected_roles' => 'required|array|max:2',
+            'email' => EmployeeIdentityRules::email(),
+            
+            // Optional fields
+            'personal_phone_number' => ['nullable', new PhoneNumber()],
+            'date_of_birth' => 'nullable|date',
+            'selected_roles' => 'nullable|array|max:2',
         ]);
 
-        // Validate that employee role is always included
-        if (!in_array('employee', $this->selected_roles)) {
+        // Validate that employee role is always included if roles are provided
+        if (!empty($this->selected_roles) && !in_array('employee', $this->selected_roles)) {
             $this->addError('selected_roles', 'Employee role must always be included.');
             return;
         }
 
         // Validate maximum 2 roles (including employee)
-        if (count($this->selected_roles) > 2) {
+        if (!empty($this->selected_roles) && count($this->selected_roles) > 2) {
             $this->addError('selected_roles', 'A user can have a maximum of 2 roles (including the employee role).');
             return;
         }
 
-        // Ensure employee role is first in the array
-        $this->selected_roles = array_unique($this->selected_roles);
-        $employeeKey = array_search('employee', $this->selected_roles);
-        if ($employeeKey !== false) {
-            unset($this->selected_roles[$employeeKey]);
-            // Reindex the array
-            $this->selected_roles = array_values($this->selected_roles);
+        // Ensure employee role is first in the array if roles are provided
+        if (!empty($this->selected_roles)) {
+            $this->selected_roles = array_unique($this->selected_roles);
+            $employeeKey = array_search('employee', $this->selected_roles);
+            if ($employeeKey !== false) {
+                unset($this->selected_roles[$employeeKey]);
+                // Reindex the array
+                $this->selected_roles = array_values($this->selected_roles);
+            }
+            array_unshift($this->selected_roles, 'employee');
+        } else {
+            $this->selected_roles = ['employee'];
         }
-        array_unshift($this->selected_roles, 'employee');
 
         // Format phone numbers before saving
         $professionalPhone = validatePhoneNumber($this->professional_phone_number);
-        $personalPhone = validatePhoneNumber($this->personal_phone_number);
         
         if (!$professionalPhone['valid']) {
             $this->addError('professional_phone_number', $professionalPhone['error']);
             return;
         }
-        
-        if (!$personalPhone['valid']) {
-            $this->addError('personal_phone_number', $personalPhone['error']);
-            return;
+
+        // Validate personal phone number if provided
+        $personalPhone = null;
+        if (!empty($this->personal_phone_number)) {
+            $personalPhone = validatePhoneNumber($this->personal_phone_number);
+            if (!$personalPhone['valid']) {
+                $this->addError('personal_phone_number', $personalPhone['error']);
+                return;
+            }
         }
 
         $user = User::create([
@@ -234,15 +260,20 @@ class All extends BaseImportComponent
             'matricule' => $this->matricule,
             'email' => $this->email,
             'professional_phone_number' => $professionalPhone['formatted'],
-            'personal_phone_number' => $personalPhone['formatted'],
+            'personal_phone_number' => $personalPhone['formatted'] ?? null,
+            'mobile_money_number' => $this->mobile_money_number,
             'date_of_birth' => $this->date_of_birth,
+            'work_start_time' => $this->work_start_time,
+            'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ? true : false,
             'password' => bcrypt($this->password),
+            'plain_password' => $this->password,
             'pdf_password' => Str::random(10),
         ]);
 
         // Assign multiple roles - use syncRoles instead of assignRole for arrays
         $user->syncRoles($this->selected_roles);
+        $this->persistEmployeePhotoIfUploaded($user);
 
         event(new EmployeeCreated($user, $this->password));
 
@@ -251,56 +282,67 @@ class All extends BaseImportComponent
     }
     public function updateManager()
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-update');
 
+        $this->setDefaultWorkTimes();
+
+        // Updated validation - only 5 fields are mandatory
         $this->validate([
             'first_name' => 'required',
             'last_name' => 'required',
-            'matricule' => 'required',
+            'matricule' => EmployeeIdentityRules::matricule($this->employee->id, $this->email),
             'professional_phone_number' => ['required', new PhoneNumber()],
-            'personal_phone_number' => ['required', new PhoneNumber()],
-            'date_of_birth' => 'required|date',
-            'email' => ['required', new ValidEmail()],
-            'selected_roles' => 'required|array|max:2',
+            'email' => EmployeeIdentityRules::email($this->employee->id),
+            
+            // Optional fields
+            'personal_phone_number' => ['nullable', new PhoneNumber()],
+            'date_of_birth' => 'nullable|date',
+            'selected_roles' => 'nullable|array|max:2',
         ]);
 
-        // Validate that employee role is always included
-        if (!in_array('employee', $this->selected_roles)) {
+        // Validate that employee role is always included if roles are provided
+        if (!empty($this->selected_roles) && !in_array('employee', $this->selected_roles)) {
             $this->addError('selected_roles', 'Employee role must always be included.');
             return;
         }
 
         // Validate maximum 2 roles (including employee)
-        if (count($this->selected_roles) > 2) {
+        if (!empty($this->selected_roles) && count($this->selected_roles) > 2) {
             $this->addError('selected_roles', 'A user can have a maximum of 2 roles (including the employee role).');
             return;
         }
 
-        // Ensure employee role is first in the array
-        $this->selected_roles = array_unique($this->selected_roles);
-        $employeeKey = array_search('employee', $this->selected_roles);
-        if ($employeeKey !== false) {
-            unset($this->selected_roles[$employeeKey]);
-            // Reindex the array
-            $this->selected_roles = array_values($this->selected_roles);
+        // Ensure employee role is first in the array if roles are provided
+        if (!empty($this->selected_roles)) {
+            $this->selected_roles = array_unique($this->selected_roles);
+            $employeeKey = array_search('employee', $this->selected_roles);
+            if ($employeeKey !== false) {
+                unset($this->selected_roles[$employeeKey]);
+                // Reindex the array
+                $this->selected_roles = array_values($this->selected_roles);
+            }
+            array_unshift($this->selected_roles, 'employee');
         }
-        array_unshift($this->selected_roles, 'employee');
 
         // Format phone numbers before updating
         $professionalPhone = validatePhoneNumber($this->professional_phone_number);
-        $personalPhone = validatePhoneNumber($this->personal_phone_number);
         
         if (!$professionalPhone['valid']) {
             $this->addError('professional_phone_number', $professionalPhone['error']);
             return;
         }
-        
-        if (!$personalPhone['valid']) {
-            $this->addError('personal_phone_number', $personalPhone['error']);
-            return;
+
+        // Validate personal phone number if provided
+        $personalPhone = null;
+        if (!empty($this->personal_phone_number)) {
+            $personalPhone = validatePhoneNumber($this->personal_phone_number);
+            if (!$personalPhone['valid']) {
+                $this->addError('personal_phone_number', $personalPhone['error']);
+                return;
+            }
         }
+
+        $passwordChanged = !empty($this->password) && $this->password !== $this->employee->password;
 
         $this->employee->update([
             'first_name' => $this->first_name,
@@ -308,14 +350,26 @@ class All extends BaseImportComponent
             'matricule' => $this->matricule,
             'email' => $this->email,
             'professional_phone_number' => $professionalPhone['formatted'],
-            'personal_phone_number' => $personalPhone['formatted'],
+            'personal_phone_number' => $personalPhone['formatted'] ?? $this->employee->personal_phone_number,
+            'mobile_money_number' => $this->mobile_money_number,
             'date_of_birth' => $this->date_of_birth,
             'status' => $this->status === "true" ? true : false,
-            'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
         ]);
+
+        // Only update password if it was actually changed
+        if ($passwordChanged) {
+            $this->employee->update([
+                'password' => bcrypt($this->password),
+                'plain_password' => $this->password,
+            ]);
+            
+            // Send welcome email with new credentials
+            event(new EmployeeCreated($this->employee, $this->password));
+        }
 
         // Sync roles (this will remove old roles and assign new ones)
         $this->employee->syncRoles($this->selected_roles);
+        $this->persistEmployeePhotoIfUploaded($this->employee);
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.manager_updated_successfully'), 'EditManagerModal');
@@ -323,10 +377,12 @@ class All extends BaseImportComponent
 
     public function update()
     {
-        if (!Gate::allows('employee-update')) {
-            return abort(401);
-        }
-        $this->validate();
+        $this->authorizeAbility('employee-update');
+        $this->setDefaultWorkTimes();
+        $this->validate(array_merge($this->rules, [
+            'email' => EmployeeIdentityRules::email($this->employee->id),
+            'matricule' => EmployeeIdentityRules::matricule($this->employee->id, $this->email),
+        ]));
 
         // Format phone numbers before updating
         $professionalPhone = validatePhoneNumber($this->professional_phone_number);
@@ -342,30 +398,48 @@ class All extends BaseImportComponent
             return;
         }
 
+        $structure = $this->resolveUpdatedEmployeeCompanyAndStructure(
+            $this->employee,
+            $this->company?->id,
+            $this->selectedDepartmentId,
+            $this->service_id
+        );
+
         $this->employee->update([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
             'professional_phone_number' => $professionalPhone['formatted'],
             'personal_phone_number' => $personalPhone['formatted'],
+            'mobile_money_number' => $this->mobile_money_number,
+            'remaining_leave_days' => $this->remaining_leave_days,
+            'monthly_leave_allocation' => $this->monthly_leave_allocation,
             'matricule' => $this->matricule,
             'position' => $this->position,
             'net_salary' => $this->net_salary,
             'salary_grade' => $this->salary_grade,
             'contract_end' => $this->contract_end,
-            'company_id' => $this->company->id,
-            'department_id' => $this->selectedDepartmentId,
-            'service_id' => $this->service_id,
+            'company_id' => $structure['company_id'],
+            'department_id' => $structure['department_id'],
+            'service_id' => $structure['service_id'],
             'work_start_time' => $this->work_start_time,
             'date_of_birth' => $this->date_of_birth,
             'work_end_time' => $this->work_end_time,
             'status' => $this->status === "true" ? true : false,
-            'receive_sms_notifications' => $this->receive_sms_notifications === true || $this->receive_sms_notifications === "true" || $this->receive_sms_notifications === 1,
-            'receive_email_notifications' => $this->receive_email_notifications === true || $this->receive_email_notifications === "true" || $this->receive_email_notifications === 1,
+            'receive_sms_notifications' => (bool) $this->receive_sms_notifications,
+            'receive_email_notifications' => (bool) $this->receive_email_notifications,
             'alternative_email' => $this->alternative_email,
             'password' => empty($this->password) ? $this->employee->password : bcrypt($this->password),
             // 'pdf_password' => Str::random(10),
         ]);
+
+        if ($structure['company_changed']) {
+            $this->finalizeEmployeeCompanyTransfer(
+                $this->employee,
+                $structure['old_company_id'],
+                $structure['company_id']
+            );
+        }
 
         // Validate that employee role is always included
         if (!in_array('employee', $this->selected_roles)) {
@@ -391,6 +465,7 @@ class All extends BaseImportComponent
 
         // Sync roles (this will remove old roles and assign new ones)
         $this->employee->syncRoles($this->selected_roles);
+        $this->persistEmployeePhotoIfUploaded($this->employee);
 
         $this->clearFields();
         $this->closeModalAndFlashMessage(__('employees.employee_updated_successfully'), 'EmployeeModal');
@@ -398,9 +473,7 @@ class All extends BaseImportComponent
 
     public function delete()
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-delete');
 
         if (!empty($this->employee)) {
             $this->employee->delete(); // Soft delete
@@ -412,9 +485,7 @@ class All extends BaseImportComponent
 
     public function restore()
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-restore');
 
         $employee = User::withTrashed()->findOrFail($this->employee_id);
         $employee->restore();
@@ -422,47 +493,86 @@ class All extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('employees.employee_successfully_restored'), 'RestoreModal');
     }
 
-    public function forceDelete($employeeId)
+    public function forceDelete($employeeId = null)
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
+        $this->authorizeAbility('employee-delete');
+
+        // If no employeeId provided, try to get it from selectedEmployees or employee_id
+        if (!$employeeId) {
+            if (!empty($this->selectedEmployees) && is_array($this->selectedEmployees)) {
+                $employeeId = $this->selectedEmployees[0] ?? null;
+            } elseif ($this->employee_id) {
+                $employeeId = $this->employee_id;
+            } else {
+                $this->showToast(__('employees.no_employee_selected'), 'danger');
+                return;
+            }
         }
 
         $employee = User::withTrashed()->findOrFail($employeeId);
         
         // Check if employee has related records
-        $hasRelatedRecords = $employee->leaves()->count() > 0 ||
-                           $employee->tickings()->count() > 0 ||
-                           $employee->absences()->count() > 0 ||
-                           $employee->advanceSalaries()->count() > 0 ||
-                           $employee->overtimes()->count() > 0 ||
-                           $employee->payslips()->count() > 0 ||
-                           $employee->supDepartments()->count() > 0;
+        $hasRelatedRecords = $employee->hasRelatedRecords();
+        $allowCascadeDelete = \App\Services\FeatureConfigurationService::isForceDeleteEmployeesWithDataEnabled();
         
-        if ($hasRelatedRecords) {
+        if ($hasRelatedRecords && !$allowCascadeDelete) {
             $this->showToast(__('employees.cannot_permanently_delete_employee'), 'danger');
             return;
         }
         
-        $employee->forceDelete();
+        $employee->forceDeleteWithAllData();
+
+        // Clear selection after deletion
+        $this->selectedEmployees = [];
+        $this->employee_id = null;
 
         $this->closeModalAndFlashMessage(__('employees.employee_permanently_deleted'), 'ForceDeleteModal');
     }
 
     public function bulkDelete()
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility(['employee-bulkdelete', 'employee-delete']);
 
         $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
+        $employees = collect();
+        $affectedRecords = [];
 
         if (!empty($selectedArray)) {
+            $employees = User::withTrashed()->whereIn('id', $selectedArray)->get();
+            $affectedRecords = $employees->map(function ($employee) {
+                return [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'email' => $employee->email,
+                ];
+            })->toArray();
+
             User::whereIn('id', $selectedArray)->delete(); // Soft delete
             if ($this->activeTab === 'deleted') {
                 $this->selectedEmployeesForDelete = [];
             } else {
                 $this->selectedEmployees = [];
+            }
+
+            if ($employees->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'employee_bulk_deleted',
+                    'web',
+                    'bulk_deleted_employees',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_deleted_employees',
+                        'translation_params' => ['count' => $employees->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'soft_delete',
+                        'affected_count' => $employees->count(),
+                        'affected_ids' => $employees->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
             }
         }
 
@@ -471,18 +581,48 @@ class All extends BaseImportComponent
 
     public function bulkRestore()
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility(['employee-bulkrestore', 'employee-restore', 'employee-delete']);
 
         $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
+        $employees = collect();
+        $affectedRecords = [];
 
         if (!empty($selectedArray)) {
+            $employees = User::withTrashed()->whereIn('id', $selectedArray)->get();
+            $affectedRecords = $employees->map(function ($employee) {
+                return [
+                    'id' => $employee->id,
+                    'name' => $employee->name,
+                    'email' => $employee->email,
+                ];
+            })->toArray();
+
             User::withTrashed()->whereIn('id', $selectedArray)->restore();
             if ($this->activeTab === 'deleted') {
                 $this->selectedEmployeesForDelete = [];
             } else {
                 $this->selectedEmployees = [];
+            }
+
+            if ($employees->count() > 0) {
+                auditLog(
+                    auth()->user(),
+                    'employee_bulk_restored',
+                    'web',
+                    'bulk_restored_employees',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_restored_employees',
+                        'translation_params' => ['count' => $employees->count()],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_restore',
+                        'affected_count' => $employees->count(),
+                        'affected_ids' => $employees->pluck('id')->toArray(),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
             }
         }
 
@@ -491,27 +631,27 @@ class All extends BaseImportComponent
 
     public function bulkForceDelete()
     {
-        if (!Gate::allows('employee-delete')) {
-            return abort(401);
-        }
+        $this->authorizeAbility('employee-delete');
 
         $selectedArray = $this->activeTab === 'deleted' ? $this->selectedEmployeesForDelete : $this->selectedEmployees;
 
         if (!empty($selectedArray)) {
             $employees = User::withTrashed()->whereIn('id', $selectedArray)->get();
             $employeesWithRelatedRecords = [];
+            $affectedRecords = [];
+            $allowCascadeDelete = \App\Services\FeatureConfigurationService::isForceDeleteEmployeesWithDataEnabled();
 
             foreach ($employees as $employee) {
-                $hasRelatedRecords = $employee->leaves()->count() > 0 ||
-                                   $employee->tickings()->count() > 0 ||
-                                   $employee->absences()->count() > 0 ||
-                                   $employee->advanceSalaries()->count() > 0 ||
-                                   $employee->overtimes()->count() > 0 ||
-                                   $employee->payslips()->count() > 0 ||
-                                   $employee->supDepartments()->count() > 0;
+                $hasRelatedRecords = $employee->hasRelatedRecords();
 
-                if ($hasRelatedRecords) {
+                if ($hasRelatedRecords && !$allowCascadeDelete) {
                     $employeesWithRelatedRecords[] = $employee->name;
+                } else {
+                    $affectedRecords[] = [
+                        'id' => $employee->id,
+                        'name' => $employee->name,
+                        'email' => $employee->email,
+                    ];
                 }
             }
 
@@ -522,7 +662,28 @@ class All extends BaseImportComponent
             }
 
             foreach ($employees as $employee) {
-                $employee->forceDelete();
+                $employee->forceDeleteWithAllData();
+            }
+
+            if (!empty($affectedRecords)) {
+                auditLog(
+                    auth()->user(),
+                    'employee_bulk_force_deleted',
+                    'web',
+                    'bulk_force_deleted_employees',
+                    null,
+                    [],
+                    [],
+                    [
+                        'translation_key' => 'bulk_force_deleted_employees',
+                        'translation_params' => ['count' => count($affectedRecords)],
+                        'bulk_operation' => true,
+                        'operation_type' => 'bulk_force_delete',
+                        'affected_count' => count($affectedRecords),
+                        'affected_ids' => array_column($affectedRecords, 'id'),
+                        'affected_records' => $affectedRecords,
+                    ]
+                );
             }
 
             if ($this->activeTab === 'deleted') {
@@ -535,101 +696,143 @@ class All extends BaseImportComponent
         $this->closeModalAndFlashMessage(__('employees.selected_employees_permanently_deleted'), 'BulkForceDeleteModal');
     }
 
+    public function updatedFilterCompany()
+    {
+        if ($this->auth_role === 'admin') {
+            $this->smsCompanyActionId = $this->filterCompany !== '' ? (int) $this->filterCompany : null;
+        }
+        $this->resetPage();
+    }
+
+    protected function resolveBulkSmsCompanyId(): ?int
+    {
+        $user = auth()->user();
+
+        if ($this->auth_role === 'admin') {
+            if (!empty($this->smsCompanyActionId)) {
+                return (int) $this->smsCompanyActionId;
+            }
+
+            if (!empty($this->filterCompany)) {
+                return (int) $this->filterCompany;
+            }
+
+            return null;
+        }
+
+        if ($this->auth_role === 'manager') {
+            $managedCompanyIds = $user->managerCompanies->pluck('id')->map(fn ($id) => (int) $id);
+
+            if (!empty($this->smsCompanyActionId)) {
+                $selectedId = (int) $this->smsCompanyActionId;
+                return $managedCompanyIds->contains($selectedId) ? $selectedId : null;
+            }
+
+            return $managedCompanyIds->count() === 1 ? (int) $managedCompanyIds->first() : null;
+        }
+
+        return null;
+    }
+
+    public function openCompanyNotificationsModal(): void
+    {
+        $this->authorizeAbility('employee-update');
+
+        $this->dispatch('open-modal', 'CompanySmsToggleModal');
+    }
+
+    public function bulkToggleCompanySmsNotifications(bool $enabled): void
+    {
+        $this->authorizeAbility('employee-update');
+
+        if (!in_array($this->auth_role, ['admin', 'manager'], true)) {
+            $this->showToast(__('employees.bulk_sms_company_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $companyId = $this->resolveBulkSmsCompanyId();
+        if (empty($companyId)) {
+            $this->showToast(__('employees.bulk_sms_select_company_first'), 'warning');
+            return;
+        }
+
+        $company = Company::find($companyId);
+        if (!$company) {
+            $this->showToast(__('employees.bulk_sms_company_not_found'), 'danger');
+            return;
+        }
+
+        $targetValue = $enabled ? 1 : 0;
+
+        $affectedCount = User::query()
+            ->where('company_id', $companyId)
+            ->whereNull('deleted_at')
+            ->where('receive_sms_notifications', '!=', $targetValue)
+            ->update(['receive_sms_notifications' => $targetValue]);
+
+        $messageKey = $enabled ? 'employees.bulk_sms_enabled_for_company' : 'employees.bulk_sms_disabled_for_company';
+        $this->showToast(__($messageKey, [
+            'company' => $company->name,
+            'count' => $affectedCount,
+        ]), 'success');
+    }
+
+    public function bulkToggleCompanyEmailNotifications(bool $enabled): void
+    {
+        $this->authorizeAbility('employee-update');
+
+        if (!in_array($this->auth_role, ['admin', 'manager'], true)) {
+            $this->showToast(__('employees.bulk_sms_company_role_not_allowed'), 'danger');
+            return;
+        }
+
+        $companyId = $this->resolveBulkSmsCompanyId();
+        if (empty($companyId)) {
+            $this->showToast(__('employees.bulk_sms_select_company_first'), 'warning');
+            return;
+        }
+
+        $company = Company::find($companyId);
+        if (!$company) {
+            $this->showToast(__('employees.bulk_sms_company_not_found'), 'danger');
+            return;
+        }
+
+        $targetValue = $enabled ? 1 : 0;
+
+        $affectedCount = User::query()
+            ->where('company_id', $companyId)
+            ->whereNull('deleted_at')
+            ->where('receive_email_notifications', '!=', $targetValue)
+            ->update(['receive_email_notifications' => $targetValue]);
+
+        $messageKey = $enabled ? 'employees.bulk_email_enabled_for_company' : 'employees.bulk_email_disabled_for_company';
+        $this->showToast(__($messageKey, [
+            'company' => $company->name,
+            'count' => $affectedCount,
+        ]), 'success');
+    }
+
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
-        $this->selectedEmployees = [];
-        $this->selectedEmployeesForDelete = [];
-        $this->selectAll = false;
+        $this->resetBulkSelection();
     }
 
-    public function toggleSelectAll()
+    protected function bulkAcrossPages(): bool
     {
-        if ($this->selectAll) {
-            $this->selectedEmployees = $this->getEmployees()->pluck('id')->toArray();
-        } else {
-            $this->selectedEmployees = [];
-        }
+        return false;
     }
 
-    public function selectAllVisible()
+    protected function bulkSelectionMap(): array
     {
-        $this->selectedEmployees = $this->getEmployees()->pluck('id')->toArray();
+        return [
+            'active' => ['selectedEmployees', 'selectAll'],
+            'deleted' => ['selectedEmployeesForDelete', 'selectAll'],
+        ];
     }
 
-    public function selectAllVisibleForDelete()
-    {
-        $this->selectedEmployeesForDelete = $this->getEmployees()->pluck('id')->toArray();
-    }
-
-    public function selectAllEmployees()
-    {
-        $query = User::search($this->query)->with(['company', 'department', 'service']);
-
-        // Add soft delete filtering based on active tab
-        if ($this->activeTab === 'deleted') {
-            $query->withTrashed()->whereNotNull('deleted_at');
-        } else {
-            $query->whereNull('deleted_at');
-        }
-
-        // Add role-based filtering
-        match($this->role){
-            "supervisor" => $query->whereHas('department', function ($q) {
-                $q->whereIn('id', auth()->user()->supDepartments->pluck('department_id'));
-            }),
-            "manager" => $query->whereHas('department', function ($q) {
-                $q->where('company_id', auth()->user()->company_id);
-            }),
-            "admin" => null, // No additional filtering for admin
-            default => [],
-        };
-
-        $this->selectedEmployees = $query->pluck('id')->toArray();
-    }
-
-    public function selectAllDeletedEmployees()
-    {
-        $query = User::search($this->query)->with(['company', 'department', 'service']);
-
-        // Add soft delete filtering for deleted tab
-        $query->withTrashed()->whereNotNull('deleted_at');
-
-        // Add role-based filtering
-        match($this->role){
-            "supervisor" => $query->whereHas('department', function ($q) {
-                $q->whereIn('id', auth()->user()->supDepartments->pluck('department_id'));
-            }),
-            "manager" => $query->whereHas('department', function ($q) {
-                $q->where('company_id', auth()->user()->company_id);
-            }),
-            "admin" => null, // No additional filtering for admin
-            default => [],
-        };
-
-        $this->selectedEmployeesForDelete = $query->pluck('id')->toArray();
-    }
-
-    public function toggleEmployeeSelection($employeeId)
-    {
-        if ($this->activeTab === 'deleted') {
-            if (in_array($employeeId, $this->selectedEmployeesForDelete)) {
-                $this->selectedEmployeesForDelete = array_diff($this->selectedEmployeesForDelete, [$employeeId]);
-            } else {
-                $this->selectedEmployeesForDelete[] = $employeeId;
-            }
-        } else {
-            if (in_array($employeeId, $this->selectedEmployees)) {
-                $this->selectedEmployees = array_diff($this->selectedEmployees, [$employeeId]);
-            } else {
-                $this->selectedEmployees[] = $employeeId;
-            }
-
-            $this->selectAll = count($this->selectedEmployees) === $this->getEmployees()->count();
-        }
-    }
-
-    private function getEmployees()
+    protected function bulkQuery()
     {
         $query = User::search($this->query)->with([
             'company:id,name',
@@ -672,19 +875,31 @@ class All extends BaseImportComponent
             default => $query->supervisor(),
         };
 
-        return $query->orderBy($this->orderBy, $this->orderAsc)->paginate($this->perPage);
+        // Company filter (admin only)
+        if ($this->auth_role === 'admin' && $this->filterCompany !== '') {
+            $query->where('company_id', $this->filterCompany);
+        }
+
+        return $query->orderBy($this->orderBy, $this->orderAsc);
     }
+    private function getEmployees()
+    {
+        return $this->bulkQuery()->paginate($this->perPage);
+    }
+
     public function initDataManager($employee_id)
     {
         $employee = User::findOrFail($employee_id);
 
         $this->employee = $employee;
+        $this->password = null;
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
         $this->matricule = $employee->matricule;
         $this->email = $employee->email;
         $this->professional_phone_number = $employee->professional_phone_number;
         $this->personal_phone_number = $employee->personal_phone_number;
+        $this->mobile_money_number = $employee->mobile_money_number;
         $this->date_of_birth = $employee->date_of_birth;
         $this->status = $employee->status ? "true" : "false";
         $this->role_name = $employee->getRoleNames()->first();
@@ -709,19 +924,26 @@ class All extends BaseImportComponent
     {
         $employee = User::withTrashed()->findOrFail($employee_id);
 
-        $department = Department::findOrFail($employee->department_id);
+        $department = $employee->department_id ? Department::find($employee->department_id) : null;
 
         $this->isEditMode = true;
         $this->employee_id = $employee_id;
         $this->company = $employee->company;
-        $this->departments = $this->role === 'supervisor' ? Department::where('company_id', $this->company->id)->supervisor()->get() : $this->company->departments;
-        $this->services = $department->services;
+        $this->editCompanyId = $employee->company_id;
+        $this->departments = $this->company
+            ? ($this->role === 'supervisor' ? Department::where('company_id', $this->company->id)->supervisor()->get() : $this->company->departments)
+            : collect([]);
+        $this->services = $department ? $department->services : collect([]);
+        $this->password = null;
         $this->employee = $employee;
         $this->first_name = $employee->first_name;
         $this->last_name = $employee->last_name;
         $this->email = $employee->email;
         $this->professional_phone_number = $employee->professional_phone_number;
         $this->personal_phone_number = $employee->personal_phone_number;
+        $this->mobile_money_number = $employee->mobile_money_number;
+        $this->remaining_leave_days = $employee->remaining_leave_days;
+        $this->monthly_leave_allocation = $employee->monthly_leave_allocation;
         $this->net_salary = $employee->net_salary;
         $this->salary_grade = $employee->salary_grade;
         $this->position = $employee->position;
@@ -734,8 +956,8 @@ class All extends BaseImportComponent
         $this->date_of_birth = $employee->date_of_birth;
         $this->selectedDepartmentId = $employee->department_id;
         $this->role_name = $employee->getRoleNames()->first();
-        $this->receive_sms_notifications = (bool) ($employee->receive_sms_notifications ?? true);
-        $this->receive_email_notifications = (bool) ($employee->receive_email_notifications ?? true);
+        $this->receive_sms_notifications = $employee->receive_sms_notifications ?? true;
+        $this->receive_email_notifications = $employee->receive_email_notifications ?? true;
         
         // Get the employee's actual roles and reset selected_roles
         $this->selected_roles = $employee->getRoleNames()->toArray();
@@ -763,7 +985,14 @@ class All extends BaseImportComponent
             auth()->user(),
             'employee_exported',
             'web',
-            __('employees.exported_excel_for_all_employees')
+            'exported_entities',
+            null,
+            [],
+            [],
+            [
+                'translation_key' => 'exported_entities',
+                'translation_params' => ['entities' => 'employees'],
+            ]
         );
         return (new EmployeeExport($this->company, $this->query))->download('All-Employees-' . Str::random(5) . '.xlsx');
     }
@@ -771,6 +1000,40 @@ class All extends BaseImportComponent
     public function close()
     {
         $this->clearFields();
+    }
+
+    public function toggleEmailNotifications($employeeId)
+    {
+        $this->authorizeAbility('employee-update');
+
+        $employee = User::findOrFail($employeeId);
+        $employee->update([
+            'receive_email_notifications' => !$employee->receive_email_notifications
+        ]);
+
+        $this->showToast(
+            $employee->receive_email_notifications
+                ? __('employees.email_notifications_enabled')
+                : __('employees.email_notifications_disabled'),
+            'success'
+        );
+    }
+
+    public function toggleSmsNotifications($employeeId)
+    {
+        $this->authorizeAbility('employee-update');
+
+        $employee = User::findOrFail($employeeId);
+        $employee->update([
+            'receive_sms_notifications' => !$employee->receive_sms_notifications
+        ]);
+
+        $this->showToast(
+            $employee->receive_sms_notifications
+                ? __('employees.sms_notifications_enabled')
+                : __('employees.sms_notifications_disabled'),
+            'success'
+        );
     }
 
     public function clearFields()
@@ -781,6 +1044,7 @@ class All extends BaseImportComponent
         $this->employee = null;
         $this->employee_file = null;
         $this->selectedCompanyId = null;
+        $this->editCompanyId = null;
         $this->reset([
             'first_name',
             'last_name',
@@ -788,6 +1052,9 @@ class All extends BaseImportComponent
             'email',
             'professional_phone_number',
             'personal_phone_number',
+            'mobile_money_number',
+            'remaining_leave_days',
+            'monthly_leave_allocation',
             'matricule',
             'position',
             'net_salary',
@@ -805,10 +1072,17 @@ class All extends BaseImportComponent
         ]);
         // Reset to default roles (only employee role)
         $this->selected_roles = ['employee'];
-        $this->receive_sms_notifications = (bool) true;
-        $this->receive_email_notifications = (bool) true;
+        $this->receive_sms_notifications = true;
+        $this->receive_email_notifications = true;
         $this->alternative_email = null;
         $this->password = Str::random(15);
+        $this->setDefaultWorkTimes();
+    }
+
+    private function setDefaultWorkTimes(): void
+    {
+        $this->work_start_time = $this->work_start_time ?: self::DEFAULT_WORK_START_TIME;
+        $this->work_end_time = $this->work_end_time ?: self::DEFAULT_WORK_END_TIME;
     }
 
     /**
@@ -940,15 +1214,12 @@ class All extends BaseImportComponent
             } else {
                 // Check for duplicate matricule (optimized to avoid N+1 queries)
                 if ($this->isEmployeeMatriculeExists($rowData[4])) {
-                    $warnings[] = __('employees.matricule_already_exists');
+                    $errors[] = __('employees.matricule_already_exists');
                 }
             }
 
-            // Validate department
-            if (empty($rowData[9] ?? '')) {
-                $errors[] = __('departments.department_required');
-            } else {
-                // Check if company is set before validating department
+            // Optional fields - Validate department if provided
+            if (!empty($rowData[9] ?? '')) {
                 $companyId = $this->getCompanyId();
                 if (!$companyId) {
                     $errors[] = __('employees.company_required_for_import');
@@ -962,25 +1233,23 @@ class All extends BaseImportComponent
                 }
             }
 
-            // Validate service (requires valid department)
-            if (empty($rowData[10] ?? '')) {
-                $errors[] = __('employees.service_required');
-            } elseif (!isset($departmentResult) || !$departmentResult['found']) {
-                $errors[] = __('departments.department_required_for_service_import');
-            } else {
-                $companyId = $this->getCompanyId();
-                $serviceResult = findOrCreateService($rowData[10], $departmentResult['department']->id, $companyId, $this->autoCreateEntities);
-                if (!$serviceResult['found']) {
-                    $errors[] = $serviceResult['error'];
-                } else {
-                    $parsedData[10] = $serviceResult['service']->name;
+            // Validate service if provided (requires valid department)
+            if (!empty($rowData[10] ?? '')) {
+                if (empty($rowData[9] ?? '')) {
+                    $errors[] = __('departments.department_required_for_service_import');
+                } elseif (isset($departmentResult) && $departmentResult['found']) {
+                    $companyId = $this->getCompanyId();
+                    $serviceResult = findOrCreateService($rowData[10], $departmentResult['department']->id, $companyId, $this->autoCreateEntities);
+                    if (!$serviceResult['found']) {
+                        $errors[] = $serviceResult['error'];
+                    } else {
+                        $parsedData[10] = $serviceResult['service']->name;
+                    }
                 }
             }
 
-            // Validate role
-            if (empty($rowData[11] ?? '')) {
-                $errors[] = __('employees.role_required');
-            } else {
+            // Validate role if provided
+            if (!empty($rowData[11] ?? '')) {
                 $validRoles = ['employee', 'supervisor', 'manager'];
                 if (!in_array(strtolower($rowData[11]), $validRoles)) {
                     $errors[] = __('employees.invalid_role');
@@ -1032,7 +1301,11 @@ class All extends BaseImportComponent
         $companyId = $this->getCompanyId();
         $company = $companyId ? \App\Models\Company::find($companyId) : null;
 
-        Excel::import(new EmployeeImport($company, $this->autoCreateEntities), $this->employee_file);
+        // Get department and service from context if provided
+        $department = $this->selectedDepartmentId ? Department::find($this->selectedDepartmentId) : null;
+        $service = $this->service_id ? Service::find($this->service_id) : null;
+
+        Excel::import(new EmployeeImport($company, $department, $service, $this->autoCreateEntities, auth()->user(), $this->sendWelcomeEmails), $this->employee_file);
 
         return [
             'imported_count' => 'unknown', // Could be improved to return actual count
@@ -1041,9 +1314,10 @@ class All extends BaseImportComponent
     }
     public function render()
     {
-        if (!Gate::allows('employee-read')) {
-            return abort(401);
-        }
+        abort_unless(
+            auth()->user()?->hasAnyRole(['admin', 'manager', 'supervisor']) || Gate::allows('employee-read'),
+            403
+        );
 
         $employees = $this->getEmployees();
 
@@ -1090,12 +1364,21 @@ class All extends BaseImportComponent
             default => 0,
         };
 
+        $companies = match ($this->auth_role) {
+            'admin' => Company::orderBy('name')->get(['id', 'name']),
+            'manager' => auth()->user()->managerCompanies()->orderBy('name')->get(['companies.id', 'companies.name']),
+            default => collect(),
+        };
+
         return view('livewire.portal.employees.all', [
             'employees' => $employees,
             'employees_count' => $employees_count,
             'active_employees' => $active_employees,
             'deleted_employees' => $deleted_employees,
             'banned_employees' => $banned_employees,
+            'companies' => $companies,
+            'canTransferCompany' => $this->isEmployeeCompanyTransferEnabled(),
+            'transferableCompanies' => $this->getTransferableCompanies(),
         ])->layout('components.layouts.dashboard');
     }
 
@@ -1130,10 +1413,18 @@ class All extends BaseImportComponent
     }
 
     /**
-     * Get department ID (not needed for employee import)
+     * Get department ID for import context
      */
     protected function getDepartmentId(): ?int
     {
-        return null;
+        return $this->selectedDepartmentId;
+    }
+
+    /**
+     * Get service ID for import context
+     */
+    protected function getServiceId(): ?int
+    {
+        return $this->service_id;
     }
 }

@@ -141,7 +141,7 @@
         aria-hidden="true"
         wire:ignore.self>
 
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 800px;">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
 
                 {{-- ================= HEADER ================= --}}
@@ -197,7 +197,7 @@
                                     <div class="row g-4">
                                         {{-- Total Payslips --}}
                                         <div class="col-lg-6 col-md-12">
-                                            <div class="d-flex align-items-center p-3 bg-primary bg-opacity-5 rounded-3 border border-primary border-opacity-10">
+                                            <div class="d-flex align-items-center p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-10">
                                                 <div class="flex-shrink-0 me-3">
                                                     <div class="bg-primary rounded-circle p-3">
                                                         <svg class="icon icon-lg text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,7 +206,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <div class="h2 text-white mb-1 fw-bold">
+                                                    <div class="h2 text-primary mb-1 fw-bold">
                                                         {{ number_format($selectedProcess->payslips()->count()) }}
                                                     </div>
                                                     <small class="text-muted fw-medium">{{ __('payslips.total_payslips') }}</small>
@@ -216,7 +216,7 @@
 
                                         {{-- Target Employees --}}
                                         <div class="col-lg-6 col-md-12">
-                                            <div class="d-flex align-items-center p-3 bg-success bg-opacity-5 rounded-3 border border-success border-opacity-10">
+                                            <div class="d-flex align-items-center p-3 bg-success bg-opacity-10 rounded-3 border border-success border-opacity-10">
                                                 <div class="flex-shrink-0 me-3">
                                                     <div class="bg-success rounded-circle p-3">
                                                         <svg class="icon icon-lg text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,10 +225,20 @@
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <div class="h2 text-white mb-1 fw-bold">
-                                                        {{ optional($selectedProcess->department)->employees->count() ?? 'N/A' }}
+                                                    <div class="h2 text-success mb-1 fw-bold">
+                                                        @if($selectedProcess->department_id)
+                                                            {{ $selectedProcess->department?->employees?->count() ?? 0 }}
+                                                        @else
+                                                            {{ $selectedProcess->company?->employees?->count() ?? 0 }}
+                                                        @endif
                                                     </div>
-                                                    <small class="text-muted fw-medium">{{ __('payslips.target_employees') }}</small>
+                                                    <small class="text-muted fw-medium">
+                                                        @if($selectedProcess->department_id)
+                                                            {{ __('payslips.target_employees') }}
+                                                        @else
+                                                            {{ __('payslips.total_company_employees') }}
+                                                        @endif
+                                                    </small>
                                                 </div>
                                             </div>
                                         </div>
@@ -280,7 +290,7 @@
                                                 <div class="flex-grow-1">
                                                     <small class="text-muted d-block fw-medium">{{ __('common.period') }}</small>
                                                     <span class="fw-semibold text-dark">
-                                                        {{ $selectedProcess->month }} {{ $selectedProcess->year }}
+                                                        {{ getMonthName($selectedProcess->month) }} {{ $selectedProcess->year }}
                                                     </span>
                                                 </div>
                                             </div>
@@ -381,7 +391,7 @@
                                             $stats = $this->getTaskStatistics();
                                         @endphp
                                         @if(($stats['failed_percentage'] ?? 0) > 10)
-                                            <span class="badge bage bg-danger fs-7" data-bs-toggle="tooltip" title="{{ __('payslips.high_failure_rate_detected') }}">
+                                            <span class="badge bg-danger text-white fs-7 p-2" data-bs-toggle="tooltip" title="{{ __('payslips.high_failure_rate_detected') }}">
                                                 <svg class="icon icon-xs me-1" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
                                                 </svg>
@@ -395,7 +405,7 @@
                                     {{-- Enhanced Stats Dashboard --}}
                                     <div class="row g-3 mb-4">
                                         {{-- Total Payslips --}}
-                                        <div class="col-lg-3 col-md-6">
+                                        <div class="col-6 col-xxl-3">
                                             <div class="card h-100 border-2 border-primary border-opacity-25 card-stats">
                                                 <div class="card-body text-center p-4">
                                                     <div class="d-flex align-items-center justify-content-center mb-2">
@@ -410,7 +420,7 @@
                                         </div>
 
                                         {{-- Delivered Successfully --}}
-                                        <div class="col-lg-3 col-md-6">
+                                        <div class="col-6 col-xxl-3">
                                             <div class="card h-100 border-2 border-success border-opacity-25 card-stats">
                                                 <div class="card-body text-center p-4">
                                                     <div class="d-flex align-items-center justify-content-center mb-2">
@@ -431,7 +441,7 @@
                                         </div>
 
                                         {{-- Failed --}}
-                                        <div class="col-lg-3 col-md-6">
+                                        <div class="col-6 col-xxl-3">
                                             <div class="card h-100 border-2 {{ ($stats['failed_percentage'] ?? 0) > 10 ? 'border-danger border-opacity-50 bg-light' : 'border-danger border-opacity-25' }} card-stats">
                                                 <div class="card-body text-center p-4">
                                                     <div class="d-flex align-items-center justify-content-center mb-2">
@@ -452,7 +462,7 @@
                                         </div>
 
                                         {{-- Pending/Processing --}}
-                                        <div class="col-lg-3 col-md-6">
+                                        <div class="col-6 col-xxl-3">
                                             <div class="card h-100 border-2 border-warning border-opacity-25 card-stats">
                                                 <div class="card-body text-center p-4">
                                                     <div class="d-flex align-items-center justify-content-center mb-2">
@@ -478,7 +488,7 @@
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6 class="mb-0 fw-semibold text-dark">{{ __('payslips.overall_progress') }}</h6>
                                             <div class="d-flex align-items-center gap-2">
-                                                <span class="badge badge-lg bg-primary fs-7">{{ number_format($this->getTaskProgressPercentage(), 1) }}% {{ __('common.complete') }}</span>
+                                                <span class="badge bg-primary text-white fs-7 p-2">{{ number_format($this->getTaskProgressPercentage(), 1) }}% {{ __('common.complete') }}</span>
                                                 @if($selectedProcess->status === 'processing')
                                                     <div class="spinner-border spinner-border-sm text-primary" role="status">
                                                         <span class="visually-hidden">{{ __('common.loading') }}</span>
@@ -838,3 +848,4 @@
     </script>
 
 </div>
+

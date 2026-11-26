@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Traits;
 
+use Livewire\Attributes\Url;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 
@@ -9,6 +10,7 @@ trait WithDataTable {
     use WithPagination, WithFileUploads;
 
     //DataTable props
+    #[Url(as: 'q', except: '')]
     public ?string $query = null;
     public ?string $resultCount;
     public string $orderBy = 'created_at';
@@ -17,10 +19,10 @@ trait WithDataTable {
 
     protected $paginationTheme = "bootstrap";
 
-    public function closeModalAndFlashMessage($message, $modal)
+    public function closeModalAndFlashMessage($message, $modal, $type = 'success')
     {
         // Dispatch toast notification
-        $this->dispatch("showToast", message: $message, type: "success");
+        $this->dispatch("showToast", message: $message, type: $type);
         // Close the modal
         $this->dispatch("close-modal", id: $modal);
     }

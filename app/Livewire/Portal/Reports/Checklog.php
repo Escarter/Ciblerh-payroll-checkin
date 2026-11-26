@@ -120,7 +120,7 @@ class Checklog extends Component
         set_time_limit(600);
         $data = [
             'date' => date('m/d/Y'),
-            'month'=> !empty($this->period) ? explode('-', $this->period)[1] : "01",
+            'month'=> !empty($this->period) ? (int) explode('-', $this->period)[1] : 1,
             'dates' => $dates,
             'users' => $users,
             'supervisor' => !empty($department->depSupervisor) ? $department->depSupervisor->supervisor : '',

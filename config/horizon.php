@@ -180,35 +180,136 @@ return [
     */
 
     'defaults' => [
-        'supervisor-1' => [
+        // High-priority supervisor: Critical retries and urgent operations
+        'high-priority-supervisor' => [
             'connection' => 'redis',
-            'queue' => ['high-priority', 'emails', 'processing', 'pdf-processing', 'default'],
+            'queue' => ['high-priority'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
-            'maxProcesses' => 1,
+            'maxProcesses' => 2,
             'maxTime' => 0,
             'maxJobs' => 0,
-            'memory' => 128,
+            'memory' => 256,
             'tries' => 1,
-            'timeout' => 60,
+            'timeout' => 120,
+            'nice' => 0,
+        ],
+        
+        // Email supervisor: Email/SMS sending operations
+        'emails-supervisor' => [
+            'connection' => 'redis',
+            'queue' => ['emails'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 4,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 120,
+            'nice' => 0,
+        ],
+        
+        // PDF processing supervisor: PDF operations (split, encrypt, rename)
+        'pdf-supervisor' => [
+            'connection' => 'redis',
+            'queue' => ['pdf-processing'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 300,
+            'nice' => 0,
+        ],
+        
+        // Processing supervisor: Heavy operations (imports, exports, reports)
+        'processing-supervisor' => [
+            'connection' => 'redis',
+            'queue' => ['processing'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 512,
+            'tries' => 1,
+            'timeout' => 600,
+            'nice' => 0,
+        ],
+        
+        // Default supervisor: General operations
+        'default-supervisor' => [
+            'connection' => 'redis',
+            'queue' => ['default'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 120,
             'nice' => 0,
         ],
     ],
 
     'environments' => [
         'production' => [
-            'supervisor-1' => [
-                'queue' => ['high-priority', 'emails', 'processing', 'pdf-processing', 'default'],
-                'maxProcesses' => 10,
+            'high-priority-supervisor' => [
+                'queue' => ['high-priority'],
+                'maxProcesses' => 4,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'emails-supervisor' => [
+                'queue' => ['emails'],
+                'maxProcesses' => 8,
+                'balanceMaxShift' => 2,
+                'balanceCooldown' => 3,
+            ],
+            'pdf-supervisor' => [
+                'queue' => ['pdf-processing'],
+                'maxProcesses' => 4,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'processing-supervisor' => [
+                'queue' => ['processing'],
+                'maxProcesses' => 4,
+                'balanceMaxShift' => 1,
+                'balanceCooldown' => 3,
+            ],
+            'default-supervisor' => [
+                'queue' => ['default'],
+                'maxProcesses' => 4,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],
         ],
 
         'local' => [
-            'supervisor-1' => [
-                'queue' => ['high-priority', 'emails', 'processing', 'pdf-processing', 'default'],
-                'maxProcesses' => 3,
+            'high-priority-supervisor' => [
+                'queue' => ['high-priority'],
+                'maxProcesses' => 1,
+            ],
+            'emails-supervisor' => [
+                'queue' => ['emails'],
+                'maxProcesses' => 2,
+            ],
+            'pdf-supervisor' => [
+                'queue' => ['pdf-processing'],
+                'maxProcesses' => 1,
+            ],
+            'processing-supervisor' => [
+                'queue' => ['processing'],
+                'maxProcesses' => 1,
+            ],
+            'default-supervisor' => [
+                'queue' => ['default'],
+                'maxProcesses' => 1,
             ],
         ],
     ],

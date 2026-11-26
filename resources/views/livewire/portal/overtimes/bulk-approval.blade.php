@@ -5,13 +5,13 @@
                 <div class="p-3 p-lg-4">
                     <div class="mb-4 mt-md-0">
                         <h1 class="mb-0 h4">{{__('overtime.bulk_overtime')}} {{$bulk_approval_status ? __('overtime.approval') : __('overtime.rejection')}} </h1>
-                        <p>{{__('overtime.employee_overtime_bulk')}} {{$bulk_approval_status ? __('overtime.approval') : __('overtime.rejection')}} &#128522;</p>
+                        <p>{{__('overtime.employee_overtime_bulk')}} {{$bulk_approval_status ? __('overtime.approval') : __('overtime.rejection')}}</p>
                     </div>
                     <x-form-items.form wire:submit="bulkApproval">
 
                         <div class="form-group mb-4">
-                            <label for="approval_reason">{{$bulk_approval_status ? __('overtime.approval') : __('overtime.rejection')}} {{__('common.reason')}}</label>
-                            <textarea wire:model="approval_reason" id="bulk_approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='3' rows="3"></textarea>
+                            <label for="approval_reason">{{$bulk_approval_status ? __('overtime.approval') : __('overtime.rejection')}} {{__('common.reason')}} <span class="text-danger">*</span></label>
+                            <textarea wire:model="approval_reason" id="bulk_approval_reason" name="approval_reason" class="form-control  @error('approval_reason') is-invalid @enderror" cols='3' rows="3" placeholder="{{$bulk_approval_status ? __('overtime.approval') : __('overtime.rejection')}} {{__('common.reason')}}"></textarea>
                             @error('approval_reason')
                             <div class="invalid-feedback">{{$message}}</div>
                             @enderror
