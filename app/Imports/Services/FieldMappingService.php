@@ -16,7 +16,7 @@ class FieldMappingService
      * Auto-map CSV headers to field definitions.
      *
      * Returns an array of suggested mappings:
-     *   csv_index => ['csv_header' => '…', 'field' => '…', 'confidence' => 'exact'|'label'|'contains'|'fuzzy'|null]
+     *   csv_index => ['csv_header' => '…', 'field' => '…', 'confidence' => int (0-100), 'strategy' => 'exact'|'label'|'alias'|'contains'|'fuzzy'|null]
      *
      * @param  array              $csvHeaders  Indexed array of header strings from row 1 of the CSV
      * @param  BaseImportAdapter  $adapter     The adapter whose getFieldDefinitions() to match against
@@ -35,6 +35,8 @@ class FieldMappingService
             $normalizedHeader = $this->normalize($header);
             $bestMatch = null;
             $bestConfidence = null;
+            $minDistance = PHP_INT_MAX;
+            $bestCandidateLen = 0;
 
             // Level 1: Exact match on field name
             foreach ($fieldIndex as $fieldName => $terms) {
@@ -102,7 +104,6 @@ class FieldMappingService
 
             // Level 5: Levenshtein distance
             if (!$bestMatch) {
-                $minDistance = PHP_INT_MAX;
                 foreach ($fieldIndex as $fieldName => $terms) {
                     if (isset($usedFields[$fieldName])) {
                         continue;
@@ -125,6 +126,7 @@ class FieldMappingService
 
                         if ($distance <= $threshold && $distance < $minDistance) {
                             $minDistance = $distance;
+                            $bestCandidateLen = $maxLen;
                             $bestMatch = $fieldName;
                             $bestConfidence = 'fuzzy';
                         }
@@ -132,10 +134,20 @@ class FieldMappingService
                 }
             }
 
+            $confidenceScore = match ($bestConfidence) {
+                'exact' => 100,
+                'label' => 95,
+                'alias' => 90,
+                'contains' => 75,
+                'fuzzy' => $bestCandidateLen > 0 ? max(50, min(80, (int) round((1 - ($minDistance / $bestCandidateLen)) * 100))) : 60,
+                default => 0,
+            };
+
             $mappings[$csvIdx] = [
                 'csv_header' => $header,
                 'field' => $bestMatch,
-                'confidence' => $bestConfidence,
+                'confidence' => $confidenceScore,
+                'strategy' => $bestConfidence,
             ];
 
             if ($bestMatch) {
@@ -157,6 +169,9 @@ class FieldMappingService
     {
         $mapped = [];
         foreach ($mapping as $csvIdx => $fieldName) {
+            if (is_array($fieldName)) {
+                $fieldName = $fieldName['field'] ?? null;
+            }
             if ($fieldName !== null && $fieldName !== '' && $fieldName !== '-') {
                 $mapped[$fieldName] = $rawRow[$csvIdx] ?? null;
             }

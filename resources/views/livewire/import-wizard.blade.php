@@ -75,9 +75,50 @@
         .import-wizard .option-switch { display: flex; align-items: flex-start; gap: .75rem; padding: .75rem 1rem; border-radius: .625rem; transition: background .2s; }
         .import-wizard .option-switch:hover { background: #f8f9fc; }
 
-        .import-wizard .mapping-row { transition: background .15s; }
+        .import-wizard .mapping-row {
+            transition: background .15s;
+            padding-top: 0.35rem !important;
+            padding-bottom: 0.35rem !important;
+        }
         .import-wizard .mapping-row:hover { background: #f8f9fc; }
         .import-wizard .mapping-arrow { color: #93a5be; display: flex; align-items: center; justify-content: center; }
+
+        .import-wizard .mapping-row .form-select-sm {
+            padding-top: 0.3rem;
+            padding-bottom: 0.3rem;
+            padding-left: 0.6rem;
+            font-size: 0.8125rem;
+            border-radius: 0.375rem;
+            border-color: #d1d5db;
+            background-color: #fff;
+            height: 32px;
+            min-height: 32px;
+            line-height: 1.3;
+        }
+        .import-wizard .mapping-row .form-select-sm:focus {
+            border-color: #262b40;
+            box-shadow: 0 0 0 2px rgba(38,43,64,.12);
+        }
+
+        .import-wizard .mapping-row .choices {
+            margin-bottom: 0 !important;
+            font-size: 0.8125rem;
+        }
+        .import-wizard .mapping-row .choices__inner {
+            min-height: 32px !important;
+            height: 32px !important;
+            padding: 0.2rem 0.5rem !important;
+            font-size: 0.8125rem !important;
+            border-radius: 0.375rem !important;
+            display: flex;
+            align-items: center;
+        }
+        .import-wizard .mapping-row .choices__list--single {
+            padding: 0 !important;
+        }
+        .import-wizard .mapping-row .choices[data-type*="select-one"]::after {
+            margin-top: -3px;
+        }
 
         .import-wizard .template-banner {
             background: linear-gradient(135deg, #f0f1f5 0%, #e8eaf3 100%);
@@ -93,6 +134,28 @@
             padding: 1.25rem;
             text-align: center;
             border: 1px solid transparent;
+        }
+
+        .import-wizard .context-card {
+            position: relative;
+            z-index: 25;
+            overflow: visible;
+        }
+        .import-wizard .context-card .card-body {
+            overflow: visible;
+        }
+        .import-wizard .options-card {
+            position: relative;
+            z-index: 10;
+        }
+        .import-wizard .context-card .choices {
+            position: relative;
+        }
+        .import-wizard .context-card .choices.is-open {
+            z-index: 50 !important;
+        }
+        .import-wizard .context-card .choices__list--dropdown {
+            z-index: 60 !important;
         }
     </style>
 
@@ -242,7 +305,7 @@
 
                 {{-- Context Selection --}}
                 @if($entitySlug && in_array($entitySlug, ['employees', 'departments', 'services', 'holidays']))
-                <div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm context-card">
                     <div class="card-body p-4">
                         <h6 class="fw-semibold mb-3">
                             <svg class="icon icon-xs me-2 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,7 +343,7 @@
                 @endif
 
                 {{-- Options --}}
-                <div class="card border-0 shadow-sm">
+                <div class="card border-0 shadow-sm options-card">
                     <div class="card-body p-4">
                         <h6 class="fw-semibold mb-3">
                             <svg class="icon icon-xs me-2 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -429,8 +492,8 @@
                     <div class="col-4">{{ __('import.csv_column') }}</div>
                     <div class="col-1 text-center">{{ __('import.confidence') }}</div>
                     <div class="col-1 text-center"></div>
-                    <div class="col-4">{{ __('import.maps_to') }}</div>
-                    <div class="col-2">{{ __('import.sample') }}</div>
+                    <div class="col-4 pe-4">{{ __('import.maps_to') }}</div>
+                    <div class="col-2 ps-1">{{ __('import.sample') }}</div>
                 </div>
 
                 {{-- Rows --}}
@@ -446,6 +509,16 @@
                         @php
                             $suggestion = $autoMappingSuggestions[$idx] ?? null;
                             $confidence = $suggestion['confidence'] ?? 0;
+                            if (!is_numeric($confidence)) {
+                                $confidence = match($confidence) {
+                                    'exact' => 100,
+                                    'label' => 95,
+                                    'alias' => 90,
+                                    'contains' => 75,
+                                    'fuzzy' => 60,
+                                    default => 0,
+                                };
+                            }
                         @endphp
                         @if($confidence >= 80)
                             <span class="badge rounded-pill bg-success" style="font-size:.7rem">{{ $confidence }}%</span>
@@ -462,17 +535,17 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                         </svg>
                     </div>
-                    <div class="col-4">
-                        <select wire:model.live="fieldMapping.{{ $idx }}" class="form-select form-select-sm">
+                    <div class="col-4 pe-4">
+                        <select data-no-search wire:model.live="fieldMapping.{{ $idx }}" class="form-select form-select-sm">
                             <option value="">— {{ __('import.skip_column') }} —</option>
                             @foreach($availableFields as $field)
                             <option value="{{ $field['field'] }}">
-                                {{ $field['label'] }}@if($field['required']) *@endif
+                                {{ $field['label'] }}{{ !empty($field['required']) ? ' *' : '' }}
                             </option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-2 text-muted" style="font-size:.75rem">
+                    <div class="col-2 ps-1 text-muted" style="font-size:.75rem">
                         @if(!empty($rawRows) && count($rawRows) > 1 && isset($rawRows[1][$idx]))
                             {{ Str::limit($rawRows[1][$idx] ?? '', 22) }}
                         @endif
@@ -720,17 +793,18 @@
             @php
                 $hasErrors = ($importResult['stats']['errors'] ?? 0) > 0;
                 $hasSuccess = (($importResult['stats']['created'] ?? 0) + ($importResult['stats']['updated'] ?? 0)) > 0;
+                $hasSkipped = ($importResult['stats']['skipped'] ?? 0) > 0;
             @endphp
 
             <div class="text-center mb-4 pt-2">
-                @if($hasSuccess && !$hasErrors)
+                @if(!$hasErrors && ($hasSuccess || $hasSkipped))
                     <div class="mb-3">
                         <svg width="64" height="64" fill="none" stroke="#10b981" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
                     </div>
                     <h4 class="fw-bold text-success mb-1">{{ __('import.import_complete') }}</h4>
-                @elseif($hasSuccess && $hasErrors)
+                @elseif($hasSuccess || $hasSkipped)
                     <div class="mb-3">
                         <svg width="64" height="64" fill="none" stroke="#f59e0b" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -755,16 +829,20 @@
                         ['value' => $importResult['stats']['total'] ?? 0,   'label' => __('import.total_processed'), 'color' => 'primary'],
                         ['value' => $importResult['stats']['created'] ?? 0, 'label' => __('import.created'),         'color' => 'success'],
                         ['value' => $importResult['stats']['updated'] ?? 0, 'label' => __('import.updated'),         'color' => 'info'],
+                        ['value' => $importResult['stats']['skipped'] ?? 0, 'label' => __('import.skipped'),         'color' => 'secondary'],
                         ['value' => $importResult['stats']['errors'] ?? 0,  'label' => __('common.errors'),          'color' => 'danger'],
                     ];
+                    $colClass = $hasSkipped ? 'col-6 col-md' : 'col-6 col-md-3';
                 @endphp
                 @foreach($resultStats as $rs)
-                <div class="col-6 col-md-3">
+                @if($rs['label'] !== __('import.skipped') || $hasSkipped)
+                <div class="{{ $colClass }}">
                     <div class="stat-card-modern bg-white shadow-sm">
                         <div class="fw-extrabold h3 mb-1 text-{{ $rs['color'] }}">{{ $rs['value'] }}</div>
                         <div class="text-muted small">{{ $rs['label'] }}</div>
                     </div>
                 </div>
+                @endif
                 @endforeach
             </div>
 

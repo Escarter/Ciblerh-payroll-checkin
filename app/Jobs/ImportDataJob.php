@@ -64,7 +64,7 @@ class ImportDataJob implements ShouldQueue
         $this->sendWelcomeEmails = $sendWelcomeEmails;
         $this->importJobId = $importJobId;
         $this->importId = uniqid('import_', true);
-        $this->queue = 'processing';
+        $this->queue = config('queue.default') === 'redis' ? 'processing' : 'default';
 
         // Note: importJob is loaded in handle() method to avoid deserialization issues
     }

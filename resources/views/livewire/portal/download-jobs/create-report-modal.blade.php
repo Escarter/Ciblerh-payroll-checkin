@@ -63,10 +63,7 @@
                                     <option value="all">{{__('download_jobs.all_departments')}}</option>
                                     @foreach($departments as $department)
                                     <option value="{{$department->id}}">
-                                        {{$department->name}}
-                                        @if($department->company)
-                                        ({{$department->company->name}})
-                                        @endif
+                                        {{$department->name}}{{ $department->company ? ' ('.$department->company->name.')' : '' }}
                                     </option>
                                     @endforeach
                                 </select>

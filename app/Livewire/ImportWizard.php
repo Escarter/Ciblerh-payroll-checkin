@@ -277,8 +277,8 @@ class ImportWizard extends Component
 
             $this->importJobId = $importJob->id;
 
-            // For small files, process synchronously
-            if ($this->totalRows <= 100) {
+            // For small to medium files (up to 500 rows), process synchronously for immediate feedback
+            if ($this->totalRows <= 500) {
                 $importService = app(ImportService::class);
                 $user = auth()->user();
 
@@ -350,10 +350,13 @@ class ImportWizard extends Component
 
         if (in_array($job->status, [ImportJob::STATUS_COMPLETED, ImportJob::STATUS_FAILED])) {
             $this->isImporting = false;
+            $savedStats = $job->import_config['stats'] ?? null;
             $this->importResult = [
-                'stats' => [
+                'stats' => $savedStats ?? [
                     'total' => $job->total_rows,
                     'created' => $job->successful_imports,
+                    'updated' => 0,
+                    'skipped' => max(0, $job->total_rows - $job->successful_imports - $job->failed_imports),
                     'errors' => $job->failed_imports,
                 ],
                 'errors' => $job->error_details ?? [],

@@ -50,7 +50,7 @@ class ProcessAdapterImportJob implements ShouldQueue
         $this->autoCreateEntities = $autoCreateEntities;
         $this->sendWelcomeEmails = $sendWelcomeEmails;
         $this->importJobId = $importJobId;
-        $this->queue = 'processing';
+        $this->queue = config('queue.default') === 'redis' ? 'processing' : 'default';
     }
 
     public function handle(): void

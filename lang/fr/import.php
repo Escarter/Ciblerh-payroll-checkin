@@ -97,6 +97,7 @@ return [
     'total_processed' => 'Total traité',
     'created' => 'Créés',
     'updated' => 'Mis à jour',
+    'skipped' => 'Ignorés',
     'error_details' => 'Détails des erreurs',
     'row' => 'Ligne',
     'field' => 'Champ',

@@ -97,6 +97,7 @@ return [
     'total_processed' => 'Total Processed',
     'created' => 'Created',
     'updated' => 'Updated',
+    'skipped' => 'Skipped',
     'error_details' => 'Error Details',
     'row' => 'Row',
     'field' => 'Field',

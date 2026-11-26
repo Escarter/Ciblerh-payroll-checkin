@@ -302,10 +302,9 @@ class ImportService
 
         // Update ImportJob with final results
         if ($importJob) {
+            $isCompleteFailure = $totalStats['errors'] > 0 && $totalStats['created'] === 0 && $totalStats['updated'] === 0 && $totalStats['skipped'] === 0;
             $importJob->update([
-                'status' => $totalStats['errors'] > 0 && $totalStats['created'] === 0 && $totalStats['updated'] === 0
-                    ? ImportJob::STATUS_FAILED
-                    : ImportJob::STATUS_COMPLETED,
+                'status' => $isCompleteFailure ? ImportJob::STATUS_FAILED : ImportJob::STATUS_COMPLETED,
                 'processed_rows' => $processedSoFar,
                 'successful_imports' => $totalStats['created'] + $totalStats['updated'],
                 'failed_imports' => $totalStats['errors'],
@@ -316,6 +315,7 @@ class ImportService
                     'auto_create_entities' => $autoCreate,
                     'field_mapping' => $mapping,
                     'entity_type' => $entitySlug,
+                    'stats' => $totalStats,
                 ]),
             ]);
         }
